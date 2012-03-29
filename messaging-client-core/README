@@ -1,0 +1,3 @@
+A very basic interface for publishing messages. The API takes in a stream/channel/category name and a blob and sends it across. Real backends such say a JMS system, scribe or even simple UDP can be plugged behind it without clients having to understand the transport involved. Serialization however, should be performed by the caller.
+
+Dependencies: https://github.com/InMobi/timing-measurement
