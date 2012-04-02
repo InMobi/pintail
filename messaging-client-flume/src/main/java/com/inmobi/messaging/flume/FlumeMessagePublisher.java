@@ -12,6 +12,7 @@ import org.apache.flume.Event;
 import org.apache.flume.EventDeliveryException;
 import org.apache.flume.api.RpcClient;
 import org.apache.flume.api.RpcClientFactory;
+import org.apache.flume.event.EventBuilder;
 
 import com.inmobi.instrumentation.TimingAccumulator.Outcome;
 import com.inmobi.messaging.AbstractMessagePublisher;
@@ -42,7 +43,7 @@ public class FlumeMessagePublisher extends AbstractMessagePublisher {
 
   @Override
   protected void publish(Map<String, String> headers, Message m) {
-    Event event = new FlumeEvent(headers, m);
+    Event event = EventBuilder.withBody(m.getMessage(), headers);
     synchronized(queue) {
       if (!queue.offer(event)) {
         //queue is full
@@ -98,37 +99,6 @@ public class FlumeMessagePublisher extends AbstractMessagePublisher {
           });
         }
       }
-    }
-    
-  }
-  private final static class FlumeEvent implements Event {
-
-    private byte[] body;
-    private Map<String, String> headers;
-
-    FlumeEvent(Map<String, String> headers, Message m) {
-      setHeaders(headers);
-      setBody(m.getMessage());
-    }
-
-    @Override
-    public byte[] getBody() {
-      return body;
-    }
-
-    @Override
-    public Map<String, String> getHeaders() {
-      return headers;
-    }
-
-    @Override
-    public void setBody(byte[] b) {
-      body = b;
-    }
-
-    @Override
-    public void setHeaders(Map<String, String> h) {
-      headers = h;
     }
     
   }
