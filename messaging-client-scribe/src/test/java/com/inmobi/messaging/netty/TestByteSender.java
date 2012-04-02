@@ -15,167 +15,149 @@ import com.inmobi.messaging.TestSimple;
 import com.inmobi.messaging.scribe.ScribeMessagePublisher;
 
 public class TestByteSender {
-	private NtMultiServer server;
-	private ScribeMessagePublisher mb;
-	
-	@BeforeTest
-	public void setUp() {
-		server = TestServerStarter.getServer();
-	}
-	
-	@AfterTest
-	public void tearDown()
-	{
-		server.stop();
-		if(mb != null)
-			mb.close();
-	}
-	
-	@Test()
-	public void simpleSend() throws TException, InterruptedException
-	{
-		server.start();
+  private NtMultiServer server;
+  private ScribeMessagePublisher mb;
 
-		mb = new ScribeMessagePublisher();
-		mb.setHostname("localhost");
-		mb.setPort(TestServerStarter.port);
-		ScribeMessagePublisher m = (ScribeMessagePublisher)mb.build();
-		TestSimple.waitForConnectComplete(m);
-		m.setFixedCategory("ch");
-		TimingAccumulator inspector = m.getInspector().getStats();
-		
-		long success = inspector.getSuccessCount();
-		m.publish("mmmm".getBytes());
+  @BeforeTest
+  public void setUp() {
+    server = TestServerStarter.getServer();
+  }
 
-		//Wait for all operations to complete
-		while(inspector.getInFlight() != 0)
-		{
-			Thread.sleep(100);
-		}
-		assertEquals(inspector.getSuccessCount(), success + 1);
-	}
+  @AfterTest
+  public void tearDown() {
+    server.stop();
+    if (mb != null)
+      mb.close();
+  }
 
-	@Test(timeOut = 10000)
-	public void serialBlaster() throws TException, InterruptedException
-	{
-		final int loop = 100*1000;
-		
-		server.start();
+  @Test()
+  public void simpleSend() throws TException, InterruptedException {
+    server.start();
 
-		mb = new ScribeMessagePublisher();
-		mb.setHostname("localhost");
-		mb.setPort(TestServerStarter.port);
-		ScribeMessagePublisher m = (ScribeMessagePublisher) mb.build();
-		TestSimple.waitForConnectComplete(m);
-		m.setFixedCategory("ch");
-				
-		TimingAccumulator inspector = m.getInspector().getStats();
-		
-		long success = inspector.getSuccessCount();
-		
-		for(int i = 0; i < loop; i++)
-		{
-			m.publish( ("mmmm" + i).getBytes() );
-		}
+    mb = new ScribeMessagePublisher();
+    mb.setHostname("localhost");
+    mb.setPort(TestServerStarter.port);
+    ScribeMessagePublisher m = (ScribeMessagePublisher) mb.build();
+    TestSimple.waitForConnectComplete(m);
+    m.setFixedCategory("ch");
+    TimingAccumulator inspector = m.getInspector().getStats();
 
-		//Wait for all operations to complete
-		while(inspector.getInFlight() != 0)
-		{
-			Thread.sleep(100);
-		}
-		
-		assertEquals(inspector.getSuccessCount(), success + loop);
-	}
+    long success = inspector.getSuccessCount();
+    m.publish("mmmm".getBytes());
 
-	@Test(timeOut = 10000)
-	public void throttledSerialBlaster() throws TException, InterruptedException
-	{
-		final int loop = 100*1000;
-		
-		server.start();
+    // Wait for all operations to complete
+    while (inspector.getInFlight() != 0) {
+      Thread.sleep(100);
+    }
+    assertEquals(inspector.getSuccessCount(), success + 1);
+  }
 
-		mb = new ScribeMessagePublisher();
-		mb.setHostname("localhost");
-		mb.setPort(TestServerStarter.port);
-		ScribeMessagePublisher m = (ScribeMessagePublisher) mb.build();
-		TestSimple.waitForConnectComplete(m);
-		m.setFixedCategory("ch");
-				
-		TimingAccumulator inspector = m.getInspector().getStats();
-		
-		long success = inspector.getSuccessCount();
-		
-		for(int i = 0; i < loop; i++)
-		{
-			m.publish( ("mmmm" + i).getBytes() );
-			if( (i & 0x3fff) == 0)
-			{
-				System.out.println("pacing after " + i);
-				Thread.sleep(60);
-			}
-		}
+  @Test(timeOut = 10000)
+  public void serialBlaster() throws TException, InterruptedException {
+    final int loop = 100 * 1000;
 
-		//Wait for all operations to complete
-		while(inspector.getInFlight() != 0)
-		{
-			Thread.sleep(100);
-		}
-		
-		assertEquals(inspector.getSuccessCount(), success + loop);
-	}
+    server.start();
 
-	@Test(timeOut = 10000)
-	public void concurrentSend() throws TException, InterruptedException
-	{
-		final int loop = 1000;
-		final int threadCount = 100;
+    mb = new ScribeMessagePublisher();
+    mb.setHostname("localhost");
+    mb.setPort(TestServerStarter.port);
+    ScribeMessagePublisher m = (ScribeMessagePublisher) mb.build();
+    TestSimple.waitForConnectComplete(m);
+    m.setFixedCategory("ch");
 
-		Thread t[] = new Thread[threadCount];
-		
-		server.start();
+    TimingAccumulator inspector = m.getInspector().getStats();
 
-		mb = new ScribeMessagePublisher();
-		mb.setHostname("localhost");
-		mb.setPort(TestServerStarter.port);
-		final ScribeMessagePublisher m = (ScribeMessagePublisher) mb.build();
-		TestSimple.waitForConnectComplete(m);
-		m.setFixedCategory("ch");
-				
-		TimingAccumulator inspector = m.getInspector().getStats();
-		
-		long success = inspector.getSuccessCount();
-		
-		for(int i = 0; i < threadCount; i++)
-		{
-			t[i] = new Thread()
-			{
-				@Override
-				public void run()
-				{
-					for(int i = 0; i < loop; i++)
-					{
-						m.publish( ("mmmm" + i + Thread.currentThread().getId()).getBytes() );
-					}
-				}
-			};
-		}
+    long success = inspector.getSuccessCount();
 
-		for(int i = 0; i < threadCount; i++)
-		{
-			t[i].start();
-		}
+    for (int i = 0; i < loop; i++) {
+      m.publish(("mmmm" + i).getBytes());
+    }
 
-		for(int i = 0; i < threadCount; i++)
-		{
-			t[i].join();
-		}
-		
-		//Wait for all operations to complete
-		while(inspector.getInFlight() != 0)
-		{
-			Thread.sleep(100);
-		}
-		
-		assertEquals(inspector.getSuccessCount(), success + loop*threadCount);
-	}
+    // Wait for all operations to complete
+    while (inspector.getInFlight() != 0) {
+      Thread.sleep(100);
+    }
+
+    assertEquals(inspector.getSuccessCount(), success + loop);
+  }
+
+  @Test(timeOut = 10000)
+  public void throttledSerialBlaster() throws TException, InterruptedException {
+    final int loop = 100 * 1000;
+
+    server.start();
+
+    mb = new ScribeMessagePublisher();
+    mb.setHostname("localhost");
+    mb.setPort(TestServerStarter.port);
+    ScribeMessagePublisher m = (ScribeMessagePublisher) mb.build();
+    TestSimple.waitForConnectComplete(m);
+    m.setFixedCategory("ch");
+
+    TimingAccumulator inspector = m.getInspector().getStats();
+
+    long success = inspector.getSuccessCount();
+
+    for (int i = 0; i < loop; i++) {
+      m.publish(("mmmm" + i).getBytes());
+      if ((i & 0x3fff) == 0) {
+        System.out.println("pacing after " + i);
+        Thread.sleep(60);
+      }
+    }
+
+    // Wait for all operations to complete
+    while (inspector.getInFlight() != 0) {
+      Thread.sleep(100);
+    }
+
+    assertEquals(inspector.getSuccessCount(), success + loop);
+  }
+
+  @Test(timeOut = 10000)
+  public void concurrentSend() throws TException, InterruptedException {
+    final int loop = 1000;
+    final int threadCount = 100;
+
+    Thread t[] = new Thread[threadCount];
+
+    server.start();
+
+    mb = new ScribeMessagePublisher();
+    mb.setHostname("localhost");
+    mb.setPort(TestServerStarter.port);
+    final ScribeMessagePublisher m = (ScribeMessagePublisher) mb.build();
+    TestSimple.waitForConnectComplete(m);
+    m.setFixedCategory("ch");
+
+    TimingAccumulator inspector = m.getInspector().getStats();
+
+    long success = inspector.getSuccessCount();
+
+    for (int i = 0; i < threadCount; i++) {
+      t[i] = new Thread() {
+        @Override
+        public void run() {
+          for (int i = 0; i < loop; i++) {
+            m.publish(("mmmm" + i + Thread.currentThread().getId()).getBytes());
+          }
+        }
+      };
+    }
+
+    for (int i = 0; i < threadCount; i++) {
+      t[i].start();
+    }
+
+    for (int i = 0; i < threadCount; i++) {
+      t[i].join();
+    }
+
+    // Wait for all operations to complete
+    while (inspector.getInFlight() != 0) {
+      Thread.sleep(100);
+    }
+
+    assertEquals(inspector.getSuccessCount(), success + loop * threadCount);
+  }
 }

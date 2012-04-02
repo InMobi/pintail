@@ -15,42 +15,41 @@ import random.pkg.NtMultiServer;
 import scribe.thrift.LogEntry;
 
 public class TestLogger {
-	private NtMultiServer server;
-	
-	@BeforeTest
-	public void setUp() {
-		server = TestServerStarter.getServer();
-	}
+  private NtMultiServer server;
 
-	@AfterTest
-	public void tearDown()
-	{
-		server.stop();
-	}
-	
-	@Test
-	public void log() throws InterruptedException
-    {
-        server.start();
+  @BeforeTest
+  public void setUp() {
+    server = TestServerStarter.getServer();
+  }
 
-        PropertyConfigurator.configure("src/test/resources/log-four-jay.properties");
+  @AfterTest
+  public void tearDown() {
+    server.stop();
+  }
 
-        Logger l = Logger.getLogger("localscribe");
-        TimingAccumulator inspector = ((ScribeMessagePublisher)l.getAppender("SA2")).getStats();
+  @Test
+  public void log() throws InterruptedException {
+    server.start();
 
-        LogEntry le = new LogEntry();
-        le.category="xxxx";
-        le.message="massage";
+    PropertyConfigurator
+        .configure("src/test/resources/log-four-jay.properties");
 
-        long success = inspector.getSuccessCount();
+    Logger l = Logger.getLogger("localscribe");
+    TimingAccumulator inspector = ((ScribeMessagePublisher) l
+        .getAppender("SA2")).getStats();
 
-        l.fatal(le);
+    LogEntry le = new LogEntry();
+    le.category = "xxxx";
+    le.message = "massage";
 
-        //Wait for all operations to complete
-        while(inspector.getInFlight() != 0)
-        {
-            Thread.sleep(1000);
-        }
-        assertEquals(inspector.getSuccessCount(), success + 1);
+    long success = inspector.getSuccessCount();
+
+    l.fatal(le);
+
+    // Wait for all operations to complete
+    while (inspector.getInFlight() != 0) {
+      Thread.sleep(1000);
     }
+    assertEquals(inspector.getSuccessCount(), success + 1);
+  }
 }
