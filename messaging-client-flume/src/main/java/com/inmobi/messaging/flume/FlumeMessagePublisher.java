@@ -31,8 +31,8 @@ public class FlumeMessagePublisher extends AbstractMessagePublisher {
   private Thread senderThread;
 
   @Override
-  public void init(String topic, ClientConfig config) {
-    super.init(topic, config);
+  public void init(ClientConfig config) {
+    super.init(config);
     threadPool = new ThreadPoolExecutor(CONCURRENT_SENDERS, 
         CONCURRENT_SENDERS, 1, TimeUnit.HOURS,
         new LinkedBlockingQueue<Runnable>());

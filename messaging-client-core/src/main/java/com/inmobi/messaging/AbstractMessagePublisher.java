@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.inmobi.instrumentation.TimingAccumulator;
-import com.inmobi.messaging.Message;
 import com.inmobi.stats.EmitterRegistry;
 import com.inmobi.stats.StatsEmitter;
 import com.inmobi.stats.StatsExposer;
@@ -12,20 +11,16 @@ import com.inmobi.stats.StatsExposer;
 public abstract class AbstractMessagePublisher implements MessagePublisher {
 
   private final TimingAccumulator stats = new TimingAccumulator();
-  private String topic;
   private StatsEmitter emitter;
   private StatsExposer statExposer;
-
-  @Override
-  public String getTopic() {
-    return topic;
-  }
+  private static final String HEADER_TOPIC = "topic";
 
   @Override
   public void publish(Message m) {
     getStats().accumulateInvocation();
     //TODO: generate headers
     Map<String, String> headers = new HashMap<String, String>();
+    headers.put(HEADER_TOPIC, m.getTopic());
     publish(headers, m);
   }
 
@@ -37,13 +32,11 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
   }
 
   @Override
-  public void init(String topic, ClientConfig config) {
-    this.topic = topic;
+  public void init(ClientConfig config) {
     try {
       String emitterConfig = null;//TODO; get from the classpath
       emitter = EmitterRegistry.lookup(emitterConfig);
       final Map<String, String> contexts = new HashMap<String, String>();
-      contexts.put("topic", topic);
       contexts.put("messaging_type", "application");
       statExposer = new StatsExposer() {
 

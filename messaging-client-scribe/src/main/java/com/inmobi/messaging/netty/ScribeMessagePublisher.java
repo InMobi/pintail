@@ -43,8 +43,8 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher {
   }
 
   @Override
-  public void init(String topic, ClientConfig config) {
-    super.init(topic, config);
+  public void init(ClientConfig config) {
+    super.init(config);
     host = config.getString("host", "localhost");
     port = config.getInteger("port", 1111);
     int backoffSeconds = config.getInteger("backoffSeconds", 5);
@@ -64,7 +64,7 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher {
   @Override
   protected void publish(Map<String, String> headers, Message m) {
     if (ch != null) {
-      ScribeBites.publish(ch, getTopic(), m);
+      ScribeBites.publish(ch, m.getTopic(), m);
     } else {
       suggestReconnect();
     }

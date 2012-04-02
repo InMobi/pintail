@@ -3,6 +3,11 @@ package com.inmobi.messaging;
 import org.apache.log4j.AppenderSkeleton;
 import org.apache.log4j.spi.LoggingEvent;
 
+/*
+ * Setting of fixed topic is deprecated.
+ * Only com.inmobi.messaging.Message is valid object type in 
+ * LoggingEvent.getMessage(). byte[], String and TBase types are deprecated.
+ */
 public class MessageAppender extends AppenderSkeleton {
 
   private String topic;
@@ -18,10 +23,15 @@ public class MessageAppender extends AppenderSkeleton {
     this.publisherClass = publisherClass;
   }
 
+  @Deprecated
   public String getTopic() {
     return topic;
   }
 
+  /*
+   * Setting of fixed topic is deprecated
+   */
+  @Deprecated
   public void setTopic(String topic) {
     this.topic = topic;
   }
@@ -41,10 +51,13 @@ public class MessageAppender extends AppenderSkeleton {
   @Override
   protected void append(LoggingEvent event) {
     Object o = event.getMessage();
-    if (o instanceof byte[]) {
-      publisher.publish(new Message((byte[]) o));
-    } else if (o instanceof String) {
-      publisher.publish(new Message(((String) o).getBytes()));
+    if (o instanceof Message) {
+      publisher.publish((Message) o);
+    }
+    else if (o instanceof byte[]) {//deprecated support
+      publisher.publish(new Message(this.topic, (byte[]) o));
+    } else if (o instanceof String) {//deprecated support
+      publisher.publish(new Message(this.topic, ((String) o).getBytes()));
     } /*else 
       //TBase support only for backward compatibility
       //would be deprecated
@@ -65,7 +78,7 @@ public class MessageAppender extends AppenderSkeleton {
       Class clz = Class.forName(publisherClass);
       publisher = (AbstractMessagePublisher) clz.newInstance();
       ClientConfig config = ClientConfig.load();
-      publisher.init(topic, config);
+      publisher.init(config);
     } catch (Exception e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
