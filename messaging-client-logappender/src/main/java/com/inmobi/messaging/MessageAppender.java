@@ -12,15 +12,15 @@ public class MessageAppender extends AppenderSkeleton {
 
   private String topic;
 
-  private String publisherClass;
+  private String confFile;
   private MessagePublisher publisher;
 
-  public String getPublisherClass() {
-    return publisherClass;
+  public String getConfFile() {
+    return confFile;
   }
 
-  public void setPublisherClass(String publisherClass) {
-    this.publisherClass = publisherClass;
+  public void setConfFile(String setConfFile) {
+    this.confFile = setConfFile;
   }
 
   @Deprecated
@@ -74,15 +74,11 @@ public class MessageAppender extends AppenderSkeleton {
   @Override
   public void activateOptions() {
     super.activateOptions();
-    try {
-      Class clz = Class.forName(publisherClass);
-      publisher = (AbstractMessagePublisher) clz.newInstance();
-      ClientConfig config = ClientConfig.load();
-      publisher.init(config);
-    } catch (Exception e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-      throw new RuntimeException(e);
+    if (confFile != null) {
+      publisher = MessagePublisherFactory.create(confFile);
+    } else {
+      publisher = MessagePublisherFactory.create();
     }
+    
   }
 }

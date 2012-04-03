@@ -3,6 +3,9 @@ package com.inmobi.messaging;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.inmobi.instrumentation.TimingAccumulator;
 import com.inmobi.stats.EmitterRegistry;
 import com.inmobi.stats.StatsEmitter;
@@ -10,31 +13,43 @@ import com.inmobi.stats.StatsExposer;
 
 public abstract class AbstractMessagePublisher implements MessagePublisher {
 
+  private static final Logger LOG = LoggerFactory
+      .getLogger(AbstractMessagePublisher.class);
   private final TimingAccumulator stats = new TimingAccumulator();
   private StatsEmitter emitter;
+  private boolean statEnabled = false;
   private StatsExposer statExposer;
   private static final String HEADER_TOPIC = "topic";
 
   @Override
   public void publish(Message m) {
     getStats().accumulateInvocation();
-    //TODO: generate headers
+    // TODO: generate headers
     Map<String, String> headers = new HashMap<String, String>();
     headers.put(HEADER_TOPIC, m.getTopic());
     publish(headers, m);
   }
 
-  protected abstract void publish(Map<String, String> headers,
-      Message m);
+  protected abstract void publish(Map<String, String> headers, Message m);
 
   public TimingAccumulator getStats() {
     return stats;
   }
 
+  protected boolean statEmissionEnabled() {
+    return statEnabled;
+  }
+
   @Override
   public void init(ClientConfig config) {
     try {
-      String emitterConfig = null;//TODO; get from the classpath
+      String emitterConfig = config
+          .getString(ClientConfig.EMITTER_CONF_FILE_KEY);
+      if (emitterConfig == null) {
+        LOG.warn("Stat emitter is disabled as config "
+            + ClientConfig.EMITTER_CONF_FILE_KEY + " is not set in the config.");
+        return;
+      }
       emitter = EmitterRegistry.lookup(emitterConfig);
       final Map<String, String> contexts = new HashMap<String, String>();
       contexts.put("messaging_type", "application");
@@ -59,15 +74,16 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
         }
       };
       emitter.add(statExposer);
+      statEnabled = true;
     } catch (Exception e) {
-      System.err
-          .println("Couldn't find or initialize the configured stats emitter");
-      e.printStackTrace();
+      LOG.warn("Couldn't find or initialize the configured stats emitter", e);
     }
   }
 
   @Override
   public void close() {
-    emitter.remove(statExposer);
+    if (emitter != null) {
+      emitter.remove(statExposer);
+    }
   }
 }
