@@ -2,9 +2,12 @@ package com.inmobi.messaging;
 
 import java.net.URL;
 import java.util.Map;
+import java.util.Properties;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
+
+import com.inmobi.stats.StatsEmitterBase;
 
 public class TestPublisher {
 
@@ -13,8 +16,11 @@ public class TestPublisher {
     ClientConfig conf = new ClientConfig();
     conf.set(ClientConfig.PUBLISHER_CLASS_NAME_KEY,
         MockPublisher.class.getName());
-    MessagePublisher publisher = MessagePublisherFactory.create(conf);
+    AbstractMessagePublisher publisher =
+        (AbstractMessagePublisher) MessagePublisherFactory.create(conf);
     doTest(publisher);
+    Assert.assertFalse(publisher.statEmissionEnabled());
+    Assert.assertFalse(MockStatsEmitter.inited);
   }
 
   @Test
@@ -22,7 +28,8 @@ public class TestPublisher {
     AbstractMessagePublisher publisher =
         (AbstractMessagePublisher) MessagePublisherFactory.create();
     doTest(publisher);
-    //Assert.assertTrue(publisher.statEmissionEnabled());
+    Assert.assertTrue(publisher.statEmissionEnabled());
+    Assert.assertTrue(MockStatsEmitter.inited);
   }
 
   @Test
@@ -33,7 +40,8 @@ public class TestPublisher {
         (AbstractMessagePublisher) MessagePublisherFactory.create(
             url.getFile());
     doTest(publisher);
-    //Assert.assertTrue(publisher.statEmissionEnabled());
+    Assert.assertTrue(publisher.statEmissionEnabled());
+    Assert.assertTrue(MockStatsEmitter.inited);
   }
 
   private void doTest(MessagePublisher publisher) {
@@ -53,6 +61,17 @@ public class TestPublisher {
     protected void publish(Map<String, String> headers, Message m) {
       msg = m;
     }
-
+  }
+  
+  public static class MockStatsEmitter extends StatsEmitterBase {
+    private static boolean inited;
+    static void reset() {
+      inited = false;
+    }
+    @Override
+    public void init(Properties props) {
+      inited = true;
+    }
+    
   }
 }
