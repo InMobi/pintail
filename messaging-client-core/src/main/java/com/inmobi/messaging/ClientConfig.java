@@ -1,5 +1,8 @@
 package com.inmobi.messaging;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,6 +13,14 @@ public class ClientConfig {
 
   public ClientConfig(Map<String, String> params) {
     this.params = params;
+  }
+
+  public static ClientConfig load(String confFile) {
+    try {
+      return load(new FileInputStream(new File(confFile)));
+    } catch (FileNotFoundException e) {
+      throw new RuntimeException("could not load conf file " + confFile, e);
+    }
   }
 
   public static ClientConfig load(InputStream in) {
