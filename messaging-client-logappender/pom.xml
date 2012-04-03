@@ -3,38 +3,26 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-          <artifactId>client-parent</artifactId>
-          <groupId>com.inmobi.messaging</groupId>
-          <version>0.0.1</version>
-        </parent>
+    <artifactId>messaging-client-parent</artifactId>
+    <groupId>com.inmobi.messaging</groupId>
+    <version>${project.version}</version>
+  </parent>
 
-        <artifactId>messaging-client-logappender</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <artifactId>messaging-client-logappender</artifactId>
+  <version>${project.version}</version>
   <packaging>jar</packaging>
-
-  <url>http://maven.apache.org</url>
-
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
 
   <dependencies>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>3.8.1</version>
-      <scope>test</scope>
+      <groupId>com.inmobi.messaging</groupId>
+      <artifactId>messaging-client-core</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
-      <version>1.2.16</version>
     </dependency>
-    <dependency>
-      <groupId>com.inmobi.messaging</groupId>
-      <artifactId>messaging-client-core</artifactId>
-      <version>0.0.2</version>
-    </dependency>
+
   </dependencies>
 
 </project>
