@@ -1,13 +1,9 @@
 package com.inmobi.messaging;
 
 import java.net.URL;
-import java.util.Map;
-import java.util.Properties;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
-
-import com.inmobi.stats.StatsEmitterBase;
 
 public class TestPublisher {
 
@@ -52,26 +48,5 @@ public class TestPublisher {
     MockPublisher.reset();
   }
 
-  public static class MockPublisher extends AbstractMessagePublisher {
-    private static Message msg;
-    static void reset() {
-      msg = null;
-    }
-    @Override
-    protected void publish(Map<String, String> headers, Message m) {
-      msg = m;
-    }
-  }
   
-  public static class MockStatsEmitter extends StatsEmitterBase {
-    private static boolean inited;
-    static void reset() {
-      inited = false;
-    }
-    @Override
-    public void init(Properties props) {
-      inited = true;
-    }
-    
-  }
 }
