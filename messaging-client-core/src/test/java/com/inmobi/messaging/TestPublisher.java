@@ -43,9 +43,15 @@ public class TestPublisher {
   private void doTest(AbstractMessagePublisher publisher) {
     Message msg = new Message("test", new byte[5]);
     long invocation = publisher.getStats().getInvocationCount();
+    long success = publisher.getStats().getSuccessCount();
+    long unhandledException = publisher.getStats().getUnhandledExceptionCount();
     publisher.publish(msg);
     Assert.assertEquals(publisher.getStats().getInvocationCount(), 
-        invocation + 1);
+        invocation + 1, "invocation count");
+    Assert.assertEquals(publisher.getStats().getSuccessCount(), 
+        success + 1, "success count");
+    Assert.assertEquals(publisher.getStats().getUnhandledExceptionCount(), 
+        unhandledException, "unhandledexception count");
     publisher.close();
     Assert.assertEquals(MockPublisher.msg, msg);
     MockPublisher.reset();

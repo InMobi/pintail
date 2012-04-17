@@ -9,10 +9,11 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.flume.Event;
-import org.apache.flume.EventDeliveryException;
 import org.apache.flume.api.RpcClient;
 import org.apache.flume.api.RpcClientFactory;
 import org.apache.flume.event.EventBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.inmobi.instrumentation.TimingAccumulator.Outcome;
 import com.inmobi.messaging.AbstractMessagePublisher;
@@ -20,6 +21,9 @@ import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 
 public class FlumeMessagePublisher extends AbstractMessagePublisher {
+
+  private static final Logger LOG = LoggerFactory
+      .getLogger(FlumeMessagePublisher.class);
 
   private static final int BUFFER_SIZE = 10000;
   private static final int CONCURRENT_SENDERS = 3;
@@ -36,18 +40,27 @@ public class FlumeMessagePublisher extends AbstractMessagePublisher {
     threadPool = new ThreadPoolExecutor(CONCURRENT_SENDERS, 
         CONCURRENT_SENDERS, 1, TimeUnit.HOURS,
         new LinkedBlockingQueue<Runnable>());
-    rpcClient = RpcClientFactory.getInstance(config.getString("host",
-        "localhost"), config.getInteger("port", 1111));
+    rpcClient = createRpcClient(config);
     senderThread = new Thread(new AsyncSender());
+    senderThread.start();
+  }
+
+  protected RpcClient createRpcClient(ClientConfig config) {
+    return RpcClientFactory.getInstance(config.getString("flume.host",
+        "localhost"), config.getInteger("flume.port", 1111));
   }
 
   @Override
   protected void publish(Map<String, String> headers, Message m) {
+    //headers.put("streamName", "rr");
     Event event = EventBuilder.withBody(m.getMessage(), headers);
     synchronized(queue) {
       if (!queue.offer(event)) {
         //queue is full
         //dropping the message
+        LOG.warn("Queue is full. dropping the message");
+        getStats().accumulateOutcomeWithDelta(
+            Outcome.UNHANDLED_FAILURE, 0);
       }
       queue.notify();
     }
@@ -89,11 +102,17 @@ public class FlumeMessagePublisher extends AbstractMessagePublisher {
             public void run() {
               try {
                 rpcClient.appendBatch(batch);
-              } catch (EventDeliveryException e) {
+                for (int i = 0;i < batch.size(); i++) {
+                  getStats().accumulateOutcomeWithDelta(
+                      Outcome.SUCCESS, 0);
+                }
+              } catch (Exception e) {
                 // TODO handle this
-                getStats().accumulateOutcomeWithDelta(
-                    Outcome.UNHANDLED_FAILURE, 0);
-                e.printStackTrace();
+                for (int i = 0;i < batch.size(); i++) {
+                  getStats().accumulateOutcomeWithDelta(
+                      Outcome.UNHANDLED_FAILURE, 0);
+                }
+                LOG.warn("Could not send batch of size " + batch.size(), e);
               }
             }
           });
