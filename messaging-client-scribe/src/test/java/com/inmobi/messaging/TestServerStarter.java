@@ -2,13 +2,12 @@ package com.inmobi.messaging;
 
 import static org.testng.Assert.assertNotNull;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeSuite;
 
 import random.pkg.NtMultiServer;
+
+import com.inmobi.messaging.netty.ScribeMessagePublisher;
 
 public class TestServerStarter {
   private static NtMultiServer server;
@@ -37,12 +36,15 @@ public class TestServerStarter {
 
   public static final int port = 7912;
 
-  public static ClientConfig createConfig(String host, int port) {
-    Map<String, String> props = new HashMap<String, String>();
-    props.put("host", host);
-    props.put("port", String.valueOf(port));
-    ClientConfig config = new ClientConfig(props);
-    return config;
+  public static ScribeMessagePublisher createPublisher(int port, 
+      int timeout) {
+    ScribeMessagePublisher pub = new ScribeMessagePublisher();
+    pub.init("localhost", port, 5, timeout);
+    return pub;
+  }
+
+  public static ScribeMessagePublisher createPublisher() {
+    return createPublisher(port, 5);
   }
 
 }

@@ -42,14 +42,8 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher {
     }
   }
 
-  @Override
-  public void init(ClientConfig config) {
-    super.init(config);
-    host = config.getString("host", "localhost");
-    port = config.getInteger("port", 1111);
-    int backoffSeconds = config.getInteger("backoffSeconds", 5);
-    int timeoutSeconds = config.getInteger("timeoutSeconds", 5);
-    
+  public void init(String host, int port, 
+      int backoffSeconds, int timeoutSeconds) {
     bootstrap = new ClientBootstrap(NettyEventCore.getInstance().getFactory());
 
     ScribeHandler handler = new ScribeHandler(getStats(), new ChannelSetter(),
@@ -59,6 +53,16 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher {
 
     bootstrap.setPipelineFactory(cfactory);
     bootstrap.connect(new InetSocketAddress(host, port));
+  }
+
+  @Override
+  public void init(ClientConfig config) {
+    super.init(config);
+    String host = config.getString("host", "localhost");
+    int port = config.getInteger("port", 1111);
+    int backoffSeconds = config.getInteger("backoffSeconds", 5);
+    int timeoutSeconds = config.getInteger("timeoutSeconds", 5);
+    init(host, port, backoffSeconds, timeoutSeconds);
   }
 
   @Override

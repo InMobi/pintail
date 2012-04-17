@@ -11,7 +11,7 @@ import random.pkg.NtMultiServer;
 import random.pkg.ScribeSlacker;
 
 import com.inmobi.instrumentation.TimingAccumulator;
-import com.inmobi.messaging.scribe.ScribeMessagePublisher;
+import com.inmobi.messaging.netty.ScribeMessagePublisher;
 
 public class TestTimeouts {
   private NtMultiServer server;
@@ -37,17 +37,13 @@ public class TestTimeouts {
       tserver = new NtMultiServer(new ScribeSlacker(), port);
       tserver.start();
 
-      mb = new ScribeMessagePublisher();
-      mb.setHostname("localhost");
-      mb.setPort(port);
       int timeoutSeconds = 2;
-      mb.setTimeoutSeconds(timeoutSeconds);
-      MessagePublisher m = mb.build();
-      TestSimple.waitForConnectComplete(m);
-      TimingAccumulator inspector = m.getInspector().getStats();
+      mb = TestServerStarter.createPublisher(port, timeoutSeconds);
+      TestSimple.waitForConnectComplete(mb);
+      TimingAccumulator inspector = mb.getStats();
 
       long error = inspector.getUnhandledExceptionCount();
-      m.publish(new Message("ch", "mmmm".getBytes()));
+      mb.publish(new Message("ch", "mmmm".getBytes()));
 
       Thread.sleep((timeoutSeconds + 1) * 1000);
       assertEquals(inspector.getInFlight(), 0,

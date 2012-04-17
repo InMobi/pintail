@@ -40,9 +40,12 @@ public class TestPublisher {
     Assert.assertTrue(MockStatsEmitter.inited);
   }
 
-  private void doTest(MessagePublisher publisher) {
+  private void doTest(AbstractMessagePublisher publisher) {
     Message msg = new Message("test", new byte[5]);
+    long invocation = publisher.getStats().getInvocationCount();
     publisher.publish(msg);
+    Assert.assertEquals(publisher.getStats().getInvocationCount(), 
+        invocation + 1);
     publisher.close();
     Assert.assertEquals(MockPublisher.msg, msg);
     MockPublisher.reset();
