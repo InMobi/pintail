@@ -66,7 +66,7 @@ public class ClientConfig {
     return load(in);
   }
 
-  public void set(String key, String value) {
+  void set(String key, String value) {
     params.put(key, value);
   }
 

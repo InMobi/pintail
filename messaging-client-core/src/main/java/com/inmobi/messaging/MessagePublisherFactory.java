@@ -29,10 +29,10 @@ public class MessagePublisherFactory {
     Class<?> clazz;
     String publisherName = config
         .getString(ClientConfig.PUBLISHER_CLASS_NAME_KEY);
-    MessagePublisher publisher = null;
+    AbstractMessagePublisher publisher = null;
     try {
       clazz = Class.forName(publisherName);
-      publisher = (MessagePublisher) clazz.newInstance();
+      publisher = (AbstractMessagePublisher) clazz.newInstance();
 
     } catch (Exception e) {
       throw new RuntimeException("Could not create message publisher "

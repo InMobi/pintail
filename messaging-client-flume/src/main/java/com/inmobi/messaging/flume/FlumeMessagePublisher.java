@@ -60,8 +60,9 @@ public class FlumeMessagePublisher extends AbstractMessagePublisher {
         // dropping the message
         LOG.warn("Queue is full. dropping the message");
         getStats().accumulateOutcomeWithDelta(Outcome.UNHANDLED_FAILURE, 0);
+      } else {
+        queue.notify();
       }
-      queue.notify();
     }
   }
 
@@ -69,6 +70,7 @@ public class FlumeMessagePublisher extends AbstractMessagePublisher {
   public void close() {
     super.close();
     stopped = true;
+    senderThread.interrupt();
     try {
       senderThread.join();
     } catch (InterruptedException e) {
@@ -93,9 +95,10 @@ public class FlumeMessagePublisher extends AbstractMessagePublisher {
           }
           final List<Event> batch = new ArrayList<Event>();
           synchronized (queue) {
-            if (queue.size() >= rpcClient.getBatchSize()) {
-              for (int i = 0; i < rpcClient.getBatchSize(); i++) {
+            if (queue.size() >= batchSize) {
+              for (int i = 0; i < batchSize; i++) {
                 batch.add(queue.remove());
+                
               }
             }
           }

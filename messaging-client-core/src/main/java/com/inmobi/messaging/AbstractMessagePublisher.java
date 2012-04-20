@@ -40,8 +40,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     return statEnabled;
   }
 
-  @Override
-  public void init(ClientConfig config) {
+  protected void init(ClientConfig config) {
     try {
       String emitterConfig = config
           .getString(ClientConfig.EMITTER_CONF_FILE_KEY);
