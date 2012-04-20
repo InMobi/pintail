@@ -24,8 +24,8 @@
 # constants
 ################################
 
-CLIENT_FILELOGGER_CLASS="com.inmobi.messaging.example.FileLogger"
-CLIENT_SEQGEN_CLASS="com.inmobi.messaging.SeqGenerator"
+CLIENT_FILELOGGER_CLASS="com.inmobi.messaging.example.FileLoggerClient"
+CLIENT_SEQGEN_CLASS="com.inmobi.messaging.example.SeqGeneratorClient"
 
 ################################
 # functions
@@ -62,7 +62,7 @@ Usage: $0 <command> [options]...
 commands:
   help                  display this help text
   file                  run a file logger
-  seqgenerator          run an avro Seq Generator
+  seqgen          run an avro Seq Generator
 
 global options:
   --conf,-c <conf>      use configs in <conf> directory
@@ -73,7 +73,7 @@ file options:
   --conf-file,-f        specify a config file (required)
   --help,-h             display help text
 
-seqgenerator options:
+seqgen options:
   --conf-file,-f        specify a config file (required)
   --help,-h             display help text
 
@@ -120,8 +120,8 @@ case "$mode" in
   file)
     opt_file=1
     ;;
-  seqgenerator)
-    opt_seqgenerator=1
+  seqgen)
+    opt_seqgen=1
     ;;
   *)
     error "Unknown or unspecified command '$mode'"
@@ -172,11 +172,17 @@ if [ -z "${CLIENT_HOME}" ] ; then
 fi
 #echo CLIENT_HOME is $CLIENT_HOME
 
+#DEV_CLASSPATH=${CLIENT_HOME}/timing-measurement/target/classes
+#DEV_CLASSPATH=$DEV_CLASSPATH:${CLIENT_HOME}/messaging-client-core/target/classes
+#DEV_CLASSPATH=$DEV_CLASSPATH:${CLIENT_HOME}/messaging-client-logappender/target/classes
+#DEV_CLASSPATH=$DEV_CLASSPATH:${CLIENT_HOME}/messaging-client-scribe/target/classes
+#DEV_CLASSPATH=$DEV_CLASSPATH:${CLIENT_HOME}/messaging-client-flume/target/classes
+
 # Append to the classpath
 if [ -n "${CLIENT_CLASSPATH}" ] ; then
-  CLIENT_CLASSPATH="${CLIENT_HOME}/lib/*:$CLIENT_CLASSPATH"
+  CLIENT_CLASSPATH="${CLIENT_HOME}/lib/*:$DEV_CLASSPATH:$CLIENT_CLASSPATH"
 else
-  CLIENT_CLASSPATH="${CLIENT_HOME}/lib/*"
+  CLIENT_CLASSPATH="${CLIENT_HOME}/lib/*:$DEV_CLASSPATH"
 fi
 
 # prepend conf dir to classpath
@@ -187,7 +193,7 @@ fi
 # finally, invoke the appropriate command
 if [ -n "$opt_file" ] ; then
   run_client $CLIENT_FILELOGGER_CLASS $args
-elif [ -n "$opt_seqgenerator" ] ; then
+elif [ -n "$opt_seqgen" ] ; then
   run_client $CLIENT_SEQGEN_CLASS $args
 else
   error "This message should never appear" 1
