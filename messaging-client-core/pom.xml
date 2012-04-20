@@ -13,12 +13,7 @@
   <packaging>jar</packaging>
 
   <dependencies>
-    <dependency>
-      <groupId>com.inmobi.messaging</groupId>
-      <artifactId>timing-measurement</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
+    
     <dependency>
       <groupId>com.inmobi.stats</groupId>
       <artifactId>common</artifactId>

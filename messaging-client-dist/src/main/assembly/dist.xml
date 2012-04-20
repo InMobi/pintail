@@ -31,7 +31,6 @@
     <moduleSet>
 
       <includes>
-        <include>com.inmobi.messaging:timing-measurement</include>
         <include>com.inmobi.messaging:messaging-client-core</include>
         <include>com.inmobi.messaging:messaging-client-logappender</include>
         <include>com.inmobi.messaging:messaging-client-scribe</include>
@@ -58,7 +57,6 @@
 
       <excludes>
         <exclude>messaging-client-core/**</exclude>
-        <exclude>timing-measurement/**</exclude>
         <exclude>messaging-client-logappender/**</exclude>
         <exclude>messaging-client-scribe/**</exclude>
         <exclude>messaging-client-flume/**</exclude>

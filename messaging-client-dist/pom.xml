@@ -77,11 +77,6 @@
   <dependencies>
     <dependency>
       <groupId>com.inmobi.messaging</groupId>
-      <artifactId>timing-measurement</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.inmobi.messaging</groupId>
       <artifactId>messaging-client-core</artifactId>
       <version>${project.version}</version>
     </dependency>

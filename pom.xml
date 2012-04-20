@@ -156,7 +156,6 @@
   </build>
 
   <modules>
-    <module>timing-measurement</module>
     <module>messaging-client-core</module>
     <module>messaging-client-logappender</module>
     <module>messaging-client-scribe</module>
