@@ -24,6 +24,11 @@
         <version>1.2.0-incubating-SNAPSHOT</version>
       </dependency>
       <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-core</artifactId>
+        <version>0.20.2-cdh3u0</version>
+      </dependency>
+      <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
         <version>1.6.4</version>
@@ -82,6 +87,11 @@
     <repository>
       <id>repository.cloudera.com</id>
       <url>https://repository.cloudera.com/content/repositories/third-party/</url>
+    </repository>
+    <repository>
+      <id>cloudera</id>
+      <name>cloudera repo</name>
+      <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
     </repository>
   </repositories>
 
@@ -160,6 +170,8 @@
     <module>messaging-client-logappender</module>
     <module>messaging-client-scribe</module>
     <module>messaging-client-flume</module>
+    <module>messaging-client-consumer</module>
+    <module>messaging-client-consumer-databus</module>
     <module>messaging-client-dist</module>
   </modules>
 </project>
