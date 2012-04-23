@@ -36,12 +36,12 @@ public class PartitionReader {
     this.partition = partition;
     this.buffer = buffer;
     this.streamName = streamName;
-    Path streamDir = new Path(partition.getId().getCluster().getDataDir(),
+    Path streamDir = new Path(config.getClusters().get(partition.getId().getCluster()).getDataDir(),
         streamName);
     this.collectorDir = new Path(streamDir, partition.getId().getCollector());
     this.currentFile = partition.getFileName();
     try {
-      this.fs = FileSystem.get(partition.getId().getCluster().getHadoopConf());
+      this.fs = FileSystem.get(config.getClusters().get(partition.getId().getCluster()).getHadoopConf());
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

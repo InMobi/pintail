@@ -13,14 +13,14 @@ import org.apache.hadoop.fs.Path;
 import com.inmobi.databus.CheckpointProvider;
 import com.inmobi.databus.Cluster;
 import com.inmobi.databus.DatabusConfig;
-import com.inmobi.databus.FileCheckpointProvider;
+import com.inmobi.databus.FSCheckpointProvider;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.AbstractMessageConsumer;
 
 public class DatabusConsumer extends AbstractMessageConsumer {
 
-  public static final String DEFAULT_CHK_PROVIDER =
-      FileCheckpointProvider.class.getName();
+  public static final String DEFAULT_CHK_PROVIDER = FSCheckpointProvider.class
+      .getName();
 
   private DatabusConfig config;
   private final BlockingQueue<QueueEntry> buffer = new LinkedBlockingQueue<QueueEntry>(
@@ -34,14 +34,14 @@ public class DatabusConsumer extends AbstractMessageConsumer {
   @Override
   protected void init(String consumerName, String streamName) {
     super.init(consumerName, streamName);
+    this.checkpointProvider = new FSCheckpointProvider(".");
+
     try {
-      CheckpointProvider chkProvider = (CheckpointProvider) Class.forName(
-          DEFAULT_CHK_PROVIDER).newInstance();
-    } catch (Exception e) {
+      this.currentCheckpoint = new Checkpoint(
+          checkpointProvider.read(getChkpointKey()));
+    } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    this.currentCheckpoint = new Checkpoint(
-        checkpointProvider.read(getChkpointKey()));
     // TODO: load config via classpath
     config = null;
   }
@@ -76,7 +76,7 @@ public class DatabusConsumer extends AbstractMessageConsumer {
           for (FileStatus status : list) {
             String collector = status.getPath().getName();
             System.out.println("collector is " + collector);
-            PartitionId id = new PartitionId(cluster, collector);
+            PartitionId id = new PartitionId(cluster.getName(), collector);
             partitionsChkPoints.put(id, new PartitionCheckpoint(id, null, -1));
           }
         } catch (IOException e) {
@@ -104,15 +104,23 @@ public class DatabusConsumer extends AbstractMessageConsumer {
     // restart the service, consumer will start streaming from the last saved
     // checkpoint
     close();
-    this.currentCheckpoint = new Checkpoint(
-        checkpointProvider.read(getChkpointKey()));
+    try {
+      this.currentCheckpoint = new Checkpoint(
+          checkpointProvider.read(getChkpointKey()));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
     start();
   }
 
   @Override
   public synchronized void commit() {
-    checkpointProvider
-        .checkpoint(getChkpointKey(), currentCheckpoint.toBytes());
+    try {
+      checkpointProvider
+          .checkpoint(getChkpointKey(), currentCheckpoint.toBytes());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
