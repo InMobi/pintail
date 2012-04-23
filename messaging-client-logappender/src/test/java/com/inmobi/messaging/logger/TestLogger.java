@@ -1,5 +1,7 @@
 package com.inmobi.messaging.logger;
 
+import java.nio.ByteBuffer;
+
 import junit.framework.Assert;
 
 import org.apache.log4j.Logger;
@@ -39,18 +41,18 @@ public class TestLogger {
       throws TException {
     String topic = "test";
     Assert.assertEquals(appender.getTopic(), topic);
-    Message msg = new Message(topic, "hello".getBytes());
+    Message msg = new Message(topic, ByteBuffer.wrap("hello".getBytes()));
     logger.info(msg);
     Assert.assertEquals(MockPublisher.msg, msg);
     MockPublisher.reset();
 
     // test byte[] logging
-    logger.info(msg.getMessage());
+    logger.info(msg.getData().array());
     Assert.assertEquals(MockPublisher.msg, msg);
     MockPublisher.reset();
 
     // test String logging
-    logger.info(new String(msg.getMessage()));
+    logger.info(new String(msg.getData().array()));
     Assert.assertEquals(MockPublisher.msg, msg);
     MockPublisher.reset();
 

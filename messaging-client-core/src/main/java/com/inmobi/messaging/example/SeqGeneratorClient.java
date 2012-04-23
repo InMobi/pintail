@@ -1,5 +1,7 @@
 package com.inmobi.messaging.example;
 
+import java.nio.ByteBuffer;
+
 import com.inmobi.messaging.AbstractMessagePublisher;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.MessagePublisherFactory;
@@ -15,7 +17,8 @@ public class SeqGeneratorClient {
         .create();
     long maxSeq = Integer.parseInt(args[0]);
     for (long seq = 1; seq <= maxSeq; seq++) {
-      Message msg = new Message("test", Long.toString(seq).getBytes());
+      Message msg = new Message("test", 
+          ByteBuffer.wrap(Long.toString(seq).getBytes()));
       publisher.publish(msg);
     }
     waitToComplete(publisher);

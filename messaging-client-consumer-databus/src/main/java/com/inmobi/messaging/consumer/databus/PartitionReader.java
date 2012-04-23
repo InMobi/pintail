@@ -3,6 +3,7 @@ package com.inmobi.messaging.consumer.databus;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Queue;
 
@@ -101,7 +102,7 @@ public class PartitionReader {
       String line = reader.readLine();
       // System.out.println("readling line oo" + line);
       while (line != null) {
-        buffer.add(new QueueEntry(new Message(streamName, line.getBytes()),
+        buffer.add(new QueueEntry(new Message(streamName, ByteBuffer.wrap(line.getBytes())),
             partition.getId(), file.getName(), in.getPos()));
         line = reader.readLine();
         while (line == null) {

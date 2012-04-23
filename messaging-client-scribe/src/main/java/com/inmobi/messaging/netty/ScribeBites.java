@@ -34,8 +34,8 @@ public class ScribeBites {
     output.writeBytes(catBytes);
 
     output.writeBytes(BODY_MARKER);
-    output.writeInt(m.getMessage().length);
-    output.writeBytes(m.getMessage());
+    output.writeInt(m.getData().array().length);
+    output.writeBytes(m.getData());
 
     output.writeBytes(TRAILER);
     ch.write(output);

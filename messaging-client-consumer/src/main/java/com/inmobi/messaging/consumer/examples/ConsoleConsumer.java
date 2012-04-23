@@ -14,7 +14,7 @@ public class ConsoleConsumer {
     
     while (true) {
       Message msg = consumer.next();
-      System.out.println("MESSAGE:" + new String(msg.getMessage()));
+      System.out.println("MESSAGE:" + new String(msg.getData().array()));
     }
   }
 }

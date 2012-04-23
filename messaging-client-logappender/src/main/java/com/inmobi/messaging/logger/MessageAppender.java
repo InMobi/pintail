@@ -1,5 +1,7 @@
 package com.inmobi.messaging.logger;
 
+import java.nio.ByteBuffer;
+
 import org.apache.log4j.AppenderSkeleton;
 import org.apache.log4j.spi.LoggingEvent;
 import org.apache.thrift.TBase;
@@ -67,13 +69,14 @@ public class MessageAppender extends AppenderSkeleton {
     //deprecated support only if fixed topic is set
     else if (topic != null) {
       if (o instanceof byte[]) {
-        msg = new Message(this.topic, (byte[]) o);
+        msg = new Message(this.topic, ByteBuffer.wrap((byte[]) o));
       } else if (o instanceof String) {
-        msg = new Message(this.topic, ((String) o).getBytes());
+        msg = new Message(this.topic, ByteBuffer.wrap(((String) o).getBytes()));
       } else if (o instanceof TBase) {
         TBase thriftOb = (TBase) o;
         try {
-          msg = new Message(this.topic, serializer.serialize(thriftOb));
+          msg = new Message(this.topic, 
+              ByteBuffer.wrap(serializer.serialize(thriftOb)));
         } catch (TException e) {
           System.out.println("Could not serialize thrift object");
           e.printStackTrace();

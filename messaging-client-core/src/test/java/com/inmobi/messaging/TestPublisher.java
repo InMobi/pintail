@@ -1,6 +1,7 @@
 package com.inmobi.messaging;
 
 import java.net.URL;
+import java.nio.ByteBuffer;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -41,7 +42,7 @@ public class TestPublisher {
   }
 
   private void doTest(AbstractMessagePublisher publisher) {
-    Message msg = new Message("test", new byte[5]);
+    Message msg = new Message("test", ByteBuffer.wrap(new byte[5]));
     long invocation = publisher.getStats().getInvocationCount();
     long success = publisher.getStats().getSuccessCount();
     long unhandledException = publisher.getStats().getUnhandledExceptionCount();

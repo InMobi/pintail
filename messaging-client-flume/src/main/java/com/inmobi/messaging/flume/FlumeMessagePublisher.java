@@ -53,7 +53,7 @@ public class FlumeMessagePublisher extends AbstractMessagePublisher {
   @Override
   protected void publish(Map<String, String> headers, Message m) {
     // headers.put("streamName", "rr");
-    Event event = EventBuilder.withBody(m.getMessage(), headers);
+    Event event = EventBuilder.withBody(m.getData().array(), headers);
     synchronized (queue) {
       if (!queue.offer(event)) {
         // queue is full
