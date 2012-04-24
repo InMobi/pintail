@@ -1,24 +1,19 @@
 package com.inmobi.messaging.consumer;
 
+import com.inmobi.messaging.ClientConfig;
 
 public abstract class AbstractMessageConsumer implements MessageConsumer {
 
-  private String streamName;
-  private String consumerName;
+  private ClientConfig config;
 
-  protected void init(String consumerName, String streamName) {
-    this.consumerName = consumerName;
-    this.streamName = streamName;
-   start();
+  protected void init(ClientConfig config) {
+    this.config = config;
+    start();
   }
 
   protected abstract void start();
 
-  public String getStreamName() {
-    return this.streamName;
-  }
-
-  public String getConsumerName() {
-    return this.consumerName;
+  public ClientConfig getConfig() {
+    return this.config;
   }
 }

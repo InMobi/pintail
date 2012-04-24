@@ -15,9 +15,6 @@ import org.slf4j.LoggerFactory;
 public class ClientConfig {
 
   private static final Logger LOG = LoggerFactory.getLogger(ClientConfig.class);
-  public static final String MESSAGE_CLIENT_CONF_FILE = "messaging-client-conf.properties";
-  public static final String PUBLISHER_CLASS_NAME_KEY = "publisher.classname";
-  public static final String EMITTER_CONF_FILE_KEY = "statemitter.filename";
 
   private final Map<String, String> params = new HashMap<String, String>();
 
@@ -50,20 +47,6 @@ public class ClientConfig {
       map.put(k, v);
     }
     return new ClientConfig(map);
-  }
-
-  /*
-   * Loads the config by looking the config file {@link
-   * #MESSAGE_CLIENT_CONF_FILE} in the classpath.
-   */
-  public static ClientConfig load() {
-    InputStream in = ClientConfig.class
-        .getClassLoader().getResourceAsStream(MESSAGE_CLIENT_CONF_FILE);
-    if (in == null) {
-      throw new RuntimeException("could not load conf file " + 
-          MESSAGE_CLIENT_CONF_FILE + " from classpath.");
-    }
-    return load(in);
   }
 
   void set(String key, String value) {

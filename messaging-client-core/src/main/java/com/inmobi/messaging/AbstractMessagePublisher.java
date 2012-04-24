@@ -43,10 +43,10 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
   protected void init(ClientConfig config) {
     try {
       String emitterConfig = config
-          .getString(ClientConfig.EMITTER_CONF_FILE_KEY);
+          .getString(MessagePublisherFactory.EMITTER_CONF_FILE_KEY);
       if (emitterConfig == null) {
         LOG.warn("Stat emitter is disabled as config "
-            + ClientConfig.EMITTER_CONF_FILE_KEY + " is not set in the config.");
+            + MessagePublisherFactory.EMITTER_CONF_FILE_KEY + " is not set in the config.");
         return;
       }
       emitter = EmitterRegistry.lookup(emitterConfig);

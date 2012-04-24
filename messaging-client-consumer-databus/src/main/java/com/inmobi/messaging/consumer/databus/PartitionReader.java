@@ -103,7 +103,7 @@ public class PartitionReader {
       // System.out.println("readling line oo" + line);
       while (line != null) {
         buffer.add(new QueueEntry(new Message(streamName, ByteBuffer.wrap(line.getBytes())),
-            partition.getId(), file.getName(), in.getPos()));
+            new PartitionCheckpoint(partition.getId(), file.getName(), in.getPos())));
         line = reader.readLine();
         while (line == null) {
           Path current = new Path(collectorDir, streamName + "_current");

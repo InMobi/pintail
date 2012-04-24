@@ -11,7 +11,7 @@ public class TestPublisher {
   @Test
   public void test() {
     ClientConfig conf = new ClientConfig();
-    conf.set(ClientConfig.PUBLISHER_CLASS_NAME_KEY,
+    conf.set(MessagePublisherFactory.PUBLISHER_CLASS_NAME_KEY,
         MockPublisher.class.getName());
     AbstractMessagePublisher publisher =
         (AbstractMessagePublisher) MessagePublisherFactory.create(conf);
@@ -32,7 +32,7 @@ public class TestPublisher {
   @Test
   public void testLoadFromFileName() {
     URL url = getClass().getClassLoader().getResource(
-        ClientConfig.MESSAGE_CLIENT_CONF_FILE);
+        MessagePublisherFactory.MESSAGE_CLIENT_CONF_FILE);
     AbstractMessagePublisher publisher =
         (AbstractMessagePublisher) MessagePublisherFactory.create(
             url.getFile());
