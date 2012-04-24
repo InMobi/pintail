@@ -7,13 +7,12 @@ import java.io.InputStream;
  */
 public class MessagePublisherFactory {
 
-  public static final String MESSAGE_CLIENT_CONF_FILE = "messaging-client-conf.properties";
+  public static final String MESSAGE_CLIENT_CONF_FILE = "messaging-publisher-conf.properties";
   public static final String PUBLISHER_CLASS_NAME_KEY = "publisher.classname";
   public static final String EMITTER_CONF_FILE_KEY = "statemitter.filename";
 
   /*
-   * Creates MessagePublisher by loading the messaging-client-conf.properties 
-   * config file from classpath.
+   * Creates MessagePublisher by loading the config file from classpath.
    */
   public static MessagePublisher create() {
     InputStream in = ClientConfig.class

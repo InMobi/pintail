@@ -33,7 +33,7 @@ public class TestLogger {
     MessageAppender appender = (MessageAppender) logger
         .getAppender("messagingclient");
     Assert.assertEquals(appender.getConffile(),
-        "src/test/resources/messaging-client-conf.properties");
+        "src/test/resources/messaging-publisher-conf.properties");
     doTest(logger, appender);
   }
 

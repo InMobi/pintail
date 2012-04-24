@@ -10,7 +10,7 @@ public class MessageConsumerFactory {
   public static final String CONSUMER_CLASS_NAME_KEY = "consumer.classname";
 
   /*
-   * Creates MessageConsumer by loading the messaging-client-conf.properties
+   * Creates MessageConsumer by loading the properties
    * config file from classpath.
    */
   public static MessageConsumer create() {
