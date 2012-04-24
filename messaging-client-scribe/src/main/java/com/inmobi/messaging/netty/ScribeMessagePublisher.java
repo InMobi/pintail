@@ -58,8 +58,8 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher {
   @Override
   public void init(ClientConfig config) {
     super.init(config);
-    String host = config.getString("scribe.host", "localhost");
-    int port = config.getInteger("scribe.port", 1111);
+    this.host = config.getString("scribe.host", "localhost");
+    this.port = config.getInteger("scribe.port", 1111);
     int backoffSeconds = config.getInteger("scribe.backoffSeconds", 5);
     int timeoutSeconds = config.getInteger("scribe.timeoutSeconds", 5);
     init(host, port, backoffSeconds, timeoutSeconds);
