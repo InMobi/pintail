@@ -1,0 +1,28 @@
+<databus>
+  <defaults>
+    <rootdir>/databus</rootdir>
+    <retentionindays>2</retentionindays>
+  </defaults>
+
+  <!-- A stream can have only one primary and multiple mirrors as destinations
+    -->
+  <streams>
+    <stream name="testclient">
+      <sources>
+        <source>
+          <name>testcluster</name>
+          <retentionindays>2</retentionindays>
+        </source>
+      </sources>
+      <destinations>
+      </destinations>
+    </stream>
+  </streams>
+
+  <clusters>
+    <cluster name="testcluster" hdfsurl="hdfs://gridops-vm1.corp.inmobi.com:8020/"
+             jturl="gridops-vm1.corp.inmobi.com:8021">
+    </cluster>
+
+  </clusters>
+</databus>
