@@ -8,10 +8,7 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
 
   protected void init(ClientConfig config) {
     this.config = config;
-    start();
   }
-
-  protected abstract void start();
 
   public ClientConfig getConfig() {
     return this.config;

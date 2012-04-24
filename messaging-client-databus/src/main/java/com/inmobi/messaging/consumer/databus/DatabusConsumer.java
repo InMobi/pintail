@@ -43,14 +43,18 @@ public class DatabusConsumer extends AbstractMessageConsumer {
     this.checkpointProvider = new FSCheckpointProvider(".");
 
     try {
-      this.currentCheckpoint = new Checkpoint(
-          checkpointProvider.read(getChkpointKey()));
+      byte[] chkpointData = checkpointProvider.read(getChkpointKey());
+      if (chkpointData != null) {
+        this.currentCheckpoint = new Checkpoint(chkpointData);
+      }
       DatabusConfigParser parser =
-          new DatabusConfigParser(config.getString("databus.conf"));
+          new DatabusConfigParser(null);
       databusConfig = parser.getConfig();
     } catch (Exception e) {
+      e.printStackTrace();
       throw new RuntimeException(e);
     }
+    start();
   }
 
   @Override
@@ -66,7 +70,6 @@ public class DatabusConsumer extends AbstractMessageConsumer {
     return entry.message;
   }
 
-  @Override
   public synchronized void start() {
     if (currentCheckpoint == null) {
       Map<PartitionId, PartitionCheckpoint> partitionsChkPoints = new HashMap<PartitionId, PartitionCheckpoint>();

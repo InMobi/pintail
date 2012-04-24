@@ -20,6 +20,9 @@ public class SeqGeneratorClient {
       Message msg = new Message("testclient", 
           ByteBuffer.wrap(Long.toString(seq).getBytes()));
       publisher.publish(msg);
+      if (seq % 10000 == 0) {
+        Thread.sleep(2000);
+      }
     }
     waitToComplete(publisher);
     Thread.sleep(5000);

@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Queue;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -100,21 +101,27 @@ public class PartitionReader {
       FSDataInputStream in = fs.open(file);
       BufferedReader reader = new BufferedReader(new InputStreamReader(in));
       String line = reader.readLine();
+      byte[] data = Base64.decodeBase64(line);
       // System.out.println("readling line oo" + line);
       while (line != null) {
-        buffer.add(new QueueEntry(new Message(streamName, ByteBuffer.wrap(line.getBytes())),
+        buffer.add(new QueueEntry(new Message(streamName, ByteBuffer.wrap(data)),
             new PartitionCheckpoint(partition.getId(), file.getName(), in.getPos())));
         line = reader.readLine();
+        data = Base64.decodeBase64(line);
+        boolean lastRun = false;
         while (line == null) {
           Path current = new Path(collectorDir, streamName + "_current");
           FSDataInputStream inS = fs.open(current);
           String currentScribeFile = inS.readLine().trim();
           inS.close();
+          if (lastRun) {
+            break;
+          }
           if (currentFile.equals(currentScribeFile)) {
             Thread.sleep(1000);
             line = reader.readLine();
           } else {
-            break;
+            lastRun = true;
           }
         }
       }
@@ -171,6 +178,7 @@ public class PartitionReader {
     if (currentFileIndex == (files.length - 1)) {
       return null;
     }
+    
     return files[++currentFileIndex].getPath();
 
   }

@@ -94,5 +94,10 @@
       <artifactId>messaging-client-flume</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.inmobi.messaging</groupId>
+      <artifactId>messaging-client-databus</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
 </project>

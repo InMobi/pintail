@@ -26,6 +26,7 @@
 
 CLIENT_FILELOGGER_CLASS="com.inmobi.messaging.example.FileLoggerClient"
 CLIENT_SEQGEN_CLASS="com.inmobi.messaging.example.SeqGeneratorClient"
+CLIENT_CONSOLECONSUMER_CLASS="com.inmobi.messaging.consumer.examples.ConsoleConsumer"
 
 ################################
 # functions
@@ -58,7 +59,8 @@ error() {
 display_help() {
   cat <<EOF
 Usage: $0 file <file> --conf <confdir>
-       $0 seqgen <maxSeq> --conf <confdir> 
+       $0 seqgen <maxSeq> --conf <confdir>
+       $0 consoleconsumer --conf <confdir> 
 
 EOF
 }
@@ -102,6 +104,9 @@ case "$mode" in
     ;;
   seqgen)
     opt_seqgen=1
+    ;;
+  consoleconsumer)
+    opt_consoleconsumer=1
     ;;
   *)
     error "Unknown or unspecified command '$mode'"
@@ -174,6 +179,8 @@ if [ -n "$opt_file" ] ; then
   run_client $CLIENT_FILELOGGER_CLASS $args
 elif [ -n "$opt_seqgen" ] ; then
   run_client $CLIENT_SEQGEN_CLASS $args
+elif [ -n "$opt_consoleconsumer" ] ; then
+  run_client $CLIENT_CONSOLECONSUMER_CLASS $args
 else
   error "This message should never appear" 1
 fi
