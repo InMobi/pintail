@@ -8,13 +8,13 @@
     <version>2.0.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>messaging-client-consumer-databus</artifactId>
+  <artifactId>messaging-client-databus</artifactId>
   <packaging>jar</packaging>
 
   <dependencies>
     <dependency>
       <groupId>com.inmobi.messaging</groupId>
-      <artifactId>messaging-client-consumer</artifactId>
+      <artifactId>messaging-client-core</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
