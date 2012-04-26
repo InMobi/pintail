@@ -9,24 +9,23 @@ import com.inmobi.messaging.publisher.MessagePublisherFactory;
 public class SeqGeneratorClient {
 
   public static void main(String[] args) throws Exception {
-    if (args.length != 1) {
-      System.err.println("Usage: SeqGeneratorClient <maxSeq>");
+    if (args.length != 2) {
+      System.err.println("Usage: SeqGeneratorClient <topic> <maxSeq>");
       return;
     }
     AbstractMessagePublisher publisher = (AbstractMessagePublisher) MessagePublisherFactory
         .create();
-    long maxSeq = Integer.parseInt(args[0]);
+    String topic = args[0];
+    long maxSeq = Integer.parseInt(args[1]);
     for (long seq = 1; seq <= maxSeq; seq++) {
-      Message msg = new Message("testclient", 
+      Message msg = new Message(topic, 
           ByteBuffer.wrap(Long.toString(seq).getBytes()));
       publisher.publish(msg);
-      if (seq % 10000 == 0) {
-        Thread.sleep(2000);
-      }
+      Thread.sleep(1);
     }
     waitToComplete(publisher);
     Thread.sleep(5000);
-    //publisher.close();
+    publisher.close();
     long invocation = publisher.getStats().getInvocationCount();
     System.out.println("Total invocations: " + invocation);
     System.out.println("Total success: " + publisher.getStats().getSuccessCount());

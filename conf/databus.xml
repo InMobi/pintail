@@ -7,7 +7,7 @@
   <!-- A stream can have only one primary and multiple mirrors as destinations
     -->
   <streams>
-    <stream name="testclient">
+    <stream name="test">
       <sources>
         <source>
           <name>testcluster</name>
@@ -20,8 +20,8 @@
   </streams>
 
   <clusters>
-    <cluster name="testcluster" hdfsurl="hdfs://gridops-vm1.corp.inmobi.com:8020/"
-             jturl="gridops-vm1.corp.inmobi.com:8021">
+    <cluster name="testcluster" hdfsurl="hdfs://localhost:8020/"
+             jturl="localhost:8021">
     </cluster>
 
   </clusters>
