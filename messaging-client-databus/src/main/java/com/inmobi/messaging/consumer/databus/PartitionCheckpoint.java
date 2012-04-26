@@ -7,27 +7,16 @@ import java.io.IOException;
 import org.apache.hadoop.io.Writable;
 
 public class PartitionCheckpoint implements Writable {
-  private PartitionId id;
   private String fileName;
   private long offset;
 
-  PartitionCheckpoint(String cluster, String collector, String fileName,
-      long offset) {
-    this(new PartitionId(cluster, collector), fileName, offset);
-  }
-
-  PartitionCheckpoint(PartitionId id, String fileName, long offset) {
-    this.id = id;
+  PartitionCheckpoint(String fileName, long offset) {
     this.fileName = fileName;
     this.offset = offset;
   }
 
   PartitionCheckpoint(DataInput in) throws IOException {
     readFields(in);
-  }
-
-  public PartitionId getId() {
-    return id;
   }
 
   public String getFileName() {
@@ -40,21 +29,18 @@ public class PartitionCheckpoint implements Writable {
 
   @Override
   public void readFields(DataInput in) throws IOException {
-    id = new PartitionId(in);
     fileName = in.readUTF();
     offset = in.readLong();
   }
 
   @Override
   public void write(DataOutput out) throws IOException {
-    id.write(out);
     out.writeUTF(fileName);
     out.writeLong(offset);
   }
 
   public String toString() {
-    // TODO:
-    return "";
+    return fileName + "-" + offset;
   }
 
   @Override
@@ -62,7 +48,6 @@ public class PartitionCheckpoint implements Writable {
     final int prime = 31;
     int result = 1;
     result = prime * result + ((fileName == null) ? 0 : fileName.hashCode());
-    result = prime * result + ((id == null) ? 0 : id.hashCode());
     result = prime * result + (int) (offset ^ (offset >>> 32));
     return result;
   }
@@ -80,11 +65,6 @@ public class PartitionCheckpoint implements Writable {
       if (other.fileName != null)
         return false;
     } else if (!fileName.equals(other.fileName))
-      return false;
-    if (id == null) {
-      if (other.id != null)
-        return false;
-    } else if (!id.equals(other.id))
       return false;
     if (offset != other.offset)
       return false;

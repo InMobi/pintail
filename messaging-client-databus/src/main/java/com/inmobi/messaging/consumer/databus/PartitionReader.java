@@ -19,33 +19,41 @@ import org.apache.hadoop.fs.PathFilter;
 import com.inmobi.databus.DatabusConfig;
 import com.inmobi.messaging.Message;
 
-public class PartitionReader {
+class PartitionReader {
 
   private static final Log LOG = LogFactory.getLog(PartitionReader.class);
 
-  private final PartitionCheckpoint partition;
+  private final PartitionId partitionId;
+  private final PartitionCheckpoint partitionCheckpoint;
   private final Queue<QueueEntry> buffer;
   private final Path collectorDir;
   private final FileSystem fs;
   private final String streamName;
   private Thread thread;
   private volatile boolean stopped;
-  private String currentFile;
+  private Path currentFile;
+  private long currentOffset;
+  private boolean inited = false;
+  private boolean gotoNext = false;
 
-  PartitionReader(PartitionCheckpoint partition, DatabusConfig config,
-      Queue<QueueEntry> buffer, String streamName) {
-    this.partition = partition;
+  PartitionReader(PartitionId partitionId, PartitionCheckpoint partition,
+      DatabusConfig config, Queue<QueueEntry> buffer, String streamName) {
+    this.partitionId = partitionId;
+    this.partitionCheckpoint = partition;
     this.buffer = buffer;
     this.streamName = streamName;
-    Path streamDir = new Path(config.getClusters().get(partition.getId().getCluster()).getDataDir(),
-        streamName);
-    this.collectorDir = new Path(streamDir, partition.getId().getCollector());
-    this.currentFile = partition.getFileName();
+    Path streamDir = new Path(config.getClusters().get(
+        partitionId.getCluster()).getDataDir(), streamName);
+    this.collectorDir = new Path(streamDir, partitionId.getCollector());
     try {
-      this.fs = FileSystem.get(config.getClusters().get(partition.getId().getCluster()).getHadoopConf());
+      this.fs = FileSystem.get(config.getClusters().get(
+                  partitionId.getCluster()).getHadoopConf());
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+    LOG.info("Partition reader initialized with partitionId:" + partitionId +
+    	      " checkPoint:" + partitionCheckpoint + " streamDir:" + streamDir + 
+    	      " collectorDir:" + collectorDir);
   }
 
   public synchronized void start() {
@@ -55,7 +63,6 @@ public class PartitionReader {
         while (!stopped && !thread.isInterrupted()) {
           long startTime = System.currentTimeMillis();
           try {
-            LOG.info("Starting the run");
             execute();
             if (stopped || thread.isInterrupted())
               return;
@@ -78,7 +85,7 @@ public class PartitionReader {
       }
 
     };
-    thread = new Thread(runnable, this.partition.toString());
+    thread = new Thread(runnable, this.partitionId.toString());
     LOG.info("Starting thread " + thread.getName());
     thread.start();
   }
@@ -88,42 +95,65 @@ public class PartitionReader {
     LOG.info(Thread.currentThread().getName() + " stopped [" + stopped + "]");
   }
 
+  private void initializeCurrentFile() throws Exception {
+    if (currentFile == null) {
+      currentFile = getFileList(null, fs);
+      currentOffset = 0;
+    } else {
+      currentFile = new Path(collectorDir, partitionCheckpoint.getFileName());
+      currentOffset = partitionCheckpoint.getOffset();
+    }
+  }
+  
   protected void execute() {
-    // System.out.println("Reading more data uu");
     try {
-      Path file = getNextFile();
-      if (file == null) {
-        return;
+      if (!inited) {
+        LOG.info("Initialize the current file");
+        initializeCurrentFile();
+        inited = true;
+      } else if (gotoNext) {
+        System.out.println("Get the next file");
+        LOG.debug("Get the next file");
+        Path nextFile = getNextFile();
+        System.out.println("Next file:" + nextFile);
+        LOG.debug("Next file:" + nextFile);
+        if (nextFile == null) {
+          return;
+        }
+        currentFile = nextFile;
+        currentOffset = 0;
+        gotoNext = false;
       }
-      this.currentFile = file.getName();
-      System.out.println("Reading file " + file);
-
-      FSDataInputStream in = fs.open(file);
+      LOG.info("Reading file " + currentFile);
+      FSDataInputStream in = fs.open(currentFile);
+      in.seek(currentOffset);
       BufferedReader reader = new BufferedReader(new InputStreamReader(in));
       String line = reader.readLine();
-      byte[] data = Base64.decodeBase64(line);
-      // System.out.println("readling line oo" + line);
-      while (line != null) {
-        buffer.add(new QueueEntry(new Message(streamName, ByteBuffer.wrap(data)),
-            new PartitionCheckpoint(partition.getId(), file.getName(), in.getPos())));
-        line = reader.readLine();
-        data = Base64.decodeBase64(line);
-        boolean lastRun = false;
-        while (line == null) {
-          Path current = new Path(collectorDir, streamName + "_current");
-          FSDataInputStream inS = fs.open(current);
-          String currentScribeFile = inS.readLine().trim();
-          inS.close();
-          if (lastRun) {
-            break;
-          }
-          if (currentFile.equals(currentScribeFile)) {
-            Thread.sleep(1000);
-            line = reader.readLine();
-          } else {
-            lastRun = true;
-          }
+      while (true) {
+        if (line != null) {
+          // add the data to queue
+          byte[] data = Base64.decodeBase64(line);
+          currentOffset = in.getPos();
+          buffer.add(new QueueEntry(new Message(streamName,
+            ByteBuffer.wrap(data)), partitionId,
+            new PartitionCheckpoint(currentFile.getName(), currentOffset)));
         }
+        if (line == null) {
+          // if there is no data and we are reading from current scribe file,
+          // sleep for a second and see if there there is more data. 
+          String currentScribeFile = getCurrentScribeFile();
+          System.out.println("Current scribe file:" + currentScribeFile);
+          LOG.debug("Current scribe file:" + currentScribeFile);
+          if (currentScribeFile == null || 
+              (!currentFile.getName().equals(currentScribeFile))) {
+            System.out.println("Going to next file");
+            LOG.debug("Going to next file");
+            gotoNext = true;
+          }
+          break;
+        }
+        // Read next line
+        line = reader.readLine();
       }
       reader.close();
     } catch (Exception e) {
@@ -131,36 +161,45 @@ public class PartitionReader {
     }
   }
 
-  private String getCurrentFile(FileStatus[] files) throws IOException {
-    for (FileStatus fileStatus : files) {
-      if (fileStatus.getPath().getName().endsWith("current")) {
-        FSDataInputStream in = fs.open(fileStatus.getPath());
-        String currentFileName = in.readLine().trim();
-        in.close();
-        return currentFileName;
+  private String getCurrentScribeFile() throws IOException {
+    Path currentScribeFile = new Path(collectorDir, streamName + "_current");
+    String currentFileName = null;
+    if (fs.exists(currentScribeFile)) {
+      FSDataInputStream in = fs.open(currentScribeFile);
+      String line = new BufferedReader(new InputStreamReader(in)).readLine();
+      if (line != null) {
+        currentFileName = line.trim();
       }
+      in.close();
     }
-    return null;
+    return currentFileName;
   }
 
   private Path getNextFile() throws Exception {
-    return getFileList(currentFile, fs);
-    // return new Path(
-    // "/databus/data/rtbi_metrics/gs3103.red.uj1.inmobi.com/rtbi_metrics-2012-02-08-10-35_00000");
+    if (currentFile != null) {
+      return getFileList(currentFile.getName(), fs);
+    } else {
+      LOG.warn("getNextFile called without currentFile");
+      return null;
+    }
   }
 
   private Path getFileList(String currentFileName, FileSystem fs)
       throws Exception {
-    // System.out.println("collectordir " + collectorDir);
     FileStatus[] files = fs.listStatus(collectorDir, new PathFilter() {
       @Override
       public boolean accept(Path p) {
         if (p.getName().endsWith("current")
-            || p.getName().equals("scribe_stats"))
+            || p.getName().equals("scribe_stats")) {
           return false;
+        }
         return true;
       }
     });
+    if (files == null || files.length == 0) {
+      LOG.info("No files in collector directory");
+      return null;
+    }
     String[] fileNames = new String[files.length];
     int i = 0;
     for (FileStatus s : files) {
@@ -168,7 +207,6 @@ public class PartitionReader {
       fileNames[i++] = s.getPath().getName();
     }
 
-    // System.out.println("files " + files);
     Arrays.sort(fileNames);
     if (currentFileName == null) {
       return files[0].getPath();
@@ -180,16 +218,6 @@ public class PartitionReader {
     }
     
     return files[++currentFileIndex].getPath();
-
   }
 
-  /*
-   * class PathComparator implements Comparator {
-   * 
-   * @Override public int compare(Object o, Object o1) { FileStatus file1 =
-   * (FileStatus) o; FileStatus file2 = (FileStatus) o1; if
-   * (file1.getPath().getName().compareTo(file2.getPath().getName()) > 0) return
-   * 1; else if (file1.getPath().getName().compareTo(file2.getPath().getName())
-   * < 0) { return -1; } else return 0; } }
-   */
 }

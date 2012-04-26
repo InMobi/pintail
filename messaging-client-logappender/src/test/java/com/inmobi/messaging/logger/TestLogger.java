@@ -11,7 +11,7 @@ import org.apache.thrift.TSerializer;
 import org.testng.annotations.Test;
 
 import com.inmobi.messaging.Message;
-import com.inmobi.messaging.MockPublisher;
+import com.inmobi.messaging.publisher.MockPublisher;
 
 public class TestLogger {
 

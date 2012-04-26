@@ -1,4 +1,4 @@
-package com.inmobi.messaging;
+package com.inmobi.messaging.publisher;
 
 import java.util.Properties;
 

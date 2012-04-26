@@ -1,9 +1,9 @@
-package com.inmobi.messaging.example;
+package com.inmobi.messaging.publisher.example;
 
 import java.util.Map;
 
-import com.inmobi.messaging.AbstractMessagePublisher;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 
 public class ConsolePublisher extends AbstractMessagePublisher {
 

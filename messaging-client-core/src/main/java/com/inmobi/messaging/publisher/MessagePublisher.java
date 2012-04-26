@@ -1,4 +1,6 @@
-package com.inmobi.messaging;
+package com.inmobi.messaging.publisher;
+
+import com.inmobi.messaging.Message;
 
 /**
  * Publishes message to the configured concrete MessagePublisher.

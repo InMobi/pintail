@@ -12,6 +12,12 @@ import java.util.Map;
 
 import org.apache.hadoop.io.Writable;
 
+/**
+ * Checkpoint for the databus stream. 
+ * 
+ * It holds checkpoint for all the partitions.
+ *
+ */
 public class Checkpoint implements Writable {
 
   // map of partitionId to partition
@@ -85,4 +91,14 @@ public class Checkpoint implements Writable {
     return true;
   }
 
+  public String toString() {
+    StringBuffer buf = new StringBuffer();
+    for (Map.Entry<PartitionId, PartitionCheckpoint> entry : partitionsChkPoint
+        .entrySet()) {
+      buf.append(entry.getKey().toString())
+         .append(":")
+         .append(entry.getValue().toString());
+    }
+    return buf.toString();
+  }
 }

@@ -10,9 +10,9 @@ import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.netty.util.Timer;
 
 import com.inmobi.instrumentation.TimingAccumulator.Outcome;
-import com.inmobi.messaging.AbstractMessagePublisher;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 
 public class ScribeMessagePublisher extends AbstractMessagePublisher {
   private static final Timer timer = new HashedWheelTimer();

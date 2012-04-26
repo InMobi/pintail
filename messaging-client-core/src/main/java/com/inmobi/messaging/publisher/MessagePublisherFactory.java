@@ -1,6 +1,8 @@
-package com.inmobi.messaging;
+package com.inmobi.messaging.publisher;
 
 import java.io.InputStream;
+
+import com.inmobi.messaging.ClientConfig;
 
 /*
  * Factory to create concrete MessagePublisher instance.

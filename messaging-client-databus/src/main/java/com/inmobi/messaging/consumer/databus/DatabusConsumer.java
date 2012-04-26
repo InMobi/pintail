@@ -23,14 +23,16 @@ public class DatabusConsumer extends AbstractMessageConsumer {
 
   public static final String DEFAULT_CHK_PROVIDER = FSCheckpointProvider.class
       .getName();
+  public static final int DEFAULT_QUEUE_SIZE = 1000;
 
   private DatabusConfig databusConfig;
   private String streamName;
   private String consumerName;
-  private final BlockingQueue<QueueEntry> buffer = new LinkedBlockingQueue<QueueEntry>(
-      1000);
+  private final BlockingQueue<QueueEntry> buffer = 
+      new LinkedBlockingQueue<QueueEntry>(DEFAULT_QUEUE_SIZE);
 
-  private final Map<PartitionId, PartitionReader> readers = new HashMap<PartitionId, PartitionReader>();
+  private final Map<PartitionId, PartitionReader> readers = 
+      new HashMap<PartitionId, PartitionReader>();
 
   private CheckpointProvider checkpointProvider;
   private Checkpoint currentCheckpoint;
@@ -65,46 +67,49 @@ public class DatabusConsumer extends AbstractMessageConsumer {
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }
-    currentCheckpoint.set(entry.partitionChkpoint.getId(),
-        entry.partitionChkpoint);
+    currentCheckpoint.set(entry.partitionId, entry.partitionChkpoint);
     return entry.message;
   }
 
   public synchronized void start() {
     if (currentCheckpoint == null) {
-      Map<PartitionId, PartitionCheckpoint> partitionsChkPoints = new HashMap<PartitionId, PartitionCheckpoint>();
-      this.currentCheckpoint = new Checkpoint(partitionsChkPoints);
-      for (String c : databusConfig.getSourceStreams().get(streamName)
-          .getSourceClusters()) {
-        Cluster cluster = databusConfig.getClusters().get(c);
-        try {
-          // System.out.println("----here 11---");
-          FileSystem fs = FileSystem.get(cluster.getHadoopConf());
-          Path path = new Path(cluster.getDataDir(), streamName);
-          System.out.println(path);
-          FileStatus[] list = fs.listStatus(path);
-          for (FileStatus status : list) {
-            String collector = status.getPath().getName();
-            System.out.println("collector is " + collector);
-            PartitionId id = new PartitionId(cluster.getName(), collector);
-            partitionsChkPoints.put(id, new PartitionCheckpoint(id, null, -1));
-          }
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }
+      initializeCheckpoint();
     }
 
-    for (PartitionCheckpoint partition : currentCheckpoint
-        .getPartitionsCheckpoint().values()) {
-      PartitionReader reader = new PartitionReader(partition, databusConfig, buffer,
-          streamName);
-      readers.put(partition.getId(), reader);
-      System.out.println("Starting partition reader " + partition.getId());
+    for (Map.Entry<PartitionId, PartitionCheckpoint> cpEntry : currentCheckpoint
+        .getPartitionsCheckpoint().entrySet()) {
+      PartitionReader reader = new PartitionReader(cpEntry.getKey(),
+          cpEntry.getValue(), databusConfig, buffer, streamName);
+      readers.put(cpEntry.getKey(), reader);
+      System.out.println("Starting partition reader " + cpEntry.getKey());
       reader.start();
     }
   }
 
+  private void initializeCheckpoint() {
+    Map<PartitionId, PartitionCheckpoint> partitionsChkPoints = new HashMap<PartitionId, PartitionCheckpoint>();
+    this.currentCheckpoint = new Checkpoint(partitionsChkPoints);
+    System.out.println(databusConfig.getSourceStreams().get(streamName));
+    for (String c : databusConfig.getSourceStreams().get(streamName)
+        .getSourceClusters()) {
+      Cluster cluster = databusConfig.getClusters().get(c);
+      try {
+        FileSystem fs = FileSystem.get(cluster.getHadoopConf());
+        Path path = new Path(cluster.getDataDir(), streamName);
+        System.out.println(path);
+        FileStatus[] list = fs.listStatus(path);
+        // TODO : what if list is null
+        for (FileStatus status : list) {
+          String collector = status.getPath().getName();
+          System.out.println("collector is " + collector);
+          PartitionId id = new PartitionId(cluster.getName(), collector);
+          partitionsChkPoints.put(id, new PartitionCheckpoint(null, -1));
+        }
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
   private String getChkpointKey() {
     return consumerName + "_" + streamName;
   }
@@ -131,6 +136,11 @@ public class DatabusConsumer extends AbstractMessageConsumer {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public synchronized void commitAndclose() {
+    commit();
+    close();
   }
 
   @Override

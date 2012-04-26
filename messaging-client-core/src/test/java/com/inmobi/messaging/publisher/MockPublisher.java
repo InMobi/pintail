@@ -1,8 +1,10 @@
-package com.inmobi.messaging;
+package com.inmobi.messaging.publisher;
 
 import java.util.Map;
 
 import com.inmobi.instrumentation.TimingAccumulator.Outcome;
+import com.inmobi.messaging.Message;
+import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 
 public class MockPublisher extends AbstractMessagePublisher {
   public static Message msg;

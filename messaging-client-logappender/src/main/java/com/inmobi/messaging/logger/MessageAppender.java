@@ -9,8 +9,8 @@ import org.apache.thrift.TException;
 import org.apache.thrift.TSerializer;
 
 import com.inmobi.messaging.Message;
-import com.inmobi.messaging.MessagePublisher;
-import com.inmobi.messaging.MessagePublisherFactory;
+import com.inmobi.messaging.publisher.MessagePublisher;
+import com.inmobi.messaging.publisher.MessagePublisherFactory;
 
 /*
  * Setting of fixed topic is deprecated.

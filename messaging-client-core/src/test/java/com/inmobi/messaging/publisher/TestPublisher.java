@@ -1,10 +1,15 @@
-package com.inmobi.messaging;
+package com.inmobi.messaging.publisher;
 
 import java.net.URL;
 import java.nio.ByteBuffer;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
+
+import com.inmobi.messaging.ClientConfig;
+import com.inmobi.messaging.Message;
+import com.inmobi.messaging.publisher.AbstractMessagePublisher;
+import com.inmobi.messaging.publisher.MessagePublisherFactory;
 
 public class TestPublisher {
 

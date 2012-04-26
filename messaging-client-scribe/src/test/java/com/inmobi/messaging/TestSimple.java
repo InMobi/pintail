@@ -11,6 +11,7 @@ import random.pkg.NtMultiServer;
 
 import com.inmobi.instrumentation.TimingAccumulator;
 import com.inmobi.messaging.netty.ScribeMessagePublisher;
+import com.inmobi.messaging.publisher.MessagePublisher;
 
 public class TestSimple {
   private NtMultiServer server;

@@ -14,9 +14,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.inmobi.instrumentation.TimingAccumulator.Outcome;
-import com.inmobi.messaging.AbstractMessagePublisher;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 
 public class FlumeMessagePublisher extends AbstractMessagePublisher {
 

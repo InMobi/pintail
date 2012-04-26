@@ -1,4 +1,4 @@
-package com.inmobi.messaging;
+package com.inmobi.messaging.publisher;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -7,6 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.inmobi.instrumentation.TimingAccumulator;
+import com.inmobi.messaging.ClientConfig;
+import com.inmobi.messaging.Message;
 import com.inmobi.stats.EmitterRegistry;
 import com.inmobi.stats.StatsEmitter;
 import com.inmobi.stats.StatsExposer;
