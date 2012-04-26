@@ -96,7 +96,7 @@ class PartitionReader {
   }
 
   private void initializeCurrentFile() throws Exception {
-    if (currentFile == null) {
+    if (partitionCheckpoint.getFileName() == null) {
       currentFile = getFileList(null, fs);
       currentOffset = 0;
     } else {
@@ -107,15 +107,14 @@ class PartitionReader {
   
   protected void execute() {
     try {
+      // Get the file to read
       if (!inited) {
         LOG.info("Initialize the current file");
         initializeCurrentFile();
         inited = true;
       } else if (gotoNext) {
-        System.out.println("Get the next file");
         LOG.debug("Get the next file");
         Path nextFile = getNextFile();
-        System.out.println("Next file:" + nextFile);
         LOG.debug("Next file:" + nextFile);
         if (nextFile == null) {
           return;
@@ -124,6 +123,7 @@ class PartitionReader {
         currentOffset = 0;
         gotoNext = false;
       }
+      
       LOG.info("Reading file " + currentFile);
       FSDataInputStream in = fs.open(currentFile);
       in.seek(currentOffset);
@@ -134,19 +134,18 @@ class PartitionReader {
           // add the data to queue
           byte[] data = Base64.decodeBase64(line);
           currentOffset = in.getPos();
+          LOG.debug("Current offset:" + currentOffset);
           buffer.add(new QueueEntry(new Message(streamName,
             ByteBuffer.wrap(data)), partitionId,
             new PartitionCheckpoint(currentFile.getName(), currentOffset)));
         }
         if (line == null) {
           // if there is no data and we are reading from current scribe file,
-          // sleep for a second and see if there there is more data. 
+          // do not switch to next file.
           String currentScribeFile = getCurrentScribeFile();
-          System.out.println("Current scribe file:" + currentScribeFile);
           LOG.debug("Current scribe file:" + currentScribeFile);
           if (currentScribeFile == null || 
               (!currentFile.getName().equals(currentScribeFile))) {
-            System.out.println("Going to next file");
             LOG.debug("Going to next file");
             gotoNext = true;
           }
