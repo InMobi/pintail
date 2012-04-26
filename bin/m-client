@@ -58,8 +58,8 @@ error() {
 
 display_help() {
   cat <<EOF
-Usage: $0 file <file> --conf <confdir>
-       $0 seqgen <maxSeq> --conf <confdir>
+Usage: $0 file <topic> <file> --conf <confdir>
+       $0 seqgen <topic> <maxSeq> --conf <confdir>
        $0 consoleconsumer --conf <confdir> 
 
 EOF
