@@ -11,7 +11,7 @@ public interface MessageConsumer {
   /**
    * Reads the next message
    * 
-   * It is synchronous call which waits for the message to be available on the
+   * It is a blocking call which waits for the message to be available on the
    * stream
    * 
    * @return {@link Message} object

@@ -92,7 +92,7 @@ public class DatabusConsumer extends AbstractMessageConsumer {
     return entry.message;
   }
 
-  public synchronized void start() {
+  private synchronized void start() {
     if (currentCheckpoint == null) {
       initializeCheckpoint();
     }
@@ -168,11 +168,6 @@ public class DatabusConsumer extends AbstractMessageConsumer {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-  }
-
-  public synchronized void commitAndclose() {
-    mark();
-    close();
   }
 
   @Override

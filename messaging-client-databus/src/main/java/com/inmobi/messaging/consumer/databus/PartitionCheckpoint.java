@@ -6,7 +6,7 @@ import java.io.IOException;
 
 import org.apache.hadoop.io.Writable;
 
-public class PartitionCheckpoint implements Writable {
+class PartitionCheckpoint implements Writable {
   private String fileName;
   private long offset;
 

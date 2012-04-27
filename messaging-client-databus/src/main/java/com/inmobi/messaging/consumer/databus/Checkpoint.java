@@ -18,7 +18,7 @@ import org.apache.hadoop.io.Writable;
  * It holds checkpoint for all the partitions.
  *
  */
-public class Checkpoint implements Writable {
+class Checkpoint implements Writable {
 
   // map of partitionId to partition
   private Map<PartitionId, PartitionCheckpoint> partitionsChkPoint =

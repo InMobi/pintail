@@ -6,7 +6,7 @@ import java.io.IOException;
 
 import org.apache.hadoop.io.Writable;
 
-public class PartitionId implements Writable {
+class PartitionId implements Writable {
 
   private String cluster;
   private String collector;

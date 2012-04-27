@@ -15,10 +15,12 @@ public class MessageConsumerFactory {
   public static final String CONSUMER_CLASS_NAME_KEY = "consumer.classname";
 
   /**
-   * Creates concrete class of {@link AbstractMessageConsumer} given by name
-   * {@value #CONSUMER_CLASS_NAME_KEY}, by loading the properties from
+   * Creates concrete class extending {@link AbstractMessageConsumer} given by
+   * name {@value #CONSUMER_CLASS_NAME_KEY}, by loading the properties from
    * configuration file named {@value #MESSAGE_CLIENT_CONF_FILE} from classpath.
    * 
+   * Also initializes the consumer class with passed configuration.
+   *
    * @return {@link MessageConsumer} concrete object
    */
   public static MessageConsumer create() {
@@ -33,9 +35,10 @@ public class MessageConsumerFactory {
   }
 
   /**
-   * Creates concrete class of {@link AbstractMessageConsumer} given by name
-   * {@value #CONSUMER_CLASS_NAME_KEY}, by loading the passed
+   * Creates concrete class extending {@link AbstractMessageConsumer} given by
+   * name {@value #CONSUMER_CLASS_NAME_KEY}, by loading the passed
    * configuration file.
+   *  Also initializes the consumer class with passed configuration.
    *
    * @param confFile The file name
    *  
@@ -47,19 +50,35 @@ public class MessageConsumerFactory {
   }
 
   /**
-   * Creates concrete class of {@link AbstractMessageConsumer} given by name
-   * {@value #CONSUMER_CLASS_NAME_KEY}, using the passed configuration
+   * Creates concrete class extending {@link AbstractMessageConsumer} given by
+   * name {@value #CONSUMER_CLASS_NAME_KEY}, using the passed configuration
    * object.
+   * Also initializes the consumer class with passed configuration object.
    *
    * @param config {@link ClientConfig} object
    * @return {@link MessageConsumer} concrete object
    */
   public static MessageConsumer create(ClientConfig config) {
-    Class<?> clazz;
     String consumerName = config.getString(CONSUMER_CLASS_NAME_KEY);
+    return create(config, consumerName);
+  }
+  
+  /**
+   * Creates concrete class extending {@link AbstractMessageConsumer} with
+   * passed name and using the passed configuration object. Also initializes
+   * the consumer class with passed configuration object.
+   *
+   * @param config {@link ClientConfig} object
+   * @param consumerClassName The class name of the consumer implementation
+   * 
+   * @return {@link MessageConsumer} concrete object
+   */
+  public static MessageConsumer create(ClientConfig config,
+                                       String consumerClassName) {
+    Class<?> clazz;
     AbstractMessageConsumer consumer = null;
     try {
-      clazz = Class.forName(consumerName);
+      clazz = Class.forName(consumerClassName);
       consumer = (AbstractMessageConsumer) clazz.newInstance();
 
     } catch (Exception e) {

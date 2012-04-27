@@ -2,7 +2,7 @@ package com.inmobi.messaging.consumer.databus;
 
 import com.inmobi.messaging.Message;
 
-public class QueueEntry {
+class QueueEntry {
 
   final Message message;
   final PartitionId partitionId;
