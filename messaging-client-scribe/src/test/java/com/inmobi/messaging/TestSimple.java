@@ -37,7 +37,7 @@ public class TestSimple {
     waitForConnectComplete(publisher);
     TimingAccumulator inspector = publisher.getStats();
     long success = inspector.getSuccessCount();
-    publisher.publish(new Message("ch", "mmmm".getBytes()));
+    publisher.publish("ch", new Message("mmmm".getBytes()));
     
     // Wait for all operations to complete
     while (inspector.getInFlight() != 0) {

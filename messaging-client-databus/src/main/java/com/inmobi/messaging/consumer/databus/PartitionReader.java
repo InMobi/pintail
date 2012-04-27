@@ -135,7 +135,7 @@ class PartitionReader {
           byte[] data = Base64.decodeBase64(line);
           currentOffset = in.getPos();
           LOG.debug("Current offset:" + currentOffset);
-          buffer.add(new QueueEntry(new Message(streamName,
+          buffer.add(new QueueEntry(new Message(
             ByteBuffer.wrap(data)), partitionId,
             new PartitionCheckpoint(currentFile.getName(), currentOffset)));
         }

@@ -24,8 +24,8 @@ public class FileLoggerClient {
     BufferedReader in = new BufferedReader(new FileReader(new File(file)));
     String line = in.readLine();
     while (line != null) {
-      Message msg = new Message(topic, ByteBuffer.wrap(line.getBytes()));
-      publisher.publish(msg);
+      Message msg = new Message(ByteBuffer.wrap(line.getBytes()));
+      publisher.publish(topic, msg);
       Thread.sleep(1);
       line = in.readLine();
     }
@@ -35,7 +35,8 @@ public class FileLoggerClient {
     long invocation = publisher.getStats().getInvocationCount();
     System.out.println("Total invocations: " + invocation);
     System.out.println("Total success: " + publisher.getStats().getSuccessCount());
-    System.out.println("Total unhandledExceptions: " + publisher.getStats().getUnhandledExceptionCount());
+    System.out.println("Total unhandledExceptions: " +
+      publisher.getStats().getUnhandledExceptionCount());
   }
 
   private static void waitToComplete(AbstractMessagePublisher publisher)

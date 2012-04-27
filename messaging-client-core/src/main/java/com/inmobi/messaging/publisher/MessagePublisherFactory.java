@@ -4,7 +4,7 @@ import java.io.InputStream;
 
 import com.inmobi.messaging.ClientConfig;
 
-/*
+/**
  * Factory to create concrete MessagePublisher instance.
  */
 public class MessagePublisherFactory {
@@ -13,8 +13,13 @@ public class MessagePublisherFactory {
   public static final String PUBLISHER_CLASS_NAME_KEY = "publisher.classname";
   public static final String EMITTER_CONF_FILE_KEY = "statemitter.filename";
 
-  /*
-   * Creates MessagePublisher by loading the config file from classpath.
+  /**
+   * Creates concrete class {@link AbstractMessagePublisher} given by name
+   * {@value #PUBLISHER_CLASS_NAME_KEY}, by loading the configuration file
+   * named {@value #MESSAGE_CLIENT_CONF_FILE} from classpath.
+   * And initializes the published class with passed configuration.
+   * 
+   * @return {@link MessagePublisher} concrete object
    */
   public static MessagePublisher create() {
     InputStream in = ClientConfig.class
@@ -27,16 +32,28 @@ public class MessagePublisherFactory {
     return create(config);
   }
 
-  /*
-   * Creates MessagePublisher by loading the passed config file.
+  /**
+   * Creates concrete class {@link AbstractMessagePublisher} given by name
+   * {@value #PUBLISHER_CLASS_NAME_KEY}, by loading the passed config file.
+   * And initializes the published class with passed configuration.
+   *
+   * @param confFile The configuration File name.
+   * 
+   * @return {@link MessagePublisher} concrete object
    */
   public static MessagePublisher create(String confFile) {
     ClientConfig config = ClientConfig.load(confFile);
     return create(config);
   }
 
-  /*
-   * Creates MessagePublisher using the passed config file.
+  /**
+   * Creates concrete class {@link AbstractMessagePublisher} given by name
+   * {@value #PUBLISHER_CLASS_NAME_KEY}, using the passed configuration object.
+   * And initializes the published class with passed configuration object.
+   * 
+   * @param config The {@link ClientConfig}
+   *
+   * @return {@link MessagePublisher} concrete object
    */
   public static MessagePublisher create(ClientConfig config) {
     Class<?> clazz;

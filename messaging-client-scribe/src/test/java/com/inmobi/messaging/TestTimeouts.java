@@ -43,7 +43,7 @@ public class TestTimeouts {
       TimingAccumulator inspector = mb.getStats();
 
       long error = inspector.getUnhandledExceptionCount();
-      mb.publish(new Message("ch", "mmmm".getBytes()));
+      mb.publish("ch", new Message("mmmm".getBytes()));
 
       Thread.sleep((timeoutSeconds + 1) * 1000);
       assertEquals(inspector.getInFlight(), 0,

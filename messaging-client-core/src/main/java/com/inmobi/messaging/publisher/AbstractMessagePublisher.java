@@ -21,14 +21,14 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
   private StatsEmitter emitter;
   private boolean statEnabled = false;
   private StatsExposer statExposer;
-  private static final String HEADER_TOPIC = "topic";
+  public static final String HEADER_TOPIC = "topic";
 
   @Override
-  public void publish(Message m) {
+  public void publish(String topicName, Message m) {
     getStats().accumulateInvocation();
     // TODO: generate headers
     Map<String, String> headers = new HashMap<String, String>();
-    headers.put(HEADER_TOPIC, m.getTopic());
+    headers.put(HEADER_TOPIC, topicName);
     publish(headers, m);
   }
 

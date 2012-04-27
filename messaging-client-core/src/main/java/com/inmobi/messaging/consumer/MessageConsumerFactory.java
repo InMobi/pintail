@@ -4,14 +4,22 @@ import java.io.InputStream;
 
 import com.inmobi.messaging.ClientConfig;
 
+/**
+ * The factory which creates a concrete implementation of 
+ * {@link MessageConsumer} 
+ *
+ */
 public class MessageConsumerFactory {
 
   public static final String MESSAGE_CLIENT_CONF_FILE = "messaging-consumer-conf.properties";
   public static final String CONSUMER_CLASS_NAME_KEY = "consumer.classname";
 
-  /*
-   * Creates MessageConsumer by loading the properties
-   * config file from classpath.
+  /**
+   * Creates concrete class of {@link AbstractMessageConsumer} given by name
+   * {@value #CONSUMER_CLASS_NAME_KEY}, by loading the properties from
+   * configuration file named {@value #MESSAGE_CLIENT_CONF_FILE} from classpath.
+   * 
+   * @return {@link MessageConsumer} concrete object
    */
   public static MessageConsumer create() {
     InputStream in = ClientConfig.class.getClassLoader().getResourceAsStream(
@@ -24,16 +32,27 @@ public class MessageConsumerFactory {
     return create(config);
   }
 
-  /*
-   * Creates MessageConsumer by loading the passed config file.
+  /**
+   * Creates concrete class of {@link AbstractMessageConsumer} given by name
+   * {@value #CONSUMER_CLASS_NAME_KEY}, by loading the passed
+   * configuration file.
+   *
+   * @param confFile The file name
+   *  
+   * @return {@link MessageConsumer} concrete object
    */
   public static MessageConsumer create(String confFile) {
     ClientConfig config = ClientConfig.load(confFile);
     return create(config);
   }
 
-  /*
-   * Creates MessageConsumer using the passed config file.
+  /**
+   * Creates concrete class of {@link AbstractMessageConsumer} given by name
+   * {@value #CONSUMER_CLASS_NAME_KEY}, using the passed configuration
+   * object.
+   *
+   * @param config {@link ClientConfig} object
+   * @return {@link MessageConsumer} concrete object
    */
   public static MessageConsumer create(ClientConfig config) {
     Class<?> clazz;

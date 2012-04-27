@@ -2,25 +2,37 @@ package com.inmobi.messaging;
 
 import java.nio.ByteBuffer;
 
+/**
+ *  Message class holding the data.
+ *
+ */
 public final class Message {
 
-  private final String topic;
   private final ByteBuffer data;
 
-  public Message(String topic, ByteBuffer data) {
-    this.topic = topic;
+  /**
+   * Create new message with {@link ByteBuffer}
+   * 
+   * @param data The {@link ByteBuffer}
+   */
+  public Message(ByteBuffer data) {
     this.data = data;
   }
 
-  public Message(String topic, byte[] data) {
-    this.topic = topic;
+  /**
+   * Create new message with byte array
+   * 
+   * @param data The byte array.
+   */
+  public Message(byte[] data) {
     this.data = ByteBuffer.wrap(data);
   }
 
-  public String getTopic() {
-    return topic;
-  }
-
+  /**
+   * Get the data associated with message.
+   * 
+   * @return {@link ByteBuffer} holding the data.
+   */
   public ByteBuffer getData() {
     return data;
   }
@@ -30,7 +42,6 @@ public final class Message {
     final int prime = 31;
     int result = 1;
     result = prime * result + ((data == null) ? 0 : data.hashCode());
-    result = prime * result + ((topic == null) ? 0 : topic.hashCode());
     return result;
   }
 
@@ -47,11 +58,6 @@ public final class Message {
       if (other.data != null)
         return false;
     } else if (!data.equals(other.data))
-      return false;
-    if (topic == null) {
-      if (other.topic != null)
-        return false;
-    } else if (!topic.equals(other.topic))
       return false;
     return true;
   }

@@ -29,7 +29,7 @@ public class StdInConsumer extends AbstractMessageConsumer {
     try {
       String str = in.readLine();
       if (str != null) {
-        return new Message(topicName, str.getBytes());
+        return new Message(str.getBytes());
       }
     } catch (IOException e) {
       e.printStackTrace();
@@ -38,12 +38,17 @@ public class StdInConsumer extends AbstractMessageConsumer {
   }
 
   @Override
-  public void commit() {
+  public boolean isMarkSupported() {
+    return false;
+  }
+
+  @Override
+  public void mark() {
     // nothing to commit
   }
 
   @Override
-  public void rollback() {
+  public void reset() {
     // nothing to rollback
   }
 
@@ -70,7 +75,6 @@ public class StdInConsumer extends AbstractMessageConsumer {
     try {
       while (true) {
         Message msg = consumer.next();
-        System.out.println("Topic:" + msg.getTopic());
         System.out.println("Message:" + msg.getData());
       }
     }  finally {

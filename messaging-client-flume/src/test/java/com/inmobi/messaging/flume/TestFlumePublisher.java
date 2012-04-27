@@ -29,8 +29,8 @@ public class TestFlumePublisher {
 
   @Test
   public void testSuccess() throws Exception {
-    Message msg = new Message("test", "msg".getBytes());
-    publisher.publish(msg);
+    Message msg = new Message("msg".getBytes());
+    publisher.publish("test", msg);
 
     // Wait for all operations to complete
     waitToComplete();
@@ -50,8 +50,8 @@ public class TestFlumePublisher {
   public void testFailure() throws Exception {
     doThrow(new RuntimeException()).when(mockRpcClient).appendBatch(anyList());
 
-    Message msg = new Message("test", "msg".getBytes());
-    publisher.publish(msg);
+    Message msg = new Message("msg".getBytes());
+    publisher.publish("test", msg);
 
     // Wait for all operations to complete
     waitToComplete();

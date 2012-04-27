@@ -18,9 +18,8 @@ public class SeqGeneratorClient {
     String topic = args[0];
     long maxSeq = Integer.parseInt(args[1]);
     for (long seq = 1; seq <= maxSeq; seq++) {
-      Message msg = new Message(topic, 
-          ByteBuffer.wrap(Long.toString(seq).getBytes()));
-      publisher.publish(msg);
+      Message msg = new Message(ByteBuffer.wrap(Long.toString(seq).getBytes()));
+      publisher.publish(topic, msg);
       Thread.sleep(1);
     }
     waitToComplete(publisher);

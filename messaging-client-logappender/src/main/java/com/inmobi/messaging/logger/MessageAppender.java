@@ -69,13 +69,13 @@ public class MessageAppender extends AppenderSkeleton {
     //deprecated support only if fixed topic is set
     else if (topic != null) {
       if (o instanceof byte[]) {
-        msg = new Message(this.topic, ByteBuffer.wrap((byte[]) o));
+        msg = new Message(ByteBuffer.wrap((byte[]) o));
       } else if (o instanceof String) {
-        msg = new Message(this.topic, ByteBuffer.wrap(((String) o).getBytes()));
+        msg = new Message(ByteBuffer.wrap(((String) o).getBytes()));
       } else if (o instanceof TBase) {
         TBase thriftOb = (TBase) o;
         try {
-          msg = new Message(this.topic, 
+          msg = new Message( 
               ByteBuffer.wrap(serializer.serialize(thriftOb)));
         } catch (TException e) {
           System.out.println("Could not serialize thrift object");
@@ -85,7 +85,7 @@ public class MessageAppender extends AppenderSkeleton {
     }
     
     if (msg != null) {
-      publisher.publish(msg);
+      publisher.publish(topic, msg);
     }
   }
 

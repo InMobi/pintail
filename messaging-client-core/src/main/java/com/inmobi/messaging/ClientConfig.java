@@ -9,22 +9,41 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+/**
+ * Provides access to Configuration parameters for the messaging client.
+ * 
+ * Configuration parameters are defined as name, value pairs.
+ * 
+ */
 public class ClientConfig {
-
-  private static final Logger LOG = LoggerFactory.getLogger(ClientConfig.class);
 
   private final Map<String, String> params = new HashMap<String, String>();
 
+  /**
+   * Create a new client configuration.
+   */
   public ClientConfig() {
   }
 
-  public ClientConfig(Map<String, String> map) {
-    this.params.putAll(map);
+  /**
+   * Create a new client configuration with passed parameters
+   * 
+   * @param parameters The {@link Map} holding configuration parameters
+   */
+  public ClientConfig(Map<String, String> parameters) {
+    this.params.putAll(parameters);
   }
 
+  /**
+   * Load configuration from the passed configuration file.
+   * 
+   * The data is in a simple line-oriented format as in 
+   * {@link Properties#load(InputStream)}
+
+   * @param confFile The file name to be loaded
+   * 
+   * @return The loaded {@link ClientConfig} object
+   */
   public static ClientConfig load(String confFile) {
     try {
       return load(new FileInputStream(new File(confFile)));
@@ -33,6 +52,16 @@ public class ClientConfig {
     }
   }
 
+  /**
+   * Load configuration parameters from the passed input stream.
+   * 
+   * The input stream is in a simple line-oriented format as in 
+   * {@link Properties#load(InputStream)}
+   * 
+   * @param in The {@link InputStream} to be loaded
+   * 
+   * @return The loaded {@link ClientConfig} object
+   */
   public static ClientConfig load(InputStream in) {
     Properties props = new Properties();
     try {
@@ -49,64 +78,142 @@ public class ClientConfig {
     return new ClientConfig(map);
   }
 
-  public void set(String key, String value) {
-    params.put(key, value);
+  /**
+   * Set a configuration parameter with passed name and value
+   * 
+   * @param name  {@link String} parameter name
+   * @param value  {@link String} parameter value
+   */
+  public void set(String name, String value) {
+    params.put(name, value);
   }
 
-  public Boolean getBoolean(String key, Boolean defaultValue) {
-    String value = get(key);
+  /**
+   * Get the boolean value associated with passed parameter <code>name</code>.
+   * If no such name exists in configuration parameters, the default value
+   * passed will be returned
+   *  
+   * @param name {@link String} configuration parameter name
+   * @param defaultValue {@link Boolean} default value if the name does not
+   * exist in configuration parameters.
+   *  
+   * @return {@link Boolean}
+   */
+  public Boolean getBoolean(String name, Boolean defaultValue) {
+    String value = get(name);
     if (value != null) {
       return Boolean.parseBoolean(value.trim());
     }
     return defaultValue;
   }
 
-  public Boolean getBoolean(String key) {
-    return getBoolean(key, null);
+  /**
+   * Get the boolean value associated with passed parameter <code>name</code>
+   *  
+   * @param name {@link String} configuration parameter name.
+   *  
+   * @return {@link Boolean} object
+   */
+  public Boolean getBoolean(String name) {
+    return getBoolean(name, null);
   }
 
-  public Integer getInteger(String key, Integer defaultValue) {
-    String value = get(key);
+  /**
+   * Get the integer value associated with passed parameter <code>name</code>
+   * If no such name exists in configuration parameters, the default value
+   * passed will be returned
+   *  
+   * @param name {@link String} configuration parameter name
+   * @param defaultValue {@link Integer} default value if the name does not
+   * exist in configuration parameters.
+   *  
+   * @return {@link Integer}
+   */
+  public Integer getInteger(String name, Integer defaultValue) {
+    String value = get(name);
     if (value != null) {
       return Integer.parseInt(value.trim());
     }
     return defaultValue;
   }
 
-  public Integer getInteger(String key) {
-    return getInteger(key, null);
+  /**
+   * Get the integer value associated with passed parameter <code>name</code>
+   *  
+   * @param name {@link String} configuration parameter name
+   *  
+   * @return {@link Integer} object
+   */
+  public Integer getInteger(String name) {
+    return getInteger(name, null);
   }
 
-  public Long getLong(String key, Long defaultValue) {
-    String value = get(key);
+  /**
+   * Get the long value associated with passed parameter <code>name</code>
+   * If no such name exists in configuration parameters, the default value
+   * passed will be returned
+   *  
+   * @param name {@link String} configuration parameter name
+   * @param defaultValue {@link Long} default value if the name does not
+   * exist in configuration parameters.
+   *  
+   * @return {@link Long} object
+   */
+  public Long getLong(String name, Long defaultValue) {
+    String value = get(name);
     if (value != null) {
       return Long.parseLong(value.trim());
     }
     return defaultValue;
   }
 
-  public Long getLong(String key) {
-    return getLong(key, null);
+  /**
+   * Get the long value associated with passed parameter <code>name</code>
+   *  
+   * @param name {@link String} configuration parameter name
+   *  
+   * @return {@link Long} object
+   */
+  public Long getLong(String name) {
+    return getLong(name, null);
   }
 
-  public String getString(String key, String defaultValue) {
-    return get(key, defaultValue);
+  /**
+   * Get the value associated with passed parameter <code>name</code>
+   * If no such name exists in configuration parameters, the default value
+   * passed will be returned
+   *  
+   * @param name {@link String} configuration parameter name
+   * @param defaultValue {@link String} default value if the name does not
+   * exist in configuration parameters.
+   *  
+   * @return {@link String} object
+   */
+  public String getString(String name, String defaultValue) {
+    return get(name, defaultValue);
   }
 
-  public String getString(String key) {
-    return get(key);
+  /**
+   * Get the value associated with passed parameter <code>name</code>
+   *  
+   * @param name {@link String} configuration parameter name
+   *  
+   * @return {@link String} object
+   */
+  public String getString(String name) {
+    return get(name);
   }
 
-  private String get(String key, String defaultValue) {
-    String result = params.get(key);
+  private String get(String name, String defaultValue) {
+    String result = params.get(name);
     if (result != null) {
       return result;
     }
     return defaultValue;
   }
 
-  private String get(String key) {
-    return get(key, null);
+  private String get(String name) {
+    return get(name, null);
   }
 
   @Override

@@ -8,8 +8,6 @@ import org.testng.annotations.Test;
 
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
-import com.inmobi.messaging.publisher.AbstractMessagePublisher;
-import com.inmobi.messaging.publisher.MessagePublisherFactory;
 
 public class TestPublisher {
 
@@ -47,11 +45,11 @@ public class TestPublisher {
   }
 
   private void doTest(AbstractMessagePublisher publisher) {
-    Message msg = new Message("test", ByteBuffer.wrap(new byte[5]));
+    Message msg = new Message( ByteBuffer.wrap(new byte[5]));
     long invocation = publisher.getStats().getInvocationCount();
     long success = publisher.getStats().getSuccessCount();
     long unhandledException = publisher.getStats().getUnhandledExceptionCount();
-    publisher.publish(msg);
+    publisher.publish("test", msg);
     Assert.assertEquals(publisher.getStats().getInvocationCount(), 
         invocation + 1, "invocation count");
     Assert.assertEquals(publisher.getStats().getSuccessCount(), 

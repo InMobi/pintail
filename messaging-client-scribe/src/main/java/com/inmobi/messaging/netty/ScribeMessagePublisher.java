@@ -68,7 +68,7 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher {
   @Override
   protected void publish(Map<String, String> headers, Message m) {
     if (ch != null) {
-      ScribeBites.publish(ch, m.getTopic(), m);
+      ScribeBites.publish(ch, headers.get(HEADER_TOPIC), m);
     } else {
       suggestReconnect();
     }

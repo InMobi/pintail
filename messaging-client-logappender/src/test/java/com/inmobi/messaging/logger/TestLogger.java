@@ -41,7 +41,7 @@ public class TestLogger {
       throws TException {
     String topic = "test";
     Assert.assertEquals(appender.getTopic(), topic);
-    Message msg = new Message(topic, ByteBuffer.wrap("hello".getBytes()));
+    Message msg = new Message(ByteBuffer.wrap("hello".getBytes()));
     logger.info(msg);
     Assert.assertEquals(MockPublisher.msg, msg);
     MockPublisher.reset();
@@ -68,7 +68,7 @@ public class TestLogger {
     logger.info(le);
     TSerializer serializer = new TSerializer();
     Assert.assertEquals(MockPublisher.msg, 
-        new Message(topic, serializer.serialize(le)));
+        new Message(serializer.serialize(le)));
     MockPublisher.reset();
   }
 }
