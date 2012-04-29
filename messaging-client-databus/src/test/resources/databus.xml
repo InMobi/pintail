@@ -1,6 +1,6 @@
 <databus>
   <defaults>
-    <rootdir>/databus</rootdir>
+    <rootdir>/tmp/databus</rootdir>
     <retentionindays>2</retentionindays>
   </defaults>
 
@@ -20,8 +20,8 @@
   </streams>
 
   <clusters>
-    <cluster name="testcluster" hdfsurl="hdfs://gridops-vm1.corp.inmobi.com:8020/"
-             jturl="gridops-vm1.corp.inmobi.com:8021">
+    <cluster name="testcluster" hdfsurl="file:///"
+             jturl="local">
     </cluster>
 
   </clusters>

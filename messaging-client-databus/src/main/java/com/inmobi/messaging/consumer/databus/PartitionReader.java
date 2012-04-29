@@ -33,6 +33,8 @@ class PartitionReader {
   private volatile boolean stopped;
   private Path currentFile;
   private long currentOffset;
+  private long currentLineNum;
+  private boolean skipLines = false;
   private boolean inited = false;
   private boolean gotoNext = false;
 
@@ -95,14 +97,56 @@ class PartitionReader {
     LOG.info(Thread.currentThread().getName() + " stopped [" + stopped + "]");
   }
 
-  private void initializeCurrentFile() throws Exception {
+  void initializeCurrentFile() throws Exception {
     if (partitionCheckpoint.getFileName() == null) {
       currentFile = getFileList(null, fs);
-      currentOffset = 0;
     } else {
       currentFile = new Path(collectorDir, partitionCheckpoint.getFileName());
-      currentOffset = partitionCheckpoint.getOffset();
+      if (partitionCheckpoint.getLineNum() > 0) {
+        skipLines = true;
+      }
     }
+  }
+  
+  Path getCurrentFile() {
+    return currentFile;
+  }
+  /**
+   * Skip the number of lines passed.
+   * 
+   * @return the actual number of lines skipped.
+   */
+  private long skipLines(FSDataInputStream in, BufferedReader reader) 
+      throws IOException {
+    long numLines = partitionCheckpoint.getLineNum();
+    long lineNum = 0;
+    while (lineNum != numLines) {
+      String line = readLine(in, reader);
+      if (line == null) {
+    	return lineNum;
+      }
+      lineNum++;
+    }
+    LOG.info("Skipped " + lineNum + " lines");
+    if (lineNum != numLines) {
+      LOG.warn("Skipped wrong number of lines");
+    }
+    return lineNum;
+  }
+  
+  private String readLine(FSDataInputStream in, BufferedReader reader)
+      throws IOException {
+    String line = reader.readLine();
+    if (line != null) {
+      currentOffset = in.getPos();
+      currentLineNum++;
+    }
+    return line;
+  }
+
+  private void resetCurrentFileSettings() {
+    currentOffset = 0;
+    currentLineNum = 0;
   }
   
   protected void execute() {
@@ -111,33 +155,41 @@ class PartitionReader {
       if (!inited) {
         LOG.info("Initialize the current file");
         initializeCurrentFile();
+        resetCurrentFileSettings();
         inited = true;
       } else if (gotoNext) {
         LOG.debug("Get the next file");
         Path nextFile = getNextFile();
-        LOG.debug("Next file:" + nextFile);
         if (nextFile == null) {
+          LOG.info("No file to read");
           return;
         }
         currentFile = nextFile;
-        currentOffset = 0;
+        resetCurrentFileSettings();
         gotoNext = false;
+      } else {
+        LOG.info("reading the same file");
       }
       
-      LOG.info("Reading file " + currentFile);
+      LOG.info("Reading file " + currentFile + " from offset:" + currentOffset +
+          " and lineNum:" + currentLineNum);
       FSDataInputStream in = fs.open(currentFile);
       in.seek(currentOffset);
       BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-      String line = reader.readLine();
+      if (skipLines) {
+        skipLines(in, reader);
+        skipLines = false;
+      }
+      String line = readLine(in, reader);
       while (true) {
         if (line != null) {
           // add the data to queue
           byte[] data = Base64.decodeBase64(line);
-          currentOffset = in.getPos();
-          LOG.debug("Current offset:" + currentOffset);
+          LOG.debug("Current LineNum: " + currentLineNum + " Current offset:" +
+            currentOffset);
           buffer.add(new QueueEntry(new Message(
             ByteBuffer.wrap(data)), partitionId,
-            new PartitionCheckpoint(currentFile.getName(), currentOffset)));
+            new PartitionCheckpoint(currentFile.getName(), currentLineNum)));
         }
         if (line == null) {
           // if there is no data and we are reading from current scribe file,
@@ -152,7 +204,7 @@ class PartitionReader {
           break;
         }
         // Read next line
-        line = reader.readLine();
+        line = readLine(in, reader);
       }
       reader.close();
     } catch (Exception e) {

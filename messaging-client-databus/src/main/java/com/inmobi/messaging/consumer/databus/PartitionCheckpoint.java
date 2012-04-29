@@ -8,11 +8,11 @@ import org.apache.hadoop.io.Writable;
 
 class PartitionCheckpoint implements Writable {
   private String fileName;
-  private long offset;
+  private long lineNum;
 
-  PartitionCheckpoint(String fileName, long offset) {
+  PartitionCheckpoint(String fileName, long lineNum) {
     this.fileName = fileName;
-    this.offset = offset;
+    this.lineNum = lineNum;
   }
 
   PartitionCheckpoint(DataInput in) throws IOException {
@@ -23,24 +23,24 @@ class PartitionCheckpoint implements Writable {
     return fileName;
   }
 
-  public long getOffset() {
-    return offset;
+  public long getLineNum() {
+    return lineNum;
   }
 
   @Override
   public void readFields(DataInput in) throws IOException {
     fileName = in.readUTF();
-    offset = in.readLong();
+    lineNum = in.readLong();
   }
 
   @Override
   public void write(DataOutput out) throws IOException {
     out.writeUTF(fileName);
-    out.writeLong(offset);
+    out.writeLong(lineNum);
   }
 
   public String toString() {
-    return fileName + "-" + offset;
+    return fileName + "-" + lineNum;
   }
 
   @Override
@@ -48,7 +48,7 @@ class PartitionCheckpoint implements Writable {
     final int prime = 31;
     int result = 1;
     result = prime * result + ((fileName == null) ? 0 : fileName.hashCode());
-    result = prime * result + (int) (offset ^ (offset >>> 32));
+    result = prime * result + (int) (lineNum ^ (lineNum >>> 32));
     return result;
   }
 
@@ -66,7 +66,7 @@ class PartitionCheckpoint implements Writable {
         return false;
     } else if (!fileName.equals(other.fileName))
       return false;
-    if (offset != other.offset)
+    if (lineNum != other.lineNum)
       return false;
     return true;
   }
