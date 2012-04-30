@@ -42,8 +42,6 @@ public class DatabusConsumer extends AbstractMessageConsumer {
   public static final int DEFAULT_QUEUE_SIZE = 1000;
 
   private DatabusConfig databusConfig;
-  private String streamName;
-  private String consumerName;
   private BlockingQueue<QueueEntry> buffer;
   private String databusCheckpointDir;
 
@@ -61,8 +59,6 @@ public class DatabusConsumer extends AbstractMessageConsumer {
   }
 
   void initializeConfig(ClientConfig config) {
-    this.streamName = config.getString("databus.stream");
-    this.consumerName = config.getString("databus.consumer");
     int queueSize = config.getInteger("databus.consumer.buffer.size",
                       DEFAULT_QUEUE_SIZE);
     buffer = new LinkedBlockingQueue<QueueEntry>(queueSize);
@@ -80,20 +76,12 @@ public class DatabusConsumer extends AbstractMessageConsumer {
       e.printStackTrace();
       throw new RuntimeException(e);
     }
-    LOG.info("Databus consumer initialized with streamName:" + streamName +
+    LOG.info("Databus consumer initialized with streamName:" + topicName +
             " consumerName:" + consumerName + " queueSize:" + queueSize +
             " checkPoint:" + currentCheckpoint);
 
   }
 
-  String getStreamName() {
-   return streamName;
-  }
-  
-  String getConsumerName() {
-    return consumerName;
-  }
-  
   Map<PartitionId, PartitionReader> getPartitionReaders() {
     return readers;
   }
@@ -128,7 +116,7 @@ public class DatabusConsumer extends AbstractMessageConsumer {
 
   private synchronized void start() {
     if (currentCheckpoint == null) {
-      initializeCheckpoint();
+      initializeCheckpoint(topicName);
     }
 
     // start partition readers for each checkpoint.
@@ -136,25 +124,25 @@ public class DatabusConsumer extends AbstractMessageConsumer {
         .getPartitionsCheckpoint().entrySet()) {
       LOG.info("creating partitionreader for cp:" + cpEntry.getKey() + ":" + cpEntry.getValue());
       PartitionReader reader = new PartitionReader(cpEntry.getKey(),
-          cpEntry.getValue(), databusConfig, buffer, streamName);
+          cpEntry.getValue(), databusConfig, buffer, topicName);
       readers.put(cpEntry.getKey(), reader);
       LOG.info("Starting partition reader " + cpEntry.getKey());
       reader.start();
     }
   }
 
-  void initializeCheckpoint() {
+  void initializeCheckpoint(String topicName) {
     Map<PartitionId, PartitionCheckpoint> partitionsChkPoints = 
         new HashMap<PartitionId, PartitionCheckpoint>();
     this.currentCheckpoint = new Checkpoint(partitionsChkPoints);
-    SourceStream sourceStream = databusConfig.getSourceStreams().get(streamName);
+    SourceStream sourceStream = databusConfig.getSourceStreams().get(topicName);
     LOG.debug("Stream name: " + sourceStream.getName());
     System.out.println("stream name: " + sourceStream.getName());
     for (String c : sourceStream.getSourceClusters()) {
       Cluster cluster = databusConfig.getClusters().get(c);
       try {
         FileSystem fs = FileSystem.get(cluster.getHadoopConf());
-        Path path = new Path(cluster.getDataDir(), streamName);
+        Path path = new Path(cluster.getDataDir(), topicName);
         LOG.debug("Stream dir: " + path);
         System.out.println("Stream dir: " + path);
         FileStatus[] list = fs.listStatus(path);
@@ -177,7 +165,7 @@ public class DatabusConsumer extends AbstractMessageConsumer {
   }
   
   private String getChkpointKey() {
-    return consumerName + "_" + streamName;
+    return consumerName + "_" + topicName;
   }
 
   @Override

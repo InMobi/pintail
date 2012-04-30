@@ -32,7 +32,7 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
    * @param consumerName Name of the consumer
    * @param config {@link ClientConfig} for the consumer
    */
-  protected void init(String topicName, String consumerName,
+  public void init(String topicName, String consumerName,
       ClientConfig config) {
     this.topicName = topicName;
     this.consumerName = consumerName;

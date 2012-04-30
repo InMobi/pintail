@@ -73,14 +73,12 @@ public class TestDatabusConsumer {
     Assert.assertTrue(consumer.isMarkSupported());
     
     consumer.initializeConfig(config);  
-    Assert.assertEquals(consumer.getStreamName(), testStream);
-    Assert.assertEquals(consumer.getConsumerName(), consumerName);
     Assert.assertNotNull(consumer.getCheckpointProvider());
     Assert.assertNull(consumer.getCurrentCheckpoint());
     Assert.assertNotNull(consumer.getDatabusConfig());
     Assert.assertEquals(consumer.getBufferSize(), 800);
     
-    consumer.initializeCheckpoint();
+    consumer.initializeCheckpoint(testStream);
     Assert.assertNotNull(consumer.getCurrentCheckpoint());
 
   }
@@ -88,7 +86,9 @@ public class TestDatabusConsumer {
   @Test
   public void testMarkAndReset() throws IOException {
     DatabusConsumer consumer = new DatabusConsumer();
-    consumer.init(config);
+    consumer.init(testStream, consumerName, config);
+    Assert.assertEquals(consumer.getTopicName(), testStream);
+    Assert.assertEquals(consumer.getConsumerName(), consumerName);
     Map<PartitionId, PartitionReader> readers = consumer.getPartitionReaders();
     Assert.assertEquals(readers.size(), collectors.length);
 
@@ -130,7 +130,7 @@ public class TestDatabusConsumer {
 
     // test checkpoint and consumer crash
     consumer = new DatabusConsumer();
-    consumer.init(config);
+    consumer.init(testStream, consumerName, config);
     Assert.assertEquals(consumer.getCurrentCheckpoint(), lastCheckpoint);
     
     for (i = 140; i < 300; i++) {
