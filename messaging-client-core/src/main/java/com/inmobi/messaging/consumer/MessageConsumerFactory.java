@@ -11,15 +11,20 @@ import com.inmobi.messaging.ClientConfig;
  */
 public class MessageConsumerFactory {
 
-  public static final String MESSAGE_CLIENT_CONF_FILE = "messaging-consumer-conf.properties";
+  public static final String MESSAGE_CLIENT_CONF_FILE = 
+                          "messaging-consumer-conf.properties";
   public static final String CONSUMER_CLASS_NAME_KEY = "consumer.classname";
+  public static final String TOPIC_NAME_KEY = "topic.name";
+  public static final String CONSUMER_NAME_KEY = "consumer.name";
 
   /**
    * Creates concrete class extending {@link AbstractMessageConsumer} given by
    * name {@value #CONSUMER_CLASS_NAME_KEY}, by loading the properties from
    * configuration file named {@value #MESSAGE_CLIENT_CONF_FILE} from classpath.
    * 
-   * Also initializes the consumer class with passed configuration.
+   * Initializes the consumer class with passed configuration, topicName with
+   * the value of {@value #TOPIC_NAME_KEY}, consumerName with the value of 
+   * {@value #CONSUMER_NAME_KEY}.
    *
    * @return {@link MessageConsumer} concrete object
    */
@@ -38,7 +43,10 @@ public class MessageConsumerFactory {
    * Creates concrete class extending {@link AbstractMessageConsumer} given by
    * name {@value #CONSUMER_CLASS_NAME_KEY}, by loading the passed
    * configuration file.
-   *  Also initializes the consumer class with passed configuration.
+   * 
+   * Initializes the consumer class with passed configuration, topicName with
+   * the value of {@value #TOPIC_NAME_KEY}, consumerName with the value of 
+   * {@value #CONSUMER_NAME_KEY}.
    *
    * @param confFile The file name
    *  
@@ -53,7 +61,10 @@ public class MessageConsumerFactory {
    * Creates concrete class extending {@link AbstractMessageConsumer} given by
    * name {@value #CONSUMER_CLASS_NAME_KEY}, using the passed configuration
    * object.
-   * Also initializes the consumer class with passed configuration object.
+   * 
+   * Initializes the consumer class with passed configuration, topicName with
+   * the value of {@value #TOPIC_NAME_KEY}, consumerName with the value of 
+   * {@value #CONSUMER_NAME_KEY}.
    *
    * @param config {@link ClientConfig} object
    * @return {@link MessageConsumer} concrete object
@@ -65,8 +76,11 @@ public class MessageConsumerFactory {
   
   /**
    * Creates concrete class extending {@link AbstractMessageConsumer} with
-   * passed name and using the passed configuration object. Also initializes
-   * the consumer class with passed configuration object.
+   * passed class name and using the passed configuration object.
+   * 
+   * Initializes the consumer class with passed configuration, topicName with
+   * the value of {@value #TOPIC_NAME_KEY}, consumerName with the value of 
+   * {@value #CONSUMER_NAME_KEY}.
    *
    * @param config {@link ClientConfig} object
    * @param consumerClassName The class name of the consumer implementation
@@ -75,6 +89,12 @@ public class MessageConsumerFactory {
    */
   public static MessageConsumer create(ClientConfig config,
                                        String consumerClassName) {
+    return create(config, consumerClassName, config.getString(TOPIC_NAME_KEY),
+        config.getString(CONSUMER_NAME_KEY));
+  }
+  
+  private static AbstractMessageConsumer createAbstractConsumer(
+      String consumerClassName) {
     Class<?> clazz;
     AbstractMessageConsumer consumer = null;
     try {
@@ -83,9 +103,31 @@ public class MessageConsumerFactory {
 
     } catch (Exception e) {
       throw new RuntimeException("Could not create message consumer "
-          + config.getString(CONSUMER_CLASS_NAME_KEY), e);
+          + consumerClassName, e);
     }
-    consumer.init(config);
     return consumer;
   }
+  
+  /**
+   * Creates concrete class extending {@link AbstractMessageConsumer} with
+   * passed name and using the passed configuration object. Also initializes
+   * the consumer class with passed configuration object, streamName and
+   * consumerName.
+   *
+   * @param config {@link ClientConfig} object
+   * @param consumerClassName The class name of the consumer implementation
+   * @param topicName The name of the topic being consumed
+   * @param consumerName The name of the conusmer being consumed
+   * 
+   * @return {@link MessageConsumer} concrete object
+   */
+  public static MessageConsumer create(ClientConfig config,
+                                       String consumerClassName,
+                                       String topicName,
+                                       String consumerName) {
+    AbstractMessageConsumer consumer = createAbstractConsumer(consumerClassName);
+    consumer.init(topicName, consumerName, config);
+    return consumer;
+  }
+
 }

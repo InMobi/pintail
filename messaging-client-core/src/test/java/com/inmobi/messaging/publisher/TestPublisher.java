@@ -44,6 +44,18 @@ public class TestPublisher {
     Assert.assertTrue(MockStatsEmitter.inited);
   }
 
+  @Test
+  public void testLoadFromClassName() {
+    ClientConfig conf = new ClientConfig();
+    AbstractMessagePublisher publisher = 
+      (AbstractMessagePublisher) MessagePublisherFactory.create(
+          conf, MockPublisher.class.getName());
+    doTest(publisher);
+    Assert.assertFalse(publisher.statEmissionEnabled());
+    Assert.assertFalse(MockStatsEmitter.inited);
+  }
+
+
   private void doTest(AbstractMessagePublisher publisher) {
     Message msg = new Message( ByteBuffer.wrap(new byte[5]));
     long invocation = publisher.getStats().getInvocationCount();

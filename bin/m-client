@@ -24,8 +24,8 @@
 # constants
 ################################
 
-CLIENT_FILELOGGER_CLASS="com.inmobi.messaging.publisher.example.FileLoggerClient"
-CLIENT_SEQGEN_CLASS="com.inmobi.messaging.publisher.example.SeqGeneratorClient"
+CLIENT_FILELOGGER_CLASS="com.inmobi.messaging.publisher.examples.FileLoggerClient"
+CLIENT_SEQGEN_CLASS="com.inmobi.messaging.publisher.examples.SeqGeneratorClient"
 CLIENT_CONSOLECONSUMER_CLASS="com.inmobi.messaging.consumer.examples.ConsoleConsumer"
 
 ################################

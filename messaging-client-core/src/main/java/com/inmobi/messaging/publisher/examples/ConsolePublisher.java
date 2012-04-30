@@ -1,4 +1,4 @@
-package com.inmobi.messaging.publisher.example;
+package com.inmobi.messaging.publisher.examples;
 
 import java.util.Map;
 
