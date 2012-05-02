@@ -1,6 +1,7 @@
 package com.inmobi.messaging.consumer;
 
 import java.io.InputStream;
+import java.util.Date;
 
 import com.inmobi.messaging.ClientConfig;
 
@@ -125,8 +126,41 @@ public class MessageConsumerFactory {
                                        String consumerClassName,
                                        String topicName,
                                        String consumerName) {
+    return create(config, consumerClassName, topicName, consumerName, null);
+  }
+
+  /**
+   * Creates concrete class extending {@link AbstractMessageConsumer} with
+   * passed name and using the passed configuration object. Also initializes
+   * the consumer class with passed configuration object, streamName and
+   * consumerName.
+   *
+   * @param config {@link ClientConfig} object
+   * @param consumerClassName The class name of the consumer implementation
+   * @param topicName The name of the topic being consumed
+   * @param consumerName The name of the consumer being consumed
+   * @param startTime The starting time from which messages should be consumed.
+   * 
+   * @return {@link MessageConsumer} concrete object
+   */
+  public static MessageConsumer create(ClientConfig config,
+                                       String consumerClassName,
+                                       String topicName,
+                                       String consumerName,
+                                       Date startTime) {
     AbstractMessageConsumer consumer = createAbstractConsumer(consumerClassName);
-    consumer.init(topicName, consumerName, config);
+    if (topicName == null) {
+      throw new RuntimeException("Could not create consumer with null topic" +
+        " name");
+    }
+    if (consumerName == null) {
+      throw new RuntimeException("Could not create consumer with null consumer"
+        + " name");
+    }
+    config.set(CONSUMER_CLASS_NAME_KEY, consumerClassName);
+    config.set(TOPIC_NAME_KEY, topicName);
+    config.set(CONSUMER_NAME_KEY, consumerName);
+    consumer.init(topicName, consumerName, startTime, config);
     return consumer;
   }
 

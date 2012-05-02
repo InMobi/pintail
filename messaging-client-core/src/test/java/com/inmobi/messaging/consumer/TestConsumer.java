@@ -1,6 +1,7 @@
 package com.inmobi.messaging.consumer;
 
 import java.net.URL;
+import java.util.Date;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -9,6 +10,7 @@ import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 
 public class TestConsumer {
+  private Date now = new Date(System.currentTimeMillis());
 
   @Test
   public void test() {
@@ -20,6 +22,7 @@ public class TestConsumer {
     AbstractMessageConsumer consumer =
         (AbstractMessageConsumer) MessageConsumerFactory.create(conf);
     doTest(consumer);
+    Assert.assertNull(consumer.getStartTime());
   }
 
   @Test
@@ -27,6 +30,7 @@ public class TestConsumer {
     AbstractMessageConsumer consumer =
         (AbstractMessageConsumer) MessageConsumerFactory.create();
     doTest(consumer);
+    Assert.assertNull(consumer.getStartTime());
   }
 
   @Test
@@ -37,6 +41,7 @@ public class TestConsumer {
         (AbstractMessageConsumer) MessageConsumerFactory.create(
             url.getFile());
     doTest(consumer);
+    Assert.assertNull(consumer.getStartTime());
   }
 
   @Test
@@ -48,6 +53,7 @@ public class TestConsumer {
       (AbstractMessageConsumer) MessageConsumerFactory.create(
           conf, MockConsumer.class.getName());
     doTest(consumer);
+    Assert.assertNull(consumer.getStartTime());
   }
 
   @Test
@@ -57,6 +63,17 @@ public class TestConsumer {
           new ClientConfig(), MockConsumer.class.getName(), "test",
           "testconsumer");
     doTest(consumer);
+    Assert.assertNull(consumer.getStartTime());
+  }
+
+  @Test
+  public void testStartTime() {
+    AbstractMessageConsumer consumer = 
+      (AbstractMessageConsumer) MessageConsumerFactory.create(
+          new ClientConfig(), MockConsumer.class.getName(), "test",
+          "testconsumer", now);
+    doTest(consumer);
+    Assert.assertEquals(consumer.getStartTime(), now);
   }
 
   private void doTest(AbstractMessageConsumer consumer) {
