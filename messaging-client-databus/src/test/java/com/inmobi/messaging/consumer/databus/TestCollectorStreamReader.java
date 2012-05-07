@@ -14,18 +14,14 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import com.inmobi.databus.Cluster;
-import com.inmobi.databus.DatabusConfig;
-import com.inmobi.databus.DatabusConfigParser;
-import com.inmobi.databus.SourceStream;
 
-public class TestCollectorStreamFileReader {
+public class TestCollectorStreamReader {
   private static final String testStream = "testclient";
 
   private String collectorName = "collector1";
   private Path collectorDir;
   private String clusterName = "testCluster";
-  private DatabusConfig databusConfig;
-  private CollectorStreamFileReader cReader;
+  private CollectorStreamReader cReader;
   private FileSystem fs;
   private Cluster cluster;
   private int msgIndex = 0;
@@ -87,7 +83,7 @@ public class TestCollectorStreamFileReader {
   @Test
   public void testInitialize() throws Exception {
     // Read from start
-    cReader = new CollectorStreamFileReader(partitionId, cluster, testStream, 1000);
+    cReader = new CollectorStreamReader(partitionId, cluster, testStream, 1000);
     cReader.initFromStart();
     Assert.assertEquals(cReader.getCurrentFile(), new Path(collectorDir, file1));
 
@@ -98,15 +94,15 @@ public class TestCollectorStreamFileReader {
     
     // Read from checkpoint with local stream file name
     cReader.initializeCurrentFile(new PartitionCheckpoint(
-        LocalStreamFileReader.getLocalStreamFileName(collectorName, file2), 20));
+        LocalStreamReader.getLocalStreamFileName(collectorName, file2), 20));
     Assert.assertNull(cReader.getCurrentFile());
 
     //Read from startTime in collector dir
-    cReader.initializeCurrentFile(CollectorStreamFileReader.getDateFromFile(file2));
+    cReader.initializeCurrentFile(CollectorStreamReader.getDateFromFile(file2));
     Assert.assertEquals(cReader.getCurrentFile(), new Path(collectorDir, file2));
 
     //Read from startTime in local stream directory 
-    cReader.initializeCurrentFile(LocalStreamFileReader.getDateFromFile(file5));
+    cReader.initializeCurrentFile(LocalStreamReader.getDateFromFile(file5));
     Assert.assertEquals(cReader.getCurrentFile(), new Path(collectorDir, file1));
 
   }
@@ -124,7 +120,7 @@ public class TestCollectorStreamFileReader {
   
   @Test
   public void testReadFromStart() throws Exception {
-    cReader = new CollectorStreamFileReader(partitionId, cluster, testStream, 1000);
+    cReader = new CollectorStreamReader(partitionId, cluster, testStream, 1000);
     cReader.initFromStart();
     cReader.openStream();
     readFile(0, 0);
@@ -135,7 +131,7 @@ public class TestCollectorStreamFileReader {
   
   @Test
   public void testReadFromCheckpoint() throws Exception {
-    cReader = new CollectorStreamFileReader(partitionId, cluster, testStream, 1000);
+    cReader = new CollectorStreamReader(partitionId, cluster, testStream, 1000);
     cReader.initializeCurrentFile(new PartitionCheckpoint(file2, 20));
     cReader.openStream();
     
@@ -146,9 +142,9 @@ public class TestCollectorStreamFileReader {
 
   @Test
   public void testReadFromTimeStamp() throws Exception {
-    cReader = new CollectorStreamFileReader(partitionId, cluster,  testStream, 1000);
+    cReader = new CollectorStreamReader(partitionId, cluster,  testStream, 1000);
     cReader.initializeCurrentFile(
-        CollectorStreamFileReader.getDateFromFile(file2));
+        CollectorStreamReader.getDateFromFile(file2));
     cReader.openStream();
     readFile(1, 0);
     readFile(2, 0);

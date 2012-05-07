@@ -1,9 +1,7 @@
 package com.inmobi.messaging.consumer.databus;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -27,19 +25,17 @@ public class TestCurrentFile {
       new LinkedBlockingQueue<QueueEntry>(1000);
 
   private String collectorName = "collector1";
-  private String clusterName;
+  private String clusterName = "testDFSCluster";
   private FileSystem fs;
   private Cluster cluster;
   private Path collectorDir;
   private int msgIndex = 0;
   private PartitionReader preader;
   private PartitionId partitionId;
-  private String doesNotExist1 = testStream + "-2012-05-02-14-24_00000";
   private String file1 = testStream + "-2012-05-02-14-26_00000";
   private String file2 = testStream + "-2012-05-02-14-27_00000";
   private String file3 = testStream + "-2012-05-02-14-28_00000";
   private String currentScribeFile = testStream + "-2012-05-02-14-29_00000";
-  private String doesNotExist2 = testStream + "-2012-05-02-14-30_00000";
   MiniDFSCluster dfsCluster;
   Configuration conf = new Configuration();
   
@@ -137,7 +133,7 @@ public class TestCurrentFile {
         null, -1), cluster, buffer, testStream, null, 1000);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
-        CollectorStreamFileReader.class.getName());
+        CollectorStreamReader.class.getName());
     preader.start();
     assertBuffer(file1, 1, 0, 100);
     assertBuffer(file2, 2, 0, 100);
@@ -146,7 +142,7 @@ public class TestCurrentFile {
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getCurrentReader());
     Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
-            CollectorStreamFileReader.class.getName());
+            CollectorStreamReader.class.getName());
     writeMessages(out, 20);
     assertBuffer(currentScribeFile, 4, 10, 20);
     writeMessages(out, 20);
@@ -157,7 +153,7 @@ public class TestCurrentFile {
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getCurrentReader());
     Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
-            CollectorStreamFileReader.class.getName());
+            CollectorStreamReader.class.getName());
     preader.close();
   }
 

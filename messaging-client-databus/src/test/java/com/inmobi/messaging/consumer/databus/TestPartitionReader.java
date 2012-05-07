@@ -16,9 +16,6 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import com.inmobi.databus.Cluster;
-import com.inmobi.databus.DatabusConfig;
-import com.inmobi.databus.DatabusConfigParser;
-import com.inmobi.databus.SourceStream;
 import com.inmobi.databus.utils.FileUtil;
 
 public class TestPartitionReader {
@@ -28,7 +25,6 @@ public class TestPartitionReader {
 
   private String collectorName = "collector1";
   private String clusterName = "testCluster";
-  private DatabusConfig databusConfig;
   private FileSystem fs;
   private Cluster cluster;
   private Path collectorDir;
@@ -129,24 +125,24 @@ public class TestPartitionReader {
     preader = new PartitionReader(partitionId,
         new PartitionCheckpoint(null, -1), cluster, buffer, testStream, null, 1000);
     Assert.assertEquals(preader.getCurrentFile(),
-        new Path(CollectorStreamFileReader.getDateDir(cluster, testStream, file1),
-        LocalStreamFileReader.getLocalStreamFileName(collectorName, file1)));
+        new Path(CollectorStreamReader.getDateDir(cluster, testStream, file1),
+        LocalStreamReader.getLocalStreamFileName(collectorName, file1)));
 
     // Read from checkpoint with collector file name
     preader = new PartitionReader(partitionId,
         new PartitionCheckpoint(file2, 20), cluster, buffer, testStream, null, 1000);
     Assert.assertEquals(preader.getCurrentFile(),
-        new Path(CollectorStreamFileReader.getDateDir(cluster, testStream, file2),
-        LocalStreamFileReader.getLocalStreamFileName(collectorName, file2)));
+        new Path(CollectorStreamReader.getDateDir(cluster, testStream, file2),
+        LocalStreamReader.getLocalStreamFileName(collectorName, file2)));
 
     // Read from checkpoint with local stream file name
     preader = new PartitionReader(partitionId,
-        new PartitionCheckpoint(LocalStreamFileReader.getLocalStreamFileName(
+        new PartitionCheckpoint(LocalStreamReader.getLocalStreamFileName(
           collectorName, file2), 20),
         cluster, buffer, testStream, null, 1000);
     Assert.assertEquals(preader.getCurrentFile(),
-        new Path(CollectorStreamFileReader.getDateDir(cluster, testStream, file2),
-        LocalStreamFileReader.getLocalStreamFileName(collectorName, file2)));
+        new Path(CollectorStreamReader.getDateDir(cluster, testStream, file2),
+        LocalStreamReader.getLocalStreamFileName(collectorName, file2)));
 
     // Read from checkpoint with collector file name
     preader = new PartitionReader(partitionId,
@@ -156,15 +152,15 @@ public class TestPartitionReader {
     //Read from startTime in local stream directory 
     preader = new PartitionReader(partitionId,
         new PartitionCheckpoint(null, -1), cluster, buffer, testStream,
-        CollectorStreamFileReader.getDateFromFile(file2), 1000);
+        CollectorStreamReader.getDateFromFile(file2), 1000);
     Assert.assertEquals(preader.getCurrentFile(),
-        new Path(CollectorStreamFileReader.getDateDir(cluster, testStream, file2),
-        LocalStreamFileReader.getLocalStreamFileName(collectorName, file2)));
+        new Path(CollectorStreamReader.getDateDir(cluster, testStream, file2),
+        LocalStreamReader.getLocalStreamFileName(collectorName, file2)));
 
     //Read from startTime in collector dir
     preader = new PartitionReader(partitionId,
         new PartitionCheckpoint(file1, 10), cluster, buffer, testStream,
-        CollectorStreamFileReader.getDateFromFile(file5), 1000);
+        CollectorStreamReader.getDateFromFile(file5), 1000);
     Assert.assertEquals(preader.getCurrentFile(), new Path(collectorDir, file5));    
 
   }
@@ -175,16 +171,16 @@ public class TestPartitionReader {
         null, -1), cluster, buffer, testStream, null, 1000);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
-        LocalStreamFileReader.class.getName());
+        LocalStreamReader.class.getName());
     preader.execute();
-    assertBuffer(LocalStreamFileReader.getLocalStreamFileName(collectorName,
+    assertBuffer(LocalStreamReader.getLocalStreamFileName(collectorName,
         file1), 1, 0);
-    assertBuffer(LocalStreamFileReader.getLocalStreamFileName(collectorName,
+    assertBuffer(LocalStreamReader.getLocalStreamFileName(collectorName,
         file2), 2,  0);
-    assertBuffer(LocalStreamFileReader.getLocalStreamFileName(collectorName,
+    assertBuffer(LocalStreamReader.getLocalStreamFileName(collectorName,
         file3), 3,  0);
     Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
-        CollectorStreamFileReader.class.getName());
+        CollectorStreamReader.class.getName());
     preader.execute();
     assertBuffer(file4, 4,  0);
     assertBuffer(file5, 5,  0);
@@ -199,14 +195,14 @@ public class TestPartitionReader {
         file2, 20), cluster, buffer, testStream, null, 1000);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
-        LocalStreamFileReader.class.getName());
+        LocalStreamReader.class.getName());
     preader.execute();
-    assertBuffer(LocalStreamFileReader.getLocalStreamFileName(
+    assertBuffer(LocalStreamReader.getLocalStreamFileName(
         collectorName, file2), 2,  20);
-    assertBuffer(LocalStreamFileReader.getLocalStreamFileName(
+    assertBuffer(LocalStreamReader.getLocalStreamFileName(
         collectorName, file3), 3,  0);
     Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
-        CollectorStreamFileReader.class.getName());
+        CollectorStreamReader.class.getName());
     preader.execute();
     assertBuffer(file4, 4,  0);
     assertBuffer(file5, 5,  0);
@@ -218,18 +214,18 @@ public class TestPartitionReader {
   @Test
   public void testReadFromCheckpointWithLocalStreamFileName() throws Exception {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
-        LocalStreamFileReader.getLocalStreamFileName(collectorName, file2), 20),
+        LocalStreamReader.getLocalStreamFileName(collectorName, file2), 20),
         cluster, buffer, testStream, null, 1000);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
-        LocalStreamFileReader.class.getName());
+        LocalStreamReader.class.getName());
     preader.execute();
-    assertBuffer(LocalStreamFileReader.getLocalStreamFileName(
+    assertBuffer(LocalStreamReader.getLocalStreamFileName(
         collectorName, file2), 2,  20);
-    assertBuffer(LocalStreamFileReader.getLocalStreamFileName(
+    assertBuffer(LocalStreamReader.getLocalStreamFileName(
         collectorName, file3), 3,  0);
     Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
-        CollectorStreamFileReader.class.getName());
+        CollectorStreamReader.class.getName());
     preader.execute();
     assertBuffer(file4, 4,  0);
     assertBuffer(file5, 5,  0);
@@ -244,7 +240,7 @@ public class TestPartitionReader {
         file5, 40), cluster, buffer, testStream, null, 1000);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
-        CollectorStreamFileReader.class.getName());
+        CollectorStreamReader.class.getName());
     preader.execute();
     assertBuffer(file5, 5,  40);
     assertBuffer(file6, 6,  0);
@@ -259,16 +255,16 @@ public class TestPartitionReader {
         doesNotExist2, 40), cluster, buffer, testStream, null, 1000);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
-        LocalStreamFileReader.class.getName());
+        LocalStreamReader.class.getName());
     preader.execute();
-    assertBuffer(LocalStreamFileReader.getLocalStreamFileName(collectorName,
+    assertBuffer(LocalStreamReader.getLocalStreamFileName(collectorName,
         file1), 1, 0);
-    assertBuffer(LocalStreamFileReader.getLocalStreamFileName(collectorName,
+    assertBuffer(LocalStreamReader.getLocalStreamFileName(collectorName,
         file2), 2,  0);
-    assertBuffer(LocalStreamFileReader.getLocalStreamFileName(collectorName,
+    assertBuffer(LocalStreamReader.getLocalStreamFileName(collectorName,
         file3), 3,  0);
     Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
-        CollectorStreamFileReader.class.getName());
+        CollectorStreamReader.class.getName());
     preader.execute();
     assertBuffer(file4, 4,  0);
     assertBuffer(file5, 5,  0);
@@ -281,21 +277,21 @@ public class TestPartitionReader {
   public void testReadFromCheckpointWithLocalStreamFileWhichDoesNotExist()
       throws Exception {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
-        LocalStreamFileReader.getLocalStreamFileName(collectorName,
+        LocalStreamReader.getLocalStreamFileName(collectorName,
           doesNotExist1), 20),
         cluster, buffer, testStream, null, 1000);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
-        LocalStreamFileReader.class.getName());
+        LocalStreamReader.class.getName());
     preader.execute();
-    assertBuffer(LocalStreamFileReader.getLocalStreamFileName(collectorName,
+    assertBuffer(LocalStreamReader.getLocalStreamFileName(collectorName,
         file1), 1, 0);
-    assertBuffer(LocalStreamFileReader.getLocalStreamFileName(collectorName,
+    assertBuffer(LocalStreamReader.getLocalStreamFileName(collectorName,
         file2), 2,  0);
-    assertBuffer(LocalStreamFileReader.getLocalStreamFileName(collectorName,
+    assertBuffer(LocalStreamReader.getLocalStreamFileName(collectorName,
         file3), 3,  0);
     Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
-        CollectorStreamFileReader.class.getName());
+        CollectorStreamReader.class.getName());
     preader.execute();
     assertBuffer(file4, 4,  0);
     assertBuffer(file5, 5,  0);
@@ -308,17 +304,17 @@ public class TestPartitionReader {
   public void testReadFromStartTimeInLocalStream() throws Exception {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
         file1, 20), cluster, buffer, testStream,
-        CollectorStreamFileReader.getDateFromFile(file2), 1000);
+        CollectorStreamReader.getDateFromFile(file2), 1000);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
-        LocalStreamFileReader.class.getName());
+        LocalStreamReader.class.getName());
     preader.execute();
-    assertBuffer(LocalStreamFileReader.getLocalStreamFileName(
+    assertBuffer(LocalStreamReader.getLocalStreamFileName(
         collectorName, file2), 2,  0);
-    assertBuffer(LocalStreamFileReader.getLocalStreamFileName(
+    assertBuffer(LocalStreamReader.getLocalStreamFileName(
         collectorName, file3), 3,  0);
     Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
-        CollectorStreamFileReader.class.getName());
+        CollectorStreamReader.class.getName());
     preader.execute();
     assertBuffer(file4, 4,  0);
     assertBuffer(file5, 5,  0);
@@ -331,10 +327,10 @@ public class TestPartitionReader {
   public void testReadFromStartTimeInCollectorStream() throws Exception {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
         file1, 20), cluster, buffer, testStream,
-        CollectorStreamFileReader.getDateFromFile(file5), 1000);
+        CollectorStreamReader.getDateFromFile(file5), 1000);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
-        CollectorStreamFileReader.class.getName());
+        CollectorStreamReader.class.getName());
     preader.execute();
     assertBuffer(file5, 5,  0);
     assertBuffer(file6, 6,  0);
@@ -346,19 +342,19 @@ public class TestPartitionReader {
   public void testReadFromStartTimeBeforeStream() throws Exception {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
         file2, 20), cluster, buffer, testStream,
-        CollectorStreamFileReader.getDateFromFile(doesNotExist1), 1000);
+        CollectorStreamReader.getDateFromFile(doesNotExist1), 1000);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
-        LocalStreamFileReader.class.getName());
+        LocalStreamReader.class.getName());
     preader.execute();
-    assertBuffer(LocalStreamFileReader.getLocalStreamFileName(collectorName,
+    assertBuffer(LocalStreamReader.getLocalStreamFileName(collectorName,
         file1), 1, 0);
-    assertBuffer(LocalStreamFileReader.getLocalStreamFileName(collectorName,
+    assertBuffer(LocalStreamReader.getLocalStreamFileName(collectorName,
         file2), 2,  0);
-    assertBuffer(LocalStreamFileReader.getLocalStreamFileName(collectorName,
+    assertBuffer(LocalStreamReader.getLocalStreamFileName(collectorName,
         file3), 3,  0);
     Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
-        CollectorStreamFileReader.class.getName());
+        CollectorStreamReader.class.getName());
     preader.execute();
     assertBuffer(file4, 4,  0);
     assertBuffer(file5, 5,  0);
@@ -371,14 +367,14 @@ public class TestPartitionReader {
   public void testReadFromStartTimeAfterStream() throws Exception {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
         file2, 20), cluster, buffer, testStream,
-        CollectorStreamFileReader.getDateFromFile(doesNotExist2), 1000);
+        CollectorStreamReader.getDateFromFile(doesNotExist2), 1000);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNull(preader.getCurrentReader());
   }
 
   private void moveFileToStreamLocal(String file) throws Exception {
-    String localStreamFileName = LocalStreamFileReader.getLocalStreamFileName(collectorName, file);
-    Path streamLocalDateDir = CollectorStreamFileReader.getDateDir(cluster, testStream, file);
+    String localStreamFileName = LocalStreamReader.getLocalStreamFileName(collectorName, file);
+    Path streamLocalDateDir = CollectorStreamReader.getDateDir(cluster, testStream, file);
     System.out.println("stream local dir:" + streamLocalDateDir);
     Path targetFile = new Path(streamLocalDateDir, localStreamFileName);
     Path collectorPath = new Path(collectorDir, file);

@@ -26,9 +26,9 @@ class PartitionReader {
 
   private Thread thread;
   private volatile boolean stopped;
-  private LocalStreamFileReader lReader;
-  private CollectorStreamFileReader cReader;
-  private StreamFileReader currentReader;
+  private LocalStreamReader lReader;
+  private CollectorStreamReader cReader;
+  private StreamReader currentReader;
   
 
   PartitionReader(PartitionId partitionId,
@@ -45,8 +45,8 @@ class PartitionReader {
     this.collectorDir = new Path(streamDir, partitionId.getCollector());
 
     try {
-      lReader = new LocalStreamFileReader(partitionId,  cluster, streamName);
-      cReader = new CollectorStreamFileReader(partitionId, cluster, streamName,
+      lReader = new LocalStreamReader(partitionId,  cluster, streamName);
+      cReader = new CollectorStreamReader(partitionId, cluster, streamName,
           waitTimeForFlush);
       initializeCurrentFile();
     } catch (Exception e) {
@@ -106,7 +106,8 @@ class PartitionReader {
     }
   }
 
-  private void initializeCurrentFileFromTimeStamp(Date timestamp) throws Exception {
+  private void initializeCurrentFileFromTimeStamp(Date timestamp)
+      throws Exception {
     if (startTime != null) {
       if (lReader.initializeCurrentFile(timestamp)) {
         currentReader = lReader;
@@ -124,8 +125,9 @@ class PartitionReader {
       if (cReader.initializeCurrentFile(partitionCheckpoint)) {
         currentReader = cReader;
       } else {
-        String localStreamFileName = LocalStreamFileReader.getLocalStreamFileName(
-          partitionId.getCollector(), fileName);
+        String localStreamFileName = 
+          LocalStreamReader.getLocalStreamFileName(
+            partitionId.getCollector(), fileName);
         if (lReader.initializeCurrentFile(new PartitionCheckpoint(
             localStreamFileName, partitionCheckpoint.getLineNum()))) {
           currentReader = lReader;
@@ -172,7 +174,7 @@ class PartitionReader {
     return null;
   }
   
-  StreamFileReader getCurrentReader() {
+  StreamReader getCurrentReader() {
     return currentReader;
   }
 
@@ -200,7 +202,8 @@ class PartitionReader {
         if (line == null) {
           if (currentReader == lReader) {
             lReader.close();
-            LOG.info("Switching to collector stream as we reached end of stream on local stream");
+            LOG.info("Switching to collector stream as we reached end of" +
+                " stream on local stream");
             if (cReader.initFromStart()) {
               currentReader = cReader;
             } else {
@@ -209,17 +212,17 @@ class PartitionReader {
             }
           } else if (currentReader == cReader) {
             cReader.close();
-            LOG.debug("Looking for current file in local stream reader");
+            LOG.info("Looking for current file in local stream reader");
             lReader.build();
             if (!lReader.setCurrentFile(
-                LocalStreamFileReader.getLocalStreamFileName(
+                LocalStreamReader.getLocalStreamFileName(
                   partitionId.getCollector(),
                   cReader.getCurrentFile().getName()),
                 cReader.getCurrentLineNum())) {
-              LOG.debug("Did not find current file in local stream as well.");
+              LOG.info("Did not find current file in local stream as well.");
               currentReader = null;
             } else {
-              LOG.debug("Switching to local stream as the file got moved");
+              LOG.info("Switching to local stream as the file got moved");
               currentReader = lReader;
             }
           }

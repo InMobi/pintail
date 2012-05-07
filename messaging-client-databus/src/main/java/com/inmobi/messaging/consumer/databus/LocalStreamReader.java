@@ -17,15 +17,15 @@ import org.apache.hadoop.fs.PathFilter;
 
 import com.inmobi.databus.Cluster;
 
-class LocalStreamFileReader extends StreamFileReader {
+class LocalStreamReader extends StreamReader {
 
-  private static final Log LOG = LogFactory.getLog(LocalStreamFileReader.class);
+  private static final Log LOG = LogFactory.getLog(LocalStreamReader.class);
 
   private final String collector;
   private final Path localStreamDir;
   private PathFilter pathFilter;
 
-  LocalStreamFileReader(PartitionId partitionId, 
+  LocalStreamReader(PartitionId partitionId, 
       Cluster cluster, String streamName) {
     this.collector = partitionId.getCollector();
     

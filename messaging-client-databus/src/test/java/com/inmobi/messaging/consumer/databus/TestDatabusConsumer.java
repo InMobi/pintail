@@ -136,7 +136,7 @@ public class TestDatabusConsumer {
   public void testMarkAndResetWithStartTime() throws Exception {
     DatabusConsumer consumer = new DatabusConsumer();
     consumer.init(testStream, consumerName,
-        CollectorStreamFileReader.getDateFromFile(file2), config);
+        CollectorStreamReader.getDateFromFile(file2), config);
     Assert.assertEquals(consumer.getTopicName(), testStream);
     Assert.assertEquals(consumer.getConsumerName(), consumerName);
     Map<PartitionId, PartitionReader> readers = consumer.getPartitionReaders();

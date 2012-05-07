@@ -18,9 +18,9 @@ import org.apache.hadoop.fs.PathFilter;
 
 import com.inmobi.databus.Cluster;
 
-abstract class StreamFileReader {
+abstract class StreamReader {
 
-  private static final Log LOG = LogFactory.getLog(StreamFileReader.class);
+  private static final Log LOG = LogFactory.getLog(StreamReader.class);
 
   protected String streamName;
   protected TreeMap<String, Path> files = new TreeMap<String, Path>();

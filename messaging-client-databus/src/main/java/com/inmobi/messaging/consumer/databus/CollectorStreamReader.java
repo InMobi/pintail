@@ -15,15 +15,15 @@ import org.apache.hadoop.fs.PathFilter;
 
 import com.inmobi.databus.Cluster;
 
-class CollectorStreamFileReader extends StreamFileReader {
+class CollectorStreamReader extends StreamReader {
 
-  private static final Log LOG = LogFactory.getLog(CollectorStreamFileReader.class);
+  private static final Log LOG = LogFactory.getLog(CollectorStreamReader.class);
 
   private final Path collectorDir;
   private PathFilter pathFilter;
   private long waitTimeForFlush;
 
-  CollectorStreamFileReader(PartitionId partitionId,
+  CollectorStreamReader(PartitionId partitionId,
       Cluster cluster, String streamName, long waitTimeForFlush) {
     Path streamDir = new Path(cluster.getDataDir(), streamName);
     this.collectorDir = new Path(streamDir, partitionId.getCollector());
@@ -164,7 +164,7 @@ class CollectorStreamFileReader extends StreamFileReader {
   static Path getDateDir(Cluster cluster, String streamName, String fileName)
       throws Exception {    
     Date date = getDateFromFile(fileName);
-    return LocalStreamFileReader.getDateDir(cluster, streamName, date);
+    return LocalStreamReader.getDateDir(cluster, streamName, date);
   }
 
   static String getCollectorFileName(String streamName, Date date) {
