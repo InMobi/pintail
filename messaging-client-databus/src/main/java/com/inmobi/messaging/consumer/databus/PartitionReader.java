@@ -1,22 +1,16 @@
 package com.inmobi.messaging.consumer.databus;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.Queue;
+import java.util.Date;
+import java.util.concurrent.BlockingQueue;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.PathFilter;
 
-import com.inmobi.databus.DatabusConfig;
+import com.inmobi.databus.Cluster;
 import com.inmobi.messaging.Message;
 
 class PartitionReader {
@@ -25,37 +19,45 @@ class PartitionReader {
 
   private final PartitionId partitionId;
   private final PartitionCheckpoint partitionCheckpoint;
-  private final Queue<QueueEntry> buffer;
+  private final BlockingQueue<QueueEntry> buffer;
+  private Date startTime;
+  
   private final Path collectorDir;
-  private final FileSystem fs;
-  private final String streamName;
+
   private Thread thread;
   private volatile boolean stopped;
-  private Path currentFile;
-  private long currentOffset;
-  private long currentLineNum;
-  private boolean skipLines = false;
-  private boolean inited = false;
-  private boolean gotoNext = false;
+  private LocalStreamFileReader lReader;
+  private CollectorStreamFileReader cReader;
+  private StreamFileReader currentReader;
+  
 
-  PartitionReader(PartitionId partitionId, PartitionCheckpoint partition,
-      DatabusConfig config, Queue<QueueEntry> buffer, String streamName) {
+  PartitionReader(PartitionId partitionId,
+      PartitionCheckpoint partitionCheckpoint, Cluster cluster,
+      BlockingQueue<QueueEntry> buffer, String streamName,
+      Date startTime, long waitTimeForFlush) {
     this.partitionId = partitionId;
-    this.partitionCheckpoint = partition;
     this.buffer = buffer;
-    this.streamName = streamName;
-    Path streamDir = new Path(config.getClusters().get(
-        partitionId.getCluster()).getDataDir(), streamName);
+    this.startTime = startTime;
+    this.partitionCheckpoint = partitionCheckpoint;
+    
+    // initialize cluster and its directories
+    Path streamDir = new Path(cluster.getDataDir(), streamName);
     this.collectorDir = new Path(streamDir, partitionId.getCollector());
+
     try {
-      this.fs = FileSystem.get(config.getClusters().get(
-                  partitionId.getCluster()).getHadoopConf());
-    } catch (IOException e) {
+      lReader = new LocalStreamFileReader(partitionId,  cluster, streamName);
+      cReader = new CollectorStreamFileReader(partitionId, cluster, streamName,
+          waitTimeForFlush);
+      initializeCurrentFile();
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
+    
     LOG.info("Partition reader initialized with partitionId:" + partitionId +
-    	      " checkPoint:" + partitionCheckpoint + " streamDir:" + streamDir + 
-    	      " collectorDir:" + collectorDir);
+            " checkPoint:" + partitionCheckpoint +  
+            " collectorDir:" + collectorDir +
+            " startTime:" + startTime +
+            " currentReader:" + currentReader);
   }
 
   public synchronized void start() {
@@ -76,7 +78,7 @@ class PartitionReader {
           try {
             long sleep = 1000;
             if (sleep > 0) {
-              LOG.info("Sleeping for " + sleep);
+              LOG.debug("Sleeping for " + sleep);
               Thread.sleep(sleep);
             }
           } catch (InterruptedException e) {
@@ -95,180 +97,146 @@ class PartitionReader {
   public void close() {
     stopped = true;
     LOG.info(Thread.currentThread().getName() + " stopped [" + stopped + "]");
+    if (currentReader != null) {
+      try {
+		currentReader.close();
+	  } catch (IOException e) {
+		LOG.warn("Error closing current stream", e);
+	  }
+    }
   }
 
-  void initializeCurrentFile() throws Exception {
-    if (partitionCheckpoint.getFileName() == null) {
-      currentFile = getFileList(null, fs);
-    } else {
-      currentFile = new Path(collectorDir, partitionCheckpoint.getFileName());
-      if (partitionCheckpoint.getLineNum() > 0) {
-        skipLines = true;
-      }
-    }
-  }
-  
-  Path getCurrentFile() {
-    return currentFile;
-  }
-  /**
-   * Skip the number of lines passed.
-   * 
-   * @return the actual number of lines skipped.
-   */
-  private long skipLines(FSDataInputStream in, BufferedReader reader) 
-      throws IOException {
-    long numLines = partitionCheckpoint.getLineNum();
-    long lineNum = 0;
-    while (lineNum != numLines) {
-      String line = readLine(in, reader);
-      if (line == null) {
-    	return lineNum;
-      }
-      lineNum++;
-    }
-    LOG.info("Skipped " + lineNum + " lines");
-    if (lineNum != numLines) {
-      LOG.warn("Skipped wrong number of lines");
-    }
-    return lineNum;
-  }
-  
-  private String readLine(FSDataInputStream in, BufferedReader reader)
-      throws IOException {
-    String line = reader.readLine();
-    if (line != null) {
-      currentOffset = in.getPos();
-      currentLineNum++;
-    }
-    return line;
-  }
-
-  private void resetCurrentFileSettings() {
-    currentOffset = 0;
-    currentLineNum = 0;
-  }
-  
-  protected void execute() {
-    try {
-      // Get the file to read
-      if (!inited) {
-        LOG.info("Initialize the current file");
-        initializeCurrentFile();
-        resetCurrentFileSettings();
-        inited = true;
-      } else if (gotoNext) {
-        LOG.debug("Get the next file");
-        Path nextFile = getNextFile();
-        if (nextFile == null) {
-          LOG.info("No file to read");
-          return;
-        }
-        currentFile = nextFile;
-        resetCurrentFileSettings();
-        gotoNext = false;
+  private void initializeCurrentFileFromTimeStamp(Date timestamp) throws Exception {
+    if (startTime != null) {
+      if (lReader.initializeCurrentFile(timestamp)) {
+        currentReader = lReader;
+      } else if (cReader.initializeCurrentFile(startTime)) {
+        currentReader = cReader;
       } else {
-        LOG.info("reading the same file");
+        currentReader = null;
       }
-      
-      LOG.info("Reading file " + currentFile + " from offset:" + currentOffset +
-          " and lineNum:" + currentLineNum);
-      FSDataInputStream in = fs.open(currentFile);
-      in.seek(currentOffset);
-      BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-      if (skipLines) {
-        skipLines(in, reader);
-        skipLines = false;
+    }
+  }
+  
+  private void initializeCurrentFileFromCheckpoint() throws Exception {
+    String fileName = partitionCheckpoint.getFileName();
+    if (cReader.isCollectorFile(fileName)) {
+      if (cReader.initializeCurrentFile(partitionCheckpoint)) {
+        currentReader = cReader;
+      } else {
+        String localStreamFileName = LocalStreamFileReader.getLocalStreamFileName(
+          partitionId.getCollector(), fileName);
+        if (lReader.initializeCurrentFile(new PartitionCheckpoint(
+            localStreamFileName, partitionCheckpoint.getLineNum()))) {
+          currentReader = lReader;
+        } else {
+          currentReader = null;
+        }
       }
-      String line = readLine(in, reader);
-      while (true) {
+    } else if (lReader.isLocalStreamFile(fileName)) {
+      LOG.debug("Checkpointed file is in local stream directory");
+      if (lReader.initializeCurrentFile(partitionCheckpoint)) {
+    	currentReader = lReader;
+      }
+    } else {
+      currentReader = null;
+    }
+  }
+    
+  private void initFromStart() throws Exception {
+    if (lReader.initFromStart()) {
+      currentReader = lReader;
+    } else if (cReader.initFromStart()) {
+      currentReader = cReader;
+    } else {
+      LOG.warn("No files to start");
+      currentReader = null;
+    }
+  }
+ 
+  private void initializeCurrentFile() throws Exception {
+    if (startTime != null) {
+      initializeCurrentFileFromTimeStamp(startTime);
+    } else if (partitionCheckpoint != null &&
+        partitionCheckpoint.getFileName() != null) {
+      initializeCurrentFileFromCheckpoint();
+    } else {
+      initFromStart();
+    }
+  }
+
+  Path getCurrentFile() {
+    if (currentReader != null) {
+      return currentReader.getCurrentFile();
+    }
+    return null;
+  }
+  
+  StreamFileReader getCurrentReader() {
+    return currentReader;
+  }
+
+  protected void execute() {
+    if (currentReader == null) {
+      return;
+    }
+    try {
+      currentReader.openStream();
+      LOG.debug("Reading file " + currentReader.getCurrentFile() + 
+              " and lineNum:" + currentReader.getCurrentLineNum());
+      while (buffer.remainingCapacity() != 0 && !stopped) {
+        String line = currentReader.readLine();
         if (line != null) {
           // add the data to queue
           byte[] data = Base64.decodeBase64(line);
-          LOG.debug("Current LineNum: " + currentLineNum + " Current offset:" +
-            currentOffset);
-          buffer.add(new QueueEntry(new Message(
+          LOG.debug("Current LineNum: " + currentReader.getCurrentLineNum());
+          if (!buffer.offer(new QueueEntry(new Message(
             ByteBuffer.wrap(data)), partitionId,
-            new PartitionCheckpoint(currentFile.getName(), currentLineNum)));
+            new PartitionCheckpoint(currentReader.getCurrentFile().getName(),
+                currentReader.getCurrentLineNum())))) {
+            LOG.warn("Could not add entry as buffer is full");
+          }
         }
         if (line == null) {
-          // if there is no data and we are reading from current scribe file,
-          // do not switch to next file.
-          String currentScribeFile = getCurrentScribeFile();
-          LOG.debug("Current scribe file:" + currentScribeFile);
-          if (currentScribeFile == null || 
-              (!currentFile.getName().equals(currentScribeFile))) {
-            LOG.debug("Going to next file");
-            gotoNext = true;
+          if (currentReader == lReader) {
+            lReader.close();
+            LOG.info("Switching to collector stream as we reached end of stream on local stream");
+            if (cReader.initFromStart()) {
+              currentReader = cReader;
+            } else {
+              LOG.warn("No stream to read");
+              currentReader = null;
+            }
+          } else if (currentReader == cReader) {
+            cReader.close();
+            LOG.debug("Looking for current file in local stream reader");
+            lReader.build();
+            if (!lReader.setCurrentFile(
+                LocalStreamFileReader.getLocalStreamFileName(
+                  partitionId.getCollector(),
+                  cReader.getCurrentFile().getName()),
+                cReader.getCurrentLineNum())) {
+              LOG.debug("Did not find current file in local stream as well.");
+              currentReader = null;
+            } else {
+              LOG.debug("Switching to local stream as the file got moved");
+              currentReader = lReader;
+            }
           }
-          break;
+          return;
         }
-        // Read next line
-        line = readLine(in, reader);
       }
-      reader.close();
     } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
-
-  private String getCurrentScribeFile() throws IOException {
-    Path currentScribeFile = new Path(collectorDir, streamName + "_current");
-    String currentFileName = null;
-    if (fs.exists(currentScribeFile)) {
-      FSDataInputStream in = fs.open(currentScribeFile);
-      String line = new BufferedReader(new InputStreamReader(in)).readLine();
-      if (line != null) {
-        currentFileName = line.trim();
-      }
-      in.close();
-    }
-    return currentFileName;
-  }
-
-  private Path getNextFile() throws Exception {
-    if (currentFile != null) {
-      return getFileList(currentFile.getName(), fs);
-    } else {
-      LOG.warn("getNextFile called without currentFile");
-      return null;
-    }
-  }
-
-  private Path getFileList(String currentFileName, FileSystem fs)
-      throws Exception {
-    FileStatus[] files = fs.listStatus(collectorDir, new PathFilter() {
-      @Override
-      public boolean accept(Path p) {
-        if (p.getName().endsWith("current")
-            || p.getName().equals("scribe_stats")) {
-          return false;
+      LOG.warn("Error while reading stream", e);
+    } finally {
+      try {
+        if (currentReader != null) {
+          currentReader.close();
         }
-        return true;
+      } catch (Exception e) {
+        LOG.warn("Error while closing stream", e);
       }
-    });
-    if (files == null || files.length == 0) {
-      LOG.info("No files in collector directory");
-      return null;
     }
-    String[] fileNames = new String[files.length];
-    int i = 0;
-    for (FileStatus s : files) {
-
-      fileNames[i++] = s.getPath().getName();
-    }
-
-    Arrays.sort(fileNames);
-    if (currentFileName == null) {
-      return files[0].getPath();
-    }
-    int currentFileIndex;
-    currentFileIndex = Arrays.binarySearch(fileNames, currentFileName);
-    if (currentFileIndex == (files.length - 1)) {
-      return null;
-    }
-    
-    return files[++currentFileIndex].getPath();
   }
 
 }

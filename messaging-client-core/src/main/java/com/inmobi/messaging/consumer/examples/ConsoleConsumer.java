@@ -10,11 +10,8 @@ public class ConsoleConsumer {
     MessageConsumer consumer = MessageConsumerFactory.create();
     
     while (true) {
-      for (int i =0;i <10; i++) {
-        Message msg = consumer.next();
-        System.out.println("MESSAGE:" + new String(msg.getData().array()));
-      }
-      consumer.mark();
+      Message msg = consumer.next();
+      System.out.println("MESSAGE:" + new String(msg.getData().array()));
     }
   }
 }

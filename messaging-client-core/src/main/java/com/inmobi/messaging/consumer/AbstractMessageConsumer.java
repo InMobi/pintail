@@ -53,6 +53,11 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
     this.topicName = topicName;
     this.consumerName = consumerName;
     this.startTime = startTimestamp;
+    // do not accept start time in future
+    if (startTime != null && 
+        startTime.after(new Date(System.currentTimeMillis()))) {
+      throw new RuntimeException("Future start time is not accepted");
+    }
     init(config);
   }
 

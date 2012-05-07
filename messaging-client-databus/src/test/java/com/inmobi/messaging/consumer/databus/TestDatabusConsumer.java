@@ -9,8 +9,8 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.testng.Assert;
-import org.testng.annotations.AfterSuite;
-import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import com.inmobi.databus.Cluster;
@@ -24,12 +24,16 @@ public class TestDatabusConsumer {
   private static final String testStream = "testclient";
   private static final String consumerName = "c1";
   private String[] collectors = new String[] {"collector1"};
-  private String[] dataFiles = new String[] {"1", "2", "3"};
+  private String file1 = testStream + "-2012-05-02-14-26_00000";
+  private String file2 = testStream + "-2012-05-02-14-27_00000";
+  private String file3 = testStream + "-2012-05-02-14-28_00000";
+  private String[] dataFiles = new String[] {file1, file2, file3};
+
   private int msgIndex = 0;
   DatabusConsumer testConsumer;
   ClientConfig config;
   
-  @BeforeSuite
+  @BeforeTest
   public void setup() throws IOException {
     InputStream in = ClientConfig.class.getClassLoader().getResourceAsStream(
               MessageConsumerFactory.MESSAGE_CLIENT_CONF_FILE);
@@ -68,22 +72,6 @@ public class TestDatabusConsumer {
   }
 
   @Test
-  public void testInitializeConfig() throws IOException {      
-    DatabusConsumer consumer = new DatabusConsumer();
-    Assert.assertTrue(consumer.isMarkSupported());
-    
-    consumer.initializeConfig(config);  
-    Assert.assertNotNull(consumer.getCheckpointProvider());
-    Assert.assertNull(consumer.getCurrentCheckpoint());
-    Assert.assertNotNull(consumer.getDatabusConfig());
-    Assert.assertEquals(consumer.getBufferSize(), 800);
-    
-    consumer.initializeCheckpoint(testStream);
-    Assert.assertNotNull(consumer.getCurrentCheckpoint());
-
-  }
-  
-  @Test
   public void testMarkAndReset() throws IOException {
     DatabusConsumer consumer = new DatabusConsumer();
     consumer.init(testStream, consumerName, config);
@@ -98,13 +86,14 @@ public class TestDatabusConsumer {
       Assert.assertEquals(new String(msg.getData().array()),
           constructMessage(i));
     }
+    System.out.println("Consumed 20 messages. checkpointing");
     consumer.mark(); 
-
     for (i = 20; i < 30; i++) {
       Message msg = consumer.next();
       Assert.assertEquals(new String(msg.getData().array()), constructMessage(i));
     }
 
+    System.out.println("Consumed 30 messages. resetting");
     consumer.reset();
 
     for (i = 20; i < 140; i++) {
@@ -142,8 +131,69 @@ public class TestDatabusConsumer {
     consumer.close();
     
   }
-  
-  @AfterSuite
+
+  @Test
+  public void testMarkAndResetWithStartTime() throws Exception {
+    DatabusConsumer consumer = new DatabusConsumer();
+    consumer.init(testStream, consumerName,
+        CollectorStreamFileReader.getDateFromFile(file2), config);
+    Assert.assertEquals(consumer.getTopicName(), testStream);
+    Assert.assertEquals(consumer.getConsumerName(), consumerName);
+    Map<PartitionId, PartitionReader> readers = consumer.getPartitionReaders();
+    Assert.assertEquals(readers.size(), collectors.length);
+
+    int i;
+    for (i = 100; i < 120; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(new String(msg.getData().array()),
+          constructMessage(i));
+    }
+    System.out.println("Consumed 20 messages. checkpointing");
+    consumer.mark(); 
+    for (i = 120; i < 130; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(new String(msg.getData().array()), constructMessage(i));
+    }
+
+    System.out.println("Consumed 30 messages. resetting");
+    consumer.reset();
+
+    for (i = 120; i < 240; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(new String(msg.getData().array()), constructMessage(i));
+    }
+
+    consumer.mark();
+    Checkpoint lastCheckpoint = new Checkpoint(consumer.getCurrentCheckpoint().toBytes());
+
+    for (i = 240; i < 260; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(new String(msg.getData().array()), constructMessage(i));
+    }
+
+    consumer.reset();
+    for (i = 240; i < 300; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(new String(msg.getData().array()), constructMessage(i));
+    }
+
+    consumer.close();
+
+    // test checkpoint and consumer crash
+    consumer = new DatabusConsumer();
+    consumer.init(testStream, consumerName, config);
+    Assert.assertEquals(consumer.getCurrentCheckpoint(), lastCheckpoint);
+    
+    for (i = 240; i < 300; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(new String(msg.getData().array()), constructMessage(i));
+    }
+    consumer.mark();
+
+    consumer.close();
+  }
+
+  @AfterTest
   public void cleanup() throws IOException {
     testConsumer.close();
     DatabusConfig databusConfig = testConsumer.getDatabusConfig();
@@ -151,7 +201,7 @@ public class TestDatabusConsumer {
     for (String c : sourceStream.getSourceClusters()) {
       Cluster cluster = databusConfig.getClusters().get(c);
       FileSystem fs = FileSystem.get(cluster.getHadoopConf());
-      fs.delete(cluster.getDataDir().getParent(), true);
+      fs.delete(new Path(cluster.getRootDir()), true);
     }
   }
 
