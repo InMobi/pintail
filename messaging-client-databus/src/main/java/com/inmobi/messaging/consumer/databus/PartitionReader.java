@@ -208,6 +208,7 @@ class PartitionReader {
               currentReader = cReader;
             } else {
               LOG.warn("No stream to read");
+              currentReader.close();
               currentReader = null;
             }
           } else if (currentReader == cReader) {
@@ -220,6 +221,7 @@ class PartitionReader {
                   cReader.getCurrentFile().getName()),
                 cReader.getCurrentLineNum())) {
               LOG.info("Did not find current file in local stream as well.");
+              currentReader.close();
               currentReader = null;
             } else {
               LOG.info("Switching to local stream as the file got moved");

@@ -27,9 +27,12 @@ public class TestLocalStreamReader {
   private Cluster cluster;
   private int msgIndex = 0;
   private PartitionId partitionId;
-  private String file1 = collectorName + "-" + testStream + "-2012-05-02-14-26_00000.gz";
-  private String file2 = collectorName + "-" + testStream + "-2012-05-02-14-27_00000.gz";
-  private String file3 = collectorName + "-" + testStream + "-2012-05-02-14-28_00000.gz";
+  private String file1 = 
+      collectorName + "-" + testStream + "-2012-05-02-14-26_00000.gz";
+  private String file2 = 
+      collectorName + "-" + testStream + "-2012-05-02-14-27_00000.gz";
+  private String file3 = 
+      collectorName + "-" + testStream + "-2012-05-02-14-28_00000.gz";
   private String[] files = new String[] {file1,file2, file3};
   private String file5 = testStream + "-2012-05-02-14-30_00000";
 

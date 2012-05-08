@@ -1,6 +1,6 @@
 <databus>
   <defaults>
-    <rootdir>/tmp/databus</rootdir>
+    <rootdir>/tmp/databustest</rootdir>
     <retentionindays>2</retentionindays>
   </defaults>
 

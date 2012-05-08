@@ -31,18 +31,21 @@ public class TestDatabusConsumer {
 
   private int msgIndex = 0;
   DatabusConsumer testConsumer;
-  ClientConfig config;
   
-  @BeforeTest
-  public void setup() throws IOException {
+  private ClientConfig loadConfig() {
     InputStream in = ClientConfig.class.getClassLoader().getResourceAsStream(
               MessageConsumerFactory.MESSAGE_CLIENT_CONF_FILE);
     if (in == null) {
       throw new RuntimeException("could not load conf file "
      + MessageConsumerFactory.MESSAGE_CLIENT_CONF_FILE + " from classpath.");
     }
-    config = ClientConfig.load(in);
+    return ClientConfig.load(in); 
+  }
+
+  @BeforeTest
+  public void setup() throws IOException {
     
+    ClientConfig config = loadConfig();
     testConsumer = new DatabusConsumer();
     testConsumer.initializeConfig(config);
 
@@ -52,11 +55,14 @@ public class TestDatabusConsumer {
     for (String c : sourceStream.getSourceClusters()) {
       Cluster cluster = databusConfig.getClusters().get(c);
       FileSystem fs = FileSystem.get(cluster.getHadoopConf());
+      fs.delete(new Path(cluster.getRootDir()), true);
       Path streamDir = new Path(cluster.getDataDir(), testStream);
+      fs.delete(streamDir, true);
       fs.mkdirs(streamDir);
       for (String collector : collectors) {
         msgIndex = 0;
         Path collectorDir = new Path(streamDir, collector);
+        fs.delete(collectorDir, true);
         fs.mkdirs(collectorDir);
         for (String fileNum : dataFiles) {
           FSDataOutputStream out = fs.create(new Path(collectorDir, fileNum));
@@ -73,6 +79,8 @@ public class TestDatabusConsumer {
 
   @Test
   public void testMarkAndReset() throws IOException {
+    ClientConfig config = loadConfig();
+    config.set("databus.checkpoint.dir", "/tmp/databustest/checkpoint1");
     DatabusConsumer consumer = new DatabusConsumer();
     consumer.init(testStream, consumerName, config);
     Assert.assertEquals(consumer.getTopicName(), testStream);
@@ -134,6 +142,8 @@ public class TestDatabusConsumer {
 
   @Test
   public void testMarkAndResetWithStartTime() throws Exception {
+    ClientConfig config = loadConfig();
+    config.set("databus.checkpoint.dir", "/tmp/databustest/checkpoint2");
     DatabusConsumer consumer = new DatabusConsumer();
     consumer.init(testStream, consumerName,
         CollectorStreamReader.getDateFromFile(file2), config);

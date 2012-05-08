@@ -51,6 +51,7 @@ public class DatabusConsumer extends AbstractMessageConsumer {
   private CheckpointProvider checkpointProvider;
   private Checkpoint currentCheckpoint;
   private long waitTimeForFlush;
+  private int bufferSize;
 
   @Override
   protected void init(ClientConfig config) {
@@ -60,9 +61,9 @@ public class DatabusConsumer extends AbstractMessageConsumer {
   }
 
   void initializeConfig(ClientConfig config) {
-    int queueSize = config.getInteger("databus.consumer.buffer.size",
+    bufferSize = config.getInteger("databus.consumer.buffer.size",
                       DEFAULT_QUEUE_SIZE);
-    buffer = new LinkedBlockingQueue<QueueEntry>(queueSize);
+    buffer = new LinkedBlockingQueue<QueueEntry>(bufferSize);
     databusCheckpointDir = config.getString("databus.checkpoint.dir", ".");
     waitTimeForFlush = config.getLong("databus.stream.waittimeforflush",
         DEFAULT_WAIT_TIME_FOR_FLUSH);
@@ -85,7 +86,7 @@ public class DatabusConsumer extends AbstractMessageConsumer {
     }
     LOG.info("Databus consumer initialized with streamName:" + topicName +
             " consumerName:" + consumerName + " startTime:" + startTime +
-            " queueSize:" + queueSize + " checkPoint:" + currentCheckpoint);
+            " queueSize:" + bufferSize + " checkPoint:" + currentCheckpoint);
   }
 
   Map<PartitionId, PartitionReader> getPartitionReaders() {
@@ -105,7 +106,7 @@ public class DatabusConsumer extends AbstractMessageConsumer {
   }
   
   int getBufferSize() {
-    return buffer.remainingCapacity();
+    return bufferSize;
   }
 
   @Override
@@ -199,7 +200,10 @@ public class DatabusConsumer extends AbstractMessageConsumer {
     for (PartitionReader reader : readers.values()) {
       reader.close();
     }
+    readers.clear();
     buffer.clear();
+    buffer = new LinkedBlockingQueue<QueueEntry>(bufferSize);
+
   }
 
   @Override
