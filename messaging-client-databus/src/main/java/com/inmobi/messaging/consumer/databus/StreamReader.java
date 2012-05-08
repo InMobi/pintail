@@ -23,7 +23,7 @@ abstract class StreamReader {
   private static final Log LOG = LogFactory.getLog(StreamReader.class);
 
   protected String streamName;
-  protected TreeMap<String, Path> files = new TreeMap<String, Path>();
+  protected TreeMap<String, Path> files;
   protected Iterator<String> fileNameIterator;
   protected PathFilter pathFilter;
   protected Date timestamp;
@@ -41,9 +41,9 @@ abstract class StreamReader {
     this.cluster = cluster;
     this.fs = FileSystem.get(cluster.getHadoopConf());
   }
-  
+
   protected abstract void build() throws IOException;
-  
+
   protected FSDataInputStream inStream;
   protected BufferedReader reader;
 
@@ -53,25 +53,28 @@ abstract class StreamReader {
 
   void close() throws IOException {
     closeCurrentFile();
-    files.clear();
   }
 
   protected void openCurrentFile(boolean next) throws IOException {
     closeCurrentFile();
     if (next) {
-      numLinesTobeSkipped = 0;
-    } else {
-      numLinesTobeSkipped = currentLineNum;  
-    }
-    resetCurrentFileSettings();
+      resetCurrentFileSettings();
+    } 
+    numLinesTobeSkipped = currentLineNum;  
     LOG.debug("Opening file:" + currentFile + " lineNum" + currentLineNum);
-    inStream = fs.open(currentFile);
-    reader = getReader(inStream);
+    if (fs.exists(currentFile)) {
+      inStream = fs.open(currentFile);
+      reader = getReader(inStream);
+    } else {
+      LOG.debug("CurrentFile:" + currentFile + " does not exist");
+    }
   }
-  
+
+
   private void closeReader() throws IOException {
     if (reader != null) {
       reader.close();
+      reader = null;
     }
   }
 
@@ -79,6 +82,7 @@ abstract class StreamReader {
     closeReader();
     if (inStream != null) {
       inStream.close();
+      inStream = null;
     }
   }
 
@@ -89,8 +93,11 @@ abstract class StreamReader {
         String file = fileNameIterator.next();
         if (currentFile.getName().equals(file)) {
           return true;
-        }
+        } 
       }
+    }
+    else {
+      LOG.debug("Did not find current file");
     }
     return false;
   }
@@ -122,7 +129,7 @@ abstract class StreamReader {
   boolean initFromStart() throws Exception {
     resetCurrentFile();
     currentFile = getFirstFile();
-    
+
     if (currentFile != null) {
       LOG.debug("CurrentFile:" + currentFile + " currentLineNum:"+ currentLineNum);
       setIterator();
@@ -136,6 +143,7 @@ abstract class StreamReader {
   }
   boolean setNextHigher() throws IOException {
     if (currentFile != null) {
+      LOG.debug("finding next higher for " + currentFile);
       Map.Entry<String, Path> higherEntry = files.higherEntry(currentFile.getName());
       if (higherEntry != null) {
         currentFile = higherEntry.getValue();
@@ -176,10 +184,10 @@ abstract class StreamReader {
    */
   private long skipLines(FSDataInputStream in, BufferedReader reader, 
       long numLines) 
-      throws IOException {
+          throws IOException {
     long lineNum = 0;
     while (lineNum != numLines) {
-      String line = readLine(in, reader);
+      String line = reader.readLine();
       if (line == null) {
         break;
       }
@@ -191,14 +199,17 @@ abstract class StreamReader {
     }
     return lineNum;
   }
-  
+
   String readLine(FSDataInputStream in, BufferedReader reader)
       throws IOException {
-    String line = reader.readLine();
-    if (line != null) {
-      currentLineNum++;
+    if (reader != null) {
+      String line = reader.readLine();
+      if (line != null) {
+        currentLineNum++;
+      }
+      return line;
     }
-    return line;
+    return null;
   }
 
   BufferedReader getReader(FSDataInputStream in) throws IOException {
@@ -210,8 +221,13 @@ abstract class StreamReader {
   private void resetCurrentFileSettings() {
     currentLineNum = 0;
   }
-  
+
   boolean nextFile() throws IOException {
+    LOG.debug("In next file");
+    if (!setIterator()) {
+      LOG.debug("could not set iterator for currentfile. setting next higher");
+      return setNextHigher();
+    }
     if (fileNameIterator.hasNext()) {
       String fileName = fileNameIterator.next();
       LOG.debug("next file name:" + fileName);
@@ -249,12 +265,11 @@ abstract class StreamReader {
   }
 
   static DateFormat dateFormat = new SimpleDateFormat("yyyy" + "-" + "MM" + "-" +
-  "dd" + "-" + "HH" + "-" + "mm");
+      "dd" + "-" + "HH" + "-" + "mm");
 
   static Date getDate(String fileName, int occur) throws Exception {
     String dateStr = fileName.substring(getIndexOf(fileName, '-', occur) + 1,
-                         fileName.indexOf("_"));
+        fileName.indexOf("_"));
     return dateFormat.parse(dateStr);  
   }
-
 }

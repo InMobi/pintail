@@ -1,12 +1,8 @@
 package com.inmobi.messaging.consumer.databus;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.testng.Assert;
 import org.testng.annotations.AfterTest;
@@ -18,14 +14,12 @@ import com.inmobi.databus.Cluster;
 public class TestCollectorStreamReader {
   private static final String testStream = "testclient";
 
-  private String collectorName = "collector1";
+  private static final String collectorName = "collector1";
+  private static final String clusterName = "testCluster";
+  private PartitionId partitionId = new PartitionId(clusterName, collectorName);
   private Path collectorDir;
-  private String clusterName = "testCluster";
   private CollectorStreamReader cReader;
-  private FileSystem fs;
   private Cluster cluster;
-  private int msgIndex = 0;
-  private PartitionId partitionId;
   private String file1 = testStream + "-2012-05-02-14-26_00000";
   private String file2 = testStream + "-2012-05-02-14-27_00000";
   private String file3 = testStream + "-2012-05-02-14-28_00000";
@@ -35,49 +29,16 @@ public class TestCollectorStreamReader {
   
   @BeforeTest
   public void setup() throws Exception {
-    // initialize config
-    Set<String> sourceNames = new HashSet<String>();
-    sourceNames.add(testStream);
-    cluster = new Cluster(clusterName, 
-      "/tmp/databus/" + this.getClass().getName(),
-      "file:///", "local", null, sourceNames);
-
-    partitionId = new PartitionId(clusterName, collectorName);
-      
-    // setup local stream dirs
-    fs = FileSystem.get(cluster.getHadoopConf());
-    Path streamDir = new Path(cluster.getDataDir(), testStream);
-    this.collectorDir = new Path(streamDir, partitionId.getCollector());
-    fs.mkdirs(collectorDir);
-
-    // setup data dirs
-    createMessageFile(file1);
-    createMessageFile(file2);
-    createMessageFile(file3);
+    // setup cluster
+    cluster = TestUtil.setupLocalCluster(this.getClass().getName(), testStream,
+        partitionId, new String[] {file1, file2, file3}, null, 0);
+    collectorDir = new Path(new Path(cluster.getDataDir(), testStream),
+        collectorName);
   }
   
   @AfterTest
   public void cleanup() throws IOException {
-    if (fs != null) {
-      fs.delete(new Path(cluster.getRootDir()), true);
-    }
-  }
-  
-  private void createMessageFile(String fileName) throws Exception {
-    Path path = new Path(collectorDir, fileName);
-    FSDataOutputStream out = fs.create(path);
-    for (int i = 0; i < 100; i++) {
-      out.write(Base64.encodeBase64(constructMessage(msgIndex).getBytes()));
-      out.write('\n');
-      msgIndex++;
-    }
-    out.close();
-  }
-  
-  private String constructMessage(int index) {
-    StringBuffer str = new StringBuffer();
-    str.append(index).append("Message");
-    return str.toString();
+    TestUtil.cleanupCluster(cluster);
   }
   
   @Test
@@ -113,7 +74,7 @@ public class TestCollectorStreamReader {
       String line = cReader.readLine();
       Assert.assertNotNull(line);
       Assert.assertEquals(new String(Base64.decodeBase64(line)),
-          constructMessage(fileIndex + i));
+          TestUtil.constructMessage(fileIndex + i));
     }
     Assert.assertEquals(cReader.getCurrentFile().getName(), files[fileNum]);
   }

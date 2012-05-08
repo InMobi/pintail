@@ -165,6 +165,10 @@ class PartitionReader {
     } else {
       initFromStart();
     }
+    if (currentReader != null) {
+      LOG.info("Intialized currentFile:" + currentReader.getCurrentFile() +
+      "currentLineNum:" + currentReader.getCurrentLineNum());
+    }
   }
 
   Path getCurrentFile() {
@@ -184,7 +188,7 @@ class PartitionReader {
     }
     try {
       currentReader.openStream();
-      LOG.debug("Reading file " + currentReader.getCurrentFile() + 
+      LOG.info("Reading file " + currentReader.getCurrentFile() + 
               " and lineNum:" + currentReader.getCurrentLineNum());
       while (buffer.remainingCapacity() != 0 && !stopped) {
         String line = currentReader.readLine();
@@ -204,6 +208,7 @@ class PartitionReader {
             lReader.close();
             LOG.info("Switching to collector stream as we reached end of" +
                 " stream on local stream");
+            cReader.build();
             if (cReader.initFromStart()) {
               currentReader = cReader;
             } else {

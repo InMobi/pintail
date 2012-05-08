@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Date;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -43,15 +44,16 @@ class CollectorStreamReader extends StreamReader {
 
   @Override
   protected void build() throws IOException {
-    files.clear();
+    files = new TreeMap<String, Path>();
     LOG.debug("Rebuilding file list");
     if (fs.exists(collectorDir)) {
       FileStatus[] fileStatuses = fs.listStatus(collectorDir, pathFilter);
       if (fileStatuses == null || fileStatuses.length == 0) {
-        LOG.info("No files in directory:" + collectorDir);
+        LOG.debug("No files in directory:" + collectorDir);
         return;
       }
       for (FileStatus file : fileStatuses) {
+        LOG.debug("Adding " + file.getPath().getName() + " Path:" + file.getPath());
         files.put(file.getPath().getName(), file.getPath());
       }
     }
@@ -90,25 +92,28 @@ class CollectorStreamReader extends StreamReader {
   }
 
   String readLine() throws Exception {
+    if (inStream == null) {
+      return null;
+    }
     String line = readLine(inStream, reader);
     while (line == null) { // reached end of file?
       // see if currentFile is current file is Scribe file
       if (isCurrentScribeFile()) {
-        LOG.info("waiting for current file to be flushed");
+        LOG.debug("waiting for current file to be flushed");
         Thread.sleep(waitTimeForFlush);
         openCurrentFile(false);
-        LOG.info("Reading from same file after reopen");
+        LOG.debug("Reading from same file after reopen");
         line = readLine(inStream, reader);
       } else {
         build(); // rebuild file list
         if (!setIterator()) {
-          LOG.warn("Could not find current file in the stream");
+          LOG.debug("Could not find current file in the stream");
           return null;
         } else if (!nextFile()) { //there is no next file, reached end of stream
-          LOG.info("Reached end of stream");
+          LOG.debug("Reached end of stream");
           return null;
         } else {
-          LOG.info("Reading from next file: " + currentFile);
+          LOG.debug("Reading from next file: " + currentFile);
           line = readLine(inStream, reader); 
         }
       } 

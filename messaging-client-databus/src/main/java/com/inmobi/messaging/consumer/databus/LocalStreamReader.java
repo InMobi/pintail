@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Date;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.logging.Log;
@@ -45,7 +46,7 @@ class LocalStreamReader extends StreamReader {
 
   @Override
   protected void build() throws IOException {
-    files.clear();
+    files = new TreeMap<String, Path>();
     if (fs.exists(localStreamDir)) {
       buildList(localStreamDir);
     }
@@ -55,7 +56,7 @@ class LocalStreamReader extends StreamReader {
   private void buildList(Path dir) throws IOException {
     FileStatus[] fileStatuses = fs.listStatus(dir, pathFilter);
     if (fileStatuses == null || fileStatuses.length == 0) {
-      LOG.info("No files in directory:" + dir);
+      LOG.debug("No files in directory:" + dir);
       return;
     }
     for (FileStatus file : fileStatuses) {
@@ -100,32 +101,36 @@ class LocalStreamReader extends StreamReader {
   }
 
   String readLine() throws IOException {
-    String line = readLine(inStream, reader);
+    String line = null;
+    if (inStream != null) {
+      line = readLine(inStream, reader);
+    }
     while (line == null) { // reached end of file
       if (!nextFile()) { // reached end of file list
+        LOG.debug("could not find next file. Rebuilding");
         build(); // rebuild file list
         if (!setIterator()) {
-          LOG.warn("Could not find current file in the stream");
+          LOG.debug("Could not find current file in the stream");
           // set current file to next higher entry
           if (!setNextHigher()) {
-            LOG.warn("Could not find next higher entry for current file");
+            LOG.debug("Could not find next higher entry for current file");
             return null;
           } else {
             // read line from next higher file
-            LOG.info("Reading from " + currentFile + ". The next higher file" +
+            LOG.debug("Reading from " + currentFile + ". The next higher file" +
                 " after rebuild");
             line = readLine(inStream, reader);
           }
         } else if (!nextFile()) { // reached end of stream
-          LOG.info("Reached end of stream");
+          LOG.debug("Reached end of stream");
           return null;
         } else {
-          LOG.info("Reading from " + currentFile + " after rebuild");
+          LOG.debug("Reading from " + currentFile + " after rebuild");
           line = readLine(inStream, reader); 
         }
       } else {
         // read line from next file
-        LOG.info("Reading from " + currentFile);
+        LOG.debug("Reading from next file " + currentFile);
         line = readLine(inStream, reader);
       }
     }
@@ -142,10 +147,11 @@ class LocalStreamReader extends StreamReader {
       currentFile = files.get(localStreamFileName);
       setIterator();
       this.currentLineNum = currentLineNum;
-      openCurrentFile(false);
+      LOG.debug("Set current file:" + currentFile + "currentLineNum:" + currentLineNum);
+      //openCurrentFile(false);
       return true;
     } else {
-      LOG.info("Did not find current file. Trying to set next higher");
+      LOG.debug("Did not find current file. Trying to set next higher");
       setNextHigher();
     }
     return false;

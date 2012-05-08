@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
-import org.apache.commons.codec.binary.Base64;
-import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.testng.Assert;
@@ -29,7 +27,6 @@ public class TestDatabusConsumer {
   private String file3 = testStream + "-2012-05-02-14-28_00000";
   private String[] dataFiles = new String[] {file1, file2, file3};
 
-  private int msgIndex = 0;
   DatabusConsumer testConsumer;
   
   private ClientConfig loadConfig() {
@@ -60,18 +57,13 @@ public class TestDatabusConsumer {
       fs.delete(streamDir, true);
       fs.mkdirs(streamDir);
       for (String collector : collectors) {
-        msgIndex = 0;
         Path collectorDir = new Path(streamDir, collector);
         fs.delete(collectorDir, true);
         fs.mkdirs(collectorDir);
-        for (String fileNum : dataFiles) {
-          FSDataOutputStream out = fs.create(new Path(collectorDir, fileNum));
-          for (int i = 0; i < 100; i++) {
-            out.write(Base64.encodeBase64(constructMessage(msgIndex).getBytes()));
-            out.write('\n');
-            msgIndex++;
-          }
-          out.close();
+        int i = 0;
+        for (String file : dataFiles) {
+          TestUtil.createMessageFile(file, fs, collectorDir, i);
+          i += 100;
         }
       }
     }
@@ -94,14 +86,12 @@ public class TestDatabusConsumer {
       Assert.assertEquals(new String(msg.getData().array()),
           constructMessage(i));
     }
-    System.out.println("Consumed 20 messages. checkpointing");
     consumer.mark(); 
     for (i = 20; i < 30; i++) {
       Message msg = consumer.next();
       Assert.assertEquals(new String(msg.getData().array()), constructMessage(i));
     }
 
-    System.out.println("Consumed 30 messages. resetting");
     consumer.reset();
 
     for (i = 20; i < 140; i++) {
@@ -158,14 +148,12 @@ public class TestDatabusConsumer {
       Assert.assertEquals(new String(msg.getData().array()),
           constructMessage(i));
     }
-    System.out.println("Consumed 20 messages. checkpointing");
     consumer.mark(); 
     for (i = 120; i < 130; i++) {
       Message msg = consumer.next();
       Assert.assertEquals(new String(msg.getData().array()), constructMessage(i));
     }
 
-    System.out.println("Consumed 30 messages. resetting");
     consumer.reset();
 
     for (i = 120; i < 240; i++) {
