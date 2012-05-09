@@ -61,7 +61,8 @@ abstract class StreamReader {
       resetCurrentFileSettings();
     } 
     numLinesTobeSkipped = currentLineNum;  
-    LOG.debug("Opening file:" + currentFile + " lineNum" + currentLineNum);
+    LOG.info("Opening file:" + currentFile);
+    LOG.debug("NumLinesTobeSkipped when opening:" + numLinesTobeSkipped);
     if (fs.exists(currentFile)) {
       inStream = fs.open(currentFile);
       reader = getReader(inStream);
@@ -69,7 +70,6 @@ abstract class StreamReader {
       LOG.debug("CurrentFile:" + currentFile + " does not exist");
     }
   }
-
 
   private void closeReader() throws IOException {
     if (reader != null) {
@@ -95,10 +95,8 @@ abstract class StreamReader {
           return true;
         } 
       }
-    }
-    else {
-      LOG.debug("Did not find current file");
-    }
+    } 
+    LOG.info("Did not find current file");
     return false;
   }
 
@@ -108,19 +106,22 @@ abstract class StreamReader {
     currentFile = getFileForTimeStamp(timestamp);
     if (currentFile != null) {
       setIterator();
-      LOG.debug("CurrentFile:" + currentFile + " currentLineNum:"+ currentLineNum);
+      LOG.debug("CurrentFile:" + currentFile + " currentLineNum:"+ 
+          currentLineNum);
     }
     return currentFile != null;
   }
 
-  boolean initializeCurrentFile(PartitionCheckpoint checkpoint) throws Exception {
+  boolean initializeCurrentFile(PartitionCheckpoint checkpoint)
+      throws Exception {
     resetCurrentFile();
     this.checkpoint = checkpoint;
     LOG.debug("checkpoint:" + checkpoint);
     currentFile = getFileForCheckpoint(checkpoint);
     if (currentFile != null) {
       currentLineNum = checkpoint.getLineNum();
-      LOG.debug("CurrentFile:" + currentFile + " currentLineNum:"+ currentLineNum);
+      LOG.debug("CurrentFile:" + currentFile + " currentLineNum:" + 
+          currentLineNum);
       setIterator();
     } 
     return currentFile != null;
@@ -131,7 +132,8 @@ abstract class StreamReader {
     currentFile = getFirstFile();
 
     if (currentFile != null) {
-      LOG.debug("CurrentFile:" + currentFile + " currentLineNum:"+ currentLineNum);
+      LOG.debug("CurrentFile:" + currentFile + " currentLineNum:" + 
+          currentLineNum);
       setIterator();
     }
     return currentFile != null;
@@ -141,12 +143,15 @@ abstract class StreamReader {
     currentFile = null;
     resetCurrentFileSettings();
   }
+
   boolean setNextHigher() throws IOException {
     if (currentFile != null) {
       LOG.debug("finding next higher for " + currentFile);
-      Map.Entry<String, Path> higherEntry = files.higherEntry(currentFile.getName());
+      Map.Entry<String, Path> higherEntry = 
+          files.higherEntry(currentFile.getName());
       if (higherEntry != null) {
         currentFile = higherEntry.getValue();
+        LOG.debug("Next higher entry:" + currentFile);
         setIterator();
         openCurrentFile(true);
       }
@@ -161,7 +166,6 @@ abstract class StreamReader {
   long getCurrentLineNum() {
     return currentLineNum;
   }
-
 
   protected abstract Path getFileForCheckpoint(PartitionCheckpoint checkpoint)
       throws Exception;
@@ -193,7 +197,7 @@ abstract class StreamReader {
       }
       lineNum++;
     }
-    LOG.debug("Skipped " + lineNum + " lines");
+    LOG.info("Skipped " + lineNum + " lines");
     if (lineNum != numLines) {
       LOG.warn("Skipped wrong number of lines");
     }
@@ -225,7 +229,7 @@ abstract class StreamReader {
   boolean nextFile() throws IOException {
     LOG.debug("In next file");
     if (!setIterator()) {
-      LOG.debug("could not set iterator for currentfile. setting next higher");
+      LOG.info("could not set iterator for currentfile. setting next higher");
       return setNextHigher();
     }
     if (fileNameIterator.hasNext()) {
@@ -247,29 +251,6 @@ abstract class StreamReader {
     return null;
   }
 
-  Path getLastFile() throws IOException {
-    Map.Entry<String, Path> last = files.lastEntry();
-    if (last != null) {
-      return last.getValue();
-    }
-    return null;
-  }
-
-  static int getIndexOf(String str, int ch, int occurance) {
-    int first = str.indexOf(ch);
-    if (occurance == 1) {
-      return first;
-    } else {
-      return (first + 1) + getIndexOf(str.substring(first + 1), ch, occurance - 1);
-    }
-  }
-
-  static DateFormat dateFormat = new SimpleDateFormat("yyyy" + "-" + "MM" + "-" +
-      "dd" + "-" + "HH" + "-" + "mm");
-
-  static Date getDate(String fileName, int occur) throws Exception {
-    String dateStr = fileName.substring(getIndexOf(fileName, '-', occur) + 1,
-        fileName.indexOf("_"));
-    return dateFormat.parse(dateStr);  
-  }
+  static DateFormat dateFormat = new SimpleDateFormat("yyyy" + "-" + "MM" +
+      "-" + "dd" + "-" + "HH" + "-" + "mm");
 }

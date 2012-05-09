@@ -36,11 +36,12 @@ public class TestCurrentFile {
   private String currentScribeFile = testStream + "-2012-05-02-14-29_00000";
   MiniDFSCluster dfsCluster;
   Configuration conf = new Configuration();
-  
+
   private void writeMessages(FSDataOutputStream out, int num)
       throws IOException {
     for (int i = 0; i < num; i++) {
-      out.write(Base64.encodeBase64(TestUtil.constructMessage(msgIndex).getBytes()));
+      out.write(Base64.encodeBase64(
+          TestUtil.constructMessage(msgIndex).getBytes()));
       out.write('\n');
       msgIndex++;
     }  
@@ -54,7 +55,7 @@ public class TestCurrentFile {
     scribe.write('\n');
     scribe.close();
   }
-  
+
   @AfterTest
   public void cleanup() throws IOException {
     TestUtil.cleanupCluster(cluster);
@@ -63,11 +64,12 @@ public class TestCurrentFile {
     }
 
   }
-  
+
   @BeforeTest
   public void setup() throws Exception {     
     dfsCluster = new MiniDFSCluster(conf, 1, true,null);
-    cluster = TestUtil.setupDFSCluster(this.getClass().getSimpleName(), testStream,
+    cluster = TestUtil.setupDFSCluster(this.getClass().getSimpleName(),
+        testStream,
         partitionId, dfsCluster.getFileSystem().getUri().toString(),
         new String[] {file1, file2, file3}, null, 0);
     collectorDir = new Path(new Path(cluster.getDataDir(), testStream),
@@ -94,7 +96,7 @@ public class TestCurrentFile {
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getCurrentReader());
     Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
-            CollectorStreamReader.class.getName());
+        CollectorStreamReader.class.getName());
     writeMessages(out, 20);
     TestUtil.assertBuffer(currentScribeFile, 4, 10, 20, partitionId, buffer);
     writeMessages(out, 20);
@@ -105,7 +107,7 @@ public class TestCurrentFile {
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getCurrentReader());
     Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
-            CollectorStreamReader.class.getName());
+        CollectorStreamReader.class.getName());
     preader.close();
   }
 

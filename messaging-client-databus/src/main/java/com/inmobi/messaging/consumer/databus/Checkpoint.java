@@ -96,8 +96,8 @@ class Checkpoint implements Writable {
     for (Map.Entry<PartitionId, PartitionCheckpoint> entry : partitionsChkPoint
         .entrySet()) {
       buf.append(entry.getKey().toString())
-         .append(":")
-         .append(entry.getValue().toString());
+      .append(":")
+      .append(entry.getValue().toString());
     }
     return buf.toString();
   }

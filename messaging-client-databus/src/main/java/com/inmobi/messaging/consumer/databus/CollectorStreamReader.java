@@ -36,32 +36,33 @@ class CollectorStreamReader extends StreamReader {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    LOG.debug("Collector reader initialized with partitionId:" + partitionId +
-          " streamDir:" + streamDir + 
-          " collectorDir:" + collectorDir +
-          " waitTimeForFlush" + waitTimeForFlush);
+    LOG.info("Collector reader initialized with partitionId:" + partitionId +
+        " streamDir:" + streamDir + 
+        " collectorDir:" + collectorDir +
+        " waitTimeForFlush" + waitTimeForFlush);
   }
 
   @Override
   protected void build() throws IOException {
     files = new TreeMap<String, Path>();
-    LOG.debug("Rebuilding file list");
+    LOG.info("Building file list");
     if (fs.exists(collectorDir)) {
       FileStatus[] fileStatuses = fs.listStatus(collectorDir, pathFilter);
       if (fileStatuses == null || fileStatuses.length == 0) {
-        LOG.debug("No files in directory:" + collectorDir);
+        LOG.info("No files in directory:" + collectorDir);
         return;
       }
       for (FileStatus file : fileStatuses) {
-        LOG.debug("Adding " + file.getPath().getName() + " Path:" + file.getPath());
+        LOG.debug("Adding Path:" + file.getPath());
         files.put(file.getPath().getName(), file.getPath());
       }
     }
     fileNameIterator = files.navigableKeySet().iterator();
   }
- 
+
   @Override
-  protected Path getFileForCheckpoint(PartitionCheckpoint checkpoint) throws Exception {
+  protected Path getFileForCheckpoint(PartitionCheckpoint checkpoint)
+      throws Exception {
     if (isCollectorFile(checkpoint.getFileName())) {
       Path checkpointPath = new Path(collectorDir, checkpoint.getFileName());
       if (fs.exists(checkpointPath)) {
@@ -84,11 +85,11 @@ class CollectorStreamReader extends StreamReader {
       throws Exception {
     Map.Entry<String, Path> ceilingEntry = files.ceilingEntry(
         getCollectorFileName(streamName, timestamp));
-      if (ceilingEntry != null) {
-        return ceilingEntry.getValue();
-      } else {
-        return null;
-      }
+    if (ceilingEntry != null) {
+      return ceilingEntry.getValue();
+    } else {
+      return null;
+    }
   }
 
   String readLine() throws Exception {
@@ -99,21 +100,21 @@ class CollectorStreamReader extends StreamReader {
     while (line == null) { // reached end of file?
       // see if currentFile is current file is Scribe file
       if (isCurrentScribeFile()) {
-        LOG.debug("waiting for current file to be flushed");
+        LOG.info("waiting for current file to be flushed");
         Thread.sleep(waitTimeForFlush);
         openCurrentFile(false);
-        LOG.debug("Reading from same file after reopen");
+        LOG.info("Reading from same file after reopen");
         line = readLine(inStream, reader);
       } else {
         build(); // rebuild file list
         if (!setIterator()) {
-          LOG.debug("Could not find current file in the stream");
+          LOG.info("Could not find current file in the stream");
           return null;
         } else if (!nextFile()) { //there is no next file, reached end of stream
-          LOG.debug("Reached end of stream");
+          LOG.info("Reached end of stream");
           return null;
         } else {
-          LOG.debug("Reading from next file: " + currentFile);
+          LOG.info("Reading from next file: " + currentFile);
           line = readLine(inStream, reader); 
         }
       } 
@@ -121,13 +122,12 @@ class CollectorStreamReader extends StreamReader {
     return line;
   }
 
-
   boolean isCollectorFile(String fileName) {
     return fileName.startsWith(streamName);
   }
 
   final static class ScribePathFilter implements PathFilter {
-    
+
     ScribePathFilter() {
     }
 
@@ -148,6 +148,7 @@ class CollectorStreamReader extends StreamReader {
       return false;
     }
   }
+
   private String getCurrentScribeFile() throws IOException {
     Path currentScribeFile = new Path(collectorDir, streamName + "_current");
     String currentFileName = null;
@@ -162,23 +163,7 @@ class CollectorStreamReader extends StreamReader {
     return currentFileName;
   }
 
-  static Date getDateFromFile(String fileName) throws Exception {
-    return getDate(fileName, 1);
-  }
-  
-  static Path getDateDir(Cluster cluster, String streamName, String fileName)
-      throws Exception {    
-    Date date = getDateFromFile(fileName);
-    return LocalStreamReader.getDateDir(cluster, streamName, date);
-  }
-
   static String getCollectorFileName(String streamName, Date date) {
     return streamName + "-" +  dateFormat.format(date) ;  
   }
-  static String getCollectorFileName(String localStreamFile) {
-    return localStreamFile.substring(localStreamFile.indexOf('-') + 1,
-        localStreamFile.indexOf('.'));  
-  }
-
-  
 }

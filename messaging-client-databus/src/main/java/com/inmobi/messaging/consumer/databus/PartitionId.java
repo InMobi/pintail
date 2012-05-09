@@ -51,26 +51,33 @@ class PartitionId implements Writable {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
+    if (this == obj) {
       return true;
-    if (obj == null)
+    }
+    if (obj == null) {
       return false;
-    if (getClass() != obj.getClass())
+    }
+    if (getClass() != obj.getClass()) {
       return false;
+    }
     PartitionId other = (PartitionId) obj;
     if (cluster == null) {
-      if (other.cluster != null)
+      if (other.cluster != null) {
         return false;
-    } else if (!cluster.equals(other.cluster))
+      }
+    } else if (!cluster.equals(other.cluster)) {
       return false;
+    }
     if (collector == null) {
-      if (other.collector != null)
+      if (other.collector != null) {
         return false;
-    } else if (!collector.equals(other.collector))
+      }
+    } else if (!collector.equals(other.collector)) {
       return false;
+    }
     return true;
   }
-  
+
   public String toString() {
     return cluster + "-" + collector;
   }

@@ -29,7 +29,7 @@ class LocalStreamReader extends StreamReader {
   LocalStreamReader(PartitionId partitionId, 
       Cluster cluster, String streamName) {
     this.collector = partitionId.getCollector();
-    
+
     // initialize cluster and its directories
     this.localStreamDir = getLocalStreamDir(cluster, streamName);
     try {
@@ -40,49 +40,53 @@ class LocalStreamReader extends StreamReader {
       throw new RuntimeException(e);
     }    
 
-    LOG.debug("LocalStream File reader initialized with partitionId:" + partitionId +
-            " local stream dir: " + localStreamDir );
+    LOG.info("LocalStream File reader initialized with partitionId:" +
+        partitionId + " local stream dir: " + localStreamDir );
   }
 
   @Override
   protected void build() throws IOException {
+    LOG.info("Building file list");
     files = new TreeMap<String, Path>();
     if (fs.exists(localStreamDir)) {
       buildList(localStreamDir);
     }
     fileNameIterator = files.navigableKeySet().iterator();
   }
-  
+
   private void buildList(Path dir) throws IOException {
     FileStatus[] fileStatuses = fs.listStatus(dir, pathFilter);
     if (fileStatuses == null || fileStatuses.length == 0) {
-      LOG.debug("No files in directory:" + dir);
+      LOG.info("No files in directory:" + dir);
       return;
     }
     for (FileStatus file : fileStatuses) {
       if (file.isDir()) {
         buildList(file.getPath());
       } else {
-        LOG.debug("adding " + file.getPath().getName() + " Path:" + file.getPath());
+        LOG.debug("Adding Path:" + file.getPath());
         files.put(file.getPath().getName(), file.getPath());
       }
     }
   }
 
-  boolean initializeCurrentFile(PartitionCheckpoint checkpoint) throws Exception {
+  boolean initializeCurrentFile(PartitionCheckpoint checkpoint)
+      throws Exception {
     resetCurrentFile();
     boolean ret = false;
     if (isLocalStreamFile(checkpoint.getFileName())) {
       ret = super.initializeCurrentFile(checkpoint);
       if (!ret) {
-        LOG.info("Could not find checkpointed file. Reading from start of the stream");
+        LOG.info("Could not find checkpointed file. Reading from start of the" +
+            " stream");
         return initFromStart();
       }
     }
     return ret;
   }
 
-  protected Path getFileForCheckpoint(PartitionCheckpoint checkpoint) throws Exception {
+  protected Path getFileForCheckpoint(PartitionCheckpoint checkpoint)
+      throws Exception {
     if (checkpoint.getFileName().startsWith(collector)) {
       return files.get(checkpoint.getFileName());
     }
@@ -107,30 +111,30 @@ class LocalStreamReader extends StreamReader {
     }
     while (line == null) { // reached end of file
       if (!nextFile()) { // reached end of file list
-        LOG.debug("could not find next file. Rebuilding");
+        LOG.info("could not find next file. Rebuilding");
         build(); // rebuild file list
         if (!setIterator()) {
-          LOG.debug("Could not find current file in the stream");
+          LOG.info("Could not find current file in the stream");
           // set current file to next higher entry
           if (!setNextHigher()) {
-            LOG.debug("Could not find next higher entry for current file");
+            LOG.info("Could not find next higher entry for current file");
             return null;
           } else {
             // read line from next higher file
-            LOG.debug("Reading from " + currentFile + ". The next higher file" +
+            LOG.info("Reading from " + currentFile + ". The next higher file" +
                 " after rebuild");
             line = readLine(inStream, reader);
           }
         } else if (!nextFile()) { // reached end of stream
-          LOG.debug("Reached end of stream");
+          LOG.info("Reached end of stream");
           return null;
         } else {
-          LOG.debug("Reading from " + currentFile + " after rebuild");
+          LOG.info("Reading from " + currentFile + " after rebuild");
           line = readLine(inStream, reader); 
         }
       } else {
         // read line from next file
-        LOG.debug("Reading from next file " + currentFile);
+        LOG.info("Reading from next file " + currentFile);
         line = readLine(inStream, reader);
       }
     }
@@ -147,11 +151,12 @@ class LocalStreamReader extends StreamReader {
       currentFile = files.get(localStreamFileName);
       setIterator();
       this.currentLineNum = currentLineNum;
-      LOG.debug("Set current file:" + currentFile + "currentLineNum:" + currentLineNum);
-      //openCurrentFile(false);
+      LOG.debug("Set current file:" + currentFile +
+          "currentLineNum:" + currentLineNum);
+      openCurrentFile(false);
       return true;
     } else {
-      LOG.debug("Did not find current file. Trying to set next higher");
+      LOG.info("Did not find current file. Trying to set next higher");
       setNextHigher();
     }
     return false;
@@ -161,14 +166,14 @@ class LocalStreamReader extends StreamReader {
   protected BufferedReader createReader(FSDataInputStream in)
       throws IOException {
     BufferedReader reader = new BufferedReader(new InputStreamReader(
-          new GZIPInputStream(in)));
+        new GZIPInputStream(in)));
     return reader;
   }
 
   final static class LocalStreamPathFilter implements PathFilter {
     String collector;
     FileSystem fs;
-    
+
     LocalStreamPathFilter(String collector, FileSystem fs) {
       this.collector=collector;
       this.fs = fs;
@@ -193,22 +198,6 @@ class LocalStreamReader extends StreamReader {
   static Path getLocalStreamDir(Cluster cluster, String streamName) {
     return new Path(cluster.getLocalFinalDestDirRoot(), streamName);
   }
-  
-  static Date getDateFromFile(String fileName) throws Exception {
-    return getDate(fileName, 2);
-  }  
-
-  static Path getDateDir(Cluster cluster, String streamName,  Date date)
-      throws Exception{
-    return new Path(cluster.getLocalDestDir(streamName, date));
-
-  }
-  
-  static Path getDateDir(Cluster cluster, String streamName, String fileName)
-      throws Exception {    
-    Date date = getDateFromFile(fileName);
-    return getDateDir(cluster, streamName, date);
-  }
 
   static String getLocalStreamFileName(String collector, String collectorFile) {
     return collector + "-" + collectorFile + ".gz";  
@@ -216,7 +205,8 @@ class LocalStreamReader extends StreamReader {
 
   static String getLocalStreamFileName(String collector, String streamName,
       Date date) {
-    return collector + "-" + streamName + "-" +  dateFormat.format(date) + ".gz";  
+    return collector + "-" + streamName + "-" +  dateFormat.format(date) 
+        + ".gz";  
   }
 
 }

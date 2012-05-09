@@ -28,27 +28,29 @@ public class TestDatabusConsumer {
   private String[] dataFiles = new String[] {file1, file2, file3};
 
   DatabusConsumer testConsumer;
-  
+
   private ClientConfig loadConfig() {
     InputStream in = ClientConfig.class.getClassLoader().getResourceAsStream(
-              MessageConsumerFactory.MESSAGE_CLIENT_CONF_FILE);
+        MessageConsumerFactory.MESSAGE_CLIENT_CONF_FILE);
     if (in == null) {
       throw new RuntimeException("could not load conf file "
-     + MessageConsumerFactory.MESSAGE_CLIENT_CONF_FILE + " from classpath.");
+          + MessageConsumerFactory.MESSAGE_CLIENT_CONF_FILE 
+          + " from classpath.");
     }
     return ClientConfig.load(in); 
   }
 
   @BeforeTest
   public void setup() throws IOException {
-    
+
     ClientConfig config = loadConfig();
     testConsumer = new DatabusConsumer();
     testConsumer.initializeConfig(config);
 
     // setup stream, collector dirs and data files
     DatabusConfig databusConfig = testConsumer.getDatabusConfig();
-    SourceStream sourceStream = databusConfig.getSourceStreams().get(testStream);
+    SourceStream sourceStream = 
+        databusConfig.getSourceStreams().get(testStream);
     for (String c : sourceStream.getSourceClusters()) {
       Cluster cluster = databusConfig.getClusters().get(c);
       FileSystem fs = FileSystem.get(cluster.getHadoopConf());
@@ -89,28 +91,33 @@ public class TestDatabusConsumer {
     consumer.mark(); 
     for (i = 20; i < 30; i++) {
       Message msg = consumer.next();
-      Assert.assertEquals(new String(msg.getData().array()), constructMessage(i));
+      Assert.assertEquals(new String(msg.getData().array()),
+          constructMessage(i));
     }
 
     consumer.reset();
 
     for (i = 20; i < 140; i++) {
       Message msg = consumer.next();
-      Assert.assertEquals(new String(msg.getData().array()), constructMessage(i));
+      Assert.assertEquals(new String(msg.getData().array()),
+          constructMessage(i));
     }
 
     consumer.mark();
-    Checkpoint lastCheckpoint = new Checkpoint(consumer.getCurrentCheckpoint().toBytes());
+    Checkpoint lastCheckpoint = new Checkpoint(
+        consumer.getCurrentCheckpoint().toBytes());
 
     for (i = 140; i < 160; i++) {
       Message msg = consumer.next();
-      Assert.assertEquals(new String(msg.getData().array()), constructMessage(i));
+      Assert.assertEquals(new String(msg.getData().array()),
+          constructMessage(i));
     }
 
     consumer.reset();
     for (i = 140; i < 300; i++) {
       Message msg = consumer.next();
-      Assert.assertEquals(new String(msg.getData().array()), constructMessage(i));
+      Assert.assertEquals(new String(msg.getData().array()),
+          constructMessage(i));
     }
 
     consumer.close();
@@ -119,15 +126,16 @@ public class TestDatabusConsumer {
     consumer = new DatabusConsumer();
     consumer.init(testStream, consumerName, config);
     Assert.assertEquals(consumer.getCurrentCheckpoint(), lastCheckpoint);
-    
+
     for (i = 140; i < 300; i++) {
       Message msg = consumer.next();
-      Assert.assertEquals(new String(msg.getData().array()), constructMessage(i));
+      Assert.assertEquals(new String(msg.getData().array()),
+          constructMessage(i));
     }
     consumer.mark();
 
     consumer.close();
-    
+
   }
 
   @Test
@@ -136,7 +144,7 @@ public class TestDatabusConsumer {
     config.set("databus.checkpoint.dir", "/tmp/databustest/checkpoint2");
     DatabusConsumer consumer = new DatabusConsumer();
     consumer.init(testStream, consumerName,
-        CollectorStreamReader.getDateFromFile(file2), config);
+        TestUtil.getDateFromCollectorFile(file2), config);
     Assert.assertEquals(consumer.getTopicName(), testStream);
     Assert.assertEquals(consumer.getConsumerName(), consumerName);
     Map<PartitionId, PartitionReader> readers = consumer.getPartitionReaders();
@@ -151,28 +159,33 @@ public class TestDatabusConsumer {
     consumer.mark(); 
     for (i = 120; i < 130; i++) {
       Message msg = consumer.next();
-      Assert.assertEquals(new String(msg.getData().array()), constructMessage(i));
+      Assert.assertEquals(new String(msg.getData().array()),
+          constructMessage(i));
     }
 
     consumer.reset();
 
     for (i = 120; i < 240; i++) {
       Message msg = consumer.next();
-      Assert.assertEquals(new String(msg.getData().array()), constructMessage(i));
+      Assert.assertEquals(new String(msg.getData().array()),
+          constructMessage(i));
     }
 
     consumer.mark();
-    Checkpoint lastCheckpoint = new Checkpoint(consumer.getCurrentCheckpoint().toBytes());
+    Checkpoint lastCheckpoint = new Checkpoint(
+        consumer.getCurrentCheckpoint().toBytes());
 
     for (i = 240; i < 260; i++) {
       Message msg = consumer.next();
-      Assert.assertEquals(new String(msg.getData().array()), constructMessage(i));
+      Assert.assertEquals(new String(msg.getData().array()),
+          constructMessage(i));
     }
 
     consumer.reset();
     for (i = 240; i < 300; i++) {
       Message msg = consumer.next();
-      Assert.assertEquals(new String(msg.getData().array()), constructMessage(i));
+      Assert.assertEquals(new String(msg.getData().array()),
+          constructMessage(i));
     }
 
     consumer.close();
@@ -181,10 +194,11 @@ public class TestDatabusConsumer {
     consumer = new DatabusConsumer();
     consumer.init(testStream, consumerName, config);
     Assert.assertEquals(consumer.getCurrentCheckpoint(), lastCheckpoint);
-    
+
     for (i = 240; i < 300; i++) {
       Message msg = consumer.next();
-      Assert.assertEquals(new String(msg.getData().array()), constructMessage(i));
+      Assert.assertEquals(new String(msg.getData().array()),
+          constructMessage(i));
     }
     consumer.mark();
 
@@ -195,7 +209,8 @@ public class TestDatabusConsumer {
   public void cleanup() throws IOException {
     testConsumer.close();
     DatabusConfig databusConfig = testConsumer.getDatabusConfig();
-    SourceStream sourceStream = databusConfig.getSourceStreams().get(testStream);
+    SourceStream sourceStream = 
+        databusConfig.getSourceStreams().get(testStream);
     for (String c : sourceStream.getSourceClusters()) {
       Cluster cluster = databusConfig.getClusters().get(c);
       FileSystem fs = FileSystem.get(cluster.getHadoopConf());

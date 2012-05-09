@@ -1,6 +1,7 @@
 package com.inmobi.messaging.consumer.databus;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -42,10 +43,10 @@ public class TestUtil {
   static void moveFileToStreamLocal(FileSystem fs, String streamName,
       String collectorName, Cluster cluster, Path collectorDir,
       String collectorfileName)
-      throws Exception {
+          throws Exception {
     String localStreamFileName = LocalStreamReader.getLocalStreamFileName(
         collectorName, collectorfileName);
-    Path streamLocalDateDir = CollectorStreamReader.getDateDir(cluster,
+    Path streamLocalDateDir = TestUtil.getDateDirForCollectorFile(cluster,
         streamName, collectorfileName);
     Path targetFile = new Path(streamLocalDateDir, localStreamFileName);
     Path collectorPath = new Path(collectorDir, collectorfileName);
@@ -55,7 +56,7 @@ public class TestUtil {
 
   static void assertBuffer(String fileName, int fileNum, int startIndex,
       int numMsgs, PartitionId pid, LinkedBlockingQueue<QueueEntry> buffer)
-      throws InterruptedException {
+          throws InterruptedException {
     int fileIndex = (fileNum - 1) * 100 ;
     for (int i = startIndex; i < (startIndex + numMsgs); i++) {
       QueueEntry entry = buffer.take();
@@ -75,6 +76,7 @@ public class TestUtil {
       i += 100;
     }
   }
+
   static void setUpEmptyFiles(FileSystem fs, Path collectorDir,
       String... files) throws IOException {
     for (String file : files) {
@@ -98,7 +100,7 @@ public class TestUtil {
         "/tmp/databus/" + className,
         hdfsUrl, "local", null, sourceNames);
     Path streamDir = new Path(cluster.getDataDir(), testStream);
-      
+
     // setup stream and collector dirs
     FileSystem fs = FileSystem.get(cluster.getHadoopConf());
     Path collectorDir = new Path(streamDir, pid.getCollector());
@@ -109,7 +111,7 @@ public class TestUtil {
     if (collectorFiles != null) {
       TestUtil.setUpCollectorDataFiles(fs, collectorDir, collectorFiles);
     }
-    
+
     if (emptyFiles != null) {
       TestUtil.setUpEmptyFiles(fs, collectorDir, emptyFiles);
     }
@@ -135,10 +137,60 @@ public class TestUtil {
     FileSystem fs = FileSystem.get(cluster.getHadoopConf());
     fs.delete(new Path(cluster.getRootDir()), true);    
   }
-  
+
   static Path getLocalStreamPath(Cluster cluster, String testStream,
       String collectorName, String collectorFile) throws Exception {
-    return new Path(CollectorStreamReader.getDateDir(cluster, testStream, collectorFile),
+    return new Path(getDateDirForCollectorFile(cluster, testStream,
+        collectorFile),
         LocalStreamReader.getLocalStreamFileName(collectorName, collectorFile));
+  }
+
+  public static Path getDateDirForCollectorFile(Cluster cluster,
+      String streamName, String fileName) throws Exception {    
+    Date date = TestUtil.getDateFromCollectorFile(fileName);
+    return TestUtil.getDateDir(cluster, streamName, date);
+  }
+
+  public static Date getDateFromCollectorFile(String fileName)
+      throws Exception {
+    return getDate(fileName, 1);
+  }
+
+  public static Path getDateDirForLocalStreamFile(Cluster cluster,
+      String streamName, String fileName) throws Exception {    
+    Date date = getDateFromLocalStreamFile(fileName);
+    return getDateDir(cluster, streamName, date);
+  }
+
+  public static Path getDateDir(Cluster cluster, String streamName,  Date date)
+      throws Exception{
+    return new Path(cluster.getLocalDestDir(streamName, date));
+  }
+
+  public static Date getDateFromLocalStreamFile(String fileName)
+      throws Exception {
+    return getDate(fileName, 2);
+  }
+
+  private static Date getDate(String fileName, int occur) throws Exception {
+    String dateStr = fileName.substring(
+        TestUtil.getIndexOf(fileName, '-', occur) + 1,
+        fileName.indexOf("_"));
+    return StreamReader.dateFormat.parse(dateStr);  
+  }
+
+  private static int getIndexOf(String str, int ch, int occurance) {
+    int first = str.indexOf(ch);
+    if (occurance == 1) {
+      return first;
+    } else {
+      return (first + 1) + getIndexOf(str.substring(first + 1), ch,
+          occurance - 1);
+    }
+  }
+
+  public static String getCollectorFileName(String localStreamFile) {
+    return localStreamFile.substring(localStreamFile.indexOf('-') + 1,
+        localStreamFile.indexOf('.'));  
   }
 }

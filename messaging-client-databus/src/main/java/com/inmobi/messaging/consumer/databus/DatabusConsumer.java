@@ -62,7 +62,7 @@ public class DatabusConsumer extends AbstractMessageConsumer {
 
   void initializeConfig(ClientConfig config) {
     bufferSize = config.getInteger("databus.consumer.buffer.size",
-                      DEFAULT_QUEUE_SIZE);
+        DEFAULT_QUEUE_SIZE);
     buffer = new LinkedBlockingQueue<QueueEntry>(bufferSize);
     databusCheckpointDir = config.getString("databus.checkpoint.dir", ".");
     waitTimeForFlush = config.getLong("databus.stream.waittimeforflush",
@@ -85,8 +85,8 @@ public class DatabusConsumer extends AbstractMessageConsumer {
       throw new RuntimeException(e);
     }
     LOG.info("Databus consumer initialized with streamName:" + topicName +
-            " consumerName:" + consumerName + " startTime:" + startTime +
-            " queueSize:" + bufferSize + " checkPoint:" + currentCheckpoint);
+        " consumerName:" + consumerName + " startTime:" + startTime +
+        " queueSize:" + bufferSize + " checkPoint:" + currentCheckpoint);
   }
 
   Map<PartitionId, PartitionReader> getPartitionReaders() {
@@ -96,7 +96,7 @@ public class DatabusConsumer extends AbstractMessageConsumer {
   Checkpoint getCurrentCheckpoint() {
     return currentCheckpoint;
   }
-  
+
   DatabusConfig getDatabusConfig() {
     return databusConfig;
   }
@@ -104,7 +104,7 @@ public class DatabusConsumer extends AbstractMessageConsumer {
   CheckpointProvider getCheckpointProvider() {
     return checkpointProvider; 
   }
-  
+
   int getBufferSize() {
     return bufferSize;
   }
@@ -128,8 +128,8 @@ public class DatabusConsumer extends AbstractMessageConsumer {
     }
   }
 
-  void createPartitionReaders() {
-	Map<PartitionId, PartitionCheckpoint> partitionsChkPoints = 
+  private void createPartitionReaders() {
+    Map<PartitionId, PartitionCheckpoint> partitionsChkPoints = 
         currentCheckpoint.getPartitionsCheckpoint();
     SourceStream sourceStream = databusConfig.getSourceStreams().get(topicName);
     LOG.debug("Stream name: " + sourceStream.getName());
@@ -203,7 +203,6 @@ public class DatabusConsumer extends AbstractMessageConsumer {
     readers.clear();
     buffer.clear();
     buffer = new LinkedBlockingQueue<QueueEntry>(bufferSize);
-
   }
 
   @Override

@@ -26,8 +26,8 @@ public class TestCheckpointSerialization {
     System.out.println("check point2: " + ckPoint2.toString());
     Assert.assertEquals(ckPoint1.toString(), ckPoint2.toString());
     Assert.assertEquals(ckPoint1, ckPoint2);
-	Map<PartitionId, PartitionCheckpoint> map_cp2 = ckPoint2.getPartitionsCheckpoint();
-	Assert.assertEquals(map_cp2.get(id1), pcp1);
-	Assert.assertEquals(map_cp2.get(id2), pcp2);
+    Map<PartitionId, PartitionCheckpoint> map_cp2 = ckPoint2.getPartitionsCheckpoint();
+    Assert.assertEquals(map_cp2.get(id1), pcp1);
+    Assert.assertEquals(map_cp2.get(id2), pcp2);
   }
 }

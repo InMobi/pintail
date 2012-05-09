@@ -54,20 +54,26 @@ class PartitionCheckpoint implements Writable {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
+    if (this == obj) {
       return true;
-    if (obj == null)
+    }
+    if (obj == null) {
       return false;
-    if (getClass() != obj.getClass())
+    }
+    if (getClass() != obj.getClass()) {
       return false;
+    }
     PartitionCheckpoint other = (PartitionCheckpoint) obj;
     if (fileName == null) {
-      if (other.fileName != null)
+      if (other.fileName != null) {
         return false;
-    } else if (!fileName.equals(other.fileName))
+      }
+    } else if (!fileName.equals(other.fileName)) {
       return false;
-    if (lineNum != other.lineNum)
+    }
+    if (lineNum != other.lineNum) {
       return false;
+    }
     return true;
   }
 
