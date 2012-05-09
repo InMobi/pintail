@@ -161,6 +161,8 @@ class PartitionReader {
   }
 
   private void initializeCurrentFile() throws Exception {
+    lReader.build();
+    cReader.build();
     if (startTime != null) {
       initializeCurrentFileFromTimeStamp(startTime);
     } else if (partitionCheckpoint != null &&

@@ -32,7 +32,6 @@ class CollectorStreamReader extends StreamReader {
     try {
       super.init(partitionId, cluster, streamName);
       pathFilter = new ScribePathFilter();
-      build();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

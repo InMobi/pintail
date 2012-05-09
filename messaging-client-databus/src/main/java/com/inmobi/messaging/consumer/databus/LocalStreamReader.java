@@ -35,7 +35,6 @@ class LocalStreamReader extends StreamReader {
     try {
       super.init(partitionId, cluster, streamName);
       pathFilter = new LocalStreamPathFilter(collector, fs);
-      build();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }    

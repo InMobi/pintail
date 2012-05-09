@@ -2,7 +2,9 @@ package com.inmobi.messaging.consumer.databus;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -96,9 +98,15 @@ public class TestUtil {
       String[] emptyFiles, int numFilesToMoveToStreamLocal) throws Exception {
     Set<String> sourceNames = new HashSet<String>();
     sourceNames.add(testStream);
-    Cluster cluster = new Cluster(pid.getCluster(), 
+    Map<String, String> clusterConf = new HashMap<String, String>();
+    clusterConf.put("hdfsurl", hdfsUrl);
+    clusterConf.put("jturl", "local");
+    clusterConf.put("name", pid.getCluster());
+    clusterConf.put("jobqueuename", "default");
+    
+    Cluster cluster = new Cluster(clusterConf, 
         "/tmp/databus/" + className,
-        hdfsUrl, "local", null, sourceNames);
+         null, sourceNames);
     Path streamDir = new Path(cluster.getDataDir(), testStream);
 
     // setup stream and collector dirs
