@@ -28,11 +28,8 @@ public class TestPartitionReaderMovingFilesFromLocalStream {
   private String file2 =  testStream + "-2012-05-02-14-27_00000";
   private String file3 =  testStream + "-2012-05-02-14-28_00000";
   private String file4 =  testStream + "-2012-05-02-14-29_00000";
-  private String file41 = testStream + "-2012-05-02-14-30_00000";
   private String file5 =  testStream + "-2012-05-02-14-31_00000";
-  private String file51 = testStream + "-2012-05-02-14-32_00000";
   private String file6 =  testStream + "-2012-05-02-14-33_00000";
-  private String file61 = testStream + "-2012-05-02-14-34_00000";
 
   @BeforeTest
   public void setup() throws Exception {
@@ -40,7 +37,7 @@ public class TestPartitionReaderMovingFilesFromLocalStream {
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
         testStream, partitionId,
         new String[] {file1, file2, file3, file4, file5, file6},
-        new String[] {file41, file51, file61}, 4);
+        null, 4);
     fs = FileSystem.get(cluster.getHadoopConf());
   }
 
@@ -57,7 +54,10 @@ public class TestPartitionReaderMovingFilesFromLocalStream {
     Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
         LocalStreamReader.class.getName());
 
-    preader.execute();
+    preader.start();
+    while (buffer.remainingCapacity() > 0) {
+      Thread.sleep(10);
+    }
     fs.delete(TestUtil.getLocalStreamPath(cluster, testStream, collectorName,
         file1), true);
     fs.delete(TestUtil.getLocalStreamPath(cluster, testStream, collectorName,
@@ -69,21 +69,23 @@ public class TestPartitionReaderMovingFilesFromLocalStream {
         collectorName, file1), 1, 0, 100, partitionId, buffer);
     TestUtil.assertBuffer(LocalStreamReader.getLocalStreamFileName(
         collectorName, file2), 2, 0, 50, partitionId, buffer);
-    preader.execute();
 
-    Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
-        CollectorStreamReader.class.getName());
-    preader.execute();
-
+    while (buffer.remainingCapacity() > 0) {
+      Thread.sleep(10);
+    }
+    TestUtil.assertBuffer(LocalStreamReader.getLocalStreamFileName(
+        collectorName, file2), 2, 50, 50, partitionId, buffer);
     TestUtil.assertBuffer(LocalStreamReader.getLocalStreamFileName(
         collectorName, file4), 4, 0, 100, partitionId, buffer);
-    TestUtil.assertBuffer(file5, 5, 0, 50, partitionId, buffer);    
 
-    preader.execute();
-    TestUtil.assertBuffer(file5, 5, 50, 50, partitionId, buffer);    
-    TestUtil.assertBuffer(file6, 6, 0, 100, partitionId, buffer);
-    preader.execute();
+    while (buffer.remainingCapacity() > 0) {
+      Thread.sleep(10);
+    }
+    Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
+        CollectorStreamReader.class.getName());
+    TestUtil.assertBuffer(file5, 5, 0, 100, partitionId, buffer);    
+    TestUtil.assertBuffer(file6, 6, 0, 50, partitionId, buffer);
+    TestUtil.assertBuffer(file6, 6, 50, 50, partitionId, buffer);
     Assert.assertTrue(buffer.isEmpty());
-    Assert.assertNull(preader.getCurrentReader());
   }
 }

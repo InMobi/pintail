@@ -39,8 +39,9 @@ public class TestPartitionReader {
   @BeforeTest
   public void setup() throws Exception {
     // setup cluster
-    cluster = TestUtil.setupLocalCluster(this.getClass().getName(), testStream,
-        partitionId, new String[] {file1, file2, file3, file4, file5, file6},
+    cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
+        testStream, partitionId,
+        new String[] {file1, file2, file3, file4, file5, file6},
         new String[] {file41, file51, file61}, 3);
     collectorDir = new Path(new Path(cluster.getDataDir(), testStream),
         collectorName);

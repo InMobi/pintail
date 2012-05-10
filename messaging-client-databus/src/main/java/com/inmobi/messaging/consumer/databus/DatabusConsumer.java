@@ -149,7 +149,7 @@ public class DatabusConsumer extends AbstractMessageConsumer {
           LOG.debug("Collector is " + collector);
           PartitionId id = new PartitionId(cluster.getName(), collector);
           if (partitionsChkPoints.get(id) == null) {
-            partitionsChkPoints.put(id, new PartitionCheckpoint(null, -1));
+            partitionsChkPoints.put(id, null);
           }
           PartitionReader reader = new PartitionReader(id,
               partitionsChkPoints.get(id), cluster, buffer, topicName,

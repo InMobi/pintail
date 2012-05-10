@@ -61,10 +61,10 @@ public class TestPartitionReaderMovingFilesFromCollectorStream {
     Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
         LocalStreamReader.class.getName());
 
-    preader.execute();
-    Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
-        CollectorStreamReader.class.getName());
-    preader.execute();
+    preader.start();
+    while (buffer.remainingCapacity() > 0) {
+      Thread.sleep(10);
+    }
     Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
         CollectorStreamReader.class.getName());
 
@@ -78,20 +78,21 @@ public class TestPartitionReaderMovingFilesFromCollectorStream {
         collectorName, file1), 1, 0, 100, partitionId, buffer);
     TestUtil.assertBuffer(file2, 2, 0, 50, partitionId, buffer);
 
-    preader.execute();
-    Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
-        LocalStreamReader.class.getName());
-    preader.execute();
-    TestUtil.assertBuffer(LocalStreamReader.getLocalStreamFileName(
-        collectorName, file2), 2, 50, 50, partitionId, buffer);
+    while (buffer.remainingCapacity() > 0) {
+      Thread.sleep(10);
+    }
+    //Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
+    //    LocalStreamReader.class.getName());
+    TestUtil.assertBuffer(file2, 2, 50, 50, partitionId, buffer);
     TestUtil.assertBuffer(LocalStreamReader.getLocalStreamFileName(
         collectorName, file3), 3, 0, 100, partitionId, buffer);
 
-    preader.execute();
+    while (buffer.remainingCapacity() > 0) {
+      Thread.sleep(10);
+    }
     Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
         CollectorStreamReader.class.getName());
 
-    preader.execute();
     // Move collector files file4 and file5
     TestUtil.moveFileToStreamLocal(fs, testStream, collectorName, cluster,
         collectorDir, file4);
@@ -103,19 +104,11 @@ public class TestPartitionReaderMovingFilesFromCollectorStream {
 
     TestUtil.assertBuffer(file4, 4, 0, 100, partitionId, buffer);
     TestUtil.assertBuffer(file5, 5, 0, 50, partitionId, buffer);
-    preader.execute();
-    Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
-        LocalStreamReader.class.getName());
-    preader.execute();
-    TestUtil.assertBuffer(LocalStreamReader.getLocalStreamFileName(
-        collectorName, file5), 5, 50, 50, partitionId, buffer);
-    Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
-        CollectorStreamReader.class.getName());
-
-    preader.execute();
+    while (buffer.remainingCapacity() > 0) {
+      Thread.sleep(10);
+    }
+    TestUtil.assertBuffer(file5, 5, 50, 50, partitionId, buffer);
     TestUtil.assertBuffer(file6, 6, 0, 100, partitionId, buffer); 
     Assert.assertTrue(buffer.isEmpty());
-    Assert.assertNull(preader.getCurrentReader());
-
   }
 }

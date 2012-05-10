@@ -51,7 +51,13 @@ class Checkpoint implements Writable {
   public void readFields(DataInput in) throws IOException {
     int size = in.readInt();
     for (int i = 0; i < size; i++) {
-      partitionsChkPoint.put(new PartitionId(in), new PartitionCheckpoint(in));
+      PartitionId pid = new PartitionId(in);
+      boolean valueNotNull = in.readBoolean();
+      if (valueNotNull) {
+        partitionsChkPoint.put(pid, new PartitionCheckpoint(in));
+      } else {
+        partitionsChkPoint.put(pid, null);        
+      }
     }
   }
 
@@ -61,7 +67,12 @@ class Checkpoint implements Writable {
     for (Map.Entry<PartitionId, PartitionCheckpoint> entry : partitionsChkPoint
         .entrySet()) {
       entry.getKey().write(out);
-      entry.getValue().write(out);
+      if (entry.getValue() == null) {
+        out.writeBoolean(false);
+      } else {
+        out.writeBoolean(true);
+        entry.getValue().write(out);
+      }
     }
   }
 
@@ -96,8 +107,12 @@ class Checkpoint implements Writable {
     for (Map.Entry<PartitionId, PartitionCheckpoint> entry : partitionsChkPoint
         .entrySet()) {
       buf.append(entry.getKey().toString())
-      .append(":")
-      .append(entry.getValue().toString());
+      .append(":");
+      if (entry.getValue() != null) {
+        buf.append(entry.getValue().toString());
+      } else {
+        buf.append("null");
+      }
     }
     return buf.toString();
   }

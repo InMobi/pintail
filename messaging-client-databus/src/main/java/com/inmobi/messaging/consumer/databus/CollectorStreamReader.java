@@ -38,7 +38,7 @@ class CollectorStreamReader extends StreamReader {
     LOG.info("Collector reader initialized with partitionId:" + partitionId +
         " streamDir:" + streamDir + 
         " collectorDir:" + collectorDir +
-        " waitTimeForFlush" + waitTimeForFlush);
+        " waitTimeForFlush:" + waitTimeForFlush);
   }
 
   @Override

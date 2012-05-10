@@ -28,8 +28,8 @@ public class TestLocalStreamReader {
   @BeforeTest
   public void setup() throws Exception {
     // initialize config
-    cluster = TestUtil.setupLocalCluster(this.getClass().getName(), testStream,
-        partitionId, new String[] {file1, file2, file3}, null, 3);
+    cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
+        testStream, partitionId, new String[] {file1, file2, file3}, null, 3);
 
   }
 

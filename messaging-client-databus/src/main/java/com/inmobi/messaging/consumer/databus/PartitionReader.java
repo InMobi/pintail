@@ -173,7 +173,7 @@ class PartitionReader {
     }
     if (currentReader != null) {
       LOG.info("Intialized currentFile:" + currentReader.getCurrentFile() +
-          "currentLineNum:" + currentReader.getCurrentLineNum());
+          " currentLineNum:" + currentReader.getCurrentLineNum());
     }
     inited = true;
   }
@@ -197,9 +197,16 @@ class PartitionReader {
       currentReader.openStream();
       LOG.info("Reading file " + currentReader.getCurrentFile() + 
           " and lineNum:" + currentReader.getCurrentLineNum());
-      while (buffer.remainingCapacity() != 0 && !stopped) {
+      while (!stopped) {
         String line = currentReader.readLine();
         if (line != null) {
+          while (buffer.remainingCapacity() == 0) {
+            LOG.debug("Waiting for space in buffer");
+            if (stopped) {
+              return;
+            }
+            Thread.sleep(10);
+          }
           // add the data to queue
           byte[] data = Base64.decodeBase64(line);
           LOG.debug("Current LineNum: " + currentReader.getCurrentLineNum());
