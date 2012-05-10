@@ -12,9 +12,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.PathFilter;
 
 import com.inmobi.databus.Cluster;
 
@@ -24,7 +22,6 @@ class LocalStreamReader extends StreamReader {
 
   private final String collector;
   private final Path localStreamDir;
-  private PathFilter pathFilter;
 
   LocalStreamReader(PartitionId partitionId, 
       Cluster cluster, String streamName) {
@@ -34,7 +31,6 @@ class LocalStreamReader extends StreamReader {
     this.localStreamDir = getLocalStreamDir(cluster, streamName);
     try {
       super.init(partitionId, cluster, streamName);
-      pathFilter = new LocalStreamPathFilter(collector, fs);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }    
@@ -54,7 +50,7 @@ class LocalStreamReader extends StreamReader {
   }
 
   private void buildList(Path dir) throws IOException {
-    FileStatus[] fileStatuses = fs.listStatus(dir, pathFilter);
+    FileStatus[] fileStatuses = fs.listStatus(dir);
     if (fileStatuses == null || fileStatuses.length == 0) {
       LOG.info("No files in directory:" + dir);
       return;
@@ -62,9 +58,11 @@ class LocalStreamReader extends StreamReader {
     for (FileStatus file : fileStatuses) {
       if (file.isDir()) {
         buildList(file.getPath());
-      } else {
+      } else if (file.getPath().getName().startsWith(collector)) {
         LOG.debug("Adding Path:" + file.getPath());
         files.put(file.getPath().getName(), file.getPath());
+      } else {
+        LOG.debug("Ignoring file:" + file.getPath());
       }
     }
   }
@@ -161,37 +159,11 @@ class LocalStreamReader extends StreamReader {
     return false;
   }
 
-
   protected BufferedReader createReader(FSDataInputStream in)
       throws IOException {
     BufferedReader reader = new BufferedReader(new InputStreamReader(
         new GZIPInputStream(in)));
     return reader;
-  }
-
-  final static class LocalStreamPathFilter implements PathFilter {
-    String collector;
-    FileSystem fs;
-
-    LocalStreamPathFilter(String collector, FileSystem fs) {
-      this.collector=collector;
-      this.fs = fs;
-    }
-
-    @Override
-    public boolean accept(Path p) {
-      try {
-        if (fs.getFileStatus(p).isDir()) {
-          return true;
-        }
-      } catch (IOException ioe) {
-        return false;
-      }
-      if (p.getName().startsWith(collector)) {
-        return true;
-      }
-      return false;
-    }
   }
 
   static Path getLocalStreamDir(Cluster cluster, String streamName) {
