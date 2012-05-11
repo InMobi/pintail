@@ -30,10 +30,10 @@ public class TestCurrentFile {
   private int msgIndex = 300;
   private PartitionReader preader;
   private PartitionId partitionId = new PartitionId(clusterName, collectorName);
-  private String file1 = testStream + "-2012-05-02-14-26_00000";
-  private String file2 = testStream + "-2012-05-02-14-27_00000";
-  private String file3 = testStream + "-2012-05-02-14-28_00000";
-  private String currentScribeFile = testStream + "-2012-05-02-14-29_00000";
+  private String[] files = new String[] {TestUtil.files[0], TestUtil.files[1],
+      TestUtil.files[2]};
+
+  private String currentScribeFile = TestUtil.files[3];
   MiniDFSCluster dfsCluster;
   Configuration conf = new Configuration();
 
@@ -71,7 +71,7 @@ public class TestCurrentFile {
     cluster = TestUtil.setupDFSCluster(this.getClass().getSimpleName(),
         testStream,
         partitionId, dfsCluster.getFileSystem().getUri().toString(),
-        new String[] {file1, file2, file3}, null, 0);
+        files, null, 0);
     collectorDir = new Path(new Path(cluster.getDataDir(), testStream),
         collectorName);
     fs = FileSystem.get(cluster.getHadoopConf());
@@ -83,15 +83,16 @@ public class TestCurrentFile {
     FSDataOutputStream out = fs.create(
         new Path(collectorDir, currentScribeFile));
     writeMessages(out, 10);
-    preader = new PartitionReader(partitionId, new PartitionCheckpoint(
-        null, -1), cluster, buffer, testStream, null, 1000);
+    preader = new PartitionReader(partitionId, null, cluster, buffer,
+        testStream, CollectorStreamReader.getDateFromCollectorFile(files[0]),
+        1000);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.start();
-    TestUtil.assertBuffer(file1, 1, 0, 100, partitionId, buffer);
-    TestUtil.assertBuffer(file2, 2, 0, 100, partitionId, buffer);
-    TestUtil.assertBuffer(file3, 3, 0, 100, partitionId, buffer);
+    TestUtil.assertBuffer(files[0], 1, 0, 100, partitionId, buffer);
+    TestUtil.assertBuffer(files[1], 2, 0, 100, partitionId, buffer);
+    TestUtil.assertBuffer(files[2], 3, 0, 100, partitionId, buffer);
     TestUtil.assertBuffer(currentScribeFile, 4, 0, 10, partitionId, buffer);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getCurrentReader());

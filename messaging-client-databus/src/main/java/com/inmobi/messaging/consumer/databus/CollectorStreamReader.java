@@ -29,20 +29,15 @@ class CollectorStreamReader extends StreamReader {
     Path streamDir = new Path(cluster.getDataDir(), streamName);
     this.collectorDir = new Path(streamDir, partitionId.getCollector());
     this.waitTimeForFlush = waitTimeForFlush;
-    try {
-      super.init(partitionId, cluster, streamName);
-      pathFilter = new ScribePathFilter();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    super.init(partitionId, cluster, streamName);
+    pathFilter = new ScribePathFilter();
     LOG.info("Collector reader initialized with partitionId:" + partitionId +
         " streamDir:" + streamDir + 
         " collectorDir:" + collectorDir +
         " waitTimeForFlush:" + waitTimeForFlush);
   }
 
-  @Override
-  protected void build() throws IOException {
+  void build() throws IOException {
     files = new TreeMap<String, Path>();
     LOG.info("Building file list");
     if (fs.exists(collectorDir)) {
@@ -162,7 +157,12 @@ class CollectorStreamReader extends StreamReader {
     return currentFileName;
   }
 
+  public static Date getDateFromCollectorFile(String fileName)
+      throws Exception {
+    return StreamReader.getDate(fileName, 1);
+  }
+
   static String getCollectorFileName(String streamName, Date date) {
-    return streamName + "-" +  dateFormat.format(date) ;  
+    return streamName + "-" +  fileFormat.format(date) + "_00000" ;  
   }
 }

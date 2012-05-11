@@ -18,6 +18,7 @@ class PartitionReader {
   private static final Log LOG = LogFactory.getLog(PartitionReader.class);
 
   private final PartitionId partitionId;
+  private final String streamName;
   private final PartitionCheckpoint partitionCheckpoint;
   private final BlockingQueue<QueueEntry> buffer;
   private Date startTime;
@@ -39,6 +40,7 @@ class PartitionReader {
     this.partitionId = partitionId;
     this.buffer = buffer;
     this.startTime = startTime;
+    this.streamName = streamName;
     this.partitionCheckpoint = partitionCheckpoint;
 
     // initialize cluster and its directories
@@ -143,6 +145,8 @@ class PartitionReader {
       LOG.debug("Checkpointed file is in local stream directory");
       if (lReader.initializeCurrentFile(partitionCheckpoint)) {
         currentReader = lReader;
+      } else {
+        currentReader = null;
       }
     } else {
       currentReader = null;
@@ -161,8 +165,10 @@ class PartitionReader {
   }
 
   private void initializeCurrentFile() throws Exception {
-    lReader.build();
+    lReader.build(LocalStreamReader.getBuildTimestamp(startTime, streamName,
+        partitionId.getCollector(), partitionCheckpoint));
     cReader.build();
+    
     if (startTime != null) {
       initializeCurrentFileFromTimeStamp(startTime);
     } else if (partitionCheckpoint != null &&
@@ -210,11 +216,15 @@ class PartitionReader {
           // add the data to queue
           byte[] data = Base64.decodeBase64(line);
           LOG.debug("Current LineNum: " + currentReader.getCurrentLineNum());
-          if (!buffer.offer(new QueueEntry(new Message(
+          while (!buffer.offer(new QueueEntry(new Message(
               ByteBuffer.wrap(data)), partitionId,
               new PartitionCheckpoint(currentReader.getCurrentFile().getName(),
                   currentReader.getCurrentLineNum())))) {
-            LOG.warn("Could not add entry as buffer is full");
+            Thread.sleep(10);
+            if (stopped) {
+              return;
+            }
+            LOG.warn("Could not add entry as buffer is full, retrying to add");
           }
         }
         if (line == null) {
@@ -233,7 +243,8 @@ class PartitionReader {
           } else if (currentReader == cReader) {
             cReader.close();
             LOG.info("Looking for current file in local stream reader");
-            lReader.build();
+            lReader.build(CollectorStreamReader.getDateFromCollectorFile(
+                currentReader.getCurrentFile().getName()));
             if (!lReader.setCurrentFile(
                 LocalStreamReader.getLocalStreamFileName(
                     partitionId.getCollector(),

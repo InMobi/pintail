@@ -11,7 +11,7 @@
       <sources>
         <source>
           <name>testcluster</name>
-          <retentionindays>2</retentionindays>
+          <retentionindays>1</retentionindays>
         </source>
       </sources>
       <destinations>

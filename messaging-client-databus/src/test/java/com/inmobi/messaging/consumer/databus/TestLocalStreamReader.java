@@ -18,18 +18,15 @@ public class TestLocalStreamReader {
   private PartitionId partitionId = new PartitionId(clusterName, collectorName);
   private LocalStreamReader lreader;
   private Cluster cluster;
-  private String file1 = testStream + "-2012-05-02-14-26_00000.gz";
-  private String file2 = testStream + "-2012-05-02-14-27_00000.gz";
-  private String file3 =  testStream + "-2012-05-02-14-28_00000.gz";
-  private String[] files = new String[] {file1,file2, file3};
-  private String file5 = testStream + "-2012-05-02-14-30_00000";
+  private String[] files = new String[] {TestUtil.files[0], TestUtil.files[1],
+      TestUtil.files[2]};
 
 
   @BeforeTest
   public void setup() throws Exception {
     // initialize config
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
-        testStream, partitionId, new String[] {file1, file2, file3}, null, 3);
+        testStream, partitionId, new String[] {files[0], files[1], files[2]}, null, 3);
 
   }
 
@@ -42,35 +39,35 @@ public class TestLocalStreamReader {
   public void testInitialize() throws Exception {
     // Read from start
     lreader = new LocalStreamReader(partitionId, cluster, testStream);
-    lreader.build();
+    lreader.build(CollectorStreamReader.getDateFromCollectorFile(files[0]));
 
     lreader.initFromStart();
     Assert.assertEquals(lreader.getCurrentFile(),
-        TestUtil.getLocalStreamPath(cluster, testStream, collectorName, file1));
+        TestUtil.getLocalStreamPath(cluster, testStream, collectorName, files[0]));
 
     // Read from checkpoint with collector file name
-    lreader.initializeCurrentFile(new PartitionCheckpoint(file2, 20));
+    lreader.initializeCurrentFile(new PartitionCheckpoint(files[1], 20));
     Assert.assertNull(lreader.getCurrentFile());
 
     // Read from checkpoint with local stream file name
     lreader.initializeCurrentFile(new PartitionCheckpoint(
-        LocalStreamReader.getLocalStreamFileName(collectorName, file2), 20));
+        LocalStreamReader.getLocalStreamFileName(collectorName, files[1]), 20));
     Assert.assertEquals(lreader.getCurrentFile(),
-        TestUtil.getLocalStreamPath(cluster, testStream, collectorName, file2));
+        TestUtil.getLocalStreamPath(cluster, testStream, collectorName, files[1]));
 
     // Read from checkpoint with local stream file name, which does not exist
     lreader.initializeCurrentFile(new PartitionCheckpoint(
-        LocalStreamReader.getLocalStreamFileName(collectorName, file5), 20));
+        LocalStreamReader.getLocalStreamFileName(collectorName, TestUtil.files[4]), 20));
     Assert.assertEquals(lreader.getCurrentFile(),
-        TestUtil.getLocalStreamPath(cluster, testStream, collectorName, file1));
+        TestUtil.getLocalStreamPath(cluster, testStream, collectorName, files[0]));
 
     //Read from startTime in local stream directory 
-    lreader.initializeCurrentFile(TestUtil.getDateFromCollectorFile(file2));
+    lreader.initializeCurrentFile(CollectorStreamReader.getDateFromCollectorFile(files[1]));
     Assert.assertEquals(lreader.getCurrentFile(),
-        TestUtil.getLocalStreamPath(cluster, testStream, collectorName, file2));
+        TestUtil.getLocalStreamPath(cluster, testStream, collectorName, files[1]));
 
     //Read from startTime in collector dir
-    lreader.initializeCurrentFile(TestUtil.getDateFromCollectorFile(file5));
+    lreader.initializeCurrentFile(CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[4]));
     Assert.assertNull(lreader.getCurrentFile());  
 
   }
@@ -91,7 +88,7 @@ public class TestLocalStreamReader {
   @Test
   public void testReadFromStart() throws Exception {
     lreader = new LocalStreamReader(partitionId, cluster, testStream);
-    lreader.build();
+    lreader.build(CollectorStreamReader.getDateFromCollectorFile(files[0]));
     lreader.initFromStart();
     lreader.openStream();
 
@@ -103,9 +100,11 @@ public class TestLocalStreamReader {
   @Test
   public void testReadFromCheckpoint() throws Exception {
     lreader = new LocalStreamReader(partitionId, cluster, testStream);
-    lreader.build();
-    lreader.initializeCurrentFile(new PartitionCheckpoint(
-        LocalStreamReader.getLocalStreamFileName(collectorName, file2), 20));
+    PartitionCheckpoint pcp = new PartitionCheckpoint(
+        LocalStreamReader.getLocalStreamFileName(collectorName, files[1]), 20);
+    lreader.build(LocalStreamReader.getBuildTimestamp(null, testStream, 
+        collectorName, pcp));
+    lreader.initializeCurrentFile(pcp);
     lreader.openStream();
 
     readFile(1, 20);
@@ -115,8 +114,8 @@ public class TestLocalStreamReader {
   @Test
   public void testReadFromTimeStamp() throws Exception {
     lreader = new LocalStreamReader(partitionId, cluster,  testStream);
-    lreader.build();
-    lreader.initializeCurrentFile(TestUtil.getDateFromCollectorFile(file2));
+    lreader.build(CollectorStreamReader.getDateFromCollectorFile(files[1]));
+    lreader.initializeCurrentFile(CollectorStreamReader.getDateFromCollectorFile(files[1]));
     lreader.openStream();
     readFile(1, 0);
     readFile(2, 0);

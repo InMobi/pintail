@@ -22,10 +22,8 @@ public class TestDatabusConsumer {
   private static final String testStream = "testclient";
   private static final String consumerName = "c1";
   private String[] collectors = new String[] {"collector1"};
-  private String file1 = testStream + "-2012-05-02-14-26_00000";
-  private String file2 = testStream + "-2012-05-02-14-27_00000";
-  private String file3 = testStream + "-2012-05-02-14-28_00000";
-  private String[] dataFiles = new String[] {file1, file2, file3};
+  private String[] dataFiles = new String[] {TestUtil.files[0],
+      TestUtil.files[1], TestUtil.files[2]};
 
   DatabusConsumer testConsumer;
 
@@ -72,7 +70,7 @@ public class TestDatabusConsumer {
   }
 
   @Test
-  public void testMarkAndReset() throws IOException {
+  public void testMarkAndReset() throws Exception {
     ClientConfig config = loadConfig();
     config.set("databus.checkpoint.dir", "/tmp/databustest/checkpoint1");
     DatabusConsumer consumer = new DatabusConsumer();
@@ -144,7 +142,7 @@ public class TestDatabusConsumer {
     config.set("databus.checkpoint.dir", "/tmp/databustest/checkpoint2");
     DatabusConsumer consumer = new DatabusConsumer();
     consumer.init(testStream, consumerName,
-        TestUtil.getDateFromCollectorFile(file2), config);
+        CollectorStreamReader.getDateFromCollectorFile(dataFiles[1]), config);
     Assert.assertEquals(consumer.getTopicName(), testStream);
     Assert.assertEquals(consumer.getConsumerName(), consumerName);
     Map<PartitionId, PartitionReader> readers = consumer.getPartitionReaders();

@@ -1,6 +1,8 @@
 package com.inmobi.messaging.consumer.databus;
 
 import java.io.IOException;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -40,6 +42,7 @@ public class DatabusConsumer extends AbstractMessageConsumer {
       .getName();
   public static final int DEFAULT_QUEUE_SIZE = 1000;
   public static final long DEFAULT_WAIT_TIME_FOR_FLUSH = 1000; // 1 second
+  private static final long ONE_DAY_IN_MILLIS = 1 * 24 * 60 * 60 * 1000; 
 
   private DatabusConfig databusConfig;
   private BlockingQueue<QueueEntry> buffer;
@@ -135,6 +138,10 @@ public class DatabusConsumer extends AbstractMessageConsumer {
     LOG.debug("Stream name: " + sourceStream.getName());
     for (String c : sourceStream.getSourceClusters()) {
       Cluster cluster = databusConfig.getClusters().get(c);
+      long retentionMillis = 
+          sourceStream.getRetentionInDays(c) * ONE_DAY_IN_MILLIS;
+      Date allowedStartTime = new Date(
+          System.currentTimeMillis() - retentionMillis);
       try {
         FileSystem fs = FileSystem.get(cluster.getHadoopConf());
         Path path = new Path(cluster.getDataDir(), topicName);
@@ -151,9 +158,23 @@ public class DatabusConsumer extends AbstractMessageConsumer {
           if (partitionsChkPoints.get(id) == null) {
             partitionsChkPoints.put(id, null);
           }
+          Date partitionTimestamp = startTime;
+          if (startTime == null && partitionsChkPoints.get(id) == null) {
+            LOG.info("There is no startTime passed and no checkpoint exists" +
+              "for the partition: " + id + " starting from the start" +
+              " of the stream.");
+            partitionTimestamp = allowedStartTime;
+          } else if (startTime != null && startTime.before(allowedStartTime)) {
+            LOG.info("Start time passed is before the start of the stream," +
+                " starting from the start of the stream.");
+            partitionTimestamp = allowedStartTime;
+          } else {
+            LOG.info("Creating partition with timestamp: " + partitionTimestamp
+                + " checkpoint:" + partitionsChkPoints.get(id));
+          }
           PartitionReader reader = new PartitionReader(id,
               partitionsChkPoints.get(id), cluster, buffer, topicName,
-              startTime, waitTimeForFlush);
+              partitionTimestamp, waitTimeForFlush);
           readers.put(id, reader);
           LOG.info("Created partition " + id);
         }

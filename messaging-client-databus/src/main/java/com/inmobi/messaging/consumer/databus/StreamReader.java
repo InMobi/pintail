@@ -1,6 +1,7 @@
 package com.inmobi.messaging.consumer.databus;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -36,13 +37,15 @@ abstract class StreamReader {
   protected FileSystem fs;
 
   protected void init(PartitionId partitionId, Cluster cluster, 
-      String streamName) throws IOException {
+      String streamName) {
     this.streamName = streamName;
     this.cluster = cluster;
-    this.fs = FileSystem.get(cluster.getHadoopConf());
+    try {
+      this.fs = FileSystem.get(cluster.getHadoopConf());
+    } catch (IOException e) {
+      throw new RuntimeException("Could not intialize FileSystem", e);
+    }
   }
-
-  protected abstract void build() throws IOException;
 
   protected FSDataInputStream inStream;
   protected BufferedReader reader;
@@ -251,6 +254,26 @@ abstract class StreamReader {
     return null;
   }
 
-  static DateFormat dateFormat = new SimpleDateFormat("yyyy" + "-" + "MM" +
+  public static int getIndexOf(String str, int ch, int occurance) {
+    int first = str.indexOf(ch);
+    if (occurance == 1) {
+      return first;
+    } else {
+      return (first + 1) + getIndexOf(str.substring(first + 1), ch,
+          occurance - 1);
+    }
+  }
+
+  public static Date getDate(String fileName, int occur) throws Exception {
+    String dateStr = fileName.substring(
+        StreamReader.getIndexOf(fileName, '-', occur) + 1,
+        fileName.indexOf("_"));
+    return fileFormat.parse(dateStr);  
+  }
+
+  static DateFormat fileFormat = new SimpleDateFormat("yyyy" + "-" + "MM" +
       "-" + "dd" + "-" + "HH" + "-" + "mm");
+  static DateFormat dirFormat =  new SimpleDateFormat("yyyy" + File.separator +
+      "MM" + File.separator + "dd" + File.separator + "HH" + File.separator +
+      "mm");
 }

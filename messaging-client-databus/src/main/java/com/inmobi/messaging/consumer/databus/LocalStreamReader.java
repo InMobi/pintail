@@ -3,6 +3,8 @@ package com.inmobi.messaging.consumer.databus;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.text.ParseException;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
@@ -28,45 +30,54 @@ class LocalStreamReader extends StreamReader {
     this.collector = partitionId.getCollector();
 
     // initialize cluster and its directories
+    super.init(partitionId, cluster, streamName);
     this.localStreamDir = getLocalStreamDir(cluster, streamName);
-    try {
-      super.init(partitionId, cluster, streamName);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }    
-
     LOG.info("LocalStream File reader initialized with partitionId:" +
-        partitionId + " local stream dir: " + localStreamDir );
+         partitionId + " local stream dir: " + localStreamDir );
   }
 
-  @Override
-  protected void build() throws IOException {
-    LOG.info("Building file list");
+  void build(Date buildTimestamp) throws IOException {
+    LOG.info("Building file list from timestamp:" + buildTimestamp);
+    assert(buildTimestamp != null);
     files = new TreeMap<String, Path>();
     if (fs.exists(localStreamDir)) {
-      buildList(localStreamDir);
+      buildList(buildTimestamp);
     }
     fileNameIterator = files.navigableKeySet().iterator();
   }
 
-  private void buildList(Path dir) throws IOException {
-    FileStatus[] fileStatuses = fs.listStatus(dir);
-    if (fileStatuses == null || fileStatuses.length == 0) {
-      LOG.info("No files in directory:" + dir);
-      return;
-    }
-    for (FileStatus file : fileStatuses) {
-      if (file.isDir()) {
-        buildList(file.getPath());
-      } else if (file.getPath().getName().startsWith(collector)) {
-        LOG.debug("Adding Path:" + file.getPath());
-        files.put(file.getPath().getName(), file.getPath());
-      } else {
-        LOG.debug("Ignoring file:" + file.getPath());
+  private void buildList(Date buildTimestamp) throws IOException {
+    Calendar current = Calendar.getInstance();
+    Date now = current.getTime();
+    current.setTime(buildTimestamp);
+    while (current.getTime().before(now)) {
+      Path dir = new Path(localStreamDir, dirFormat.format(current.getTime()));
+      LOG.debug("Current dir :" + dir);
+      if (fs.exists(dir)) {
+        FileStatus[] fileStatuses = fs.listStatus(dir);
+        if (fileStatuses == null || fileStatuses.length == 0) {
+          LOG.info("No files in directory:" + dir);
+          return;
+        }
+        for (FileStatus file : fileStatuses) {
+          if (file.getPath().getName().startsWith(collector)) {
+            LOG.debug("Adding Path:" + file.getPath());
+            files.put(file.getPath().getName(), file.getPath());
+          } else {
+            LOG.debug("Ignoring file:" + file.getPath());
+          }
+        }
       }
+      // go to next minute
+      current.add(Calendar.MINUTE, 1);
     }
   }
 
+  /**
+   *  Comment out this method if partition reader should not read from start of
+   *   stream
+   *  if check point does not exist.
+   */
   boolean initializeCurrentFile(PartitionCheckpoint checkpoint)
       throws Exception {
     resetCurrentFile();
@@ -78,6 +89,8 @@ class LocalStreamReader extends StreamReader {
             " stream");
         return initFromStart();
       }
+    } else {
+      LOG.info("The file " + checkpoint.getFileName() + " is not a local stream file");
     }
     return ret;
   }
@@ -109,7 +122,8 @@ class LocalStreamReader extends StreamReader {
     while (line == null) { // reached end of file
       if (!nextFile()) { // reached end of file list
         LOG.info("could not find next file. Rebuilding");
-        build(); // rebuild file list
+        build(getDateFromLocalStreamDir(localStreamDir,
+            currentFile.getParent())); 
         if (!setIterator()) {
           LOG.info("Could not find current file in the stream");
           // set current file to next higher entry
@@ -138,8 +152,9 @@ class LocalStreamReader extends StreamReader {
     return line;
   }
 
-  boolean isLocalStreamFile(String fileName) {
-    return fileName.startsWith(collector + "-" + streamName);
+  static boolean isLocalStreamFile(String streamName, String collectorName, 
+      String fileName) {
+    return fileName.startsWith(collectorName + "-" + streamName);
   }
 
   public boolean setCurrentFile(String localStreamFileName, 
@@ -166,6 +181,16 @@ class LocalStreamReader extends StreamReader {
     return reader;
   }
 
+  boolean isLocalStreamFile(String fileName) {
+    return isLocalStreamFile(streamName, collector, fileName);
+  }
+
+
+  static Date getDateFromLocalStreamFile(String fileName)
+      throws Exception {
+    return StreamReader.getDate(fileName, 2);
+  }
+
   static Path getLocalStreamDir(Cluster cluster, String streamName) {
     return new Path(cluster.getLocalFinalDestDirRoot(), streamName);
   }
@@ -176,8 +201,44 @@ class LocalStreamReader extends StreamReader {
 
   static String getLocalStreamFileName(String collector, String streamName,
       Date date) {
-    return collector + "-" + streamName + "-" +  dateFormat.format(date) 
+    return collector + "-" + streamName + "-" +  fileFormat.format(date) 
         + ".gz";  
+  }
+
+  static Date getDateFromLocalStreamDir(Path localStreamDir, Path dir) {
+    String pathStr = dir.toString();
+    String dirString = pathStr.substring(localStreamDir.toString().length() + 1);
+    try {
+      return dirFormat.parse(dirString);
+    } catch (ParseException e) {
+      LOG.warn("Could not get date from directory passed", e);
+    }
+    return null;
+  }
+
+  static Date getBuildTimestamp(Date time, String streamName, 
+      String collectorName, PartitionCheckpoint partitionCheckpoint) {
+    String fileName = null;
+    if (partitionCheckpoint != null) {
+      fileName = partitionCheckpoint.getFileName();
+      if (fileName != null && 
+          !isLocalStreamFile(streamName, collectorName, fileName)) {
+        fileName = LocalStreamReader.getLocalStreamFileName(
+              collectorName, fileName);
+      }
+    }
+
+    Date buildTimestamp = time;
+    if (buildTimestamp == null) {
+      try {
+        return getDateFromLocalStreamFile(fileName);
+      } catch (Exception e) {
+        throw new RuntimeException("Invalid fileName:" + 
+            fileName, e);
+      }
+    } else {
+      return time;
+    }
   }
 
 }

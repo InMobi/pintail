@@ -1,6 +1,7 @@
 package com.inmobi.messaging.consumer.databus;
 
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,6 +10,8 @@ import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -18,6 +21,28 @@ import com.inmobi.databus.Cluster;
 import com.inmobi.databus.utils.FileUtil;
 
 public class TestUtil {
+  private static final Log LOG = LogFactory.getLog(TestUtil.class);
+
+  private static final String testStream = "testclient";
+
+  private static final String collectorName = "collector1";
+  private static final String clusterName = "testCluster";
+  static final PartitionId partitionId = new PartitionId(clusterName,
+      collectorName);
+  static String[] files = new String[12];
+
+  static {
+    Calendar now = Calendar.getInstance();
+    now.add(Calendar.MINUTE, -(files.length));
+    Date startTime = now.getTime();
+    now.setTime(startTime);
+    for (int i = 0; i < 12; i++) {
+      startTime = now.getTime();
+      files[i] = CollectorStreamReader.getCollectorFileName(testStream, startTime);
+      LOG.debug("file:" + i + " :" + files[i]);
+      now.add(Calendar.MINUTE, 1);
+    }
+  }
 
   static String constructMessage(int index) {
     StringBuffer str = new StringBuffer();
@@ -40,6 +65,7 @@ public class TestUtil {
       msgIndex++;
     }
     out.close();
+    LOG.info("Created file:" + new Path(parent, fileName));
   }
 
   static void moveFileToStreamLocal(FileSystem fs, String streamName,
@@ -155,46 +181,19 @@ public class TestUtil {
 
   public static Path getDateDirForCollectorFile(Cluster cluster,
       String streamName, String fileName) throws Exception {    
-    Date date = TestUtil.getDateFromCollectorFile(fileName);
+    Date date = CollectorStreamReader.getDateFromCollectorFile(fileName);
     return TestUtil.getDateDir(cluster, streamName, date);
-  }
-
-  public static Date getDateFromCollectorFile(String fileName)
-      throws Exception {
-    return getDate(fileName, 1);
   }
 
   public static Path getDateDirForLocalStreamFile(Cluster cluster,
       String streamName, String fileName) throws Exception {    
-    Date date = getDateFromLocalStreamFile(fileName);
+    Date date = LocalStreamReader.getDateFromLocalStreamFile(fileName);
     return getDateDir(cluster, streamName, date);
   }
 
   public static Path getDateDir(Cluster cluster, String streamName,  Date date)
       throws Exception{
     return new Path(cluster.getLocalDestDir(streamName, date));
-  }
-
-  public static Date getDateFromLocalStreamFile(String fileName)
-      throws Exception {
-    return getDate(fileName, 2);
-  }
-
-  private static Date getDate(String fileName, int occur) throws Exception {
-    String dateStr = fileName.substring(
-        TestUtil.getIndexOf(fileName, '-', occur) + 1,
-        fileName.indexOf("_"));
-    return StreamReader.dateFormat.parse(dateStr);  
-  }
-
-  private static int getIndexOf(String str, int ch, int occurance) {
-    int first = str.indexOf(ch);
-    if (occurance == 1) {
-      return first;
-    } else {
-      return (first + 1) + getIndexOf(str.substring(first + 1), ch,
-          occurance - 1);
-    }
   }
 
   public static String getCollectorFileName(String localStreamFile) {
