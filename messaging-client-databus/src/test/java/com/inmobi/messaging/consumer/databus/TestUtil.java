@@ -38,7 +38,8 @@ public class TestUtil {
     now.setTime(startTime);
     for (int i = 0; i < 12; i++) {
       startTime = now.getTime();
-      files[i] = CollectorStreamReader.getCollectorFileName(testStream, startTime);
+      files[i] = CollectorStreamReader.getCollectorFileName(testStream,
+          startTime);
       LOG.debug("file:" + i + " :" + files[i]);
       now.add(Calendar.MINUTE, 1);
     }
@@ -186,8 +187,10 @@ public class TestUtil {
   }
 
   public static Path getDateDirForLocalStreamFile(Cluster cluster,
-      String streamName, String fileName) throws Exception {    
-    Date date = LocalStreamReader.getDateFromLocalStreamFile(fileName);
+      String streamName, String collectorName, String fileName)
+      throws Exception {    
+    Date date = LocalStreamReader.getDateFromLocalStreamFile(streamName,
+        collectorName, fileName);
     return getDateDir(cluster, streamName, date);
   }
 

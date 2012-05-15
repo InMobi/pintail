@@ -31,17 +31,19 @@ class PartitionReader {
   private CollectorStreamReader cReader;
   private StreamReader currentReader;
   private boolean inited = false;
+  private final long waitTimeForBufferFull;
 
 
   PartitionReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, Cluster cluster,
       BlockingQueue<QueueEntry> buffer, String streamName,
-      Date startTime, long waitTimeForFlush) {
+      Date startTime, long waitTimeForFlush, long waitTimeForBufferFull) {
     this.partitionId = partitionId;
     this.buffer = buffer;
     this.startTime = startTime;
     this.streamName = streamName;
     this.partitionCheckpoint = partitionCheckpoint;
+    this.waitTimeForBufferFull = waitTimeForBufferFull;
 
     // initialize cluster and its directories
     Path streamDir = new Path(cluster.getDataDir(), streamName);
@@ -211,7 +213,7 @@ class PartitionReader {
             if (stopped) {
               return;
             }
-            Thread.sleep(10);
+            Thread.sleep(waitTimeForBufferFull);
           }
           // add the data to queue
           byte[] data = Base64.decodeBase64(line);
@@ -220,7 +222,7 @@ class PartitionReader {
               ByteBuffer.wrap(data)), partitionId,
               new PartitionCheckpoint(currentReader.getCurrentFile().getName(),
                   currentReader.getCurrentLineNum())))) {
-            Thread.sleep(10);
+            Thread.sleep(waitTimeForBufferFull);
             if (stopped) {
               return;
             }

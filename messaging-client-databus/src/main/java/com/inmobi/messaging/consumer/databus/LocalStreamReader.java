@@ -37,10 +37,10 @@ class LocalStreamReader extends StreamReader {
   }
 
   void build(Date buildTimestamp) throws IOException {
-    LOG.info("Building file list from timestamp:" + buildTimestamp);
     assert(buildTimestamp != null);
     files = new TreeMap<String, Path>();
     if (fs.exists(localStreamDir)) {
+      LOG.info("Building file list from timestamp:" + buildTimestamp);
       buildList(buildTimestamp);
     }
     fileNameIterator = files.navigableKeySet().iterator();
@@ -51,25 +51,33 @@ class LocalStreamReader extends StreamReader {
     Date now = current.getTime();
     current.setTime(buildTimestamp);
     while (current.getTime().before(now)) {
-      Path dir = new Path(localStreamDir, dirFormat.format(current.getTime()));
-      LOG.debug("Current dir :" + dir);
-      if (fs.exists(dir)) {
-        FileStatus[] fileStatuses = fs.listStatus(dir);
-        if (fileStatuses == null || fileStatuses.length == 0) {
-          LOG.info("No files in directory:" + dir);
-          return;
-        }
-        for (FileStatus file : fileStatuses) {
-          if (file.getPath().getName().startsWith(collector)) {
-            LOG.debug("Adding Path:" + file.getPath());
-            files.put(file.getPath().getName(), file.getPath());
-          } else {
-            LOG.debug("Ignoring file:" + file.getPath());
+      Path hhDir =  new Path(localStreamDir, hhDirFormat.format(
+          current.getTime()));
+      int hour = current.get(Calendar.HOUR_OF_DAY);
+      if (fs.exists(hhDir)) {
+        while (hour  == current.get(Calendar.HOUR_OF_DAY)) {
+          Path dir = new Path(localStreamDir, minDirFormat.format(
+              current.getTime()));
+          LOG.debug("Current dir :" + dir);
+          // Move the current minute to next minute
+          current.add(Calendar.MINUTE, 1);
+          FileStatus[] fileStatuses = fs.listStatus(dir);
+          if (fileStatuses == null || fileStatuses.length == 0) {
+            LOG.debug("No files in directory:" + dir);
+            continue;
           }
-        }
+          for (FileStatus file : fileStatuses) {
+            if (file.getPath().getName().startsWith(collector)) {
+              LOG.debug("Adding Path:" + file.getPath());
+              files.put(file.getPath().getName(), file.getPath());
+            } else {
+              LOG.debug("Ignoring file:" + file.getPath());
+            }
+          }
+        } 
       }
-      // go to next minute
-      current.add(Calendar.MINUTE, 1);
+      // go to next hour
+      current.add(Calendar.HOUR_OF_DAY, 1);
     }
   }
 
@@ -186,9 +194,11 @@ class LocalStreamReader extends StreamReader {
   }
 
 
-  static Date getDateFromLocalStreamFile(String fileName)
-      throws Exception {
-    return StreamReader.getDate(fileName, 2);
+  static Date getDateFromLocalStreamFile(String streamName,
+      String collectorName, String fileName) throws Exception {
+    String prefix = collectorName + "-" + streamName + "-";
+    String dateStr = fileName.substring(prefix.length(), fileName.indexOf('_'));
+    return fileFormat.parse(dateStr);
   }
 
   static Path getLocalStreamDir(Cluster cluster, String streamName) {
@@ -209,7 +219,7 @@ class LocalStreamReader extends StreamReader {
     String pathStr = dir.toString();
     String dirString = pathStr.substring(localStreamDir.toString().length() + 1);
     try {
-      return dirFormat.parse(dirString);
+      return minDirFormat.parse(dirString);
     } catch (ParseException e) {
       LOG.warn("Could not get date from directory passed", e);
     }
@@ -231,7 +241,7 @@ class LocalStreamReader extends StreamReader {
     Date buildTimestamp = time;
     if (buildTimestamp == null) {
       try {
-        return getDateFromLocalStreamFile(fileName);
+        return getDateFromLocalStreamFile(streamName, collectorName, fileName);
       } catch (Exception e) {
         throw new RuntimeException("Invalid fileName:" + 
             fileName, e);

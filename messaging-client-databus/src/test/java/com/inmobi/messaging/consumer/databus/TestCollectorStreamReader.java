@@ -67,8 +67,8 @@ public class TestCollectorStreamReader {
         files[1]));
 
     //Read from startTime in local stream directory 
-    cReader.initializeCurrentFile(
-        LocalStreamReader.getDateFromLocalStreamFile(file5));
+    cReader.initializeCurrentFile(LocalStreamReader.getDateFromLocalStreamFile(
+        testStream, collectorName, file5));
     Assert.assertEquals(cReader.getCurrentFile(), new Path(collectorDir,
         files[0]));
 

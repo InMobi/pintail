@@ -1,7 +1,6 @@
 package com.inmobi.messaging.consumer.databus;
 
 import java.io.IOException;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,8 +26,8 @@ import com.inmobi.messaging.consumer.AbstractMessageConsumer;
 /**
  * Consumes data from the configured databus stream topic.
  * 
- * Max consumer buffer size is configurable via databus.consumer.buffer.size. 
- * The default value is 1000.
+ * Max consumer buffer size is configurable via {@value #queueSizeConfig}. 
+ * The default value is {@value #DEFAULT_QUEUE_SIZE}.
  *
  * Initializes partition readers for each active collector on the stream.
  * TODO: Dynamically detect if new collectors are added and start readers for
@@ -42,7 +41,17 @@ public class DatabusConsumer extends AbstractMessageConsumer {
       .getName();
   public static final int DEFAULT_QUEUE_SIZE = 1000;
   public static final long DEFAULT_WAIT_TIME_FOR_FLUSH = 1000; // 1 second
-  private static final long ONE_DAY_IN_MILLIS = 1 * 24 * 60 * 60 * 1000; 
+  public static final long DEFAULT_WAIT_TIME_FOR_BUFFER_FULL = 10; // 10 milli second
+  
+  public static final String queueSizeConfig = "databus.consumer.buffer.size";
+  public static final String waitTimeForFlushConfig = 
+      "databus.consumer.waittime.forcollectorflush";
+  public static final String waitTimeForBufferFullConfig = 
+      "databus.consumer.waittime.forbufferfull";
+  public static final String checkpointDirConfig = 
+      "databus.consumer.checkpoint.dir";
+  
+  private static final long ONE_DAY_IN_MILLIS = 1 * 24 * 60 * 60 * 1000;
 
   private DatabusConfig databusConfig;
   private BlockingQueue<QueueEntry> buffer;
@@ -54,6 +63,7 @@ public class DatabusConsumer extends AbstractMessageConsumer {
   private CheckpointProvider checkpointProvider;
   private Checkpoint currentCheckpoint;
   private long waitTimeForFlush;
+  private long waitTimeForBufferFull;
   private int bufferSize;
 
   @Override
@@ -64,12 +74,14 @@ public class DatabusConsumer extends AbstractMessageConsumer {
   }
 
   void initializeConfig(ClientConfig config) {
-    bufferSize = config.getInteger("databus.consumer.buffer.size",
+    bufferSize = config.getInteger(queueSizeConfig,
         DEFAULT_QUEUE_SIZE);
     buffer = new LinkedBlockingQueue<QueueEntry>(bufferSize);
-    databusCheckpointDir = config.getString("databus.checkpoint.dir", ".");
-    waitTimeForFlush = config.getLong("databus.stream.waittimeforflush",
+    databusCheckpointDir = config.getString(checkpointDirConfig, ".");
+    waitTimeForFlush = config.getLong(waitTimeForFlushConfig,
         DEFAULT_WAIT_TIME_FOR_FLUSH);
+    waitTimeForBufferFull = config.getLong(waitTimeForBufferFullConfig,
+        DEFAULT_WAIT_TIME_FOR_BUFFER_FULL);
     this.checkpointProvider = new FSCheckpointProvider(databusCheckpointDir);
 
     try {
@@ -161,7 +173,7 @@ public class DatabusConsumer extends AbstractMessageConsumer {
           Date partitionTimestamp = startTime;
           if (startTime == null && partitionsChkPoints.get(id) == null) {
             LOG.info("There is no startTime passed and no checkpoint exists" +
-              "for the partition: " + id + " starting from the start" +
+              " for the partition: " + id + " starting from the start" +
               " of the stream.");
             partitionTimestamp = allowedStartTime;
           } else if (startTime != null && startTime.before(allowedStartTime)) {
@@ -174,7 +186,7 @@ public class DatabusConsumer extends AbstractMessageConsumer {
           }
           PartitionReader reader = new PartitionReader(id,
               partitionsChkPoints.get(id), cluster, buffer, topicName,
-              partitionTimestamp, waitTimeForFlush);
+              partitionTimestamp, waitTimeForFlush, waitTimeForBufferFull);
           readers.put(id, reader);
           LOG.info("Created partition " + id);
         }

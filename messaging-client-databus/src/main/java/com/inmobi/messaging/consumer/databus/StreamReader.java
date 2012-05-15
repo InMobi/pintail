@@ -273,7 +273,9 @@ abstract class StreamReader {
 
   static DateFormat fileFormat = new SimpleDateFormat("yyyy" + "-" + "MM" +
       "-" + "dd" + "-" + "HH" + "-" + "mm");
-  static DateFormat dirFormat =  new SimpleDateFormat("yyyy" + File.separator +
+  static DateFormat minDirFormat =  new SimpleDateFormat("yyyy" + File.separator +
       "MM" + File.separator + "dd" + File.separator + "HH" + File.separator +
       "mm");
+  static DateFormat hhDirFormat =  new SimpleDateFormat("yyyy" + File.separator +
+      "MM" + File.separator + "dd" + File.separator + "HH");
 }
