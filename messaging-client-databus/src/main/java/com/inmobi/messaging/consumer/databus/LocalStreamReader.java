@@ -55,7 +55,8 @@ class LocalStreamReader extends StreamReader {
           current.getTime()));
       int hour = current.get(Calendar.HOUR_OF_DAY);
       if (fs.exists(hhDir)) {
-        while (hour  == current.get(Calendar.HOUR_OF_DAY)) {
+        while (current.getTime().before(now) && 
+            hour  == current.get(Calendar.HOUR_OF_DAY)) {
           Path dir = new Path(localStreamDir, minDirFormat.format(
               current.getTime()));
           LOG.debug("Current dir :" + dir);
@@ -64,8 +65,7 @@ class LocalStreamReader extends StreamReader {
           FileStatus[] fileStatuses = fs.listStatus(dir);
           if (fileStatuses == null || fileStatuses.length == 0) {
             LOG.debug("No files in directory:" + dir);
-            continue;
-          }
+          } else {
           for (FileStatus file : fileStatuses) {
             if (file.getPath().getName().startsWith(collector)) {
               LOG.debug("Adding Path:" + file.getPath());
@@ -74,10 +74,13 @@ class LocalStreamReader extends StreamReader {
               LOG.debug("Ignoring file:" + file.getPath());
             }
           }
+          }
         } 
+      } else {
+        // go to next hour
+        current.add(Calendar.HOUR_OF_DAY, 1);
+        current.set(Calendar.MINUTE, 0);
       }
-      // go to next hour
-      current.add(Calendar.HOUR_OF_DAY, 1);
     }
   }
 

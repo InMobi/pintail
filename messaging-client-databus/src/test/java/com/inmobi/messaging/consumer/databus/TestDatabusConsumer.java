@@ -72,7 +72,8 @@ public class TestDatabusConsumer {
   @Test
   public void testMarkAndReset() throws Exception {
     ClientConfig config = loadConfig();
-    config.set("databus.checkpoint.dir", "/tmp/databustest/checkpoint1");
+    config.set(DatabusConsumer.checkpointDirConfig,
+        "/tmp/databustest/checkpoint1");
     DatabusConsumer consumer = new DatabusConsumer();
     consumer.init(testStream, consumerName, config);
     Assert.assertEquals(consumer.getTopicName(), testStream);
@@ -139,7 +140,8 @@ public class TestDatabusConsumer {
   @Test
   public void testMarkAndResetWithStartTime() throws Exception {
     ClientConfig config = loadConfig();
-    config.set("databus.checkpoint.dir", "/tmp/databustest/checkpoint2");
+    config.set(DatabusConsumer.checkpointDirConfig,
+        "/tmp/databustest/checkpoint2");
     DatabusConsumer consumer = new DatabusConsumer();
     consumer.init(testStream, consumerName,
         CollectorStreamReader.getDateFromCollectorFile(dataFiles[1]), config);

@@ -11,7 +11,7 @@ public class ConsoleConsumer {
     
     int msgCounter = 0;
     while (true) {
-      for (int i = 0; i < 100; i++) {
+      for (int i = 0; i < 1000; i++) {
         Message msg = consumer.next();
         msgCounter++;
       //System.out.println("MESSAGE:" + new String(msg.getData().array()));

@@ -113,6 +113,7 @@ class Checkpoint implements Writable {
       } else {
         buf.append("null");
       }
+      buf.append(", ");
     }
     return buf.toString();
   }

@@ -87,8 +87,6 @@ public class TestCurrentFile {
         testStream, CollectorStreamReader.getDateFromCollectorFile(files[0]),
         1000, 10);
     Assert.assertTrue(buffer.isEmpty());
-    Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
-        CollectorStreamReader.class.getName());
     preader.start();
     TestUtil.assertBuffer(files[0], 1, 0, 100, partitionId, buffer);
     TestUtil.assertBuffer(files[1], 2, 0, 100, partitionId, buffer);

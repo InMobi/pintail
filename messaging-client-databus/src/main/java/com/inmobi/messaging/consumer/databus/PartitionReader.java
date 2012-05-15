@@ -53,7 +53,6 @@ class PartitionReader {
       lReader = new LocalStreamReader(partitionId,  cluster, streamName);
       cReader = new CollectorStreamReader(partitionId, cluster, streamName,
           waitTimeForFlush);
-      initializeCurrentFile();
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -166,24 +165,27 @@ class PartitionReader {
     }
   }
 
-  private void initializeCurrentFile() throws Exception {
-    lReader.build(LocalStreamReader.getBuildTimestamp(startTime, streamName,
-        partitionId.getCollector(), partitionCheckpoint));
-    cReader.build();
-    
-    if (startTime != null) {
-      initializeCurrentFileFromTimeStamp(startTime);
-    } else if (partitionCheckpoint != null &&
-        partitionCheckpoint.getFileName() != null) {
-      initializeCurrentFileFromCheckpoint();
-    } else {
-      initFromStart();
+  void initializeCurrentFile() throws Exception {
+    if (!inited) {
+      LOG.info("Initializing partition reader's current file");
+      lReader.build(LocalStreamReader.getBuildTimestamp(startTime, streamName,
+          partitionId.getCollector(), partitionCheckpoint));
+      cReader.build();
+
+      if (startTime != null) {
+        initializeCurrentFileFromTimeStamp(startTime);
+      } else if (partitionCheckpoint != null &&
+          partitionCheckpoint.getFileName() != null) {
+        initializeCurrentFileFromCheckpoint();
+      } else {
+        initFromStart();
+      }
+      if (currentReader != null) {
+        LOG.info("Intialized currentFile:" + currentReader.getCurrentFile() +
+            " currentLineNum:" + currentReader.getCurrentLineNum());
+      }
+      inited = true;
     }
-    if (currentReader != null) {
-      LOG.info("Intialized currentFile:" + currentReader.getCurrentFile() +
-          " currentLineNum:" + currentReader.getCurrentLineNum());
-    }
-    inited = true;
   }
 
   Path getCurrentFile() {
@@ -199,6 +201,7 @@ class PartitionReader {
 
   protected void execute() {
     if (currentReader == null) {
+      LOG.info("There is no steam reader, exiting");
       return;
     }
     try {
