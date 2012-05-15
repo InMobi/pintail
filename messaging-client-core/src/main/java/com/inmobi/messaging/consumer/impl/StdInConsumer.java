@@ -1,4 +1,4 @@
-package com.inmobi.messaging.consumer.examples;
+package com.inmobi.messaging.consumer.impl;
 
 import java.io.BufferedReader;
 import java.io.IOException;

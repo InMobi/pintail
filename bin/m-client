@@ -26,7 +26,7 @@
 
 CLIENT_FILELOGGER_CLASS="com.inmobi.messaging.publisher.examples.FileLoggerClient"
 CLIENT_SEQGEN_CLASS="com.inmobi.messaging.publisher.examples.SeqGeneratorClient"
-CLIENT_CONSOLECONSUMER_CLASS="com.inmobi.messaging.consumer.examples.ConsoleConsumer"
+CLIENT_CONSOLECONSUMER_CLASS="com.inmobi.messaging.consumer.examples.ConsoleClient"
 
 ################################
 # functions
