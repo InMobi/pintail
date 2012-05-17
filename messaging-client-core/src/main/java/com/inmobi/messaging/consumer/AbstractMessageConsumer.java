@@ -62,19 +62,6 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
   }
 
   /**
-   * Initialize the consumer with passed configuration object, streamName and 
-   * consumerName.
-   * 
-   * @param topicName Name of the topic being consumed
-   * @param consumerName Name of the consumer
-   * @param config {@link ClientConfig} for the consumer
-   */
-  public void init(String topicName, String consumerName,
-      ClientConfig config) {
-    init(topicName, consumerName, null, config);
-  }
-
-  /**
    * Get the configuration of the consumer.
    * 
    * @return {@link ClientConfig} object

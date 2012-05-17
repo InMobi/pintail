@@ -24,10 +24,28 @@ import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.AbstractMessageConsumer;
 
 /**
- * Consumes data from the configured databus stream topic.
+ * Consumes data from the configured databus stream topic. 
  * 
- * Max consumer buffer size is configurable via {@value #queueSizeConfig}. 
- * The default value is {@value #DEFAULT_QUEUE_SIZE}.
+ * Initializes the databus configuration from the configuration file specified
+ * by the configuration {@value #databusConfigFileKey}, the default value is
+ * {@value #DEFAULT_DATABUS_CONFIG_FILE} 
+ * 
+ * This consumer supports mark and reset. Whenever user calls mark, the current
+ * consumption will be check-pointed in a directory configurable via 
+ * {@value #checkpointDirConfig}. The default value for value for checkpoint
+ * directory is <code>.</code>. After reset(), consumer will start reading
+ * messages from last check-pointed position.
+ * 
+ * Maximum consumer buffer size is configurable via {@value #queueSizeConfig}. 
+ * The default value is {@value #DEFAULT_QUEUE_SIZE}. Consumer would wait for
+ * space in the buffer, if buffer is full. Wait time for consumer if buffer is
+ * full is configurable via {@value #waitTimeForBufferFullConfig}, and default
+ * value is {@value #DEFAULT_WAIT_TIME_FOR_BUFFER_FULL}.
+ * 
+ * If consumer is reading from the file that is currently being written by
+ * producer, consumer will wait for flush to happen on the file. The wait time
+ * for flush is configurable via {@value #waitTimeForFlushConfig}, and default
+ * value is {@value #DEFAULT_WAIT_TIME_FOR_FLUSH}
  *
  * Initializes partition readers for each active collector on the stream.
  * TODO: Dynamically detect if new collectors are added and start readers for
@@ -42,6 +60,7 @@ public class DatabusConsumer extends AbstractMessageConsumer {
   public static final int DEFAULT_QUEUE_SIZE = 1000;
   public static final long DEFAULT_WAIT_TIME_FOR_FLUSH = 1000; // 1 second
   public static final long DEFAULT_WAIT_TIME_FOR_BUFFER_FULL = 10; // 10 milli second
+  public static final String DEFAULT_DATABUS_CONFIG_FILE = "databus.xml";
   
   public static final String queueSizeConfig = "databus.consumer.buffer.size";
   public static final String waitTimeForFlushConfig = 
@@ -50,6 +69,7 @@ public class DatabusConsumer extends AbstractMessageConsumer {
       "databus.consumer.waittime.forbufferfull";
   public static final String checkpointDirConfig = 
       "databus.consumer.checkpoint.dir";
+  public static final String databusConfigFileKey = "databus.conf";
   
   private static final long ONE_DAY_IN_MILLIS = 1 * 24 * 60 * 60 * 1000;
 
@@ -93,7 +113,9 @@ public class DatabusConsumer extends AbstractMessageConsumer {
             new HashMap<PartitionId, PartitionCheckpoint>();
         this.currentCheckpoint = new Checkpoint(partitionsChkPoints);
       }
-      DatabusConfigParser parser = new DatabusConfigParser(null);
+      String fileName = config.getString(databusConfigFileKey,
+          DEFAULT_DATABUS_CONFIG_FILE);
+      DatabusConfigParser parser = new DatabusConfigParser(fileName);
       databusConfig = parser.getConfig();
     } catch (Exception e) {
       e.printStackTrace();

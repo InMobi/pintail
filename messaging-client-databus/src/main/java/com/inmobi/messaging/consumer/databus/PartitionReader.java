@@ -74,6 +74,7 @@ class PartitionReader {
             while (!inited) {
               initializeCurrentFile();
             }
+            LOG.info("Started streaming the data from reader:" + currentReader);
             execute();
             if (stopped || thread.isInterrupted())
               return;

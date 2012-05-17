@@ -75,7 +75,7 @@ public class TestDatabusConsumer {
     config.set(DatabusConsumer.checkpointDirConfig,
         "/tmp/databustest/checkpoint1");
     DatabusConsumer consumer = new DatabusConsumer();
-    consumer.init(testStream, consumerName, config);
+    consumer.init(testStream, consumerName, null, config);
     Assert.assertEquals(consumer.getTopicName(), testStream);
     Assert.assertEquals(consumer.getConsumerName(), consumerName);
     Map<PartitionId, PartitionReader> readers = consumer.getPartitionReaders();
@@ -123,7 +123,7 @@ public class TestDatabusConsumer {
 
     // test checkpoint and consumer crash
     consumer = new DatabusConsumer();
-    consumer.init(testStream, consumerName, config);
+    consumer.init(testStream, consumerName, null, config);
     Assert.assertEquals(consumer.getCurrentCheckpoint(), lastCheckpoint);
 
     for (i = 140; i < 300; i++) {
@@ -192,7 +192,7 @@ public class TestDatabusConsumer {
 
     // test checkpoint and consumer crash
     consumer = new DatabusConsumer();
-    consumer.init(testStream, consumerName, config);
+    consumer.init(testStream, consumerName, null, config);
     Assert.assertEquals(consumer.getCurrentCheckpoint(), lastCheckpoint);
 
     for (i = 240; i < 300; i++) {

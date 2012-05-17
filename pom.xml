@@ -165,6 +165,13 @@
     </plugins>
   </build>
 
+  <distributionManagement>
+    <repository>
+      <id>InMobiRepository</id>
+      <name>InMobi Internal Repository</name>
+      <url>http://build.corp.inmobi.com/nexus/content/repositories/snapshots</url>
+    </repository>
+  </distributionManagement>
   <modules>
     <module>messaging-client-core</module>
     <module>messaging-client-logappender</module>

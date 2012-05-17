@@ -9,7 +9,8 @@ import com.inmobi.messaging.ClientConfig;
  */
 public class MessagePublisherFactory {
 
-  public static final String MESSAGE_CLIENT_CONF_FILE = "messaging-publisher-conf.properties";
+  public static final String MESSAGE_CLIENT_CONF_FILE = 
+      "messaging-publisher-conf.properties";
   public static final String PUBLISHER_CLASS_NAME_KEY = "publisher.classname";
   public static final String EMITTER_CONF_FILE_KEY = "statemitter.filename";
 

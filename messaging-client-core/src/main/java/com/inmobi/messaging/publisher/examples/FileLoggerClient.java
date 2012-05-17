@@ -9,6 +9,12 @@ import com.inmobi.messaging.Message;
 import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 import com.inmobi.messaging.publisher.MessagePublisherFactory;
 
+/**
+ * Publishes each line of of the <code>file</code> as a message on the 
+ * <code>topic</code>.
+ * 
+ * Prints out the publisher statistics at the end of the publishing.
+ */
 public class FileLoggerClient {
 
   public static void main(String[] args) throws Exception {

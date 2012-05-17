@@ -13,6 +13,13 @@ import com.inmobi.stats.EmitterRegistry;
 import com.inmobi.stats.StatsEmitter;
 import com.inmobi.stats.StatsExposer;
 
+/**
+ * Abstract class implementing {@link MessagePublisher} interface.
+ * 
+ * Initializes {@link StatsEmitter} and {@link StatsExposer} with configuration
+ * defined in file {@value MessagePublisherFactory#EMITTER_CONF_FILE_KEY}. If 
+ * no such file exists, statistics will be disabled.
+ */
 public abstract class AbstractMessagePublisher implements MessagePublisher {
 
   private static final Logger LOG = LoggerFactory
