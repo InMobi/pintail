@@ -3,7 +3,9 @@ package com.inmobi.messaging.consumer.databus;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -29,7 +31,12 @@ import com.inmobi.messaging.consumer.AbstractMessageConsumer;
  * Initializes the databus configuration from the configuration file specified
  * by the configuration {@value #databusConfigFileKey}, the default value is
  * {@value #DEFAULT_DATABUS_CONFIG_FILE} 
- * 
+ *
+ * Consumer can specify a comma separated list of clusters from which the stream
+ * should be streamed via configuration {@value #databusClustersConfig}. If no
+ * such configuration exists, it will stream from all the source clusters of the 
+ * stream.
+ *  
  * This consumer supports mark and reset. Whenever user calls mark, the current
  * consumption will be check-pointed in a directory configurable via 
  * {@value #checkpointDirConfig}. The default value for value for checkpoint
@@ -59,7 +66,7 @@ public class DatabusConsumer extends AbstractMessageConsumer {
       .getName();
   public static final int DEFAULT_QUEUE_SIZE = 1000;
   public static final long DEFAULT_WAIT_TIME_FOR_FLUSH = 1000; // 1 second
-  public static final long DEFAULT_WAIT_TIME_FOR_BUFFER_FULL = 10; // 10 milli second
+  public static final long DEFAULT_WAIT_TIME_FOR_BUFFER_FULL = 1000; // 1second
   public static final String DEFAULT_DATABUS_CONFIG_FILE = "databus.xml";
   
   public static final String queueSizeConfig = "databus.consumer.buffer.size";
@@ -70,6 +77,7 @@ public class DatabusConsumer extends AbstractMessageConsumer {
   public static final String checkpointDirConfig = 
       "databus.consumer.checkpoint.dir";
   public static final String databusConfigFileKey = "databus.conf";
+  public static final String databusClustersConfig = "databus.consumer.clusters";
   
   private static final long ONE_DAY_IN_MILLIS = 1 * 24 * 60 * 60 * 1000;
 
@@ -85,6 +93,7 @@ public class DatabusConsumer extends AbstractMessageConsumer {
   private long waitTimeForFlush;
   private long waitTimeForBufferFull;
   private int bufferSize;
+  private String[] clusters;
 
   @Override
   protected void init(ClientConfig config) {
@@ -102,6 +111,11 @@ public class DatabusConsumer extends AbstractMessageConsumer {
         DEFAULT_WAIT_TIME_FOR_FLUSH);
     waitTimeForBufferFull = config.getLong(waitTimeForBufferFullConfig,
         DEFAULT_WAIT_TIME_FOR_BUFFER_FULL);
+    
+    String clusterStr = config.getString(databusClustersConfig);
+    if (clusterStr != null) {
+      clusters = clusterStr.split(",");
+    }
     this.checkpointProvider = new FSCheckpointProvider(databusCheckpointDir);
 
     try {
@@ -170,7 +184,19 @@ public class DatabusConsumer extends AbstractMessageConsumer {
         currentCheckpoint.getPartitionsCheckpoint();
     SourceStream sourceStream = databusConfig.getSourceStreams().get(topicName);
     LOG.debug("Stream name: " + sourceStream.getName());
-    for (String c : sourceStream.getSourceClusters()) {
+    Set<String> clusterNames;
+    if (clusters != null) {
+      clusterNames = new HashSet<String>();
+      for (String c : clusters) {
+        if (sourceStream.getSourceClusters().contains(c)) {
+          clusterNames.add(c);
+        }
+      }
+    } else {
+      clusterNames = sourceStream.getSourceClusters();
+    }
+    for (String c : clusterNames) {
+      LOG.debug("Creating partition readers for cluster:" + c);
       Cluster cluster = databusConfig.getClusters().get(c);
       long retentionMillis = 
           sourceStream.getRetentionInDays(c) * ONE_DAY_IN_MILLIS;

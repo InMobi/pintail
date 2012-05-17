@@ -73,7 +73,7 @@ public class TestDatabusConsumer {
   public void testMarkAndReset() throws Exception {
     ClientConfig config = loadConfig();
     config.set(DatabusConsumer.checkpointDirConfig,
-        "/tmp/databustest/checkpoint1");
+        "/tmp/databustest1/checkpoint1");
     DatabusConsumer consumer = new DatabusConsumer();
     consumer.init(testStream, consumerName, null, config);
     Assert.assertEquals(consumer.getTopicName(), testStream);
@@ -141,7 +141,7 @@ public class TestDatabusConsumer {
   public void testMarkAndResetWithStartTime() throws Exception {
     ClientConfig config = loadConfig();
     config.set(DatabusConsumer.checkpointDirConfig,
-        "/tmp/databustest/checkpoint2");
+        "/tmp/databustest1/checkpoint2");
     DatabusConsumer consumer = new DatabusConsumer();
     consumer.init(testStream, consumerName,
         CollectorStreamReader.getDateFromCollectorFile(dataFiles[1]), config);
@@ -203,6 +203,150 @@ public class TestDatabusConsumer {
     consumer.mark();
 
     consumer.close();
+  }
+
+  @Test
+  public void testMultipleClusters() throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(DatabusConsumer.databusClustersConfig,
+        "testcluster1,testcluster2");
+    config.set(DatabusConsumer.checkpointDirConfig,
+        "/tmp/databustest2/checkpoint1");
+    DatabusConsumer consumer = new DatabusConsumer();
+    consumer.init(testStream, consumerName, null, config);
+    int counter1 = 0;
+    int counter2 = 0;
+    for (int i = 0; i < 300; i++) {
+      Message msg = consumer.next();
+      String msgStr = new String(msg.getData().array());
+      if (msgStr.equals(constructMessage(counter1))) {
+        counter1++;
+      } else {
+        Assert.assertEquals(msgStr,
+            constructMessage(counter2));
+        counter2++;
+      }
+    }
+    consumer.mark();
+    int markedCounter1 = counter1;
+    int markedCounter2 = counter2;
+    System.out.println("markedCounter1:" + markedCounter1);
+    System.out.println("markedCounter2:" + markedCounter2);
+    for (int i = 0; i < 300; i++) {
+      Message msg = consumer.next();
+      String msgStr = new String(msg.getData().array());
+      if (msgStr.equals(constructMessage(counter1))) {
+        counter1++;
+      } else {
+        Assert.assertEquals(msgStr,
+            constructMessage(counter2));
+        counter2++;
+      }
+    }
+    Assert.assertEquals(counter1, 300);
+    Assert.assertEquals(counter2, 300);
+
+    consumer.reset();
+    for (int i = 0; i < 300; i++) {
+      Message msg = consumer.next();
+      String msgStr = new String(msg.getData().array());
+      if (msgStr.equals(constructMessage(markedCounter1))) {
+        markedCounter1++;
+      } else {
+        Assert.assertEquals(msgStr,
+            constructMessage(markedCounter2));
+        markedCounter2++;
+      }
+    }
+    Assert.assertEquals(markedCounter1, 300);
+    Assert.assertEquals(markedCounter2, 300);
+    consumer.close();
+  }
+
+  @Test
+  public void testMultipleClusters2() throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(DatabusConsumer.databusClustersConfig,
+        "testcluster1,testcluster2,testcluster3");
+    config.set(DatabusConsumer.checkpointDirConfig,
+        "/tmp/databustest2/checkpoint2");
+    DatabusConsumer consumer = new DatabusConsumer();
+    consumer.init(testStream, consumerName, null, config);
+    testAllClusters(consumer);
+  }
+
+  private void testAllClusters(DatabusConsumer consumer) {
+    int counter1 = 0;
+    int counter2 = 0;
+    int counter3 = 0;
+    for (int i = 0; i < 400; i++) {
+      Message msg = consumer.next();
+      String msgStr = new String(msg.getData().array());
+      if (msgStr.equals(constructMessage(counter1))) {
+        counter1++;
+      } else if (msgStr.equals(constructMessage(counter2))){
+        counter2++;
+      } else {
+        Assert.assertEquals(msgStr,
+            constructMessage(counter3));
+        counter3++;
+      }
+    }
+    consumer.mark();
+    int markedCounter1 = counter1;
+    int markedCounter2 = counter2;
+    int markedCounter3 = counter3;
+
+    for (int i = 0; i < 500; i++) {
+      Message msg = consumer.next();
+      String msgStr = new String(msg.getData().array());
+      if (msgStr.equals(constructMessage(counter1))) {
+        counter1++;
+      } else if (msgStr.equals(constructMessage(counter2))){
+        counter2++;
+      } else {
+        Assert.assertEquals(msgStr,
+            constructMessage(counter3));
+        counter3++;
+      }
+    }    
+    Assert.assertEquals(counter1, 300);
+    Assert.assertEquals(counter2, 300);
+    Assert.assertEquals(counter3, 300);
+
+    consumer.reset();
+    for (int i = 0; i < 500; i++) {
+      Message msg = consumer.next();
+      String msgStr = new String(msg.getData().array());
+      if (msgStr.equals(constructMessage(markedCounter1))) {
+        markedCounter1++;
+      } else if (msgStr.equals(constructMessage(markedCounter2))){
+        markedCounter2++;
+      } else {
+        Assert.assertEquals(msgStr,
+            constructMessage(markedCounter3));
+        markedCounter3++;
+      }
+    }    
+    Assert.assertEquals(markedCounter1, 300);
+    Assert.assertEquals(markedCounter2, 300);
+    Assert.assertEquals(markedCounter3, 300);
+
+
+    consumer.close();
+  }
+  @Test
+  public void testMultipleClusters3() throws Exception {
+
+    ClientConfig config = loadConfig();
+    config.set(DatabusConsumer.databusClustersConfig,
+        null);
+    config.set(DatabusConsumer.checkpointDirConfig,
+        "/tmp/databustest2/checkpoint3");
+    DatabusConsumer consumer = new DatabusConsumer();
+    consumer.init(testStream, consumerName, null, config);
+    testAllClusters(consumer);
+
   }
 
   @AfterTest

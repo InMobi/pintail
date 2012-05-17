@@ -196,7 +196,6 @@ class LocalStreamReader extends StreamReader {
     return isLocalStreamFile(streamName, collector, fileName);
   }
 
-
   static Date getDateFromLocalStreamFile(String streamName,
       String collectorName, String fileName) throws Exception {
     String prefix = collectorName + "-" + streamName + "-";
