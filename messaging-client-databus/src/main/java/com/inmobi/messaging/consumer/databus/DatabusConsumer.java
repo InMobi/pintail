@@ -195,13 +195,14 @@ public class DatabusConsumer extends AbstractMessageConsumer {
     } else {
       clusterNames = sourceStream.getSourceClusters();
     }
+    long currentMillis = System.currentTimeMillis();
     for (String c : clusterNames) {
       LOG.debug("Creating partition readers for cluster:" + c);
       Cluster cluster = databusConfig.getClusters().get(c);
       long retentionMillis = 
           sourceStream.getRetentionInDays(c) * ONE_DAY_IN_MILLIS;
       Date allowedStartTime = new Date(
-          System.currentTimeMillis() - retentionMillis);
+           currentMillis- retentionMillis);
       try {
         FileSystem fs = FileSystem.get(cluster.getHadoopConf());
         Path path = new Path(cluster.getDataDir(), topicName);
