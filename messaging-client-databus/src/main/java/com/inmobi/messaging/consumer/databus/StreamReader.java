@@ -268,14 +268,33 @@ abstract class StreamReader {
     String dateStr = fileName.substring(
         StreamReader.getIndexOf(fileName, '-', occur) + 1,
         fileName.indexOf("_"));
-    return fileFormat.parse(dateStr);  
+    return fileFormat.get().parse(dateStr);  
   }
 
-  static DateFormat fileFormat = new SimpleDateFormat("yyyy" + "-" + "MM" +
-      "-" + "dd" + "-" + "HH" + "-" + "mm");
-  static DateFormat minDirFormat =  new SimpleDateFormat("yyyy" + File.separator +
-      "MM" + File.separator + "dd" + File.separator + "HH" + File.separator +
-      "mm");
-  static DateFormat hhDirFormat =  new SimpleDateFormat("yyyy" + File.separator +
-      "MM" + File.separator + "dd" + File.separator + "HH");
+  static final ThreadLocal<DateFormat> fileFormat = 
+      new ThreadLocal<DateFormat>() {
+    @Override
+    protected SimpleDateFormat initialValue() {
+      return new SimpleDateFormat("yyyy" + "-" + "MM" + "-" + "dd" + "-" +
+          "HH" + "-" + "mm");
+    }    
+  };
+
+  static final ThreadLocal<DateFormat> minDirFormat = 
+      new ThreadLocal<DateFormat>() {
+    @Override
+    protected SimpleDateFormat initialValue() {
+      return new SimpleDateFormat("yyyy" + File.separator + "MM" +
+          File.separator + "dd" + File.separator + "HH" + File.separator +"mm");
+    }    
+  };
+
+  static final ThreadLocal<DateFormat> hhDirFormat = 
+      new ThreadLocal<DateFormat>() {
+    @Override
+    protected SimpleDateFormat initialValue() {
+      return new SimpleDateFormat("yyyy" + File.separator + "MM" +
+          File.separator + "dd" + File.separator + "HH");
+    }    
+  };
 }

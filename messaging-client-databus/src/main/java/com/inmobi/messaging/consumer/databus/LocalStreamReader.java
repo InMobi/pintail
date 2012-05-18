@@ -51,13 +51,13 @@ class LocalStreamReader extends StreamReader {
     Date now = current.getTime();
     current.setTime(buildTimestamp);
     while (current.getTime().before(now)) {
-      Path hhDir =  new Path(localStreamDir, hhDirFormat.format(
+      Path hhDir =  new Path(localStreamDir, hhDirFormat.get().format(
           current.getTime()));
       int hour = current.get(Calendar.HOUR_OF_DAY);
       if (fs.exists(hhDir)) {
         while (current.getTime().before(now) && 
             hour  == current.get(Calendar.HOUR_OF_DAY)) {
-          Path dir = new Path(localStreamDir, minDirFormat.format(
+          Path dir = new Path(localStreamDir, minDirFormat.get().format(
               current.getTime()));
           LOG.debug("Current dir :" + dir);
           // Move the current minute to next minute
@@ -200,7 +200,7 @@ class LocalStreamReader extends StreamReader {
       String collectorName, String fileName) throws Exception {
     String prefix = collectorName + "-" + streamName + "-";
     String dateStr = fileName.substring(prefix.length(), fileName.indexOf('_'));
-    return fileFormat.parse(dateStr);
+    return fileFormat.get().parse(dateStr);
   }
 
   static Path getLocalStreamDir(Cluster cluster, String streamName) {
@@ -213,7 +213,7 @@ class LocalStreamReader extends StreamReader {
 
   static String getLocalStreamFileName(String collector, String streamName,
       Date date) {
-    return collector + "-" + streamName + "-" +  fileFormat.format(date) 
+    return collector + "-" + streamName + "-" +  fileFormat.get().format(date) 
         + ".gz";  
   }
 
@@ -221,7 +221,7 @@ class LocalStreamReader extends StreamReader {
     String pathStr = dir.toString();
     String dirString = pathStr.substring(localStreamDir.toString().length() + 1);
     try {
-      return minDirFormat.parse(dirString);
+      return minDirFormat.get().parse(dirString);
     } catch (ParseException e) {
       LOG.warn("Could not get date from directory passed", e);
     }

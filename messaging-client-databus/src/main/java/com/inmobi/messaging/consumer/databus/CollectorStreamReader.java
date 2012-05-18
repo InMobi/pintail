@@ -163,6 +163,6 @@ class CollectorStreamReader extends StreamReader {
   }
 
   static String getCollectorFileName(String streamName, Date date) {
-    return streamName + "-" +  fileFormat.format(date) + "_00000" ;  
+    return streamName + "-" +  fileFormat.get().format(date) + "_00000" ;  
   }
 }

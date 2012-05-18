@@ -230,8 +230,6 @@ public class TestDatabusConsumer {
     consumer.mark();
     int markedCounter1 = counter1;
     int markedCounter2 = counter2;
-    System.out.println("markedCounter1:" + markedCounter1);
-    System.out.println("markedCounter2:" + markedCounter2);
     for (int i = 0; i < 300; i++) {
       Message msg = consumer.next();
       String msgStr = new String(msg.getData().array());
