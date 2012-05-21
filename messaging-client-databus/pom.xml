@@ -26,6 +26,7 @@
       <groupId>com.inmobi.databus</groupId>
       <artifactId>databus-worker</artifactId>
       <version>1.0.0</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
