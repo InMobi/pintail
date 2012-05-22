@@ -14,7 +14,7 @@
   <id>dist</id>
 
   <formats>
-    <format>dir</format>
+    <format>tar.gz</format>
   </formats>
 
   <baseDirectory>messaging-client-${project.version}</baseDirectory>
