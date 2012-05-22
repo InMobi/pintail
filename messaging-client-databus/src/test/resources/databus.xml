@@ -28,7 +28,7 @@
              jturl="local"
              jobqueuename="default"
              >
-    <rootdir>/tmp/databustest1</rootdir>
+    <rootdir>/tmp/test/databustest1</rootdir>
     <retentionindays>2</retentionindays>
     </cluster>
 
@@ -36,7 +36,7 @@
              jturl="local"
              jobqueuename="default"
              >
-    <rootdir>/tmp/databustest2</rootdir>
+    <rootdir>/tmp/test/databustest2</rootdir>
     <retentionindays>2</retentionindays>
     </cluster>
 
@@ -44,7 +44,7 @@
              jturl="local"
              jobqueuename="default"
              >
-    <rootdir>/tmp/databustest3</rootdir>
+    <rootdir>/tmp/test/databustest3</rootdir>
     <retentionindays>2</retentionindays>
     </cluster>
 

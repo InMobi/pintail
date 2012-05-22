@@ -132,7 +132,7 @@ public class TestUtil {
     clusterConf.put("jobqueuename", "default");
     
     Cluster cluster = new Cluster(clusterConf, 
-        "/tmp/databus/" + className,
+        "/tmp/test/databus/" + className,
          null, sourceNames);
     Path streamDir = new Path(cluster.getDataDir(), testStream);
 
