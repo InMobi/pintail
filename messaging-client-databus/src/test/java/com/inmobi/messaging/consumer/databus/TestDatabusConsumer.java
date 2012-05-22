@@ -73,7 +73,7 @@ public class TestDatabusConsumer {
   public void testMarkAndReset() throws Exception {
     ClientConfig config = loadConfig();
     config.set(DatabusConsumer.checkpointDirConfig,
-        "/tmp/databustest1/checkpoint1");
+        "/tmp/test/databustest1/checkpoint1");
     DatabusConsumer consumer = new DatabusConsumer();
     consumer.init(testStream, consumerName, null, config);
     Assert.assertEquals(consumer.getTopicName(), testStream);
@@ -141,7 +141,7 @@ public class TestDatabusConsumer {
   public void testMarkAndResetWithStartTime() throws Exception {
     ClientConfig config = loadConfig();
     config.set(DatabusConsumer.checkpointDirConfig,
-        "/tmp/databustest1/checkpoint2");
+        "/tmp/test/databustest1/checkpoint2");
     DatabusConsumer consumer = new DatabusConsumer();
     consumer.init(testStream, consumerName,
         CollectorStreamReader.getDateFromCollectorFile(dataFiles[1]), config);
@@ -211,7 +211,7 @@ public class TestDatabusConsumer {
     config.set(DatabusConsumer.databusClustersConfig,
         "testcluster1,testcluster2");
     config.set(DatabusConsumer.checkpointDirConfig,
-        "/tmp/databustest2/checkpoint1");
+        "/tmp/test/databustest2/checkpoint1");
     DatabusConsumer consumer = new DatabusConsumer();
     consumer.init(testStream, consumerName, null, config);
     int counter1 = 0;
@@ -267,7 +267,7 @@ public class TestDatabusConsumer {
     config.set(DatabusConsumer.databusClustersConfig,
         "testcluster1,testcluster2,testcluster3");
     config.set(DatabusConsumer.checkpointDirConfig,
-        "/tmp/databustest2/checkpoint2");
+        "/tmp/test/databustest2/checkpoint2");
     DatabusConsumer consumer = new DatabusConsumer();
     consumer.init(testStream, consumerName, null, config);
     testAllClusters(consumer);
@@ -340,7 +340,7 @@ public class TestDatabusConsumer {
     config.set(DatabusConsumer.databusClustersConfig,
         null);
     config.set(DatabusConsumer.checkpointDirConfig,
-        "/tmp/databustest2/checkpoint3");
+        "/tmp/test/databustest2/checkpoint3");
     DatabusConsumer consumer = new DatabusConsumer();
     consumer.init(testStream, consumerName, null, config);
     testAllClusters(consumer);
