@@ -182,6 +182,9 @@ public class DatabusConsumer extends AbstractMessageConsumer {
   private void createPartitionReaders() {
     Map<PartitionId, PartitionCheckpoint> partitionsChkPoints = 
         currentCheckpoint.getPartitionsCheckpoint();
+    if (!databusConfig.getSourceStreams().containsKey(topicName)) {
+      throw new RuntimeException("Stream " + topicName + " does not exist");
+    }
     SourceStream sourceStream = databusConfig.getSourceStreams().get(topicName);
     LOG.debug("Stream name: " + sourceStream.getName());
     Set<String> clusterNames;
