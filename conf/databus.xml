@@ -21,7 +21,7 @@
 
   <clusters>
     <cluster name="testcluster" hdfsurl="hdfs://localhost:8020/"
-             jturl="localhost:8021">
+             jturl="localhost:8021" jobqueuename="default">
     </cluster>
 
   </clusters>
