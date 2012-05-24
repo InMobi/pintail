@@ -14,6 +14,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.security.UserGroupInformation;
 
 import com.inmobi.databus.CheckpointProvider;
 import com.inmobi.databus.Cluster;
@@ -21,6 +22,7 @@ import com.inmobi.databus.DatabusConfig;
 import com.inmobi.databus.DatabusConfigParser;
 import com.inmobi.databus.FSCheckpointProvider;
 import com.inmobi.databus.SourceStream;
+import com.inmobi.databus.utils.SecureLoginUtil;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.AbstractMessageConsumer;
@@ -77,7 +79,11 @@ public class DatabusConsumer extends AbstractMessageConsumer {
   public static final String checkpointDirConfig = 
       "databus.consumer.checkpoint.dir";
   public static final String databusConfigFileKey = "databus.conf";
-  public static final String databusClustersConfig = "databus.consumer.clusters";
+  public static final String databusClustersConfig = 
+      "databus.consumer.clusters";
+  public static final String databusConsumerPrincipal = 
+      "databus.consumer.principal.name";
+  public static final String databusConsumerKeytab = "databus.consumer.keytab";
   
   private static final long ONE_DAY_IN_MILLIS = 1 * 24 * 60 * 60 * 1000;
 
@@ -131,6 +137,17 @@ public class DatabusConsumer extends AbstractMessageConsumer {
           DEFAULT_DATABUS_CONFIG_FILE);
       DatabusConfigParser parser = new DatabusConfigParser(fileName);
       databusConfig = parser.getConfig();
+      if (UserGroupInformation.isSecurityEnabled()) {
+        String principal = config.getString(databusConsumerPrincipal);
+        String keytab = config.getString(databusConsumerKeytab);
+        if (principal != null && keytab != null) {
+          SecureLoginUtil.login(databusConsumerPrincipal, principal,
+              databusConsumerKeytab, keytab);
+        } else {
+          LOG.info("There is no principal or key tab file passed. Using the" +
+              " commandline authentication.");
+        }
+      }
     } catch (Exception e) {
       e.printStackTrace();
       throw new RuntimeException(e);
