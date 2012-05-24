@@ -202,7 +202,7 @@ class PartitionReader {
 
   protected void execute() {
     if (currentReader == null) {
-      LOG.info("There is no steam reader, exiting");
+      LOG.info("There is no stream reader, exiting");
       return;
     }
     try {
