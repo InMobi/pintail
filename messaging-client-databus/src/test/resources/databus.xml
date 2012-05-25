@@ -7,15 +7,15 @@
       <sources>
         <source>
           <name>testcluster1</name>
-          <retentionindays>1</retentionindays>
+          <retentioninhours>24</retentioninhours>
         </source>
         <source>
           <name>testcluster2</name>
-          <retentionindays>1</retentionindays>
+          <retentioninhours>24</retentioninhours>
         </source>
         <source>
           <name>testcluster3</name>
-          <retentionindays>1</retentionindays>
+          <retentioninhours>24</retentioninhours>
         </source>
       </sources>
       <destinations>
@@ -29,7 +29,7 @@
              jobqueuename="default"
              >
     <rootdir>/tmp/test/databustest1</rootdir>
-    <retentionindays>2</retentionindays>
+    <retentioninhours>48</retentioninhours>
     </cluster>
 
     <cluster name="testcluster2" hdfsurl="file:///"
@@ -37,7 +37,7 @@
              jobqueuename="default"
              >
     <rootdir>/tmp/test/databustest2</rootdir>
-    <retentionindays>2</retentionindays>
+    <retentioninhours>48</retentioninhours>
     </cluster>
 
     <cluster name="testcluster3" hdfsurl="file:///"
@@ -45,7 +45,7 @@
              jobqueuename="default"
              >
     <rootdir>/tmp/test/databustest3</rootdir>
-    <retentionindays>2</retentionindays>
+    <retentioninhours>48</retentioninhours>
     </cluster>
 
   </clusters>

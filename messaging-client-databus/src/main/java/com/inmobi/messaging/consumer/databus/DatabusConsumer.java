@@ -85,7 +85,7 @@ public class DatabusConsumer extends AbstractMessageConsumer {
       "databus.consumer.principal.name";
   public static final String databusConsumerKeytab = "databus.consumer.keytab";
   
-  private static final long ONE_DAY_IN_MILLIS = 1 * 24 * 60 * 60 * 1000;
+  private static final long ONE_HOUR_IN_MILLIS = 1 * 60 * 60 * 1000;
 
   private DatabusConfig databusConfig;
   private BlockingQueue<QueueEntry> buffer;
@@ -220,7 +220,8 @@ public class DatabusConsumer extends AbstractMessageConsumer {
       LOG.debug("Creating partition readers for cluster:" + c);
       Cluster cluster = databusConfig.getClusters().get(c);
       long retentionMillis = 
-          sourceStream.getRetentionInDays(c) * ONE_DAY_IN_MILLIS;
+ sourceStream.getRetentionInHours(c)
+          * ONE_HOUR_IN_MILLIS;
       Date allowedStartTime = new Date(
            currentMillis- retentionMillis);
       try {
