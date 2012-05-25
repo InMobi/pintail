@@ -212,28 +212,14 @@ class PartitionReader {
       while (!stopped) {
         String line = currentReader.readLine();
         if (line != null) {
-          while (buffer.remainingCapacity() == 0) {
-            LOG.debug("Waiting for space in buffer");
-            if (stopped) {
-              return;
-            }
-            Thread.sleep(waitTimeForBufferFull);
-          }
           // add the data to queue
           byte[] data = Base64.decodeBase64(line);
           LOG.debug("Current LineNum: " + currentReader.getCurrentLineNum());
-          while (!buffer.offer(new QueueEntry(new Message(
+          buffer.put(new QueueEntry(new Message(
               ByteBuffer.wrap(data)), partitionId,
               new PartitionCheckpoint(currentReader.getCurrentFile().getName(),
-                  currentReader.getCurrentLineNum())))) {
-            Thread.sleep(waitTimeForBufferFull);
-            if (stopped) {
-              return;
-            }
-            LOG.warn("Could not add entry as buffer is full, retrying to add");
-          }
-        }
-        if (line == null) {
+                  currentReader.getCurrentLineNum())));
+        } else {
           if (currentReader == lReader) {
             lReader.close();
             LOG.info("Switching to collector stream as we reached end of" +
