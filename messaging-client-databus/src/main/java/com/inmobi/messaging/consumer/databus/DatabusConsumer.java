@@ -46,10 +46,7 @@ import com.inmobi.messaging.consumer.AbstractMessageConsumer;
  * messages from last check-pointed position.
  * 
  * Maximum consumer buffer size is configurable via {@value #queueSizeConfig}. 
- * The default value is {@value #DEFAULT_QUEUE_SIZE}. Consumer would wait for
- * space in the buffer, if buffer is full. Wait time for consumer if buffer is
- * full is configurable via {@value #waitTimeForBufferFullConfig}, and default
- * value is {@value #DEFAULT_WAIT_TIME_FOR_BUFFER_FULL}.
+ * The default value is {@value #DEFAULT_QUEUE_SIZE}.
  * 
  * If consumer is reading from the file that is currently being written by
  * producer, consumer will wait for flush to happen on the file. The wait time
@@ -68,14 +65,11 @@ public class DatabusConsumer extends AbstractMessageConsumer {
       .getName();
   public static final int DEFAULT_QUEUE_SIZE = 1000;
   public static final long DEFAULT_WAIT_TIME_FOR_FLUSH = 1000; // 1 second
-  public static final long DEFAULT_WAIT_TIME_FOR_BUFFER_FULL = 1000; // 1second
   public static final String DEFAULT_DATABUS_CONFIG_FILE = "databus.xml";
   
   public static final String queueSizeConfig = "databus.consumer.buffer.size";
   public static final String waitTimeForFlushConfig = 
       "databus.consumer.waittime.forcollectorflush";
-  public static final String waitTimeForBufferFullConfig = 
-      "databus.consumer.waittime.forbufferfull";
   public static final String checkpointDirConfig = 
       "databus.consumer.checkpoint.dir";
   public static final String databusConfigFileKey = "databus.conf";
@@ -97,7 +91,6 @@ public class DatabusConsumer extends AbstractMessageConsumer {
   private CheckpointProvider checkpointProvider;
   private Checkpoint currentCheckpoint;
   private long waitTimeForFlush;
-  private long waitTimeForBufferFull;
   private int bufferSize;
   private String[] clusters;
 
@@ -115,8 +108,6 @@ public class DatabusConsumer extends AbstractMessageConsumer {
     databusCheckpointDir = config.getString(checkpointDirConfig, ".");
     waitTimeForFlush = config.getLong(waitTimeForFlushConfig,
         DEFAULT_WAIT_TIME_FOR_FLUSH);
-    waitTimeForBufferFull = config.getLong(waitTimeForBufferFullConfig,
-        DEFAULT_WAIT_TIME_FOR_BUFFER_FULL);
     
     String clusterStr = config.getString(databusClustersConfig);
     if (clusterStr != null) {
@@ -219,11 +210,9 @@ public class DatabusConsumer extends AbstractMessageConsumer {
     for (String c : clusterNames) {
       LOG.debug("Creating partition readers for cluster:" + c);
       Cluster cluster = databusConfig.getClusters().get(c);
-      long retentionMillis = 
- sourceStream.getRetentionInHours(c)
+      long retentionMillis = sourceStream.getRetentionInHours(c)
           * ONE_HOUR_IN_MILLIS;
-      Date allowedStartTime = new Date(
-           currentMillis- retentionMillis);
+      Date allowedStartTime = new Date(currentMillis- retentionMillis);
       try {
         FileSystem fs = FileSystem.get(cluster.getHadoopConf());
         Path path = new Path(cluster.getDataDir(), topicName);
@@ -256,7 +245,7 @@ public class DatabusConsumer extends AbstractMessageConsumer {
           }
           PartitionReader reader = new PartitionReader(id,
               partitionsChkPoints.get(id), cluster, buffer, topicName,
-              partitionTimestamp, waitTimeForFlush, waitTimeForBufferFull);
+              partitionTimestamp, waitTimeForFlush);
           readers.put(id, reader);
           LOG.info("Created partition " + id);
         }

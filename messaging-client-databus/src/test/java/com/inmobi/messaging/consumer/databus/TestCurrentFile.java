@@ -85,7 +85,7 @@ public class TestCurrentFile {
     writeMessages(out, 10);
     preader = new PartitionReader(partitionId, null, cluster, buffer,
         testStream, CollectorStreamReader.getDateFromCollectorFile(files[0]),
-        1000, 10);
+        1000);
     Assert.assertTrue(buffer.isEmpty());
     preader.start();
     TestUtil.assertBuffer(files[0], 1, 0, 100, partitionId, buffer);
