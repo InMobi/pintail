@@ -31,19 +31,17 @@ class PartitionReader {
   private CollectorStreamReader cReader;
   private StreamReader currentReader;
   private boolean inited = false;
-  private final long waitTimeForBufferFull;
 
 
   PartitionReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, Cluster cluster,
       BlockingQueue<QueueEntry> buffer, String streamName,
-      Date startTime, long waitTimeForFlush, long waitTimeForBufferFull) {
+      Date startTime, long waitTimeForFlush) {
     this.partitionId = partitionId;
     this.buffer = buffer;
     this.startTime = startTime;
     this.streamName = streamName;
     this.partitionCheckpoint = partitionCheckpoint;
-    this.waitTimeForBufferFull = waitTimeForBufferFull;
 
     // initialize cluster and its directories
     Path streamDir = new Path(cluster.getDataDir(), streamName);
