@@ -32,15 +32,26 @@ public class MessageConsumerFactory {
    * @return {@link MessageConsumer} concrete object
    */
   public static MessageConsumer create() {
-    InputStream in = ClientConfig.class.getClassLoader().getResourceAsStream(
-        MESSAGE_CLIENT_CONF_FILE);
-    if (in == null) {
-      throw new RuntimeException("could not load conf file "
-          + MESSAGE_CLIENT_CONF_FILE + " from classpath.");
-    }
-    ClientConfig config = ClientConfig.load(in);
-    return create(config);
+    return create(loadConfigFromClassPath());
   }
+
+  /**
+   * Creates concrete class extending {@link AbstractMessageConsumer} given by
+   * name {@value #CONSUMER_CLASS_NAME_KEY}, by loading the properties from
+   * configuration file named {@value #MESSAGE_CLIENT_CONF_FILE} from classpath.
+   * 
+   * Initializes the consumer class with passed configuration, topicName with
+   * the value of {@value #TOPIC_NAME_KEY}, consumerName with the value of 
+   * {@value #CONSUMER_NAME_KEY} and the startTime.
+   *
+   * @param startTime The startTime from which messages should be read
+   * 
+   * @return {@link MessageConsumer} concrete object
+   */
+  public static MessageConsumer create(Date startTime) {
+    return create(loadConfigFromClassPath(), startTime);
+  }
+
 
   /**
    * Creates concrete class extending {@link AbstractMessageConsumer} given by
@@ -56,8 +67,24 @@ public class MessageConsumerFactory {
    * @return {@link MessageConsumer} concrete object
    */
   public static MessageConsumer create(String confFile) {
-    ClientConfig config = ClientConfig.load(confFile);
-    return create(config);
+    return create(ClientConfig.load(confFile));
+  }
+
+  /**
+   * Creates concrete class extending {@link AbstractMessageConsumer} given by
+   * name {@value #CONSUMER_CLASS_NAME_KEY}, by loading the passed
+   * configuration file.
+   * 
+   * Initializes the consumer class with passed configuration, topicName with
+   * the value of {@value #TOPIC_NAME_KEY}, consumerName with the value of 
+   * {@value #CONSUMER_NAME_KEY} and the startTime.
+   *
+   * @param confFile The file name
+   *  
+   * @return {@link MessageConsumer} concrete object
+   */
+  public static MessageConsumer create(String confFile, Date startTime) {
+    return create(ClientConfig.load(confFile), startTime);
   }
 
   /**
@@ -79,6 +106,26 @@ public class MessageConsumerFactory {
   }
   
   /**
+   * Creates concrete class extending {@link AbstractMessageConsumer} given by
+   * name {@value #CONSUMER_CLASS_NAME_KEY}, using the passed configuration
+   * object.
+   * 
+   * Initializes the consumer class with passed configuration, topicName with
+   * the value of {@value #TOPIC_NAME_KEY}, consumerName with the value of 
+   * {@value #CONSUMER_NAME_KEY} and the startTime.
+   *
+   * @param config {@link ClientConfig} object
+   * @param startTime The startTime from which messages should be read
+   *
+   * @return {@link MessageConsumer} concrete object
+   */
+   public static MessageConsumer create(ClientConfig config, Date startTime) {
+     String consumerName = config.getString(CONSUMER_CLASS_NAME_KEY,
+         DEFAULT_CONSUMER_CLASS_NAME);
+     return create(config, consumerName, startTime);
+   }   
+
+  /**
    * Creates concrete class extending {@link AbstractMessageConsumer} with
    * passed class name and using the passed configuration object.
    * 
@@ -93,25 +140,30 @@ public class MessageConsumerFactory {
    */
   public static MessageConsumer create(ClientConfig config,
                                        String consumerClassName) {
-    return create(config, consumerClassName, config.getString(TOPIC_NAME_KEY),
-        config.getString(CONSUMER_NAME_KEY));
+    return create(config, consumerClassName, null);
   }
-  
-  private static AbstractMessageConsumer createAbstractConsumer(
-      String consumerClassName) {
-    Class<?> clazz;
-    AbstractMessageConsumer consumer = null;
-    try {
-      clazz = Class.forName(consumerClassName);
-      consumer = (AbstractMessageConsumer) clazz.newInstance();
 
-    } catch (Exception e) {
-      throw new RuntimeException("Could not create message consumer "
-          + consumerClassName, e);
-    }
-    return consumer;
+  /**
+   * Creates concrete class extending {@link AbstractMessageConsumer} with
+   * passed class name and using the passed configuration object.
+   * 
+   * Initializes the consumer class with passed configuration, topicName with
+   * the value of {@value #TOPIC_NAME_KEY}, consumerName with the value of 
+   * {@value #CONSUMER_NAME_KEY} and the startTime.
+   *
+   * @param config {@link ClientConfig} object
+   * @param consumerClassName The class name of the consumer implementation
+   * @param startTime The startTime from which messages should be read
+   * 
+   * @return {@link MessageConsumer} concrete object
+   */
+  public static MessageConsumer create(ClientConfig config,
+                                       String consumerClassName, 
+                                       Date startTime) {
+    return create(config, consumerClassName, config.getString(TOPIC_NAME_KEY),
+        config.getString(CONSUMER_NAME_KEY), startTime);
   }
-  
+
   /**
    * Creates concrete class extending {@link AbstractMessageConsumer} with
    * passed name and using the passed configuration object. Also initializes
@@ -166,5 +218,31 @@ public class MessageConsumerFactory {
     consumer.init(topicName, consumerName, startTime, config);
     return consumer;
   }
+
+  private static ClientConfig loadConfigFromClassPath() {
+    InputStream in = ClientConfig.class.getClassLoader().getResourceAsStream(
+        MESSAGE_CLIENT_CONF_FILE);
+    if (in == null) {
+      throw new RuntimeException("could not load conf file "
+          + MESSAGE_CLIENT_CONF_FILE + " from classpath.");
+    }
+    return ClientConfig.load(in);
+  }
+  
+  private static AbstractMessageConsumer createAbstractConsumer(
+      String consumerClassName) {
+    Class<?> clazz;
+    AbstractMessageConsumer consumer = null;
+    try {
+      clazz = Class.forName(consumerClassName);
+      consumer = (AbstractMessageConsumer) clazz.newInstance();
+
+    } catch (Exception e) {
+      throw new RuntimeException("Could not create message consumer "
+          + consumerClassName, e);
+    }
+    return consumer;
+  }
+  
 
 }
