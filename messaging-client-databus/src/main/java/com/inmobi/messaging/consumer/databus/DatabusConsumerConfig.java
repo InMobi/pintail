@@ -14,10 +14,6 @@ public interface DatabusConsumerConfig {
   "databus.consumer.waittime.forcollectorflush";
   public static final long DEFAULT_WAIT_TIME_FOR_FLUSH = 1000; // 1 second
   
-  public static final String checkpointDirConfig = 
-  "databus.consumer.checkpoint.dir";
-  public static final String DEFAULT_CHECKPOINT_DIR = ".";
-  
   public static final String databusConfigFileKey = "databus.conf";
   public static final String DEFAULT_DATABUS_CONFIG_FILE = "databus.xml";
 
@@ -28,4 +24,8 @@ public interface DatabusConsumerConfig {
   public static final String DEFAULT_CHK_PROVIDER = FSCheckpointProvider.class
   .getName();
 
+  public static final String checkpointDirConfig = 
+  "databus.consumer.checkpoint.dir";
+  public static final String DEFAULT_CHECKPOINT_DIR = ".";
+  
 }
