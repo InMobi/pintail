@@ -63,7 +63,7 @@ public class DatabusConsumer extends AbstractMessageConsumer {
 
   public static final String DEFAULT_CHK_PROVIDER = FSCheckpointProvider.class
       .getName();
-  public static final int DEFAULT_QUEUE_SIZE = 1000;
+  public static final int DEFAULT_QUEUE_SIZE = 5000;
   public static final long DEFAULT_WAIT_TIME_FOR_FLUSH = 1000; // 1 second
   public static final String DEFAULT_DATABUS_CONFIG_FILE = "databus.xml";
   

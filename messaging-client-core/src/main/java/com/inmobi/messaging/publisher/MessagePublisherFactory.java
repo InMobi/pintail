@@ -13,6 +13,8 @@ public class MessagePublisherFactory {
       "messaging-publisher-conf.properties";
   public static final String PUBLISHER_CLASS_NAME_KEY = "publisher.classname";
   public static final String EMITTER_CONF_FILE_KEY = "statemitter.filename";
+  public static final String DEFAULT_PUBLISHER_CLASS_NAME = 
+      "com.inmobi.messaging.netty.ScribeMessagePublisher";
 
   /**
    * Creates concrete class extending {@link AbstractMessagePublisher} given by
@@ -58,20 +60,9 @@ public class MessagePublisherFactory {
    * @return {@link MessagePublisher} concrete object
    */
   public static MessagePublisher create(ClientConfig config) {
-    Class<?> clazz;
     String publisherName = config
-        .getString(PUBLISHER_CLASS_NAME_KEY);
-    AbstractMessagePublisher publisher = null;
-    try {
-      clazz = Class.forName(publisherName);
-      publisher = (AbstractMessagePublisher) clazz.newInstance();
-
-    } catch (Exception e) {
-      throw new RuntimeException("Could not create message publisher "
-          + config.getString(PUBLISHER_CLASS_NAME_KEY), e);
-    }
-    publisher.init(config);
-    return publisher;
+        .getString(PUBLISHER_CLASS_NAME_KEY, DEFAULT_PUBLISHER_CLASS_NAME);
+    return create(config, publisherName);
   }
   
   /**

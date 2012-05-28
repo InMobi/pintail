@@ -15,6 +15,8 @@ public class MessageConsumerFactory {
   public static final String MESSAGE_CLIENT_CONF_FILE = 
                           "messaging-consumer-conf.properties";
   public static final String CONSUMER_CLASS_NAME_KEY = "consumer.classname";
+  public static final String DEFAULT_CONSUMER_CLASS_NAME = 
+      "com.inmobi.messaging.consumer.databus.DatabusConsumer";
   public static final String TOPIC_NAME_KEY = "topic.name";
   public static final String CONSUMER_NAME_KEY = "consumer.name";
 
@@ -71,7 +73,8 @@ public class MessageConsumerFactory {
    * @return {@link MessageConsumer} concrete object
    */
   public static MessageConsumer create(ClientConfig config) {
-    String consumerName = config.getString(CONSUMER_CLASS_NAME_KEY);
+    String consumerName = config.getString(CONSUMER_CLASS_NAME_KEY,
+        DEFAULT_CONSUMER_CLASS_NAME);
     return create(config, consumerName);
   }
   
