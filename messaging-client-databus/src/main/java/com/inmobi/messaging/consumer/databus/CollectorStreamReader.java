@@ -135,7 +135,7 @@ class CollectorStreamReader extends StreamReader {
     }
   }
 
-  private boolean isCurrentScribeFile() throws IOException {
+  private boolean isCurrentScribeFile() throws Exception {
     if (currentFile.getName().equals(getCurrentScribeFile())) {
       return true;
     } else {
@@ -143,16 +143,21 @@ class CollectorStreamReader extends StreamReader {
     }
   }
 
-  private String getCurrentScribeFile() throws IOException {
+  private String getCurrentScribeFile() throws Exception {
     Path currentScribeFile = new Path(collectorDir, streamName + "_current");
     String currentFileName = null;
     if (fs.exists(currentScribeFile)) {
-      FSDataInputStream in = fs.open(currentScribeFile);
-      String line = new BufferedReader(new InputStreamReader(in)).readLine();
-      if (line != null) {
-        currentFileName = line.trim();
+      while (currentFileName == null) {
+        FSDataInputStream in = fs.open(currentScribeFile);
+        String line = new BufferedReader(new InputStreamReader(in)).readLine();
+        if (line != null) {
+          currentFileName = line.trim();
+        } else {
+          LOG.info("Waiting for data in _current file");
+          Thread.sleep(10);
+        }
+        in.close();        
       }
-      in.close();
     }
     return currentFileName;
   }
