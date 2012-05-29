@@ -183,15 +183,10 @@ public class TestUtil {
   public static Path getDateDirForCollectorFile(Cluster cluster,
       String streamName, String fileName) throws Exception {    
     Date date = CollectorStreamReader.getDateFromCollectorFile(fileName);
-    return TestUtil.getDateDir(cluster, streamName, date);
-  }
-
-  public static Path getDateDirForLocalStreamFile(Cluster cluster,
-      String streamName, String collectorName, String fileName)
-      throws Exception {    
-    Date date = LocalStreamReader.getDateFromLocalStreamFile(streamName,
-        collectorName, fileName);
-    return getDateDir(cluster, streamName, date);
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(date);
+    cal.add(Calendar.MINUTE, 1);
+    return TestUtil.getDateDir(cluster, streamName, cal.getTime());
   }
 
   public static Path getDateDir(Cluster cluster, String streamName,  Date date)

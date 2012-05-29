@@ -147,17 +147,16 @@ abstract class StreamReader {
     resetCurrentFileSettings();
   }
 
-  boolean setNextHigher() throws IOException {
-    if (currentFile != null) {
-      LOG.debug("finding next higher for " + currentFile);
-      Map.Entry<String, Path> higherEntry = 
-          files.higherEntry(currentFile.getName());
-      if (higherEntry != null) {
-        currentFile = higherEntry.getValue();
-        LOG.debug("Next higher entry:" + currentFile);
-        setIterator();
-        openCurrentFile(true);
-      }
+  boolean setNextHigher(String currentFileName) throws IOException {
+    LOG.debug("finding next higher for " + currentFileName);
+    Map.Entry<String, Path> higherEntry = 
+          files.higherEntry(currentFileName);
+    if (higherEntry != null) {
+      currentFile = higherEntry.getValue();
+      LOG.debug("Next higher entry:" + currentFile);
+      setIterator();
+      openCurrentFile(true);
+      return true;
     }
     return false;
   }
@@ -233,7 +232,7 @@ abstract class StreamReader {
     LOG.debug("In next file");
     if (!setIterator()) {
       LOG.info("could not set iterator for currentfile. setting next higher");
-      return setNextHigher();
+      return setNextHigher(currentFile.getName());
     }
     if (fileNameIterator.hasNext()) {
       String fileName = fileNameIterator.next();

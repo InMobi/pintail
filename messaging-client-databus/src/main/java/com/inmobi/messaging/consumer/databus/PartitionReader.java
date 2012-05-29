@@ -232,7 +232,7 @@ class PartitionReader {
             }
           } else if (currentReader == cReader) {
             cReader.close();
-            LOG.info("Looking for current file in local stream reader");
+            LOG.info("Looking for current file in local stream");
             lReader.build(CollectorStreamReader.getDateFromCollectorFile(
                 currentReader.getCurrentFile().getName()));
             if (!lReader.setCurrentFile(
@@ -240,9 +240,18 @@ class PartitionReader {
                     partitionId.getCollector(),
                     cReader.getCurrentFile().getName()),
                     cReader.getCurrentLineNum())) {
-              LOG.info("Did not find current file in local stream as well.");
-              currentReader.close();
-              currentReader = null;
+              LOG.info("Did not find current file in local stream as well." +
+              		" Setting next higher in collector stream.");
+              cReader.build();
+              if (!cReader.setNextHigher(
+                  currentReader.getCurrentFile().getName())) {
+                currentReader.close();
+                LOG.info("No stream to read");
+                currentReader = null;                
+              } else {
+                LOG.info("Reading from next higher in collector stream");
+                currentReader = cReader;
+              }
             } else {
               LOG.info("Switching to local stream as the file got moved");
               currentReader = lReader;
