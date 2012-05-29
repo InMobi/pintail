@@ -138,7 +138,7 @@ class LocalStreamReader extends StreamReader {
         if (!setIterator()) {
           LOG.info("Could not find current file in the stream");
           // set current file to next higher entry
-          if (!setNextHigher()) {
+          if (!setNextHigher(currentFile.getName())) {
             LOG.info("Could not find next higher entry for current file");
             return null;
           } else {
@@ -179,10 +179,13 @@ class LocalStreamReader extends StreamReader {
       openCurrentFile(false);
       return true;
     } else {
-      LOG.info("Did not find current file. Trying to set next higher");
-      setNextHigher();
+      LOG.info("Did not find current file." + localStreamFileName + " Trying to set next higher");
+      if (!setNextHigher(localStreamFileName)) {
+        return false;
+      } else {
+        return true;
+      }
     }
-    return false;
   }
 
   protected BufferedReader createReader(FSDataInputStream in)
