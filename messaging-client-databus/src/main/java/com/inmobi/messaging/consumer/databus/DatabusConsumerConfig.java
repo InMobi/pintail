@@ -28,4 +28,9 @@ public interface DatabusConsumerConfig {
   "databus.consumer.checkpoint.dir";
   public static final String DEFAULT_CHECKPOINT_DIR = ".";
   
+  public static final String databusConsumerPrincipal = 
+      "databus.consumer.principal.name";
+  public static final String databusConsumerKeytab = 
+      "databus.consumer.keytab.path";
+  
 }
