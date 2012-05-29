@@ -56,6 +56,12 @@ public class TestCurrentFile {
     scribe.close();
   }
 
+  private void writeEmptyCurrentScribeFile() throws IOException {
+    FSDataOutputStream scribe = fs.create(
+        new Path(collectorDir, testStream + "_current"));
+    scribe.close();
+  }
+
   @AfterTest
   public void cleanup() throws IOException {
     TestUtil.cleanupCluster(cluster);
@@ -92,6 +98,9 @@ public class TestCurrentFile {
     TestUtil.assertBuffer(files[1], 2, 0, 100, partitionId, buffer);
     TestUtil.assertBuffer(files[2], 3, 0, 100, partitionId, buffer);
     TestUtil.assertBuffer(currentScribeFile, 4, 0, 10, partitionId, buffer);
+    writeEmptyCurrentScribeFile();
+    Thread.sleep(20);
+    writeCurrentScribeFileName();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getCurrentReader());
     Assert.assertEquals(preader.getCurrentReader().getClass().getName(),

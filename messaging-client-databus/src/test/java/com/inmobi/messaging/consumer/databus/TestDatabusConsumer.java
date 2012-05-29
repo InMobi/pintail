@@ -72,7 +72,7 @@ public class TestDatabusConsumer {
   @Test
   public void testMarkAndReset() throws Exception {
     ClientConfig config = loadConfig();
-    config.set(DatabusConsumer.checkpointDirConfig,
+    config.set(DatabusConsumerConfig.checkpointDirConfig,
         "/tmp/test/databustest1/checkpoint1");
     DatabusConsumer consumer = new DatabusConsumer();
     consumer.init(testStream, consumerName, null, config);
@@ -140,7 +140,7 @@ public class TestDatabusConsumer {
   @Test
   public void testMarkAndResetWithStartTime() throws Exception {
     ClientConfig config = loadConfig();
-    config.set(DatabusConsumer.checkpointDirConfig,
+    config.set(DatabusConsumerConfig.checkpointDirConfig,
         "/tmp/test/databustest1/checkpoint2");
     DatabusConsumer consumer = new DatabusConsumer();
     consumer.init(testStream, consumerName,
@@ -208,9 +208,9 @@ public class TestDatabusConsumer {
   @Test
   public void testMultipleClusters() throws Exception {
     ClientConfig config = loadConfig();
-    config.set(DatabusConsumer.databusClustersConfig,
+    config.set(DatabusConsumerConfig.databusClustersConfig,
         "testcluster1,testcluster2");
-    config.set(DatabusConsumer.checkpointDirConfig,
+    config.set(DatabusConsumerConfig.checkpointDirConfig,
         "/tmp/test/databustest2/checkpoint1");
     DatabusConsumer consumer = new DatabusConsumer();
     consumer.init(testStream, consumerName, null, config);
@@ -264,9 +264,9 @@ public class TestDatabusConsumer {
   @Test
   public void testMultipleClusters2() throws Exception {
     ClientConfig config = loadConfig();
-    config.set(DatabusConsumer.databusClustersConfig,
+    config.set(DatabusConsumerConfig.databusClustersConfig,
         "testcluster1,testcluster2,testcluster3");
-    config.set(DatabusConsumer.checkpointDirConfig,
+    config.set(DatabusConsumerConfig.checkpointDirConfig,
         "/tmp/test/databustest2/checkpoint2");
     DatabusConsumer consumer = new DatabusConsumer();
     consumer.init(testStream, consumerName, null, config);
@@ -337,9 +337,9 @@ public class TestDatabusConsumer {
   public void testMultipleClusters3() throws Exception {
 
     ClientConfig config = loadConfig();
-    config.set(DatabusConsumer.databusClustersConfig,
+    config.set(DatabusConsumerConfig.databusClustersConfig,
         null);
-    config.set(DatabusConsumer.checkpointDirConfig,
+    config.set(DatabusConsumerConfig.checkpointDirConfig,
         "/tmp/test/databustest2/checkpoint3");
     DatabusConsumer consumer = new DatabusConsumer();
     consumer.init(testStream, consumerName, null, config);

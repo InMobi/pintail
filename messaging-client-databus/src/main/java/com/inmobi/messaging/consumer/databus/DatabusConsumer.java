@@ -1,6 +1,7 @@
 package com.inmobi.messaging.consumer.databus;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -31,59 +32,46 @@ import com.inmobi.messaging.consumer.AbstractMessageConsumer;
  * Consumes data from the configured databus stream topic. 
  * 
  * Initializes the databus configuration from the configuration file specified
- * by the configuration {@value #databusConfigFileKey}, the default value is
- * {@value #DEFAULT_DATABUS_CONFIG_FILE} 
+ * by the configuration {@value DatabusConsumerConfig#databusConfigFileKey},
+ * the default value is
+ * {@value DatabusConsumerConfig#DEFAULT_DATABUS_CONFIG_FILE} 
  *
  * Consumer can specify a comma separated list of clusters from which the stream
- * should be streamed via configuration {@value #databusClustersConfig}. If no
+ * should be streamed via configuration 
+ * {@value DatabusConsumerConfig#databusClustersConfig}. If no
  * such configuration exists, it will stream from all the source clusters of the 
  * stream.
  *  
  * This consumer supports mark and reset. Whenever user calls mark, the current
  * consumption will be check-pointed in a directory configurable via 
- * {@value #checkpointDirConfig}. The default value for value for checkpoint
- * directory is <code>.</code>. After reset(), consumer will start reading
+ * {@value DatabusConsumerConfig#checkpointDirConfig}. The default value for
+ * value for checkpoint
+ * directory is {@value DatabusConsumerConfig#DEFAULT_CHECKPOINT_DIR}. After
+ * reset(), consumer will start reading
  * messages from last check-pointed position.
  * 
- * Maximum consumer buffer size is configurable via {@value #queueSizeConfig}. 
- * The default value is {@value #DEFAULT_QUEUE_SIZE}.
+ * Maximum consumer buffer size is configurable via 
+ * {@value DatabusConsumerConfig#queueSizeConfig}. 
+ * The default value is {@value DatabusConsumerConfig#DEFAULT_QUEUE_SIZE}.
  * 
  * If consumer is reading from the file that is currently being written by
  * producer, consumer will wait for flush to happen on the file. The wait time
- * for flush is configurable via {@value #waitTimeForFlushConfig}, and default
- * value is {@value #DEFAULT_WAIT_TIME_FOR_FLUSH}
+ * for flush is configurable via 
+ * {@value DatabusConsumerConfig#waitTimeForFlushConfig}, and default
+ * value is {@value DatabusConsumerConfig#DEFAULT_WAIT_TIME_FOR_FLUSH}
  *
  * Initializes partition readers for each active collector on the stream.
  * TODO: Dynamically detect if new collectors are added and start readers for
  *  them 
  */
-public class DatabusConsumer extends AbstractMessageConsumer {
+public class DatabusConsumer extends AbstractMessageConsumer 
+    implements DatabusConsumerConfig {
   private static final Log LOG = LogFactory.getLog(DatabusConsumer.class);
 
-
-  public static final String DEFAULT_CHK_PROVIDER = FSCheckpointProvider.class
-      .getName();
-  public static final int DEFAULT_QUEUE_SIZE = 5000;
-  public static final long DEFAULT_WAIT_TIME_FOR_FLUSH = 1000; // 1 second
-  public static final String DEFAULT_DATABUS_CONFIG_FILE = "databus.xml";
-  
-  public static final String queueSizeConfig = "databus.consumer.buffer.size";
-  public static final String waitTimeForFlushConfig = 
-      "databus.consumer.waittime.forcollectorflush";
-  public static final String checkpointDirConfig = 
-      "databus.consumer.checkpoint.dir";
-  public static final String databusConfigFileKey = "databus.conf";
-  public static final String databusClustersConfig = 
-      "databus.consumer.clusters";
-  public static final String databusConsumerPrincipal = 
-      "databus.consumer.principal.name";
-  public static final String databusConsumerKeytab = "databus.consumer.keytab";
-  
   private static final long ONE_HOUR_IN_MILLIS = 1 * 60 * 60 * 1000;
 
   private DatabusConfig databusConfig;
   private BlockingQueue<QueueEntry> buffer;
-  private String databusCheckpointDir;
 
   private final Map<PartitionId, PartitionReader> readers = 
       new HashMap<PartitionId, PartitionReader>();
@@ -101,11 +89,26 @@ public class DatabusConsumer extends AbstractMessageConsumer {
     start();
   }
 
+  private static CheckpointProvider createCheckpointProvider(
+      String checkpointProviderClassName, String chkpointDir) {
+    CheckpointProvider chkProvider = null;
+    try {
+      Class<?> clazz = Class.forName(checkpointProviderClassName);
+      Constructor<?> constructor = clazz.getConstructor(String.class);
+      chkProvider = (CheckpointProvider) constructor.newInstance(new Object[]
+      {chkpointDir});
+    } catch (Exception e) {
+      throw new RuntimeException("Could not create checkpoint provider "
+          + checkpointProviderClassName, e);
+    }
+    return chkProvider;
+  }
+
   void initializeConfig(ClientConfig config) {
-    bufferSize = config.getInteger(queueSizeConfig,
-        DEFAULT_QUEUE_SIZE);
+    bufferSize = config.getInteger(queueSizeConfig, DEFAULT_QUEUE_SIZE);
     buffer = new LinkedBlockingQueue<QueueEntry>(bufferSize);
-    databusCheckpointDir = config.getString(checkpointDirConfig, ".");
+    String databusCheckpointDir = config.getString(checkpointDirConfig, 
+        DEFAULT_CHECKPOINT_DIR);
     waitTimeForFlush = config.getLong(waitTimeForFlushConfig,
         DEFAULT_WAIT_TIME_FOR_FLUSH);
     
@@ -113,7 +116,11 @@ public class DatabusConsumer extends AbstractMessageConsumer {
     if (clusterStr != null) {
       clusters = clusterStr.split(",");
     }
-    this.checkpointProvider = new FSCheckpointProvider(databusCheckpointDir);
+    
+    String chkpointProviderClassName = config.getString(
+        databusChkProviderConfig, DEFAULT_CHK_PROVIDER);
+    this.checkpointProvider = createCheckpointProvider(
+        chkpointProviderClassName, databusCheckpointDir);
 
     try {
       byte[] chkpointData = checkpointProvider.read(getChkpointKey());
