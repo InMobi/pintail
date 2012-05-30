@@ -1,5 +1,6 @@
 package com.inmobi.messaging.publisher;
 
+import java.io.IOException;
 import java.net.URL;
 import java.nio.ByteBuffer;
 
@@ -12,7 +13,7 @@ import com.inmobi.messaging.Message;
 public class TestPublisher {
 
   @Test
-  public void test() {
+  public void test() throws IOException {
     ClientConfig conf = new ClientConfig();
     conf.set(MessagePublisherFactory.PUBLISHER_CLASS_NAME_KEY,
         MockPublisher.class.getName());
@@ -24,7 +25,7 @@ public class TestPublisher {
   }
 
   @Test
-  public void testLoadFromClasspath() {
+  public void testLoadFromClasspath() throws IOException {
     AbstractMessagePublisher publisher =
         (AbstractMessagePublisher) MessagePublisherFactory.create();
     doTest(publisher);
@@ -33,7 +34,7 @@ public class TestPublisher {
   }
 
   @Test
-  public void testLoadFromFileName() {
+  public void testLoadFromFileName() throws IOException {
     URL url = getClass().getClassLoader().getResource(
         MessagePublisherFactory.MESSAGE_CLIENT_CONF_FILE);
     AbstractMessagePublisher publisher =
@@ -45,7 +46,7 @@ public class TestPublisher {
   }
 
   @Test
-  public void testLoadFromClassName() {
+  public void testLoadFromClassName() throws IOException {
     ClientConfig conf = new ClientConfig();
     AbstractMessagePublisher publisher = 
       (AbstractMessagePublisher) MessagePublisherFactory.create(

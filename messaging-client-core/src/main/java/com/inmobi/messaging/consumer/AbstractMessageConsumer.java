@@ -1,5 +1,6 @@
 package com.inmobi.messaging.consumer;
 
+import java.io.IOException;
 import java.util.Date;
 
 import com.inmobi.messaging.ClientConfig;
@@ -34,8 +35,9 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
    * Initialize the consumer with passed configuration object
    * 
    * @param config {@link ClientConfig} for the consumer
+   * @throws IOException 
    */
-  protected void init(ClientConfig config) {
+  protected void init(ClientConfig config) throws IOException {
     this.config = config;
   }
 
@@ -47,16 +49,17 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
    * @param consumerName Name of the consumer
    * @param startTime Starting time from which messages should be consumed
    * @param config {@link ClientConfig} for the consumer
+   * @throws IOException 
    */
   public void init(String topicName, String consumerName, Date startTimestamp,
-      ClientConfig config) {
+      ClientConfig config) throws IOException {
     this.topicName = topicName;
     this.consumerName = consumerName;
     this.startTime = startTimestamp;
     // do not accept start time in future
     if (startTime != null && 
         startTime.after(new Date(System.currentTimeMillis()))) {
-      throw new RuntimeException("Future start time is not accepted");
+      throw new IllegalArgumentException("Future start time is not accepted");
     }
     init(config);
   }

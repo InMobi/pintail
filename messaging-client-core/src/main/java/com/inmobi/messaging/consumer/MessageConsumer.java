@@ -1,5 +1,7 @@
 package com.inmobi.messaging.consumer;
 
+import java.io.IOException;
+
 import com.inmobi.messaging.Message;
 
 /**
@@ -15,8 +17,10 @@ public interface MessageConsumer {
    * stream
    * 
    * @return {@link Message} object
+   * 
+   * @throws InterruptedException 
    */
-  public Message next();
+  public Message next() throws InterruptedException;
 
   /**
    * Tells if this interface supports <code>mark</code> and <code>reset</code>
@@ -29,13 +33,17 @@ public interface MessageConsumer {
   
   /**
    * Mark the position in the stream up to last read message.
+   * 
+   * @throws IOException 
    */
-  public void mark();
+  public void mark() throws IOException;
 
   /**
    * Reset to last the marked position
+   * 
+   * @throws IOException 
    */
-  public void reset();
+  public void reset() throws IOException;
 
   /**
    * Close and cleanup all resources such as connection, file handles etc.

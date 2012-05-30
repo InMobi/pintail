@@ -1,5 +1,6 @@
 package com.inmobi.messaging.flume;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +34,7 @@ public class FlumeMessagePublisher extends AbstractMessagePublisher {
   private Thread senderThread;
 
   @Override
-  public void init(ClientConfig config) {
+  public void init(ClientConfig config) throws IOException {
     super.init(config);
     batchSize = config.getInteger("flume.batchsize", 1);
     /*threadPool = new ThreadPoolExecutor(CONCURRENT_SENDERS, CONCURRENT_SENDERS,

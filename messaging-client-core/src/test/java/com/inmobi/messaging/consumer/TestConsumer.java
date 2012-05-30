@@ -1,5 +1,6 @@
 package com.inmobi.messaging.consumer;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.Date;
 
@@ -13,7 +14,7 @@ public class TestConsumer {
   private Date now = new Date(System.currentTimeMillis());
 
   @Test
-  public void test() {
+  public void test() throws Exception {
     ClientConfig conf = new ClientConfig();
     conf.set(MessageConsumerFactory.CONSUMER_CLASS_NAME_KEY,
         MockConsumer.class.getName());
@@ -26,14 +27,14 @@ public class TestConsumer {
   }
 
   @Test
-  public void testLoadFromClasspath() {
+  public void testLoadFromClasspath() throws Exception {
     AbstractMessageConsumer consumer =
         (AbstractMessageConsumer) MessageConsumerFactory.create();
     doTest(consumer, null);
   }
 
   @Test
-  public void testLoadFromFileName() {
+  public void testLoadFromFileName() throws Exception {
     URL url = getClass().getClassLoader().getResource(
         MessageConsumerFactory.MESSAGE_CLIENT_CONF_FILE);
     AbstractMessageConsumer consumer =
@@ -43,7 +44,7 @@ public class TestConsumer {
   }
 
   @Test
-  public void testLoadFromClassName() {
+  public void testLoadFromClassName() throws Exception {
     ClientConfig conf = new ClientConfig();
     conf.set(MessageConsumerFactory.TOPIC_NAME_KEY, "test");
     conf.set(MessageConsumerFactory.CONSUMER_NAME_KEY, "testconsumer");
@@ -54,7 +55,7 @@ public class TestConsumer {
   }
 
   @Test
-  public void testTopicNConsumerName() {
+  public void testTopicNConsumerName() throws Exception {
     AbstractMessageConsumer consumer = 
       (AbstractMessageConsumer) MessageConsumerFactory.create(
           new ClientConfig(), MockConsumer.class.getName(), "test",
@@ -63,7 +64,7 @@ public class TestConsumer {
   }
 
   @Test
-  public void testWithStartTime() {
+  public void testWithStartTime() throws Exception {
     ClientConfig conf = new ClientConfig();
     conf.set(MessageConsumerFactory.CONSUMER_CLASS_NAME_KEY,
         MockConsumer.class.getName());
@@ -75,14 +76,14 @@ public class TestConsumer {
   }
 
   @Test
-  public void testLoadFromClasspathWithStartTime() {
+  public void testLoadFromClasspathWithStartTime() throws Exception {
     AbstractMessageConsumer consumer =
         (AbstractMessageConsumer) MessageConsumerFactory.create(now);
     doTest(consumer, now);
   }
 
   @Test
-  public void testLoadFromFileNameWithStartTime() {
+  public void testLoadFromFileNameWithStartTime() throws Exception {
     URL url = getClass().getClassLoader().getResource(
         MessageConsumerFactory.MESSAGE_CLIENT_CONF_FILE);
     AbstractMessageConsumer consumer =
@@ -92,7 +93,7 @@ public class TestConsumer {
   }
 
   @Test
-  public void testLoadFromClassNameWithStartTime() {
+  public void testLoadFromClassNameWithStartTime() throws Exception {
     ClientConfig conf = new ClientConfig();
     conf.set(MessageConsumerFactory.TOPIC_NAME_KEY, "test");
     conf.set(MessageConsumerFactory.CONSUMER_NAME_KEY, "testconsumer");
@@ -103,7 +104,7 @@ public class TestConsumer {
   }
 
   @Test
-  public void testTopicNConsumerNameWithStartTime() {
+  public void testTopicNConsumerNameWithStartTime() throws Exception {
     AbstractMessageConsumer consumer = 
       (AbstractMessageConsumer) MessageConsumerFactory.create(
           new ClientConfig(), MockConsumer.class.getName(), "test",
@@ -112,7 +113,7 @@ public class TestConsumer {
   }
 
   @Test
-  public void testStartTime() {
+  public void testStartTime() throws IOException, InterruptedException {
     AbstractMessageConsumer consumer = 
       (AbstractMessageConsumer) MessageConsumerFactory.create(
           new ClientConfig(), MockConsumer.class.getName(), "test",
@@ -120,7 +121,8 @@ public class TestConsumer {
     doTest(consumer, now);
   }
 
-  private void doTest(AbstractMessageConsumer consumer, Date startTime) {
+  private void doTest(AbstractMessageConsumer consumer, Date startTime) 
+      throws InterruptedException {
     Assert.assertTrue(consumer instanceof MockConsumer);
     Assert.assertFalse(consumer.isMarkSupported());
     Assert.assertTrue(((MockConsumer)consumer).initedConf);

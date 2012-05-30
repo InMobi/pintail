@@ -1,5 +1,6 @@
 package com.inmobi.messaging.consumer;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 
@@ -13,7 +14,7 @@ import com.inmobi.messaging.ClientConfig;
 public class MessageConsumerFactory {
 
   public static final String MESSAGE_CLIENT_CONF_FILE = 
-                          "messaging-consumer-conf.properties";
+      "messaging-consumer-conf.properties";
   public static final String CONSUMER_CLASS_NAME_KEY = "consumer.classname";
   public static final String DEFAULT_CONSUMER_CLASS_NAME = 
       "com.inmobi.messaging.consumer.databus.DatabusConsumer";
@@ -30,8 +31,9 @@ public class MessageConsumerFactory {
    * {@value #CONSUMER_NAME_KEY}.
    *
    * @return {@link MessageConsumer} concrete object
+   * @throws IOException 
    */
-  public static MessageConsumer create() {
+  public static MessageConsumer create() throws IOException {
     return create(loadConfigFromClassPath());
   }
 
@@ -47,8 +49,9 @@ public class MessageConsumerFactory {
    * @param startTime The startTime from which messages should be read
    * 
    * @return {@link MessageConsumer} concrete object
+   * @throws IOException 
    */
-  public static MessageConsumer create(Date startTime) {
+  public static MessageConsumer create(Date startTime) throws IOException {
     return create(loadConfigFromClassPath(), startTime);
   }
 
@@ -65,8 +68,9 @@ public class MessageConsumerFactory {
    * @param confFile The file name
    *  
    * @return {@link MessageConsumer} concrete object
+   * @throws IOException 
    */
-  public static MessageConsumer create(String confFile) {
+  public static MessageConsumer create(String confFile) throws IOException {
     return create(ClientConfig.load(confFile));
   }
 
@@ -82,8 +86,10 @@ public class MessageConsumerFactory {
    * @param confFile The file name
    *  
    * @return {@link MessageConsumer} concrete object
+   * @throws IOException 
    */
-  public static MessageConsumer create(String confFile, Date startTime) {
+  public static MessageConsumer create(String confFile, Date startTime)
+      throws IOException {
     return create(ClientConfig.load(confFile), startTime);
   }
 
@@ -98,13 +104,14 @@ public class MessageConsumerFactory {
    *
    * @param config {@link ClientConfig} object
    * @return {@link MessageConsumer} concrete object
+   * @throws IOException 
    */
-  public static MessageConsumer create(ClientConfig config) {
+  public static MessageConsumer create(ClientConfig config) throws IOException {
     String consumerName = config.getString(CONSUMER_CLASS_NAME_KEY,
         DEFAULT_CONSUMER_CLASS_NAME);
     return create(config, consumerName);
   }
-  
+
   /**
    * Creates concrete class extending {@link AbstractMessageConsumer} given by
    * name {@value #CONSUMER_CLASS_NAME_KEY}, using the passed configuration
@@ -118,12 +125,14 @@ public class MessageConsumerFactory {
    * @param startTime The startTime from which messages should be read
    *
    * @return {@link MessageConsumer} concrete object
+   * @throws IOException 
    */
-   public static MessageConsumer create(ClientConfig config, Date startTime) {
-     String consumerName = config.getString(CONSUMER_CLASS_NAME_KEY,
-         DEFAULT_CONSUMER_CLASS_NAME);
-     return create(config, consumerName, startTime);
-   }   
+  public static MessageConsumer create(ClientConfig config, Date startTime)
+      throws IOException {
+    String consumerName = config.getString(CONSUMER_CLASS_NAME_KEY,
+        DEFAULT_CONSUMER_CLASS_NAME);
+    return create(config, consumerName, startTime);
+  }   
 
   /**
    * Creates concrete class extending {@link AbstractMessageConsumer} with
@@ -137,9 +146,10 @@ public class MessageConsumerFactory {
    * @param consumerClassName The class name of the consumer implementation
    * 
    * @return {@link MessageConsumer} concrete object
+   * @throws IOException 
    */
   public static MessageConsumer create(ClientConfig config,
-                                       String consumerClassName) {
+      String consumerClassName) throws IOException {
     return create(config, consumerClassName, null);
   }
 
@@ -156,10 +166,11 @@ public class MessageConsumerFactory {
    * @param startTime The startTime from which messages should be read
    * 
    * @return {@link MessageConsumer} concrete object
+   * @throws IOException 
    */
   public static MessageConsumer create(ClientConfig config,
-                                       String consumerClassName, 
-                                       Date startTime) {
+      String consumerClassName, 
+      Date startTime) throws IOException {
     return create(config, consumerClassName, config.getString(TOPIC_NAME_KEY),
         config.getString(CONSUMER_NAME_KEY), startTime);
   }
@@ -176,11 +187,12 @@ public class MessageConsumerFactory {
    * @param consumerName The name of the conusmer being consumed
    * 
    * @return {@link MessageConsumer} concrete object
+   * @throws IOException 
    */
   public static MessageConsumer create(ClientConfig config,
-                                       String consumerClassName,
-                                       String topicName,
-                                       String consumerName) {
+      String consumerClassName,
+      String topicName,
+      String consumerName) throws IOException {
     return create(config, consumerClassName, topicName, consumerName, null);
   }
 
@@ -197,20 +209,21 @@ public class MessageConsumerFactory {
    * @param startTime The starting time from which messages should be consumed.
    * 
    * @return {@link MessageConsumer} concrete object
+   * @throws IOException 
    */
   public static MessageConsumer create(ClientConfig config,
-                                       String consumerClassName,
-                                       String topicName,
-                                       String consumerName,
-                                       Date startTime) {
+      String consumerClassName,
+      String topicName,
+      String consumerName,
+      Date startTime) throws IOException {
     AbstractMessageConsumer consumer = createAbstractConsumer(consumerClassName);
     if (topicName == null) {
       throw new RuntimeException("Could not create consumer with null topic" +
-        " name");
+          " name");
     }
     if (consumerName == null) {
       throw new RuntimeException("Could not create consumer with null consumer"
-        + " name");
+          + " name");
     }
     config.set(CONSUMER_CLASS_NAME_KEY, consumerClassName);
     config.set(TOPIC_NAME_KEY, topicName);
@@ -228,7 +241,7 @@ public class MessageConsumerFactory {
     }
     return ClientConfig.load(in);
   }
-  
+
   private static AbstractMessageConsumer createAbstractConsumer(
       String consumerClassName) {
     Class<?> clazz;
@@ -243,6 +256,5 @@ public class MessageConsumerFactory {
     }
     return consumer;
   }
-  
 
 }

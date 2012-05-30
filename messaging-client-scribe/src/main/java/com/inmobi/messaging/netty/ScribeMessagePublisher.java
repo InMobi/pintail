@@ -1,5 +1,6 @@
 package com.inmobi.messaging.netty;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Map;
 
@@ -55,7 +56,7 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher {
       }
     }
 
-    public Channel connect() throws Exception {
+    public Channel connect() throws IOException {
       int numRetries = 0;
       Channel channel = null;
       while (true) {
@@ -69,11 +70,11 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher {
           setChannel(channel);
           if (!future.isSuccess()) {
             bootstrap.releaseExternalResources();
-            throw new Exception(future.getCause());
+            throw new IOException(future.getCause());
           } else {
             return channel;
           }
-        } catch (Exception e) {
+        } catch (IOException e) {
           numRetries++;
           if (numRetries >= maxConnectionRetries) {
             throw e;
@@ -85,7 +86,7 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher {
   }
 
   public void init(String host, int port, int backoffSeconds,
-      int timeoutSeconds, int maxConnectionRetries) throws Exception {
+      int timeoutSeconds, int maxConnectionRetries) throws IOException {
     this.host = host;
     this.port = port;
     bootstrap = new ClientBootstrap(NettyEventCore.getInstance().getFactory());
@@ -101,7 +102,7 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher {
   }
 
   @Override
-  public void init(ClientConfig config) {
+  public void init(ClientConfig config) throws IOException {
     super.init(config);
     String host = config.getString("scribe.host", "localhost");
     int port = config.getInteger("scribe.port", 1111);
@@ -112,11 +113,7 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher {
     LOG.info("Initialized ScribeMessagePublisher with host:" + host + " port:" +
         " backoffSeconds:" + backoffSeconds + " timeoutSeconds:"
         + timeoutSeconds + " maxConnectionRetries:" + maxConnectionRetries);
-    try {
-      init(host, port, backoffSeconds, timeoutSeconds, maxConnectionRetries);
-    } catch (Exception e) {
-      throw new RuntimeException("Could not initialize", e);
-    }
+    init(host, port, backoffSeconds, timeoutSeconds, maxConnectionRetries);
   }
 
   @Override

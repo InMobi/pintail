@@ -1,5 +1,6 @@
 package com.inmobi.messaging.logger;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import org.apache.log4j.AppenderSkeleton;
@@ -94,10 +95,14 @@ public class MessageAppender extends AppenderSkeleton {
     super.activateOptions();
     System.out.println("Config file set is: " + conffile);
     System.out.println("Fixed topic set is: " + topic);
+    try {
     if (conffile != null) {
       publisher = MessagePublisherFactory.create(conffile);
     } else {
       publisher = MessagePublisherFactory.create();
+    }
+    } catch(IOException e) {
+      throw new RuntimeException("Could not create publisher", e);
     }
     
   }
