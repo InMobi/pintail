@@ -273,7 +273,7 @@ public class TestDatabusConsumer {
     testAllClusters(consumer);
   }
 
-  private void testAllClusters(DatabusConsumer consumer) {
+  private void testAllClusters(DatabusConsumer consumer) throws Exception {
     int counter1 = 0;
     int counter2 = 0;
     int counter3 = 0;

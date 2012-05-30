@@ -11,7 +11,6 @@ import random.pkg.NtMultiServer;
 
 import com.inmobi.instrumentation.TimingAccumulator;
 import com.inmobi.messaging.netty.ScribeMessagePublisher;
-import com.inmobi.messaging.publisher.MessagePublisher;
 
 public class TestSimple {
   private NtMultiServer server;
@@ -30,11 +29,10 @@ public class TestSimple {
   }
 
   @Test()
-  public void simpleSend() throws TException, InterruptedException {
+  public void simpleSend() throws Exception {
     server.start();
     
     publisher = TestServerStarter.createPublisher();
-    waitForConnectComplete(publisher);
     TimingAccumulator inspector = publisher.getStats();
     long success = inspector.getSuccessCount();
     publisher.publish("ch", new Message("mmmm".getBytes()));
@@ -46,13 +44,4 @@ public class TestSimple {
     assertEquals(inspector.getSuccessCount(), success + 1);
   }
 
-  public static void waitForConnectComplete(MessagePublisher m) {
-    // Stoopid implementation
-    try {
-      Thread.sleep(200);
-    } catch (InterruptedException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-  }
 }

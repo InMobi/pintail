@@ -1,10 +1,14 @@
 package com.inmobi.messaging.netty;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.netty.util.Timer;
@@ -15,7 +19,13 @@ import com.inmobi.messaging.Message;
 import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 
 public class ScribeMessagePublisher extends AbstractMessagePublisher {
+  private static final Log LOG = LogFactory.getLog(ScribeMessagePublisher.class);
+
   private static final Timer timer = new HashedWheelTimer();
+
+  public static final String maxConnectionRetriesConfig =
+      "scribe.maxconnectionretries";
+  public static final int DEFAULT_MAX_CONNECTION_RETRIES = 3;
 
   private String host;
   private int port;
@@ -30,39 +40,80 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher {
    * wrapper object that knows to update our pointer
    */
   class ChannelSetter {
+    final int maxConnectionRetries;
+    ChannelSetter(int maxConns) {
+      maxConnectionRetries = maxConns;
+    }
     public void setChannel(Channel ch) {
       Channel oldChannel = ScribeMessagePublisher.this.ch;
-      if (oldChannel != null && oldChannel.isOpen())
-        oldChannel.close();
-      ScribeMessagePublisher.this.ch = ch;
+      if (ch != oldChannel) {
+        if (oldChannel != null && oldChannel.isOpen()) {
+          LOG.info("Closing old channel " + oldChannel.getId());
+          oldChannel.close();
+        }
+        LOG.info("setting channel to " + ch.getId());
+        ScribeMessagePublisher.this.ch = ch;
+      }
     }
 
-    public void connect() {
-      bootstrap.connect(new InetSocketAddress(host, port));
+    public Channel connect() throws IOException {
+      int numRetries = 0;
+      Channel channel = null;
+      while (true) {
+        try {
+          LOG.info("Connecting to scribe host:" + host + " port:" + port);
+          ChannelFuture future = bootstrap.connect(new InetSocketAddress(host,
+              port));
+          channel =
+              future.awaitUninterruptibly().getChannel();
+          LOG.info("Connected to Scribe");
+          setChannel(channel);
+          if (!future.isSuccess()) {
+            bootstrap.releaseExternalResources();
+            throw new IOException(future.getCause());
+          } else {
+            return channel;
+          }
+        } catch (IOException e) {
+          numRetries++;
+          if (numRetries >= maxConnectionRetries) {
+            throw e;
+          }
+          LOG.warn("Got exception while connecting. Retrying", e);
+        }
+      }
     }
   }
 
-  public void init(String host, int port, 
-      int backoffSeconds, int timeoutSeconds) {
+  public void init(String host, int port, int backoffSeconds,
+      int timeoutSeconds, int maxConnectionRetries) throws IOException {
+    this.host = host;
+    this.port = port;
     bootstrap = new ClientBootstrap(NettyEventCore.getInstance().getFactory());
 
-    ScribeHandler handler = new ScribeHandler(getStats(), new ChannelSetter(),
+    ChannelSetter chs = new ChannelSetter(maxConnectionRetries);
+    ScribeHandler handler = new ScribeHandler(getStats(), chs,
         backoffSeconds, timer);
     ChannelPipelineFactory cfactory = new ScribePipelineFactory(handler,
         timeoutSeconds, timer);
-
     bootstrap.setPipelineFactory(cfactory);
-    bootstrap.connect(new InetSocketAddress(host, port));
+    chs.connect();
+    handler.setInited();
   }
 
   @Override
-  public void init(ClientConfig config) {
+  public void init(ClientConfig config) throws IOException {
     super.init(config);
-    this.host = config.getString("scribe.host", "localhost");
-    this.port = config.getInteger("scribe.port", 1111);
+    String host = config.getString("scribe.host", "localhost");
+    int port = config.getInteger("scribe.port", 1111);
     int backoffSeconds = config.getInteger("scribe.backoffSeconds", 5);
     int timeoutSeconds = config.getInteger("scribe.timeoutSeconds", 5);
-    init(host, port, backoffSeconds, timeoutSeconds);
+    int maxConnectionRetries = config.getInteger(maxConnectionRetriesConfig,
+        DEFAULT_MAX_CONNECTION_RETRIES);
+    LOG.info("Initialized ScribeMessagePublisher with host:" + host + " port:" +
+        " backoffSeconds:" + backoffSeconds + " timeoutSeconds:"
+        + timeoutSeconds + " maxConnectionRetries:" + maxConnectionRetries);
+    init(host, port, backoffSeconds, timeoutSeconds, maxConnectionRetries);
   }
 
   @Override
@@ -75,6 +126,7 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher {
   }
 
   private void suggestReconnect() {
+    LOG.warn("Suggesting reconnect as channel is null");
     getStats().accumulateOutcomeWithDelta(Outcome.UNHANDLED_FAILURE, 0);
     // TODO: logic for triggering reconnect
   }

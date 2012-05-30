@@ -37,13 +37,13 @@ public class TestServerStarter {
   public static final int port = 7912;
 
   public static ScribeMessagePublisher createPublisher(int port, 
-      int timeout) {
+      int timeout) throws Exception {
     ScribeMessagePublisher pub = new ScribeMessagePublisher();
-    pub.init("localhost", port, 5, timeout);
+    pub.init("localhost", port, 5, timeout, 1);
     return pub;
   }
 
-  public static ScribeMessagePublisher createPublisher() {
+  public static ScribeMessagePublisher createPublisher() throws Exception {
     return createPublisher(port, 5);
   }
 

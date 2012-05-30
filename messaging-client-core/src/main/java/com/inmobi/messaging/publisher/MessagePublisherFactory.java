@@ -1,5 +1,6 @@
 package com.inmobi.messaging.publisher;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 import com.inmobi.messaging.ClientConfig;
@@ -23,8 +24,9 @@ public class MessagePublisherFactory {
    * Also initializes the publisher class with passed configuration.
    * 
    * @return {@link MessagePublisher} concrete object
+   * @throws IOException 
    */
-  public static MessagePublisher create() {
+  public static MessagePublisher create() throws IOException {
     InputStream in = ClientConfig.class
         .getClassLoader().getResourceAsStream(MESSAGE_CLIENT_CONF_FILE);
     if (in == null) {
@@ -43,8 +45,9 @@ public class MessagePublisherFactory {
    * @param confFile The configuration File name.
    * 
    * @return {@link MessagePublisher} concrete object
+   * @throws IOException 
    */
-  public static MessagePublisher create(String confFile) {
+  public static MessagePublisher create(String confFile) throws IOException {
     ClientConfig config = ClientConfig.load(confFile);
     return create(config);
   }
@@ -58,8 +61,10 @@ public class MessagePublisherFactory {
    * @param config The {@link ClientConfig}
    *
    * @return {@link MessagePublisher} concrete object
+   * @throws IOException 
    */
-  public static MessagePublisher create(ClientConfig config) {
+  public static MessagePublisher create(ClientConfig config) 
+      throws IOException {
     String publisherName = config
         .getString(PUBLISHER_CLASS_NAME_KEY, DEFAULT_PUBLISHER_CLASS_NAME);
     return create(config, publisherName);
@@ -73,9 +78,10 @@ public class MessagePublisherFactory {
    * @param config The {@link ClientConfig}
    *
    * @return {@link MessagePublisher} concrete object
+   * @throws IOException 
    */
   public static MessagePublisher create(ClientConfig config,
-                                        String publisherClassName) {
+       String publisherClassName) throws IOException {
     Class<?> clazz;
     AbstractMessagePublisher publisher = null;
     try {

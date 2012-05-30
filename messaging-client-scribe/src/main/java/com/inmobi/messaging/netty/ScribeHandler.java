@@ -6,7 +6,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelHandler;
@@ -17,6 +16,9 @@ import org.jboss.netty.util.TimerTask;
 import com.inmobi.instrumentation.TimingAccumulator;
 import com.inmobi.instrumentation.TimingAccumulator.Outcome;
 import com.inmobi.messaging.netty.ScribeMessagePublisher.ChannelSetter;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.thrift.transport.TMemoryInputTransport;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TMessage;
@@ -27,11 +29,14 @@ import org.apache.thrift.protocol.TType;
 import scribe.thrift.ResultCode;
 
 public class ScribeHandler extends SimpleChannelHandler {
+  private static final Log LOG = LogFactory.getLog(ScribeHandler.class);
+
   private final TimingAccumulator stats;
   private final ChannelSetter channelSetter;
   private volatile long connectRequestTime = 0;
   private long backoffSeconds;
   private Timer timer;
+  private boolean connectionInited = false;
 
   private final Semaphore lock = new Semaphore(1);
 
@@ -41,6 +46,10 @@ public class ScribeHandler extends SimpleChannelHandler {
     this.channelSetter = channelSetter;
     this.backoffSeconds = backoffSeconds;
     this.timer = timer;
+  }
+  
+  void setInited() {
+    connectionInited = true;
   }
 
   @Override
@@ -87,11 +96,13 @@ public class ScribeHandler extends SimpleChannelHandler {
       throws Exception {
     Throwable cause = e.getCause();
 
+    LOG.warn("Exception caught:", cause);
     if (!(cause instanceof ConnectException)) {
       stats.accumulateOutcomeWithDelta(Outcome.UNHANDLED_FAILURE, 0);
     }
-    scheduleReconnect();
-
+    if (connectionInited) {
+      scheduleReconnect();
+    }
   }
 
   private void scheduleReconnect() {
@@ -115,17 +126,6 @@ public class ScribeHandler extends SimpleChannelHandler {
       } finally {
         lock.release();
       }
-    }
-  }
-
-  @Override
-  public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
-      throws Exception {
-    lock.acquire();
-    try {
-      channelSetter.setChannel(e.getChannel());
-    } finally {
-      lock.release();
     }
   }
 }

@@ -5,6 +5,8 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import java.io.IOException;
+
 import org.apache.flume.api.RpcClient;
 import org.mockito.Mockito;
 import org.testng.Assert;
@@ -20,7 +22,7 @@ public class TestFlumePublisher {
   private FlumeMessagePublisher publisher;
 
   @BeforeMethod
-  public void init() {
+  public void init() throws IOException {
     mockRpcClient = Mockito.mock(RpcClient.class);
     ClientConfig config = new ClientConfig();
     publisher = new MockFlumePublisher();

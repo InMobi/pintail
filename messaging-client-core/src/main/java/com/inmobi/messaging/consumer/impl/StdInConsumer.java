@@ -18,14 +18,14 @@ public class StdInConsumer extends AbstractMessageConsumer {
   BufferedReader in;
   String topicName;
 
-  protected void init(ClientConfig config) {
+  protected void init(ClientConfig config) throws IOException {
 	  super.init(config);
 	  topicName = getConfig().getString("stdin.topic");
 	  start();
   }
 
   @Override
-  public Message next() {
+  public Message next() throws InterruptedException {
     try {
       String str = in.readLine();
       if (str != null) {
@@ -43,12 +43,12 @@ public class StdInConsumer extends AbstractMessageConsumer {
   }
 
   @Override
-  public void mark() {
+  public void mark() throws IOException {
     // nothing to commit
   }
 
   @Override
-  public void reset() {
+  public void reset() throws IOException {
     // nothing to rollback
   }
 

@@ -1,5 +1,6 @@
 package com.inmobi.messaging.publisher;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,7 +50,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     return statEnabled;
   }
 
-  protected void init(ClientConfig config) {
+  protected void init(ClientConfig config) throws IOException {
     try {
       String emitterConfig = config
           .getString(MessagePublisherFactory.EMITTER_CONF_FILE_KEY);
@@ -84,7 +85,8 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
       emitter.add(statExposer);
       statEnabled = true;
     } catch (Exception e) {
-      LOG.warn("Couldn't find or initialize the configured stats emitter", e);
+      throw new IOException("Couldn't find or initialize the configured stats" +
+      		" emitter", e);
     }
   }
 
