@@ -30,7 +30,7 @@ public class TestTimeouts {
   }
 
   @Test()
-  public void simpleSend() throws TException, InterruptedException {
+  public void simpleSend() throws Exception {
     NtMultiServer tserver = null;
     try {
       int port = 7914;
@@ -39,7 +39,6 @@ public class TestTimeouts {
 
       int timeoutSeconds = 2;
       mb = TestServerStarter.createPublisher(port, timeoutSeconds);
-      TestSimple.waitForConnectComplete(mb);
       TimingAccumulator inspector = mb.getStats();
 
       long error = inspector.getUnhandledExceptionCount();
