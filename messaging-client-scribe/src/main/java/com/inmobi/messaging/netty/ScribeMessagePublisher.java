@@ -137,6 +137,7 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher {
     if (ch != null) {
       ch.close().awaitUninterruptibly();
     }
+    timer.stop();
     NettyEventCore.getInstance().releaseFactory();
   }
 }
