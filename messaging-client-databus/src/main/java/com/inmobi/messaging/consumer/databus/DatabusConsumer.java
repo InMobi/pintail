@@ -135,19 +135,19 @@ implements DatabusConsumerConfig {
     try {
       DatabusConfigParser parser = new DatabusConfigParser(fileName);
       databusConfig = parser.getConfig();
-      if (UserGroupInformation.isSecurityEnabled()) {
-        String principal = config.getString(databusConsumerPrincipal);
-        String keytab = config.getString(databusConsumerKeytab);
-        if (principal != null && keytab != null) {
-          SecureLoginUtil.login(databusConsumerPrincipal, principal,
-              databusConsumerKeytab, keytab);
-        } else {
-          LOG.info("There is no principal or key tab file passed. Using the" +
-              " commandline authentication.");
-        }
-      }
     } catch (Exception e) {
       throw new IllegalArgumentException("Could not load databusConfig", e);
+    }
+    if (UserGroupInformation.isSecurityEnabled()) {
+      String principal = config.getString(databusConsumerPrincipal);
+      String keytab = config.getString(databusConsumerKeytab);
+      if (principal != null && keytab != null) {
+        SecureLoginUtil.login(databusConsumerPrincipal, principal,
+            databusConsumerKeytab, keytab);
+      } else {
+        LOG.info("There is no principal or key tab file passed. Using the" +
+            " commandline authentication.");
+      }
     }
     LOG.info("Databus consumer initialized with streamName:" + topicName +
         " consumerName:" + consumerName + " startTime:" + startTime +
