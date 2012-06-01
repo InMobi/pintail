@@ -12,7 +12,7 @@ public interface DatabusConsumerConfig {
   
   public static final String waitTimeForFlushConfig = 
   "databus.consumer.waittime.forcollectorflush";
-  public static final long DEFAULT_WAIT_TIME_FOR_FLUSH = 1000; // 1 second
+  public static final long DEFAULT_WAIT_TIME_FOR_FLUSH = 5000; // 5 second
   
   public static final String databusConfigFileKey = "databus.conf";
   public static final String DEFAULT_DATABUS_CONFIG_FILE = "databus.xml";
