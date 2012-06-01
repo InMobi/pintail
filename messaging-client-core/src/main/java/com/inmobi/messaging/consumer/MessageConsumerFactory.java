@@ -1,7 +1,6 @@
 package com.inmobi.messaging.consumer;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Date;
 
 import com.inmobi.messaging.ClientConfig;
@@ -34,7 +33,7 @@ public class MessageConsumerFactory {
    * @throws IOException 
    */
   public static MessageConsumer create() throws IOException {
-    return create(loadConfigFromClassPath());
+    return create(ClientConfig.loadFromClasspath(MESSAGE_CLIENT_CONF_FILE));
   }
 
   /**
@@ -52,7 +51,8 @@ public class MessageConsumerFactory {
    * @throws IOException 
    */
   public static MessageConsumer create(Date startTime) throws IOException {
-    return create(loadConfigFromClassPath(), startTime);
+    return create(ClientConfig.loadFromClasspath(MESSAGE_CLIENT_CONF_FILE),
+        startTime);
   }
 
 
@@ -230,16 +230,6 @@ public class MessageConsumerFactory {
     config.set(CONSUMER_NAME_KEY, consumerName);
     consumer.init(topicName, consumerName, startTime, config);
     return consumer;
-  }
-
-  private static ClientConfig loadConfigFromClassPath() {
-    InputStream in = ClientConfig.class.getClassLoader().getResourceAsStream(
-        MESSAGE_CLIENT_CONF_FILE);
-    if (in == null) {
-      throw new RuntimeException("could not load conf file "
-          + MESSAGE_CLIENT_CONF_FILE + " from classpath.");
-    }
-    return ClientConfig.load(in);
   }
 
   private static AbstractMessageConsumer createAbstractConsumer(

@@ -1,7 +1,6 @@
 package com.inmobi.messaging.publisher;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 import com.inmobi.messaging.ClientConfig;
 
@@ -27,14 +26,7 @@ public class MessagePublisherFactory {
    * @throws IOException 
    */
   public static MessagePublisher create() throws IOException {
-    InputStream in = ClientConfig.class
-        .getClassLoader().getResourceAsStream(MESSAGE_CLIENT_CONF_FILE);
-    if (in == null) {
-      throw new RuntimeException("could not load conf file " + 
-          MESSAGE_CLIENT_CONF_FILE + " from classpath.");
-    }
-    ClientConfig config = ClientConfig.load(in);
-    return create(config);
+    return create(ClientConfig.loadFromClasspath(MESSAGE_CLIENT_CONF_FILE));
   }
 
   /**

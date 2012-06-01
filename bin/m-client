@@ -27,6 +27,7 @@
 CLIENT_FILELOGGER_CLASS="com.inmobi.messaging.publisher.examples.FileLoggerClient"
 CLIENT_SEQGEN_CLASS="com.inmobi.messaging.publisher.examples.SeqGeneratorClient"
 CLIENT_CONSOLECONSUMER_CLASS="com.inmobi.messaging.consumer.examples.ConsoleClient"
+CLIENT_BENCHMARK_CLASS="com.inmobi.messaging.consumer.examples.StreamingBenchmark"
 
 ################################
 # functions
@@ -61,6 +62,7 @@ display_help() {
 Usage: $0 file <topic> <file> --conf <confdir>
        $0 seqgen <topic> <maxSeq> --conf <confdir>
        $0 consoleconsumer --conf <confdir> 
+       $0 benchmark <no-of-msgs> <sleepMillis-every-msg> --conf <confdir>
 
 EOF
 }
@@ -87,7 +89,7 @@ run_client() {
 # set default params
 CLIENT_CLASSPATH=""
 CLIENT_JAVA_LIBRARY_PATH=""
-JAVA_OPTS="-Xmx20m"
+JAVA_OPTS="-Xmx128M"
 
 opt_conf=""
 
@@ -107,6 +109,9 @@ case "$mode" in
     ;;
   consoleconsumer)
     opt_consoleconsumer=1
+    ;;
+  benchmark)
+    opt_benchmark=1
     ;;
   *)
     error "Unknown or unspecified command '$mode'"
@@ -181,6 +186,8 @@ elif [ -n "$opt_seqgen" ] ; then
   run_client $CLIENT_SEQGEN_CLASS $args
 elif [ -n "$opt_consoleconsumer" ] ; then
   run_client $CLIENT_CONSOLECONSUMER_CLASS $args
+elif [ -n "$opt_benchmark" ] ; then
+  run_client $CLIENT_BENCHMARK_CLASS $args
 else
   error "This message should never appear" 1
 fi
