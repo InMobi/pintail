@@ -10,6 +10,9 @@
     <project.version>1.0.0-SNAPSHOT</project.version>
   </properties>
 
+  <scm>
+    <connection>scm:git:git://github.com/InMobi/messaging-client</connection>
+    <url>https://github.com/InMobi/messaging-client</url></scm>
   <dependencyManagement>
     <dependencies>
       <dependency>
