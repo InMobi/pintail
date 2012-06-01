@@ -32,7 +32,7 @@ public class TestPartitionReaderMovingFilesFromLocalStream {
   public void setup() throws Exception {
     // setup cluster
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
-        testStream, partitionId, files, null, 4);
+        testStream, partitionId, files, null, 4, false);
     fs = FileSystem.get(cluster.getHadoopConf());
   }
 
@@ -84,5 +84,6 @@ public class TestPartitionReaderMovingFilesFromLocalStream {
     TestUtil.assertBuffer(files[5], 6, 0, 50, partitionId, buffer);
     TestUtil.assertBuffer(files[5], 6, 50, 50, partitionId, buffer);
     Assert.assertTrue(buffer.isEmpty());
+    preader.close();
   }
 }

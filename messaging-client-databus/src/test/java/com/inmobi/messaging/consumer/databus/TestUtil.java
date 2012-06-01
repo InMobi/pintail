@@ -54,6 +54,7 @@ public class TestUtil {
   static void createEmptyFile(FileSystem fs, Path parent, String fileName)
       throws IOException {
     FSDataOutputStream out = fs.create(new Path(parent, fileName));
+    LOG.info("Created empty file:" + new Path(parent, fileName));
     out.close();
   }
 
@@ -115,14 +116,16 @@ public class TestUtil {
 
   static Cluster setupLocalCluster(String className, String testStream,
       PartitionId pid, String[] collectorFiles,
-      String[] emptyFiles, int numFilesToMoveToStreamLocal) throws Exception {
+      String[] emptyFiles, int numFilesToMoveToStreamLocal,
+      boolean withoutSymlink) throws Exception {
     return setupCluster(className, testStream, pid, "file:///", collectorFiles,
-        emptyFiles, numFilesToMoveToStreamLocal);
+        emptyFiles, numFilesToMoveToStreamLocal, withoutSymlink);
   }
 
   private static Cluster setupCluster(String className, String testStream,
       PartitionId pid, String hdfsUrl, String[] collectorFiles, 
-      String[] emptyFiles, int numFilesToMoveToStreamLocal) throws Exception {
+      String[] emptyFiles, int numFilesToMoveToStreamLocal,
+      boolean withoutSymlink) throws Exception {
     Set<String> sourceNames = new HashSet<String>();
     sourceNames.add(testStream);
     Map<String, String> clusterConf = new HashMap<String, String>();
@@ -158,6 +161,11 @@ public class TestUtil {
             cluster, collectorDir, collectorFiles[i]);
       }
     }
+    
+    if (!withoutSymlink) {
+      writeCurrentScribeFileName(fs, collectorDir, testStream,
+        collectorFiles[collectorFiles.length-1]);
+    }
     return cluster;
   }
 
@@ -165,7 +173,7 @@ public class TestUtil {
       PartitionId pid, String hdfsUrl, String[] collectorFiles,
       String[] emptyFiles, int numFilesToMoveToStreamLocal) throws Exception {
     return setupCluster(className, testStream, pid, hdfsUrl, collectorFiles,
-        emptyFiles, numFilesToMoveToStreamLocal);
+        emptyFiles, numFilesToMoveToStreamLocal, false);
   }
 
   static void cleanupCluster(Cluster cluster) throws IOException {
@@ -197,5 +205,23 @@ public class TestUtil {
   public static String getCollectorFileName(String localStreamFile) {
     return localStreamFile.substring(localStreamFile.indexOf('-') + 1,
         localStreamFile.indexOf('.'));  
+  }
+
+  static void writeCurrentScribeFileName(FileSystem fs,
+      Path collectorDir, String streamName, String currentScribeFile)
+      throws IOException {
+    FSDataOutputStream scribe = fs.create(
+        new Path(collectorDir, streamName + "_current"));
+    scribe.write(currentScribeFile.getBytes());
+    scribe.write('\n');
+    scribe.close();
+    LOG.info("Written current scribe file name:" + currentScribeFile);
+  }
+
+  static void writeEmptyCurrentScribeFile(FileSystem fs, Path collectorDir,
+      String streamName) throws IOException {
+    FSDataOutputStream scribe = fs.create(
+        new Path(collectorDir, streamName + "_current"));
+    scribe.close();
   }
 }

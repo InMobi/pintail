@@ -99,7 +99,7 @@ abstract class StreamReader {
         } 
       }
     } 
-    LOG.info("Did not find current file");
+    LOG.info("Did not find current file" + currentFile + " in the stream");
     return false;
   }
 
@@ -242,6 +242,10 @@ abstract class StreamReader {
       return true;
     }
     return false;
+  }
+
+  Map.Entry<String, Path> getFirstEntry() {
+    return files.firstEntry();
   }
 
   Path getFirstFile()
