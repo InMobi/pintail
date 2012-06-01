@@ -37,6 +37,14 @@ class PartitionReader {
       PartitionCheckpoint partitionCheckpoint, Cluster cluster,
       BlockingQueue<QueueEntry> buffer, String streamName,
       Date startTime, long waitTimeForFlush) {
+    this(partitionId, partitionCheckpoint, cluster, buffer, streamName,
+        startTime, waitTimeForFlush, false);
+  }
+
+  PartitionReader(PartitionId partitionId,
+      PartitionCheckpoint partitionCheckpoint, Cluster cluster,
+      BlockingQueue<QueueEntry> buffer, String streamName,
+      Date startTime, long waitTimeForFlush, boolean withoutSymlink) {
     this.partitionId = partitionId;
     this.buffer = buffer;
     this.startTime = startTime;
@@ -50,7 +58,7 @@ class PartitionReader {
     try {
       lReader = new LocalStreamReader(partitionId,  cluster, streamName);
       cReader = new CollectorStreamReader(partitionId, cluster, streamName,
-          waitTimeForFlush);
+          waitTimeForFlush, withoutSymlink);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -212,7 +220,6 @@ class PartitionReader {
         if (line != null) {
           // add the data to queue
           byte[] data = Base64.decodeBase64(line);
-          LOG.debug("Current LineNum: " + currentReader.getCurrentLineNum());
           buffer.put(new QueueEntry(new Message(
               ByteBuffer.wrap(data)), partitionId,
               new PartitionCheckpoint(currentReader.getCurrentFile().getName(),
@@ -240,18 +247,9 @@ class PartitionReader {
                     partitionId.getCollector(),
                     cReader.getCurrentFile().getName()),
                     cReader.getCurrentLineNum())) {
-              LOG.info("Did not find current file in local stream as well." +
-              		" Setting next higher in collector stream.");
-              cReader.build();
-              if (!cReader.setNextHigher(
-                  currentReader.getCurrentFile().getName())) {
-                currentReader.close();
-                LOG.info("No stream to read");
-                currentReader = null;                
-              } else {
-                LOG.info("Reading from next higher in collector stream");
-                currentReader = cReader;
-              }
+              LOG.info("Did not find current file in local stream as well. No" +
+              		" stream to read") ;
+              currentReader = null;                
             } else {
               LOG.info("Switching to local stream as the file got moved");
               currentReader = lReader;

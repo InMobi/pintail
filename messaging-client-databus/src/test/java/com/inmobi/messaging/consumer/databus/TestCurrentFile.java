@@ -48,27 +48,12 @@ public class TestCurrentFile {
     out.sync();
   }
 
-  private void writeCurrentScribeFileName() throws IOException {
-    FSDataOutputStream scribe = fs.create(
-        new Path(collectorDir, testStream + "_current"));
-    scribe.write(currentScribeFile.getBytes());
-    scribe.write('\n');
-    scribe.close();
-  }
-
-  private void writeEmptyCurrentScribeFile() throws IOException {
-    FSDataOutputStream scribe = fs.create(
-        new Path(collectorDir, testStream + "_current"));
-    scribe.close();
-  }
-
   @AfterTest
   public void cleanup() throws IOException {
     TestUtil.cleanupCluster(cluster);
     if (dfsCluster != null) {
       dfsCluster.shutdown();
     }
-
   }
 
   @BeforeTest
@@ -85,7 +70,8 @@ public class TestCurrentFile {
 
   @Test
   public void testReadFromCurrentScribeFile() throws Exception {
-    writeCurrentScribeFileName();
+    TestUtil.writeCurrentScribeFileName(fs, collectorDir, testStream,
+        currentScribeFile);
     FSDataOutputStream out = fs.create(
         new Path(collectorDir, currentScribeFile));
     writeMessages(out, 10);
@@ -98,9 +84,10 @@ public class TestCurrentFile {
     TestUtil.assertBuffer(files[1], 2, 0, 100, partitionId, buffer);
     TestUtil.assertBuffer(files[2], 3, 0, 100, partitionId, buffer);
     TestUtil.assertBuffer(currentScribeFile, 4, 0, 10, partitionId, buffer);
-    writeEmptyCurrentScribeFile();
+    TestUtil.writeEmptyCurrentScribeFile(fs, collectorDir, testStream);
     Thread.sleep(20);
-    writeCurrentScribeFileName();
+    TestUtil.writeCurrentScribeFileName(fs, collectorDir, testStream,
+        currentScribeFile);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getCurrentReader());
     Assert.assertEquals(preader.getCurrentReader().getClass().getName(),

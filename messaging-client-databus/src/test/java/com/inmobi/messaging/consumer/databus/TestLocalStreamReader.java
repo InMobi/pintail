@@ -26,7 +26,7 @@ public class TestLocalStreamReader {
   public void setup() throws Exception {
     // initialize config
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
-        testStream, partitionId, new String[] {files[0], files[1], files[2]}, null, 3);
+        testStream, partitionId, new String[] {files[0], files[1], files[2]}, null, 3, false);
 
   }
 
