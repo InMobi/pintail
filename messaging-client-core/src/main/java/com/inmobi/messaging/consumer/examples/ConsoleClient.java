@@ -14,10 +14,8 @@ public class ConsoleClient {
     MessageConsumer consumer = MessageConsumerFactory.create();
     
     while (true) {
-      for (int i = 0; i < 1000; i++) {
-        Message msg = consumer.next();
-        System.out.println("MESSAGE:" + new String(msg.getData().array()));
-      }
+      Message msg = consumer.next();
+      System.out.println("MESSAGE:" + new String(msg.getData().array()));
     }
   }
 }
