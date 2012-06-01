@@ -35,6 +35,26 @@ public class ClientConfig {
   }
 
   /**
+   * Load configuration from of the passed filename from the classpath.
+   * 
+   * The data is in a simple line-oriented format as in 
+   * {@link Properties#load(InputStream)}
+
+   * @param confFile The file name to be loaded
+   * 
+   * @return The loaded {@link ClientConfig} object
+   */
+  public static ClientConfig loadFromClasspath(String confFile) {
+    InputStream in = ClientConfig.class.getClassLoader().getResourceAsStream(
+        confFile);
+    if (in == null) {
+      throw new RuntimeException("could not load conf file "
+          + confFile + " from classpath.");
+    }
+    return ClientConfig.load(in);
+  }
+
+  /**
    * Load configuration from the passed configuration file.
    * 
    * The data is in a simple line-oriented format as in 
