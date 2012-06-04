@@ -44,7 +44,7 @@ class PartitionReader {
   PartitionReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, Cluster cluster,
       BlockingQueue<QueueEntry> buffer, String streamName,
-      Date startTime, long waitTimeForFlush, boolean withoutSymlink) {
+      Date startTime, long waitTimeForFlush, boolean noNewFiles) {
     this.partitionId = partitionId;
     this.buffer = buffer;
     this.startTime = startTime;
@@ -58,7 +58,7 @@ class PartitionReader {
     try {
       lReader = new LocalStreamReader(partitionId,  cluster, streamName);
       cReader = new CollectorStreamReader(partitionId, cluster, streamName,
-          waitTimeForFlush, withoutSymlink);
+          waitTimeForFlush, noNewFiles);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

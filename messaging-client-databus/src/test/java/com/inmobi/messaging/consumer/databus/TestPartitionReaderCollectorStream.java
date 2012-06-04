@@ -34,7 +34,7 @@ public class TestPartitionReaderCollectorStream {
   public void setup() throws Exception {
     // setup cluster
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
-        testStream, partitionId, files, null, 0, true);
+        testStream, partitionId, files, null, 0);
     collectorDir = new Path(new Path(cluster.getDataDir(), testStream),
         collectorName);
   }

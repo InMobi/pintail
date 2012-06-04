@@ -32,7 +32,7 @@ public class TestCollectorStreamWithEmptyFiles {
   public void setup() throws Exception {
     // setup cluster
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
-        testStream, partitionId, files, emptyfiles, 0, false);
+        testStream, partitionId, files, emptyfiles, 0);
     collectorDir = new Path(new Path(cluster.getDataDir(), testStream),
         collectorName);
     fs = FileSystem.get(cluster.getHadoopConf());
@@ -45,8 +45,6 @@ public class TestCollectorStreamWithEmptyFiles {
 
   @Test
   public void testReadFromStart() throws Exception {
-    TestUtil.writeCurrentScribeFileName(fs, collectorDir, testStream,
-        emptyfiles[0]);
     PartitionReader preader = new PartitionReader(partitionId, null, cluster, buffer,
         testStream, CollectorStreamReader.getDateFromCollectorFile(files[0]),
         5);
@@ -67,10 +65,6 @@ public class TestCollectorStreamWithEmptyFiles {
         CollectorStreamReader.class.getName());
     String dataFile = TestUtil.files[2];
     
-    // change the currentScribeFileName and create the file, sothat it sees the 
-    // file after building file list 
-    TestUtil.writeCurrentScribeFileName(fs, collectorDir, testStream,
-        dataFile);
     TestUtil.setUpCollectorDataFiles(fs, collectorDir, dataFile);
     TestUtil.assertBuffer(files[0], 1, 0, 100, partitionId, buffer);
     TestUtil.assertBuffer(dataFile, 1, 0, 100, partitionId, buffer);
@@ -80,12 +74,8 @@ public class TestCollectorStreamWithEmptyFiles {
         CollectorStreamReader.class.getName());
     String emptyFile = TestUtil.files[3];
     dataFile = TestUtil.files[4];
-    TestUtil.writeCurrentScribeFileName(fs, collectorDir, testStream,
-        emptyFile);
     TestUtil.setUpEmptyFiles(fs, collectorDir, emptyFile);
     Thread.sleep(20);
-    TestUtil.writeCurrentScribeFileName(fs, collectorDir, testStream,
-        dataFile);
     fs.delete(new Path(collectorDir, emptyfiles[0]), true);
     fs.delete(new Path(collectorDir, emptyFile), true);
     Thread.sleep(50);
@@ -95,12 +85,8 @@ public class TestCollectorStreamWithEmptyFiles {
     //Test the path for next higher entry
     emptyFile = TestUtil.files[5];
     dataFile = TestUtil.files[6];
-    TestUtil.writeCurrentScribeFileName(fs, collectorDir, testStream,
-        emptyFile);
     TestUtil.setUpEmptyFiles(fs, collectorDir, emptyFile);
     Thread.sleep(20);
-    TestUtil.writeCurrentScribeFileName(fs, collectorDir, testStream,
-        dataFile);
     fs.delete(new Path(collectorDir, emptyFile), true);
     TestUtil.setUpCollectorDataFiles(fs, collectorDir, dataFile);
     TestUtil.assertBuffer(dataFile, 1, 0, 100, partitionId, buffer);

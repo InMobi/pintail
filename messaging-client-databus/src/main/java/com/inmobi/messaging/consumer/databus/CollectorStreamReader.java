@@ -23,7 +23,7 @@ class CollectorStreamReader extends StreamReader {
   private final Path collectorDir;
   private PathFilter pathFilter;
   private long waitTimeForFlush;
-  private boolean withoutSymlink = false;
+  private boolean noNewFiles = false; // this is purely for tests
 
   CollectorStreamReader(PartitionId partitionId,
       Cluster cluster, String streamName, long waitTimeForFlush) {
@@ -32,11 +32,11 @@ class CollectorStreamReader extends StreamReader {
 
   CollectorStreamReader(PartitionId partitionId,
       Cluster cluster, String streamName, long waitTimeForFlush,
-      boolean withoutSymlink) {
+      boolean noNewFiles) {
     Path streamDir = new Path(cluster.getDataDir(), streamName);
     this.collectorDir = new Path(streamDir, partitionId.getCollector());
     this.waitTimeForFlush = waitTimeForFlush;
-    this.withoutSymlink = withoutSymlink;
+    this.noNewFiles = noNewFiles;
     super.init(partitionId, cluster, streamName);
     pathFilter = new ScribePathFilter();
     LOG.info("Collector reader initialized with partitionId:" + partitionId +
@@ -100,40 +100,33 @@ class CollectorStreamReader extends StreamReader {
       line = readLine(inStream, reader);
     }
     while (line == null) { // reached end of file?
-      // see if currentFile is current file is Scribe file
-      if (isCurrentScribeFile()) {
-        LOG.info("waiting for current file to be flushed");
-        waitForFlushAndReOpen();
-        LOG.info("Reading from same file after reopen");
-      } else {
-        build(); // rebuild file list
-        if (!setIterator()) {
-          LOG.info("Could not find current file in the stream");
-          if (stillInCollectorStream()) {
-            LOG.info("Staying in collector stream as earlier files still exist");
-            if (!setNextHigher(currentFile.getName())) {
-              LOG.info("Could not find next higher file.");
-              if (waitForScribeCurrentFileCreation()) {
-                LOG.info("Reading from the current written file");
+      build(); // rebuild file list
+      if (!nextFile()) { //there is no next file
+        if (noNewFiles) {
+          // this boolean check is only for tests 
+          return null;
+        } else {
+          if (!setIterator()) {
+            LOG.info("Could not find current file in the stream");
+            if (stillInCollectorStream()) {
+              LOG.info("Staying in collector stream as earlier files still exist");
+              if (!setNextHigher(currentFile.getName())) {
+                LOG.info("Could not find next higher file.");
+                waitForNextFileCreation();
+                LOG.info("Reading from the next file after its created");
               } else {
-                return null;
+                LOG.info("Reading from next higher file");
               }
             } else {
-              LOG.info("Reading from next higher file");
+              LOG.info("Current file would have been moved to Local Stream");
+              return null;
             }
-          } else {
-            LOG.info("Current file would have been moved to Local Stream");
-            return null;
           }
-        } else if (!nextFile()) { //there is no next file
-          if (waitForScribeCurrentFileCreation()) {
-            LOG.info("Reading from the current written file");
-          } else {
-            return null;
-          }
-        } else {
-          LOG.info("Reading from next file: " + currentFile);
+          waitForFlushAndReOpen();
+          LOG.info("Reading from the same file after reopen");
         }
+      } else {
+        LOG.info("Reading from next file: " + currentFile);
       }
       line = readLine(inStream, reader);
     }
@@ -145,22 +138,11 @@ class CollectorStreamReader extends StreamReader {
     openCurrentFile(false);    
   }
 
-  boolean waitForScribeCurrentFileCreation() throws Exception {
-    String fileName = getCurrentScribeFile();
-    if (fileName == null) {
-      return false;
-    }
-    Path path = new Path(collectorDir, fileName);
-    while (!fs.exists(path)) {
-      LOG.info("Waiting for the current file to be created.");
+  void waitForNextFileCreation() throws Exception {
+    while (!setNextHigher(currentFile.getName())) {
+      LOG.info("Waiting for next new file creation");
       Thread.sleep(10);
-    }
-    build();
-    if (setNextHigher(currentFile.getName())) {
-      return true;
-    } else {
-      LOG.info("Could not find the current written file");
-      return false;
+      build();
     }
   }
 
@@ -190,40 +172,6 @@ class CollectorStreamReader extends StreamReader {
       }
       return true;
     }
-  }
-
-  private boolean isCurrentScribeFile() throws Exception {
-    if (currentFile.getName().equals(getCurrentScribeFile())) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  private String getCurrentScribeFile() throws Exception {
-    Path currentScribeFile = new Path(collectorDir, streamName + "_current");
-    String currentFileName = null;
-    while (currentFileName == null) {
-      if (fs.exists(currentScribeFile)) {
-        FSDataInputStream in = fs.open(currentScribeFile);
-        String line = new BufferedReader(new InputStreamReader(in)).readLine();
-        if (line != null) {
-          currentFileName = line.trim();
-        } else {
-          LOG.info("Waiting for data in _current file");
-          Thread.sleep(10);
-        }
-        in.close();        
-      } else {
-        LOG.info("currentScribeFile:" + currentScribeFile + " does not exist");
-        if (withoutSymlink) {
-          break; 
-        }
-        Thread.sleep(10);
-      }
-    }
-    LOG.debug("Current scribe file name:" + currentFileName);
-    return currentFileName;
   }
 
   public static Date getDateFromCollectorFile(String fileName)

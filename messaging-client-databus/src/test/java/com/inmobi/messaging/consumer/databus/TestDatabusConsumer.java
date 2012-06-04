@@ -65,8 +65,6 @@ public class TestDatabusConsumer {
           TestUtil.createMessageFile(file, fs, collectorDir, i);
           i += 100;
         }
-        TestUtil.writeCurrentScribeFileName(fs, collectorDir, testStream,
-            dataFiles[dataFiles.length - 1]);
       }
     }
   }

@@ -32,7 +32,7 @@ public class TestPartitionReaderMovingFilesFromLocalStream {
   public void setup() throws Exception {
     // setup cluster
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
-        testStream, partitionId, files, null, 4, false);
+        testStream, partitionId, files, null, 4);
     fs = FileSystem.get(cluster.getHadoopConf());
   }
 

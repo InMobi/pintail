@@ -231,8 +231,8 @@ abstract class StreamReader {
   boolean nextFile() throws IOException {
     LOG.debug("In next file");
     if (!setIterator()) {
-      LOG.info("could not set iterator for currentfile. setting next higher");
-      return setNextHigher(currentFile.getName());
+      LOG.info("could not set iterator for currentfile");
+      return false;
     }
     if (fileNameIterator.hasNext()) {
       String fileName = fileNameIterator.next();

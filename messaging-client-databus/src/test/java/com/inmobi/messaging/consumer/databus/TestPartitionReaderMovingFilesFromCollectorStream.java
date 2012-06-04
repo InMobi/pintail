@@ -37,7 +37,7 @@ public class TestPartitionReaderMovingFilesFromCollectorStream {
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
         testStream, partitionId, files,
         new String[] {TestUtil.files[5], TestUtil.files[7], TestUtil.files[9]},
-        1, false);
+        1);
     collectorDir = new Path(new Path(cluster.getDataDir(), testStream),
         collectorName);
     fs = FileSystem.get(cluster.getHadoopConf());

@@ -70,8 +70,6 @@ public class TestCurrentFile {
 
   @Test
   public void testReadFromCurrentScribeFile() throws Exception {
-    TestUtil.writeCurrentScribeFileName(fs, collectorDir, testStream,
-        currentScribeFile);
     FSDataOutputStream out = fs.create(
         new Path(collectorDir, currentScribeFile));
     writeMessages(out, 10);
@@ -84,10 +82,6 @@ public class TestCurrentFile {
     TestUtil.assertBuffer(files[1], 2, 0, 100, partitionId, buffer);
     TestUtil.assertBuffer(files[2], 3, 0, 100, partitionId, buffer);
     TestUtil.assertBuffer(currentScribeFile, 4, 0, 10, partitionId, buffer);
-    TestUtil.writeEmptyCurrentScribeFile(fs, collectorDir, testStream);
-    Thread.sleep(20);
-    TestUtil.writeCurrentScribeFileName(fs, collectorDir, testStream,
-        currentScribeFile);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getCurrentReader());
     Assert.assertEquals(preader.getCurrentReader().getClass().getName(),

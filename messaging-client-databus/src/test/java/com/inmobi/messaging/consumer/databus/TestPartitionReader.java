@@ -33,7 +33,7 @@ public class TestPartitionReader {
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
         testStream, partitionId, files,
         new String[] {TestUtil.files[5], TestUtil.files[7], TestUtil.files[9]},
-        3, true);
+        3);
     collectorDir = new Path(new Path(cluster.getDataDir(), testStream),
         collectorName);
   }
