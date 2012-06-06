@@ -23,8 +23,8 @@ public class StreamingBenchmark {
 
   public static void main(String[] args) throws Exception {
     if (args.length != 2) {
-      System.out
-          .println("Usage: StreamingBenchmark <no-of-msgs> <sleepMillis-every-msg>");
+      System.out.println(
+          "Usage: StreamingBenchmark <no-of-msgs> <sleepMillis-every-msg>");
       System.exit(-1);
     }
     long maxSent = Long.parseLong(args[0]);
@@ -36,11 +36,11 @@ public class StreamingBenchmark {
     System.out.println("Using topic: " + topic);
 
     Producer producer = new Producer(topic, maxSent, sleepMillis);
-    Consumer consumer = new Consumer(config, maxSent,
-        Calendar.getInstance().getTime());
+    Date now = Calendar.getInstance().getTime(); 
     producer.start();
+    Consumer consumer = new Consumer(config, maxSent, now);
     consumer.start();
-    
+
     StatusLogger statusPrinter = new StatusLogger(producer, consumer);
     statusPrinter.start();
 
@@ -76,7 +76,7 @@ public class StreamingBenchmark {
         String s = i + DELIMITER + Long.toString(time);
         Message msg = new Message(ByteBuffer.wrap(s.getBytes()));
         publisher.publish(topic, msg);
-        
+
         try {
           Thread.sleep(sleepMillis);
         } catch (InterruptedException e) {
@@ -153,13 +153,17 @@ public class StreamingBenchmark {
         }
         StringBuffer sb = new StringBuffer();
         sb.append(LogDateFormat.format(System.currentTimeMillis()));
-        sb.append(" Invocations:" + producer.publisher.getStats().getInvocationCount());
-        sb.append(" SentSuccess:" + producer.publisher.getStats().getSuccessCount());
-        sb.append(" UnhandledExceptions:" + producer.publisher.getStats().getUnhandledExceptionCount());
+        sb.append(" Invocations:" + producer.publisher.getStats().
+            getInvocationCount());
+        sb.append(" SentSuccess:" + producer.publisher.getStats().
+            getSuccessCount());
+        sb.append(" UnhandledExceptions:" + producer.publisher.getStats().
+            getUnhandledExceptionCount());
         sb.append(" Received:" + consumer.received);
         sb.append(" UniqueReceived:" + consumer.seqSet.size());
         if (consumer.received != 0) {
-          sb.append(" MeanLatency(ms):" + (consumer.totalLatency / consumer.received));
+          sb.append(" MeanLatency(ms):" 
+              + (consumer.totalLatency / consumer.received));
         }
         System.out.println(sb.toString());
       }
