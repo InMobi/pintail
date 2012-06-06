@@ -3,6 +3,8 @@ package com.inmobi.messaging.consumer.examples;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -34,9 +36,9 @@ public class StreamingBenchmark {
     System.out.println("Using topic: " + topic);
 
     Producer producer = new Producer(topic, maxSent, sleepMillis);
+    Consumer consumer = new Consumer(config, maxSent,
+        Calendar.getInstance().getTime());
     producer.start();
-
-    Consumer consumer = new Consumer(config, maxSent);
     consumer.start();
     
     StatusLogger statusPrinter = new StatusLogger(producer, consumer);
@@ -99,9 +101,10 @@ public class StreamingBenchmark {
     volatile long received = 0;
     volatile long totalLatency = 0;
 
-    Consumer(ClientConfig config, long maxSent) throws IOException {
+    Consumer(ClientConfig config, long maxSent, Date startTime) 
+        throws IOException {
       this.maxSent = maxSent;
-      consumer = MessageConsumerFactory.create(config);
+      consumer = MessageConsumerFactory.create(config, startTime);
     }
 
     @Override
