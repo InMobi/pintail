@@ -84,7 +84,7 @@ class PartitionReader {
             execute();
             if (stopped || thread.isInterrupted())
               return;
-          } catch (Exception e) {
+          } catch (Throwable e) {
             LOG.warn("Error in run", e);
           }
           long finishTime = System.currentTimeMillis();
@@ -258,7 +258,7 @@ class PartitionReader {
           return;
         }
       }
-    } catch (Exception e) {
+    } catch (Throwable e) {
       LOG.warn("Error while reading stream", e);
     } finally {
       try {
