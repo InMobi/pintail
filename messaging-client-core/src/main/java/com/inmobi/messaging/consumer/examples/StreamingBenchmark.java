@@ -14,6 +14,7 @@ import com.inmobi.messaging.consumer.MessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
 import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 import com.inmobi.messaging.publisher.MessagePublisherFactory;
+import com.inmobi.messaging.util.ConsumerUtil;
 
 public class StreamingBenchmark {
 
@@ -22,13 +23,18 @@ public class StreamingBenchmark {
       "yyyy:MM:dd hh:mm:ss");
 
   public static void main(String[] args) throws Exception {
-    if (args.length != 2) {
+    if (args.length < 2) {
       System.out.println(
-          "Usage: StreamingBenchmark <no-of-msgs> <sleepMillis-every-msg>");
+          "Usage: StreamingBenchmark <no-of-msgs> <sleepMillis-every-msg>" +
+          " [<timezone>]");
       System.exit(-1);
     }
     long maxSent = Long.parseLong(args[0]);
     int sleepMillis = Integer.parseInt(args[1]);
+    String timezone = null;
+    if (args.length == 3) {
+      timezone = args[2];
+    }
 
     ClientConfig config = ClientConfig.loadFromClasspath(
         MessageConsumerFactory.MESSAGE_CLIENT_CONF_FILE);
@@ -36,7 +42,14 @@ public class StreamingBenchmark {
     System.out.println("Using topic: " + topic);
 
     Producer producer = new Producer(topic, maxSent, sleepMillis);
-    Date now = Calendar.getInstance().getTime(); 
+    Date now;
+    if (timezone != null) {
+      now = ConsumerUtil.getCurrenDateForTimeZone(timezone);
+    } else {
+      now = Calendar.getInstance().getTime(); 
+    }
+    System.out.println("Starting from " + now);
+    
     producer.start();
     Consumer consumer = new Consumer(config, maxSent, now);
     consumer.start();
