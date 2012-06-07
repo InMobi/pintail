@@ -195,6 +195,11 @@ class LocalStreamReader extends StreamReader {
     return reader;
   }
 
+  protected void skipOldData(FSDataInputStream in, BufferedReader reader)
+      throws IOException {
+    skipLines(in, reader, currentLineNum);
+  }
+
   boolean isLocalStreamFile(String fileName) {
     return isLocalStreamFile(streamName, collector, fileName);
   }

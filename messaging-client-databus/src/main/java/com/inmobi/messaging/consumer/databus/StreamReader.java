@@ -33,7 +33,6 @@ abstract class StreamReader {
   protected PartitionId partitionId;
   protected Path currentFile;
   protected long currentLineNum = 0;
-  protected long numLinesTobeSkipped;
   protected FileSystem fs;
 
   protected void init(PartitionId partitionId, Cluster cluster, 
@@ -63,9 +62,8 @@ abstract class StreamReader {
     if (next) {
       resetCurrentFileSettings();
     } 
-    numLinesTobeSkipped = currentLineNum;  
     LOG.info("Opening file:" + currentFile);
-    LOG.debug("NumLinesTobeSkipped when opening:" + numLinesTobeSkipped);
+    LOG.debug("NumLinesTobeSkipped when opening:" + currentLineNum);
     if (fs.exists(currentFile)) {
       inStream = fs.open(currentFile);
       reader = getReader(inStream);
@@ -103,8 +101,12 @@ abstract class StreamReader {
     return false;
   }
 
+  protected void initCurrentFile() {
+    resetCurrentFile();    
+  }
+
   boolean initializeCurrentFile(Date timestamp) throws Exception {
-    resetCurrentFile();
+    initCurrentFile();
     this.timestamp = timestamp;
     currentFile = getFileForTimeStamp(timestamp);
     if (currentFile != null) {
@@ -117,7 +119,7 @@ abstract class StreamReader {
 
   boolean initializeCurrentFile(PartitionCheckpoint checkpoint)
       throws Exception {
-    resetCurrentFile();
+    initCurrentFile();
     this.checkpoint = checkpoint;
     LOG.debug("checkpoint:" + checkpoint);
     currentFile = getFileForCheckpoint(checkpoint);
@@ -131,7 +133,7 @@ abstract class StreamReader {
   }
 
   boolean initFromStart() throws Exception {
-    resetCurrentFile();
+    initCurrentFile();
     currentFile = getFirstFile();
 
     if (currentFile != null) {
@@ -188,7 +190,7 @@ abstract class StreamReader {
    * 
    * @return the actual number of lines skipped.
    */
-  private long skipLines(FSDataInputStream in, BufferedReader reader, 
+  protected long skipLines(FSDataInputStream in, BufferedReader reader, 
       long numLines) 
           throws IOException {
     long lineNum = 0;
@@ -220,11 +222,15 @@ abstract class StreamReader {
 
   BufferedReader getReader(FSDataInputStream in) throws IOException {
     BufferedReader reader = createReader(in);
-    skipLines(in, reader, numLinesTobeSkipped);
+    skipOldData(in, reader);
     return reader;
   }
 
-  private void resetCurrentFileSettings() {
+
+  protected abstract void skipOldData(FSDataInputStream in,
+      BufferedReader reader) throws IOException;
+
+  protected void resetCurrentFileSettings() {
     currentLineNum = 0;
   }
 

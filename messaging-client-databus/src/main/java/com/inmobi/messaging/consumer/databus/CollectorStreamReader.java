@@ -24,6 +24,8 @@ class CollectorStreamReader extends StreamReader {
   private PathFilter pathFilter;
   private long waitTimeForFlush;
   private boolean noNewFiles = false; // this is purely for tests
+  protected long currentOffset = 0;
+  private boolean sameStream = false;
 
   CollectorStreamReader(PartitionId partitionId,
       Cluster cluster, String streamName, long waitTimeForFlush) {
@@ -43,6 +45,11 @@ class CollectorStreamReader extends StreamReader {
         " streamDir:" + streamDir + 
         " collectorDir:" + collectorDir +
         " waitTimeForFlush:" + waitTimeForFlush);
+  }
+
+  protected void initCurrentFile() {
+    super.initCurrentFile();
+    sameStream = false;
   }
 
   void build() throws IOException {
@@ -81,6 +88,31 @@ class CollectorStreamReader extends StreamReader {
     return reader;
   }
 
+  protected void resetCurrentFileSettings() {
+    super.resetCurrentFileSettings();
+    currentOffset = 0;
+  }
+
+  protected void skipOldData(FSDataInputStream in, BufferedReader reader)
+      throws IOException {
+    if (sameStream) {
+      seekToOffset(in, reader);
+      LOG.info("Seek to offset:" + currentOffset);
+    } else {
+      skipLines(in, reader, currentLineNum);
+      sameStream = true;
+    }
+  }
+
+  /**
+   * Skip the number of lines passed.
+   * 
+   * @return the actual number of lines skipped.
+   */
+  private void seekToOffset(FSDataInputStream in, BufferedReader reader) 
+      throws IOException {
+    in.seek(currentOffset);
+  }
 
   @Override
   protected Path getFileForTimeStamp(Date startTime)
@@ -130,6 +162,7 @@ class CollectorStreamReader extends StreamReader {
       }
       line = readLine(inStream, reader);
     }
+    currentOffset = inStream.getPos();
     return line;
   }
 
