@@ -140,6 +140,10 @@ public class StreamingBenchmark {
         } catch (InterruptedException e) {
           e.printStackTrace();
           return;
+        } catch (Exception e) {
+          System.out.println("Got exception for " + 
+            new String(msg.getData().array()));
+          e.printStackTrace();
         }
       }
       consumer.close();
