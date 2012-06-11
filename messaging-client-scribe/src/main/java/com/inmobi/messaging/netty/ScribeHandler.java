@@ -37,6 +37,7 @@ public class ScribeHandler extends SimpleChannelHandler {
   private long backoffSeconds;
   private Timer timer;
   private boolean connectionInited = false;
+  private volatile boolean reconnectInprogress = false;
 
   private final Semaphore lock = new Semaphore(1);
 
@@ -100,8 +101,16 @@ public class ScribeHandler extends SimpleChannelHandler {
     if (!(cause instanceof ConnectException)) {
       stats.accumulateOutcomeWithDelta(Outcome.UNHANDLED_FAILURE, 0);
     }
-    if (connectionInited) {
-      scheduleReconnect();
+
+    if (connectionInited && !reconnectInprogress) {
+      if (ctx.getChannel().getId() == channelSetter.getCurrentChannel().getId()) {
+        scheduleReconnect();
+      } else {
+        LOG.info("Ignoring exception " + cause + " because it was on" + 
+             " channel" + ctx.getChannel().getId());
+      }
+    } else {
+      LOG.info("Not reconnecting for exception:" + cause);
     }
   }
 
@@ -115,11 +124,14 @@ public class ScribeHandler extends SimpleChannelHandler {
       long currentTime = System.currentTimeMillis();
       // Check how long it has been since we reconnected
       try {
-        if ((currentTime - connectRequestTime) / 1000 > backoffSeconds) {
+        if ((currentTime - connectRequestTime) / 1000 > backoffSeconds
+            && !reconnectInprogress) {
+          reconnectInprogress = true;
           connectRequestTime = currentTime;
           timer.newTimeout(new TimerTask() {
             public void run(Timeout timeout) throws Exception {
               channelSetter.connect();
+              reconnectInprogress = false;
             }
           }, backoffSeconds, TimeUnit.SECONDS);
         }

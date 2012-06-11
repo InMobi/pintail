@@ -44,12 +44,17 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher {
     ChannelSetter(int maxConns) {
       maxConnectionRetries = maxConns;
     }
+
+    public Channel getCurrentChannel() {
+      return ScribeMessagePublisher.this.ch;
+    }
+
     public void setChannel(Channel ch) {
       Channel oldChannel = ScribeMessagePublisher.this.ch;
       if (ch != oldChannel) {
         if (oldChannel != null && oldChannel.isOpen()) {
           LOG.info("Closing old channel " + oldChannel.getId());
-          oldChannel.close();
+          oldChannel.close().awaitUninterruptibly();
         }
         LOG.info("setting channel to " + ch.getId());
         ScribeMessagePublisher.this.ch = ch;
@@ -111,7 +116,7 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher {
     int maxConnectionRetries = config.getInteger(maxConnectionRetriesConfig,
         DEFAULT_MAX_CONNECTION_RETRIES);
     LOG.info("Initialized ScribeMessagePublisher with host:" + host + " port:" +
-        " backoffSeconds:" + backoffSeconds + " timeoutSeconds:"
+        + port + " backoffSeconds:" + backoffSeconds + " timeoutSeconds:"
         + timeoutSeconds + " maxConnectionRetries:" + maxConnectionRetries);
     init(host, port, backoffSeconds, timeoutSeconds, maxConnectionRetries);
   }
