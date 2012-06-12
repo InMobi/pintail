@@ -26,7 +26,7 @@ class LocalStreamReader extends StreamReader {
   private final Path localStreamDir;
 
   LocalStreamReader(PartitionId partitionId, 
-      Cluster cluster, String streamName) {
+      Cluster cluster, String streamName) throws IOException {
     this.collector = partitionId.getCollector();
 
     // initialize cluster and its directories
@@ -96,9 +96,11 @@ class LocalStreamReader extends StreamReader {
     if (isLocalStreamFile(checkpoint.getFileName())) {
       ret = super.initializeCurrentFile(checkpoint);
       if (!ret) {
-        LOG.info("Could not find checkpointed file. Reading from start of the" +
-            " stream");
-        return initFromStart();
+        LOG.info("Could not find checkpointed file: " + checkpoint.getFileName());
+        if (isBeforeStream(checkpoint.getFileName())) {
+           LOG.info("Reading from start of the stream");
+          return initFromStart();
+        }
       }
     } else {
       LOG.info("The file " + checkpoint.getFileName() + " is not a local stream file");
@@ -168,26 +170,6 @@ class LocalStreamReader extends StreamReader {
     return fileName.startsWith(collectorName + "-" + streamName);
   }
 
-  public boolean setCurrentFile(String localStreamFileName, 
-      long currentLineNum) throws IOException {
-    if (files.containsKey(localStreamFileName)) {
-      currentFile = files.get(localStreamFileName);
-      setIterator();
-      this.currentLineNum = currentLineNum;
-      LOG.debug("Set current file:" + currentFile +
-          "currentLineNum:" + currentLineNum);
-      openCurrentFile(false);
-      return true;
-    } else {
-      LOG.info("Did not find current file." + localStreamFileName + " Trying to set next higher");
-      if (!setNextHigher(localStreamFileName)) {
-        return false;
-      } else {
-        return true;
-      }
-    }
-  }
-
   protected BufferedReader createReader(FSDataInputStream in)
       throws IOException {
     BufferedReader reader = new BufferedReader(new InputStreamReader(
@@ -238,22 +220,21 @@ class LocalStreamReader extends StreamReader {
 
   static Date getBuildTimestamp(Date time, String streamName, 
       String collectorName, PartitionCheckpoint partitionCheckpoint) {
-    String fileName = null;
-    if (partitionCheckpoint != null) {
-      fileName = partitionCheckpoint.getFileName();
-      if (fileName != null && 
-          !isLocalStreamFile(streamName, collectorName, fileName)) {
-        fileName = LocalStreamReader.getLocalStreamFileName(
-              collectorName, fileName);
-      }
-    }
-
     Date buildTimestamp = time;
     if (buildTimestamp == null) {
+      String fileName = null;
+      if (partitionCheckpoint != null) {
+        fileName = partitionCheckpoint.getFileName();
+        if (fileName != null && 
+            !isLocalStreamFile(streamName, collectorName, fileName)) {
+          fileName = LocalStreamReader.getLocalStreamFileName(
+                collectorName, fileName);
+        }
+      }
       try {
         return getDateFromLocalStreamFile(streamName, collectorName, fileName);
       } catch (Exception e) {
-        throw new RuntimeException("Invalid fileName:" + 
+        throw new IllegalArgumentException("Invalid fileName:" + 
             fileName, e);
       }
     } else {

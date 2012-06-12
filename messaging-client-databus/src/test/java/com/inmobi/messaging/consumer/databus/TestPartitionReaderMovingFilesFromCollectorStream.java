@@ -68,10 +68,11 @@ public class TestPartitionReaderMovingFilesFromCollectorStream {
 
     // Move collector files files[1] and files[2]
     fs.delete(new Path(collectorDir, emptyfiles[0]), true);
-    TestUtil.moveFileToStreamLocal(fs, testStream, collectorName, cluster,
-        collectorDir, files[1]);
+    Path movedPath = TestUtil.moveFileToStreamLocal(fs, testStream,
+        collectorName, cluster, collectorDir, files[1]);
     TestUtil.moveFileToStreamLocal(fs, testStream, collectorName, cluster,
         collectorDir, files[2]);
+    fs.delete(movedPath, true);
 
     TestUtil.assertBuffer(LocalStreamReader.getLocalStreamFileName(
         collectorName, files[0]), 1, 0, 100, partitionId, buffer);

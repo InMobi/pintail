@@ -34,16 +34,13 @@ abstract class StreamReader {
   protected Path currentFile;
   protected long currentLineNum = 0;
   protected FileSystem fs;
+  protected volatile boolean closed = false;
 
   protected void init(PartitionId partitionId, Cluster cluster, 
-      String streamName) {
+      String streamName) throws IOException {
     this.streamName = streamName;
     this.cluster = cluster;
-    try {
-      this.fs = FileSystem.get(cluster.getHadoopConf());
-    } catch (IOException e) {
-      throw new RuntimeException("Could not intialize FileSystem", e);
-    }
+    this.fs = FileSystem.get(cluster.getHadoopConf());
   }
 
   protected FSDataInputStream inStream;
@@ -55,6 +52,7 @@ abstract class StreamReader {
 
   void close() throws IOException {
     closeCurrentFile();
+    closed = true;
   }
 
   protected void openCurrentFile(boolean next) throws IOException {
@@ -149,6 +147,14 @@ abstract class StreamReader {
     resetCurrentFileSettings();
   }
 
+  boolean isBeforeStream(String fileName) throws IOException {
+    if (!files.isEmpty()
+        && getFirstFile().getName().compareTo(fileName) > 0) {
+      return true;
+    }
+    return false;
+  }
+
   boolean setNextHigher(String currentFileName) throws IOException {
     LOG.debug("finding next higher for " + currentFileName);
     Map.Entry<String, Path> higherEntry = 
@@ -234,6 +240,9 @@ abstract class StreamReader {
     currentLineNum = 0;
   }
 
+  boolean hasFiles() {
+    return !files.isEmpty();
+  }
   boolean nextFile() throws IOException {
     LOG.debug("In next file");
     if (!setIterator()) {

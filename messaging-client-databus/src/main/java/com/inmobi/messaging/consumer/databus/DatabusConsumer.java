@@ -21,7 +21,6 @@ import com.inmobi.databus.CheckpointProvider;
 import com.inmobi.databus.Cluster;
 import com.inmobi.databus.DatabusConfig;
 import com.inmobi.databus.DatabusConfigParser;
-import com.inmobi.databus.FSCheckpointProvider;
 import com.inmobi.databus.SourceStream;
 import com.inmobi.databus.utils.SecureLoginUtil;
 import com.inmobi.messaging.ClientConfig;

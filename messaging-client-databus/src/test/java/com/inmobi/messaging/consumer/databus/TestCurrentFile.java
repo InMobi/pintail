@@ -30,8 +30,6 @@ public class TestCurrentFile {
   private int msgIndex = 300;
   private PartitionReader preader;
   private PartitionId partitionId = new PartitionId(clusterName, collectorName);
-  private String[] files = new String[] {TestUtil.files[0], TestUtil.files[1],
-      TestUtil.files[2]};
 
   private String currentScribeFile = TestUtil.files[3];
   MiniDFSCluster dfsCluster;
@@ -62,7 +60,7 @@ public class TestCurrentFile {
     cluster = TestUtil.setupDFSCluster(this.getClass().getSimpleName(),
         testStream,
         partitionId, dfsCluster.getFileSystem().getUri().toString(),
-        files, null, 0);
+        null, null, 0);
     collectorDir = new Path(new Path(cluster.getDataDir(), testStream),
         collectorName);
     fs = FileSystem.get(cluster.getHadoopConf());
@@ -70,17 +68,15 @@ public class TestCurrentFile {
 
   @Test
   public void testReadFromCurrentScribeFile() throws Exception {
+    preader = new PartitionReader(partitionId, null, cluster, buffer,
+        testStream,
+        CollectorStreamReader.getDateFromCollectorFile(currentScribeFile),
+        1000);
+    preader.start();
     FSDataOutputStream out = fs.create(
         new Path(collectorDir, currentScribeFile));
     writeMessages(out, 10);
-    preader = new PartitionReader(partitionId, null, cluster, buffer,
-        testStream, CollectorStreamReader.getDateFromCollectorFile(files[0]),
-        1000);
     Assert.assertTrue(buffer.isEmpty());
-    preader.start();
-    TestUtil.assertBuffer(files[0], 1, 0, 100, partitionId, buffer);
-    TestUtil.assertBuffer(files[1], 2, 0, 100, partitionId, buffer);
-    TestUtil.assertBuffer(files[2], 3, 0, 100, partitionId, buffer);
     TestUtil.assertBuffer(currentScribeFile, 4, 0, 10, partitionId, buffer);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getCurrentReader());

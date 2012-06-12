@@ -18,15 +18,15 @@ public class TestLocalStreamReader {
   private PartitionId partitionId = new PartitionId(clusterName, collectorName);
   private LocalStreamReader lreader;
   private Cluster cluster;
-  private String[] files = new String[] {TestUtil.files[0], TestUtil.files[1],
-      TestUtil.files[2]};
+  private String[] files = new String[] {TestUtil.files[1], TestUtil.files[3],
+      TestUtil.files[5]};
 
 
   @BeforeTest
   public void setup() throws Exception {
     // initialize config
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
-        testStream, partitionId, new String[] {files[0], files[1], files[2]}, null, 3);
+        testStream, partitionId, files, null, 3);
 
   }
 
@@ -43,7 +43,8 @@ public class TestLocalStreamReader {
 
     lreader.initFromStart();
     Assert.assertEquals(lreader.getCurrentFile(),
-        TestUtil.getLocalStreamPath(cluster, testStream, collectorName, files[0]));
+        TestUtil.getLocalStreamPath(cluster, testStream, collectorName,
+            files[0]));
 
     // Read from checkpoint with collector file name
     lreader.initializeCurrentFile(new PartitionCheckpoint(files[1], 20));
@@ -53,21 +54,62 @@ public class TestLocalStreamReader {
     lreader.initializeCurrentFile(new PartitionCheckpoint(
         LocalStreamReader.getLocalStreamFileName(collectorName, files[1]), 20));
     Assert.assertEquals(lreader.getCurrentFile(),
-        TestUtil.getLocalStreamPath(cluster, testStream, collectorName, files[1]));
+        TestUtil.getLocalStreamPath(cluster, testStream, collectorName,
+            files[1]));
 
     // Read from checkpoint with local stream file name, which does not exist
     lreader.initializeCurrentFile(new PartitionCheckpoint(
-        LocalStreamReader.getLocalStreamFileName(collectorName, TestUtil.files[4]), 20));
+        LocalStreamReader.getLocalStreamFileName(collectorName,
+            TestUtil.files[0]), 20));
     Assert.assertEquals(lreader.getCurrentFile(),
-        TestUtil.getLocalStreamPath(cluster, testStream, collectorName, files[0]));
+        TestUtil.getLocalStreamPath(cluster, testStream, collectorName,
+            files[0]));
+
+    // Read from checkpoint with local stream file name, which does not exist
+    // with file timestamp after the stream
+    lreader.initializeCurrentFile(new PartitionCheckpoint(
+        LocalStreamReader.getLocalStreamFileName(collectorName,
+            TestUtil.files[7]), 20));
+    Assert.assertNull(lreader.getCurrentFile());  
+
+    // Read from checkpoint with local stream file name, which does not exist
+    // with file timestamp within the stream
+    lreader.initializeCurrentFile(new PartitionCheckpoint(
+        LocalStreamReader.getLocalStreamFileName(collectorName,
+            TestUtil.files[4]), 20));
+    Assert.assertNull(lreader.getCurrentFile());  
 
     //Read from startTime in local stream directory 
-    lreader.initializeCurrentFile(CollectorStreamReader.getDateFromCollectorFile(files[1]));
+    lreader.initializeCurrentFile(
+        CollectorStreamReader.getDateFromCollectorFile(files[1]));
     Assert.assertEquals(lreader.getCurrentFile(),
-        TestUtil.getLocalStreamPath(cluster, testStream, collectorName, files[1]));
+        TestUtil.getLocalStreamPath(cluster, testStream, collectorName,
+            files[1]));
+
+    //Read from startTime in local stream directory, before the stream
+    lreader.initializeCurrentFile(
+        CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[0]));
+    Assert.assertEquals(lreader.getCurrentFile(),
+        TestUtil.getLocalStreamPath(cluster, testStream, collectorName,
+            files[0]));
+
+    //Read from startTime in local stream directory, within the stream
+    lreader.initializeCurrentFile(
+        CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[2]));
+    Assert.assertEquals(lreader.getCurrentFile(),
+        TestUtil.getLocalStreamPath(cluster, testStream, collectorName,
+            files[1]));
+
+    //Read from startTime in local stream directory, within the stream
+    lreader.initializeCurrentFile(
+        CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[4]));
+    Assert.assertEquals(lreader.getCurrentFile(),
+        TestUtil.getLocalStreamPath(cluster, testStream, collectorName,
+            files[2]));
 
     //Read from startTime in collector dir
-    lreader.initializeCurrentFile(CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[4]));
+    lreader.initializeCurrentFile(
+        CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[7]));
     Assert.assertNull(lreader.getCurrentFile());  
 
   }

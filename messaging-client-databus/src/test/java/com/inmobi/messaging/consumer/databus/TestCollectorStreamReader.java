@@ -61,15 +61,41 @@ public class TestCollectorStreamReader {
         LocalStreamReader.getLocalStreamFileName(collectorName, files[1]), 20));
     Assert.assertNull(cReader.getCurrentFile());
 
+    // Read from checkpoint with collector file name which does not exist
+    cReader.initializeCurrentFile(
+        new PartitionCheckpoint(TestUtil.files[10], 20));
+    Assert.assertNull(cReader.getCurrentFile());
+
     //Read from startTime in collector dir
     cReader.initializeCurrentFile(
         CollectorStreamReader.getDateFromCollectorFile(files[1]));
     Assert.assertEquals(cReader.getCurrentFile(), new Path(collectorDir,
         files[1]));
 
-    //Read from startTime in local stream directory 
+    //Read from startTime in before the stream
     cReader.initializeCurrentFile(LocalStreamReader.getDateFromLocalStreamFile(
         testStream, collectorName, file5));
+    Assert.assertEquals(cReader.getCurrentFile(), new Path(collectorDir,
+        files[0]));
+    
+    // Read from startTime after the stream
+    cReader.initializeCurrentFile(
+        CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[10]));
+    Assert.assertNull(cReader.getCurrentFile());
+    
+    // startFromNextHigher with filename
+    cReader.startFromNextHigher(files[1]);
+    Assert.assertEquals(cReader.getCurrentFile(), new Path(collectorDir,
+        files[2]));
+
+    // startFromNextHigher with date
+    cReader.startFromTimestmp(
+        CollectorStreamReader.getDateFromCollectorFile(files[1]));
+    Assert.assertEquals(cReader.getCurrentFile(), new Path(collectorDir,
+        files[1]));
+    
+    // startFromBegining 
+    cReader.startFromBegining();
     Assert.assertEquals(cReader.getCurrentFile(), new Path(collectorDir,
         files[0]));
 

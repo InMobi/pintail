@@ -70,13 +70,14 @@ public class TestUtil {
     LOG.info("Created file:" + new Path(parent, fileName));
   }
 
-  static void moveFileToStreamLocal(FileSystem fs, String streamName,
+  static Path moveFileToStreamLocal(FileSystem fs, String streamName,
       String collectorName, Cluster cluster, Path collectorDir,
       String collectorfileName)
           throws Exception {
     Path copyPath = copyFileToStreamLocal(fs, streamName, collectorName,
         cluster, collectorDir, collectorfileName);
     fs.delete(copyPath, true);
+    return copyPath;
   }
 
   static Path copyFileToStreamLocal(FileSystem fs, String streamName,

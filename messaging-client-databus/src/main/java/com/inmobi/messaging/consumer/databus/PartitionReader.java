@@ -32,11 +32,10 @@ class PartitionReader {
   private StreamReader currentReader;
   private boolean inited = false;
 
-
   PartitionReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, Cluster cluster,
       BlockingQueue<QueueEntry> buffer, String streamName,
-      Date startTime, long waitTimeForFlush) {
+      Date startTime, long waitTimeForFlush) throws IOException {
     this(partitionId, partitionCheckpoint, cluster, buffer, streamName,
         startTime, waitTimeForFlush, false);
   }
@@ -44,7 +43,14 @@ class PartitionReader {
   PartitionReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, Cluster cluster,
       BlockingQueue<QueueEntry> buffer, String streamName,
-      Date startTime, long waitTimeForFlush, boolean noNewFiles) {
+      Date startTime, long waitTimeForFlush, boolean noNewFiles)
+          throws IOException {
+    if (startTime == null && partitionCheckpoint == null) {
+      String msg = "StartTime and checkpoint both" +
+        " cannot be null in PartitionReader";
+      LOG.warn(msg);
+      throw new IllegalArgumentException(msg);
+    }
     this.partitionId = partitionId;
     this.buffer = buffer;
     this.startTime = startTime;
@@ -55,13 +61,9 @@ class PartitionReader {
     Path streamDir = new Path(cluster.getDataDir(), streamName);
     this.collectorDir = new Path(streamDir, partitionId.getCollector());
 
-    try {
-      lReader = new LocalStreamReader(partitionId,  cluster, streamName);
-      cReader = new CollectorStreamReader(partitionId, cluster, streamName,
-          waitTimeForFlush, noNewFiles);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+    lReader = new LocalStreamReader(partitionId,  cluster, streamName);
+    cReader = new CollectorStreamReader(partitionId, cluster, streamName,
+        waitTimeForFlush, noNewFiles);
 
     LOG.info("Partition reader initialized with partitionId:" + partitionId +
         " checkPoint:" + partitionCheckpoint +  
@@ -122,14 +124,39 @@ class PartitionReader {
 
   private void initializeCurrentFileFromTimeStamp(Date timestamp)
       throws Exception {
-    if (startTime != null) {
-      if (lReader.initializeCurrentFile(timestamp)) {
+    if (lReader.initializeCurrentFile(timestamp)) {
+      currentReader = lReader;
+    } else {
+      currentReader = cReader;
+      LOG.debug("Did not find the file associated with timestamp");
+      cReader.startFromTimestmp(timestamp);
+    }
+  }
+
+  private void initializeCurrentFileFromCheckpointLocalStream(
+      String localStreamFileName) throws Exception {
+    String error = "Checkpoint file does not exist";
+    if (lReader.hasFiles()) {
+      if (lReader.initializeCurrentFile(new PartitionCheckpoint(
+          localStreamFileName, partitionCheckpoint.getLineNum()))) {
         currentReader = lReader;
-      } else if (cReader.initializeCurrentFile(startTime)) {
-        currentReader = cReader;
       } else {
-        currentReader = null;
+        throw new IllegalArgumentException(error);
+      } 
+    } else if (cReader.hasFiles()) {
+      if (cReader.isBeforeStream(
+          CollectorStreamReader.getCollectorFileName(partitionId.getCollector(),
+              localStreamFileName))) {
+        currentReader = cReader;
+        if (!currentReader.initFromStart()) {
+          throw new IllegalArgumentException(error);
+        }
+      } else {
+        throw new IllegalArgumentException(error);
       }
+    } else {
+      currentReader = cReader;
+      cReader.startFromBegining();
     }
   }
 
@@ -138,37 +165,17 @@ class PartitionReader {
     if (cReader.isCollectorFile(fileName)) {
       if (cReader.initializeCurrentFile(partitionCheckpoint)) {
         currentReader = cReader;
-      } else {
+      } else { //file could be moved to local stream
         String localStreamFileName = 
             LocalStreamReader.getLocalStreamFileName(
                 partitionId.getCollector(), fileName);
-        if (lReader.initializeCurrentFile(new PartitionCheckpoint(
-            localStreamFileName, partitionCheckpoint.getLineNum()))) {
-          currentReader = lReader;
-        } else {
-          currentReader = null;
-        }
+        initializeCurrentFileFromCheckpointLocalStream(localStreamFileName);
       }
     } else if (lReader.isLocalStreamFile(fileName)) {
       LOG.debug("Checkpointed file is in local stream directory");
-      if (lReader.initializeCurrentFile(partitionCheckpoint)) {
-        currentReader = lReader;
-      } else {
-        currentReader = null;
-      }
+      initializeCurrentFileFromCheckpointLocalStream(fileName);
     } else {
-      currentReader = null;
-    }
-  }
-
-  private void initFromStart() throws Exception {
-    if (lReader.initFromStart()) {
-      currentReader = lReader;
-    } else if (cReader.initFromStart()) {
-      currentReader = cReader;
-    } else {
-      LOG.warn("No files to start");
-      currentReader = null;
+      LOG.warn("Would never reach here");
     }
   }
 
@@ -185,32 +192,31 @@ class PartitionReader {
           partitionCheckpoint.getFileName() != null) {
         initializeCurrentFileFromCheckpoint();
       } else {
-        initFromStart();
+        LOG.info("Would never reach here");
       }
-      if (currentReader != null) {
-        LOG.info("Intialized currentFile:" + currentReader.getCurrentFile() +
-            " currentLineNum:" + currentReader.getCurrentLineNum());
-      }
+      LOG.info("Intialized currentFile:" + currentReader.getCurrentFile() +
+          " currentLineNum:" + currentReader.getCurrentLineNum());
       inited = true;
     }
   }
 
   Path getCurrentFile() {
-    if (currentReader != null) {
-      return currentReader.getCurrentFile();
-    }
-    return null;
+    return currentReader.getCurrentFile();
   }
 
   StreamReader getCurrentReader() {
     return currentReader;
   }
 
+  private void startFromNextHigherInCReader(String collectorFileName) 
+      throws Exception {
+    cReader.build();
+    currentReader = cReader;
+    cReader.startFromNextHigher(collectorFileName);
+  }
+
   protected void execute() {
-    if (currentReader == null) {
-      LOG.info("There is no stream reader, exiting");
-      return;
-    }
+    assert (currentReader != null);
     try {
       currentReader.openStream();
       LOG.info("Reading file " + currentReader.getCurrentFile() + 
@@ -229,18 +235,12 @@ class PartitionReader {
             lReader.close();
             LOG.info("Switching to collector stream as we reached end of" +
                 " stream on local stream");
-            cReader.build();
-            if (cReader.setNextHigher(
+            startFromNextHigherInCReader(
                 CollectorStreamReader.getCollectorFileName(
                     partitionId.getCollector(),
-                    currentReader.getCurrentFile().getName()))) {
-              currentReader = cReader;
-            } else {
-              LOG.warn("No stream to read");
-              currentReader.close();
-              currentReader = null;
-            }
-          } else if (currentReader == cReader) {
+                    currentReader.getCurrentFile().getName()));
+          } else { // currentReader should be cReader
+            assert (currentReader == cReader);
             cReader.close();
             LOG.info("Looking for current file in local stream");
             lReader.build(CollectorStreamReader.getDateFromCollectorFile(
@@ -250,9 +250,9 @@ class PartitionReader {
                     partitionId.getCollector(),
                     cReader.getCurrentFile().getName()),
                     cReader.getCurrentLineNum())) {
-              LOG.info("Did not find current file in local stream as well. No" +
-              		" stream to read") ;
-              currentReader = null;                
+              LOG.info("Did not find current file in local stream as well") ;
+              startFromNextHigherInCReader(
+                  currentReader.getCurrentFile().getName());
             } else {
               LOG.info("Switching to local stream as the file got moved");
               currentReader = lReader;
@@ -265,9 +265,7 @@ class PartitionReader {
       LOG.warn("Error while reading stream", e);
     } finally {
       try {
-        if (currentReader != null) {
-          currentReader.close();
-        }
+        currentReader.close();
       } catch (Exception e) {
         LOG.warn("Error while closing stream", e);
       }

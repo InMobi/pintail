@@ -26,15 +26,16 @@ class CollectorStreamReader extends StreamReader {
   private boolean noNewFiles = false; // this is purely for tests
   protected long currentOffset = 0;
   private boolean sameStream = false;
+  private long waitTimeForCreate = 100;
 
-  CollectorStreamReader(PartitionId partitionId,
-      Cluster cluster, String streamName, long waitTimeForFlush) {
+  CollectorStreamReader(PartitionId partitionId, Cluster cluster,
+      String streamName, long waitTimeForFlush) throws IOException {
     this(partitionId, cluster, streamName, waitTimeForFlush, false);
   }
 
   CollectorStreamReader(PartitionId partitionId,
       Cluster cluster, String streamName, long waitTimeForFlush,
-      boolean noNewFiles) {
+      boolean noNewFiles) throws IOException {
     Path streamDir = new Path(cluster.getDataDir(), streamName);
     this.collectorDir = new Path(streamDir, partitionId.getCollector());
     this.waitTimeForFlush = waitTimeForFlush;
@@ -137,23 +138,18 @@ class CollectorStreamReader extends StreamReader {
         if (noNewFiles) {
           // this boolean check is only for tests 
           return null;
-        } else {
-          if (!setIterator()) {
-            LOG.info("Could not find current file in the stream");
-            if (stillInCollectorStream()) {
-              LOG.info("Staying in collector stream as earlier files still exist");
-              if (!setNextHigher(currentFile.getName())) {
-                LOG.info("Could not find next higher file.");
-                waitForNextFileCreation();
-                LOG.info("Reading from the next file after its created");
-              } else {
-                LOG.info("Reading from next higher file");
-              }
-            } else {
-              LOG.info("Current file would have been moved to Local Stream");
-              return null;
-            }
+        } 
+        if (!setIterator()) {
+          LOG.info("Could not find current file in the stream");
+          if (stillInCollectorStream()) {
+            LOG.info("Staying in collector stream as earlier files still exist");
+            startFromNextHigher(currentFile.getName());
+            LOG.info("Reading from the next higher file");
+          } else {
+            LOG.info("Current file would have been moved to Local Stream");
+            return null;
           }
+        } else {
           waitForFlushAndReOpen();
           LOG.info("Reading from the same file after reopen");
         }
@@ -166,19 +162,66 @@ class CollectorStreamReader extends StreamReader {
     return line;
   }
 
-  void waitForFlushAndReOpen() throws Exception {
+  private void waitForFlushAndReOpen() throws Exception {
+    LOG.info("Waiting for flush");
     Thread.sleep(waitTimeForFlush);
     openCurrentFile(false);    
   }
 
-  void waitForNextFileCreation() throws Exception {
-    while (!setNextHigher(currentFile.getName())) {
-      LOG.info("Waiting for next new file creation");
-      Thread.sleep(10);
+  private void waitForNextFileCreation(String fileName) throws Exception {
+    while (!setNextHigher(fileName)) {
+      LOG.info("Waiting for next file creation");
+      Thread.sleep(waitTimeForCreate);
       build();
     }
   }
 
+  private void waitForNextFileCreation(Date timestamp) throws Exception {
+    while (!initializeCurrentFile(timestamp)) {
+      LOG.info("Waiting for next file creation");
+      Thread.sleep(waitTimeForCreate);
+      build();
+    }
+  }
+
+  private void waitForNextFileCreation() throws Exception {
+    while (!initFromStart()) {
+      LOG.info("Waiting for next file creation");
+      Thread.sleep(waitTimeForCreate);
+      build();
+    }
+  }
+
+  void startFromNextHigher(String collectorFileName) throws Exception {
+    if (!setNextHigher(collectorFileName)) {
+      if (noNewFiles) {
+        // this boolean check is only for tests 
+        return;
+      }
+      waitForNextFileCreation(collectorFileName);
+    }
+  }
+
+  void startFromTimestmp(Date timestamp) throws Exception {
+    if (!initializeCurrentFile(timestamp)) {
+      if (noNewFiles) {
+        // this boolean check is only for tests 
+        return;
+      }
+      waitForNextFileCreation(timestamp);
+    }
+  }
+
+  void startFromBegining() throws Exception {
+    if (!initFromStart()) {
+      if (noNewFiles) {
+        // this boolean check is only for tests 
+        return;
+      }
+      waitForNextFileCreation();
+    }
+  }
+  
   boolean stillInCollectorStream() throws IOException {
     Map.Entry<String, Path> firstEntry = getFirstEntry();
     if (firstEntry != null && 
@@ -209,9 +252,10 @@ class CollectorStreamReader extends StreamReader {
 
   static String getCollectorFileName(String collector,
       String localStreamfile) {
-    String path= localStreamfile.split(collector)[1];
-    String str = path.substring(StreamReader.getIndexOf(path, '-', 1) + 1,
-        StreamReader.getIndexOf(path, '.', 1));
+    String prefix = collector + "-" ;
+    String suffix = ".gz";
+    String str = localStreamfile.substring(prefix.length(),
+        (localStreamfile.length() - suffix.length()));
     LOG.debug("Collector file name:" + str);
     return str;
   }
