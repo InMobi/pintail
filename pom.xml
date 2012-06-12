@@ -8,7 +8,10 @@
 
   <scm>
     <connection>scm:git:git://github.com/InMobi/messaging-client</connection>
-    <url>https://github.com/InMobi/messaging-client</url></scm>
+    <url>https://github.com/InMobi/messaging-client</url>
+    <developerConnection>scm:git:git@github.com/InMobi/messaging-client.git</developerConnection>
+  </scm>
+
   <dependencyManagement>
     <dependencies>
       <dependency>
