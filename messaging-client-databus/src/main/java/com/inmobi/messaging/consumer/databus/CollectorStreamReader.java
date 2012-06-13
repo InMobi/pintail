@@ -41,7 +41,7 @@ class CollectorStreamReader extends StreamReader {
     this.waitTimeForFlush = waitTimeForFlush;
     this.noNewFiles = noNewFiles;
     super.init(partitionId, cluster, streamName);
-    pathFilter = new ScribePathFilter();
+    pathFilter = new CollectorPathFilter();
     LOG.info("Collector reader initialized with partitionId:" + partitionId +
         " streamDir:" + streamDir + 
         " collectorDir:" + collectorDir +
@@ -97,8 +97,8 @@ class CollectorStreamReader extends StreamReader {
   protected void skipOldData(FSDataInputStream in, BufferedReader reader)
       throws IOException {
     if (sameStream) {
+      LOG.info("Seeking to offset:" + currentOffset);
       seekToOffset(in, reader);
-      LOG.info("Seek to offset:" + currentOffset);
     } else {
       skipLines(in, reader, currentLineNum);
       sameStream = true;
@@ -235,15 +235,11 @@ class CollectorStreamReader extends StreamReader {
     return fileName.startsWith(streamName);
   }
 
-  final static class ScribePathFilter implements PathFilter {
-
-    ScribePathFilter() {
-    }
-
+  final static class CollectorPathFilter implements PathFilter {
     @Override
     public boolean accept(Path p) {
-      if (p.getName().endsWith("current")
-          || p.getName().equals("scribe_stats")) {
+      if (p.getName().endsWith("_current")
+          || p.getName().endsWith("_stats")) {
         return false;
       }
       return true;
@@ -260,7 +256,6 @@ class CollectorStreamReader extends StreamReader {
     return str;
   }
 
-  
   public static Date getDateFromCollectorFile(String fileName)
       throws Exception {
     return StreamReader.getDate(fileName, 1);
