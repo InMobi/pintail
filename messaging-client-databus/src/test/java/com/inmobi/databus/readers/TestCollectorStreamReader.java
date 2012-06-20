@@ -1,8 +1,9 @@
-package com.inmobi.messaging.consumer.databus;
+package com.inmobi.databus.readers;
 
 import java.io.IOException;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.testng.Assert;
 import org.testng.annotations.AfterTest;
@@ -10,6 +11,13 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import com.inmobi.databus.Cluster;
+import com.inmobi.databus.partition.PartitionCheckpoint;
+import com.inmobi.databus.partition.PartitionId;
+import com.inmobi.databus.readers.CollectorStreamReader;
+import com.inmobi.databus.readers.DatabusStreamReader;
+import com.inmobi.databus.readers.LocalStreamCollectorReader;
+import com.inmobi.messaging.consumer.util.MessageUtil;
+import com.inmobi.messaging.consumer.util.TestUtil;
 
 public class TestCollectorStreamReader {
   private static final String testStream = "testclient";
@@ -33,6 +41,9 @@ public class TestCollectorStreamReader {
         testStream, partitionId, files, null, 0);
     collectorDir = new Path(new Path(cluster.getDataDir(), testStream),
         collectorName);
+    FileSystem fs = FileSystem.get(cluster.getHadoopConf());
+    TestUtil.createEmptyFile(fs, collectorDir, testStream + "_current");
+    TestUtil.createEmptyFile(fs, collectorDir, "scribe_stats");
   }
 
   @AfterTest
@@ -58,7 +69,7 @@ public class TestCollectorStreamReader {
 
     // Read from checkpoint with local stream file name
     cReader.initializeCurrentFile(new PartitionCheckpoint(
-        LocalStreamReader.getLocalStreamFileName(collectorName, files[1]), 20));
+        LocalStreamCollectorReader.getDatabusStreamFileName(collectorName, files[1]), 20));
     Assert.assertNull(cReader.getCurrentFile());
 
     // Read from checkpoint with collector file name which does not exist
@@ -73,8 +84,8 @@ public class TestCollectorStreamReader {
         files[1]));
 
     //Read from startTime in before the stream
-    cReader.initializeCurrentFile(LocalStreamReader.getDateFromLocalStreamFile(
-        testStream, collectorName, file5));
+    cReader.initializeCurrentFile(DatabusStreamReader.getDateFromStreamFile(
+        testStream, file5));
     Assert.assertEquals(cReader.getCurrentFile(), new Path(collectorDir,
         files[0]));
     
@@ -107,7 +118,7 @@ public class TestCollectorStreamReader {
       String line = cReader.readLine();
       Assert.assertNotNull(line);
       Assert.assertEquals(new String(Base64.decodeBase64(line)),
-          TestUtil.constructMessage(fileIndex + i));
+          MessageUtil.constructMessage(fileIndex + i));
     }
     Assert.assertEquals(cReader.getCurrentFile().getName(), files[fileNum]);
   }

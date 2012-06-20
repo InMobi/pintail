@@ -1,4 +1,4 @@
-package com.inmobi.messaging.consumer.databus;
+package com.inmobi.databus.partition;
 
 import java.io.IOException;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -11,6 +11,11 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import com.inmobi.databus.Cluster;
+import com.inmobi.databus.partition.PartitionId;
+import com.inmobi.databus.partition.PartitionReader;
+import com.inmobi.databus.readers.CollectorStreamReader;
+import com.inmobi.messaging.consumer.databus.QueueEntry;
+import com.inmobi.messaging.consumer.util.TestUtil;
 
 public class TestCollectorStreamWithEmptyFiles {
   private static final String testStream = "testclient";
@@ -45,12 +50,16 @@ public class TestCollectorStreamWithEmptyFiles {
 
   @Test
   public void testReadFromStart() throws Exception {
-    PartitionReader preader = new PartitionReader(partitionId, null, cluster, buffer,
+    PartitionReader preader = new PartitionReader(partitionId, null, cluster,
+        buffer,
         testStream, CollectorStreamReader.getDateFromCollectorFile(files[0]),
-        5);
-    preader.initializeCurrentFile();
+        5, false);
+    preader.init();
     Assert.assertTrue(buffer.isEmpty());
-    Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
+    Assert.assertEquals(preader.getReader().getClass().getName(),
+        CollectorReader.class.getName());
+    Assert.assertEquals(((CollectorReader)preader.getReader())
+        .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.start();
     
@@ -61,7 +70,10 @@ public class TestCollectorStreamWithEmptyFiles {
 
     // test waiting for data in current scribe file by sleep for some more time
     Thread.sleep(20);
-    Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
+    Assert.assertEquals(preader.getReader().getClass().getName(),
+        CollectorReader.class.getName());
+    Assert.assertEquals(((CollectorReader)preader.getReader())
+        .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     String dataFile = TestUtil.files[2];
     
@@ -70,7 +82,10 @@ public class TestCollectorStreamWithEmptyFiles {
     TestUtil.assertBuffer(dataFile, 1, 0, 100, partitionId, buffer);
     
     // Test the path for current file getting created late.
-    Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
+    Assert.assertEquals(preader.getReader().getClass().getName(),
+        CollectorReader.class.getName());
+    Assert.assertEquals(((CollectorReader)preader.getReader())
+        .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     String emptyFile = TestUtil.files[3];
     dataFile = TestUtil.files[4];

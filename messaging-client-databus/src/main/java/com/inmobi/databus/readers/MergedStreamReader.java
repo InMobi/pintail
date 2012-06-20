@@ -1,0 +1,24 @@
+package com.inmobi.databus.readers;
+
+import java.io.IOException;
+
+import org.apache.hadoop.fs.Path;
+
+import com.inmobi.databus.Cluster;
+import com.inmobi.databus.partition.PartitionId;
+
+public class MergedStreamReader extends DatabusStreamWaitingReader {
+
+  public MergedStreamReader(PartitionId partitionId, 
+      Cluster cluster, String streamName, boolean noNewFiles)
+          throws IOException {
+    super(partitionId, cluster, streamName);
+    this.noNewFiles = noNewFiles;
+  }
+
+  @Override
+  protected Path getStreamDir(Cluster cluster, String streamName) {
+    return new Path(cluster.getFinalDestDirRoot(), streamName);
+  }
+
+}

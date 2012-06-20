@@ -1,4 +1,4 @@
-package com.inmobi.messaging.consumer.databus;
+package com.inmobi.databus.partition;
 
 import java.io.IOException;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -15,6 +15,12 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import com.inmobi.databus.Cluster;
+import com.inmobi.databus.partition.PartitionId;
+import com.inmobi.databus.partition.PartitionReader;
+import com.inmobi.databus.readers.CollectorStreamReader;
+import com.inmobi.messaging.consumer.databus.QueueEntry;
+import com.inmobi.messaging.consumer.util.MessageUtil;
+import com.inmobi.messaging.consumer.util.TestUtil;
 
 public class TestCurrentFile {
   private static final String testStream = "testclient";
@@ -39,7 +45,7 @@ public class TestCurrentFile {
       throws IOException {
     for (int i = 0; i < num; i++) {
       out.write(Base64.encodeBase64(
-          TestUtil.constructMessage(msgIndex).getBytes()));
+          MessageUtil.constructMessage(msgIndex).getBytes()));
       out.write('\n');
       msgIndex++;
     }  
@@ -50,13 +56,14 @@ public class TestCurrentFile {
   public void cleanup() throws IOException {
     TestUtil.cleanupCluster(cluster);
     if (dfsCluster != null) {
+      fs.delete(new Path(dfsCluster.getDataDirectory()), true);
       dfsCluster.shutdown();
     }
   }
 
   @BeforeTest
   public void setup() throws Exception {     
-    dfsCluster = new MiniDFSCluster(conf, 1, true,null);
+    dfsCluster = new MiniDFSCluster(conf, 1, true, null);
     cluster = TestUtil.setupDFSCluster(this.getClass().getSimpleName(),
         testStream,
         partitionId, dfsCluster.getFileSystem().getUri().toString(),
@@ -71,7 +78,7 @@ public class TestCurrentFile {
     preader = new PartitionReader(partitionId, null, cluster, buffer,
         testStream,
         CollectorStreamReader.getDateFromCollectorFile(currentScribeFile),
-        1000);
+        1000, false);
     preader.start();
     FSDataOutputStream out = fs.create(
         new Path(collectorDir, currentScribeFile));
@@ -79,8 +86,11 @@ public class TestCurrentFile {
     Assert.assertTrue(buffer.isEmpty());
     TestUtil.assertBuffer(currentScribeFile, 4, 0, 10, partitionId, buffer);
     Assert.assertTrue(buffer.isEmpty());
-    Assert.assertNotNull(preader.getCurrentReader());
-    Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
+    Assert.assertNotNull(preader.getReader());
+    Assert.assertEquals(preader.getReader().getClass().getName(),
+        CollectorReader.class.getName());
+    Assert.assertEquals(((CollectorReader)preader.getReader())
+        .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     writeMessages(out, 20);
     TestUtil.assertBuffer(currentScribeFile, 4, 10, 20, partitionId, buffer);
@@ -90,8 +100,11 @@ public class TestCurrentFile {
     out.close();
     TestUtil.assertBuffer(currentScribeFile, 4, 50, 50, partitionId, buffer);
     Assert.assertTrue(buffer.isEmpty());
-    Assert.assertNotNull(preader.getCurrentReader());
-    Assert.assertEquals(preader.getCurrentReader().getClass().getName(),
+    Assert.assertNotNull(preader.getReader());
+    Assert.assertEquals(preader.getReader().getClass().getName(),
+        CollectorReader.class.getName());
+    Assert.assertEquals(((CollectorReader)preader.getReader())
+        .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.close();
   }

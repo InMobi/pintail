@@ -2,9 +2,11 @@ package com.inmobi.messaging.consumer.databus;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
@@ -22,6 +24,9 @@ import com.inmobi.databus.Cluster;
 import com.inmobi.databus.DatabusConfig;
 import com.inmobi.databus.DatabusConfigParser;
 import com.inmobi.databus.SourceStream;
+import com.inmobi.databus.partition.PartitionCheckpoint;
+import com.inmobi.databus.partition.PartitionId;
+import com.inmobi.databus.partition.PartitionReader;
 import com.inmobi.databus.utils.SecureLoginUtil;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
@@ -80,10 +85,10 @@ implements DatabusConsumerConfig {
   private long waitTimeForFlush;
   private int bufferSize;
   private String[] clusters;
+  private StreamType streamType;
 
   @Override
   protected void init(ClientConfig config) throws IOException {
-    super.init(config);
     initializeConfig(config);
     start();
   }
@@ -104,6 +109,7 @@ implements DatabusConsumerConfig {
   }
 
   void initializeConfig(ClientConfig config) throws IOException {
+    super.init(config);
     bufferSize = config.getInteger(queueSizeConfig, DEFAULT_QUEUE_SIZE);
     buffer = new LinkedBlockingQueue<QueueEntry>(bufferSize);
     String databusCheckpointDir = config.getString(checkpointDirConfig, 
@@ -148,9 +154,12 @@ implements DatabusConsumerConfig {
             " commandline authentication.");
       }
     }
+    String type = config.getString(databusStreamType, DEFAULT_STREAM_TYPE);
+    streamType = StreamType.valueOf(type);
     LOG.info("Databus consumer initialized with streamName:" + topicName +
         " consumerName:" + consumerName + " startTime:" + startTime +
-        " queueSize:" + bufferSize + " checkPoint:" + currentCheckpoint);
+        " queueSize:" + bufferSize + " checkPoint:" + currentCheckpoint +
+        " streamType:" + streamType);
   }
 
   Map<PartitionId, PartitionReader> getPartitionReaders() {
@@ -181,8 +190,8 @@ implements DatabusConsumerConfig {
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }
-    currentCheckpoint.set(entry.partitionId, entry.partitionChkpoint);
-    return entry.message;
+    currentCheckpoint.set(entry.getPartitionId(), entry.getPartitionChkpoint());
+    return entry.getMessage();
   }
 
   private synchronized void start() throws IOException {
@@ -190,6 +199,93 @@ implements DatabusConsumerConfig {
     for (PartitionReader reader : readers.values()) {
       reader.start();
     }
+  }
+
+  private Set<String> getClusters(SourceStream sourceStream) {
+    Set<String> clusterNames = new HashSet<String>();
+    if (clusters != null) {
+      if (streamType.equals(StreamType.MERGED)) {
+        if (clusters.length > 1) {
+          throw new IllegalArgumentException("More than one cluster configured"
+              + " for " + streamType.name());
+        }
+      }
+      for (String c : clusters) {
+        if (sourceStream.getSourceClusters().contains(c)) {
+          clusterNames.add(c);
+        }
+      }
+    } else {
+      if (streamType.equals(StreamType.LOCAL) || 
+          streamType.equals(StreamType.COLLECTOR)) {
+        clusterNames = sourceStream.getSourceClusters();
+      } else if (streamType.equals(StreamType.MERGED)) {
+        String mergeDestination = databusConfig
+            .getPrimaryClusterForDestinationStream(sourceStream.getName())
+            .getName();
+        LOG.info("Merge destination:" + mergeDestination);
+        clusterNames.add(mergeDestination);
+      } else {
+        LOG.info("No op for:" + streamType);
+      }
+    }
+    return clusterNames;
+  }
+
+  private Cluster getDatabusCluster(String clusterName) {
+    Cluster cluster = databusConfig.getClusters().get(clusterName);
+    if (cluster == null) {
+      throw new IllegalArgumentException("No such cluster:" + clusterName);
+    }
+    return cluster;
+  }
+
+  private List<String> getCollectors(Cluster cluster) throws IOException {
+    List<String> collectors = new ArrayList<String>();    
+    FileSystem fs = FileSystem.get(cluster.getHadoopConf());
+    Path path = new Path(cluster.getDataDir(), topicName);
+    LOG.debug("Stream dir: " + path);
+    FileStatus[] list = fs.listStatus(path);
+    if (list != null && list.length > 0) {
+      for (FileStatus status : list) {
+        collectors.add(status.getPath().getName());
+      }
+    } else {
+      LOG.warn("No collector dirs available in " + path);
+    }
+    return collectors;
+  }
+
+  private void createPartitionReader(String collector,
+      Cluster cluster, Date allowedStartTime,
+      Map<PartitionId, PartitionCheckpoint> partitionsChkPoints)
+          throws IOException {
+    LOG.debug("Collector is " + collector);
+    PartitionId id = new PartitionId(cluster.getName(), collector);
+    if (partitionsChkPoints.get(id) == null) {
+      partitionsChkPoints.put(id, null);
+    }
+    Date partitionTimestamp = startTime;
+    if (startTime == null && partitionsChkPoints.get(id) == null) {
+      LOG.info("There is no startTime passed and no checkpoint exists" +
+          " for the partition: " + id + " starting from the start" +
+          " of the stream.");
+      partitionTimestamp = allowedStartTime;
+    } else if (startTime != null && startTime.before(allowedStartTime)) {
+      LOG.info("Start time passed is before the start of the stream," +
+          " starting from the start of the stream.");
+      partitionTimestamp = allowedStartTime;
+    } else {
+      LOG.info("Creating partition with timestamp: " + partitionTimestamp
+          + " checkpoint:" + partitionsChkPoints.get(id));
+    }
+    LOG.debug("Creating partition " + id);
+    PartitionReader reader = new PartitionReader(id,
+        partitionsChkPoints.get(id), cluster, buffer, topicName,
+        partitionTimestamp, waitTimeForFlush,
+        streamType.equals(StreamType.LOCAL));    
+    LOG.debug("Created partition " + id);
+    readers.put(id, reader);
   }
 
   private void createPartitionReaders() throws IOException {
@@ -200,58 +296,26 @@ implements DatabusConsumerConfig {
     }
     SourceStream sourceStream = databusConfig.getSourceStreams().get(topicName);
     LOG.debug("Stream name: " + sourceStream.getName());
-    Set<String> clusterNames;
-    if (clusters != null) {
-      clusterNames = new HashSet<String>();
-      for (String c : clusters) {
-        if (sourceStream.getSourceClusters().contains(c)) {
-          clusterNames.add(c);
-        }
-      }
-    } else {
-      clusterNames = sourceStream.getSourceClusters();
-    }
+
+    Set<String> clusterNames = getClusters(sourceStream);
+
     long currentMillis = System.currentTimeMillis();
     for (String c : clusterNames) {
       LOG.debug("Creating partition readers for cluster:" + c);
-      Cluster cluster = databusConfig.getClusters().get(c);
+      Cluster cluster = getDatabusCluster(c);
       long retentionMillis = sourceStream.getRetentionInHours(c)
           * ONE_HOUR_IN_MILLIS;
       Date allowedStartTime = new Date(currentMillis- retentionMillis);
-      FileSystem fs = FileSystem.get(cluster.getHadoopConf());
-      Path path = new Path(cluster.getDataDir(), topicName);
-      LOG.debug("Stream dir: " + path);
-      FileStatus[] list = fs.listStatus(path);
-      if (list == null || list.length == 0) {
-        LOG.warn("No collector dirs available in stream directory");
-        return;
-      }
-      for (FileStatus status : list) {
-        String collector = status.getPath().getName();
-        LOG.debug("Collector is " + collector);
-        PartitionId id = new PartitionId(cluster.getName(), collector);
-        if (partitionsChkPoints.get(id) == null) {
-          partitionsChkPoints.put(id, null);
+      if (streamType.equals(StreamType.COLLECTOR)) {
+        LOG.info("Creating partition readers for all the collectors");
+        for (String collector : getCollectors(cluster)) {
+          createPartitionReader(collector, cluster, allowedStartTime,
+              partitionsChkPoints);
         }
-        Date partitionTimestamp = startTime;
-        if (startTime == null && partitionsChkPoints.get(id) == null) {
-          LOG.info("There is no startTime passed and no checkpoint exists" +
-              " for the partition: " + id + " starting from the start" +
-              " of the stream.");
-          partitionTimestamp = allowedStartTime;
-        } else if (startTime != null && startTime.before(allowedStartTime)) {
-          LOG.info("Start time passed is before the start of the stream," +
-              " starting from the start of the stream.");
-          partitionTimestamp = allowedStartTime;
-        } else {
-          LOG.info("Creating partition with timestamp: " + partitionTimestamp
-              + " checkpoint:" + partitionsChkPoints.get(id));
-        }
-        PartitionReader reader = new PartitionReader(id,
-            partitionsChkPoints.get(id), cluster, buffer, topicName,
-            partitionTimestamp, waitTimeForFlush);
-        readers.put(id, reader);
-        LOG.info("Created partition " + id);
+      } else {
+        LOG.info("Creating partition reader for cluster");
+        createPartitionReader(null, cluster, allowedStartTime,
+            partitionsChkPoints);
       }
     }
   }

@@ -7,6 +7,10 @@ import java.util.Map;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import com.inmobi.databus.partition.PartitionCheckpoint;
+import com.inmobi.databus.partition.PartitionId;
+
+
 public class TestCheckpointSerialization {
 
   @Test

@@ -1,4 +1,4 @@
-package com.inmobi.messaging.consumer.databus;
+package com.inmobi.databus.partition;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -6,17 +6,17 @@ import java.io.IOException;
 
 import org.apache.hadoop.io.Writable;
 
-class PartitionId implements Writable {
+public class PartitionId implements Writable {
 
   private String cluster;
   private String collector;
 
-  PartitionId(String cluster, String collector) {
+  public PartitionId(String cluster, String collector) {
     this.cluster = cluster;
     this.collector = collector;
   }
 
-  PartitionId(DataInput in) throws IOException {
+  public PartitionId(DataInput in) throws IOException {
     readFields(in);
   }
 
@@ -31,13 +31,20 @@ class PartitionId implements Writable {
   @Override
   public void readFields(DataInput in) throws IOException {
     cluster = in.readUTF();
-    collector = in.readUTF();
+    boolean notNull = in.readBoolean();
+    if (notNull) {
+      collector = in.readUTF();
+    }
   }
 
   @Override
   public void write(DataOutput out) throws IOException {
     out.writeUTF(cluster);
-    out.writeUTF(collector);
+    boolean notNull = collector != null;
+    out.writeBoolean(notNull);
+    if (notNull) {
+      out.writeUTF(collector);
+    }
   }
 
   @Override

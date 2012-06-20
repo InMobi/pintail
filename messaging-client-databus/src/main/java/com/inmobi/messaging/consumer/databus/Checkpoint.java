@@ -12,6 +12,9 @@ import java.util.Map;
 
 import org.apache.hadoop.io.Writable;
 
+import com.inmobi.databus.partition.PartitionCheckpoint;
+import com.inmobi.databus.partition.PartitionId;
+
 /**
  * Checkpoint for the databus stream. 
  * 

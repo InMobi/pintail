@@ -33,4 +33,6 @@ public interface DatabusConsumerConfig {
   public static final String databusConsumerKeytab = 
       "databus.consumer.keytab.path";
   
+  public static final String databusStreamType = "databus.consumer.stream.type";
+  public static final String DEFAULT_STREAM_TYPE = StreamType.COLLECTOR.name();
 }

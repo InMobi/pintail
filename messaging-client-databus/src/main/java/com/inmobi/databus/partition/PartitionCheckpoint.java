@@ -1,4 +1,4 @@
-package com.inmobi.messaging.consumer.databus;
+package com.inmobi.databus.partition;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -6,16 +6,16 @@ import java.io.IOException;
 
 import org.apache.hadoop.io.Writable;
 
-class PartitionCheckpoint implements Writable {
+public class PartitionCheckpoint implements Writable {
   private String fileName;
   private long lineNum;
 
-  PartitionCheckpoint(String fileName, long lineNum) {
+  public PartitionCheckpoint(String fileName, long lineNum) {
     this.fileName = fileName;
     this.lineNum = lineNum;
   }
 
-  PartitionCheckpoint(DataInput in) throws IOException {
+  public PartitionCheckpoint(DataInput in) throws IOException {
     readFields(in);
   }
 

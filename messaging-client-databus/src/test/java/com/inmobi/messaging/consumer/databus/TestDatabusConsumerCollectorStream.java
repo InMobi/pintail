@@ -17,26 +17,29 @@ import com.inmobi.messaging.consumer.MessageConsumerFactory;
 import com.inmobi.messaging.consumer.util.MessageUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
-public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
+public class TestDatabusConsumerCollectorStream 
+    extends TestAbstractDatabusConsumer {
 
-  private String ck1 = "/tmp/test/databustest1/checkpoint1";
-  private String ck2 = "/tmp/test/databustest1/checkpoint2";
-  private String ck3 = "/tmp/test/databustest2/checkpoint1";
-  private String ck4 = "/tmp/test/databustest2/checkpoint2";
-  private String ck5 = "/tmp/test/databustest2/checkpoint3";
+  private String ck1 = "/tmp/test/databustest7/checkpoint12";
+  private String ck2 = "/tmp/test/databustest7/checkpoint22";
+  private String ck3 = "/tmp/test/databustest8/checkpoint12";
+  private String ck4 = "/tmp/test/databustest8/checkpoint22";
+  private String ck5 = "/tmp/test/databustest8/checkpoint32";
 
   ClientConfig loadConfig() {
-    return ClientConfig.loadFromClasspath(
+    ClientConfig config = ClientConfig.loadFromClasspath(
         MessageConsumerFactory.MESSAGE_CLIENT_CONF_FILE);
+    config.set(DatabusConsumerConfig.databusConfigFileKey, "databus1.xml");
+    return config;
   }
 
   @BeforeTest
   public void setup() throws Exception {
-    consumerName = "c1";
+    consumerName = "c3";
     collectors = new String[] {"collector1"};
     dataFiles = new String[] {TestUtil.files[0], TestUtil.files[1],
         TestUtil.files[2]};
-    super.setup(1);
+    super.setup(0);
   }
 
   @Test
@@ -202,8 +205,10 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
     assertMessages( config, 3, 1);
   }
 
+
   @AfterTest
   public void cleanup() throws IOException {
     super.cleanup();
   }
+
 }
