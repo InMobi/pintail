@@ -57,6 +57,7 @@ public class StreamingBenchmark {
     StatusLogger statusPrinter = new StatusLogger(producer, consumer);
     statusPrinter.start();
 
+    producer.join();
     consumer.join();
     statusPrinter.stopped = true;
     statusPrinter.join();
@@ -97,12 +98,7 @@ public class StreamingBenchmark {
           return;
         }
       }
-      try {
-        Thread.sleep(10000);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-        return;
-      }
+      publisher.close();
     }
 
   }
