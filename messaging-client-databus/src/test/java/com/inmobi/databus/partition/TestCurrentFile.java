@@ -80,10 +80,10 @@ public class TestCurrentFile {
         CollectorStreamReader.getDateFromCollectorFile(currentScribeFile),
         1000, false);
     preader.start();
+    Assert.assertTrue(buffer.isEmpty());
     FSDataOutputStream out = fs.create(
         new Path(collectorDir, currentScribeFile));
     writeMessages(out, 10);
-    Assert.assertTrue(buffer.isEmpty());
     TestUtil.assertBuffer(currentScribeFile, 4, 0, 10, partitionId, buffer);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
