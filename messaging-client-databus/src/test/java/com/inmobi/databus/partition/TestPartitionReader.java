@@ -101,6 +101,7 @@ public class TestPartitionReader {
         files[4]));    
 
     // Read from checkpoint with collector file name which does not exist
+    // and is before the stream
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
         doesNotExist1, 40), cluster, buffer, testStream, null, 1000, false);
     preader.init();
@@ -108,6 +109,7 @@ public class TestPartitionReader {
         databusFiles[0]);
 
     // Read from checkpoint with local stream file name which does not exist
+    // and is before the stream
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
         LocalStreamCollectorReader.getDatabusStreamFileName(collectorName,
             doesNotExist1), 20),
@@ -151,20 +153,6 @@ public class TestPartitionReader {
     try {
       preader = new PartitionReader(partitionId, new PartitionCheckpoint(
           doesNotExist3, 40), cluster, buffer, testStream, null, 10, false, true);
-      preader.init();
-    } catch (Exception e) {
-      th = e;
-    }
-    Assert.assertNotNull(th);
-    Assert.assertTrue(th instanceof IllegalArgumentException);
-
-    // Read from checkpoint with local stream file name which does not exist
-    // but the file time stamp is within the stream
-    th = null;
-    try {
-      preader = new PartitionReader(partitionId, new PartitionCheckpoint(
-          LocalStreamCollectorReader.getDatabusStreamFileName(collectorName,
-              doesNotExist2), 20), cluster, buffer, testStream, null, 10, false, true);
       preader.init();
     } catch (Exception e) {
       th = e;
