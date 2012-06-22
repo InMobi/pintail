@@ -22,7 +22,6 @@ public class TestPartitionReaderLocalStream {
   private static final String testStream = "testclient";
   private static final String clusterName = "testCluster";
   private PartitionId partitionId = new PartitionId(clusterName, null);
-
   private LinkedBlockingQueue<QueueEntry> buffer = 
       new LinkedBlockingQueue<QueueEntry>(1000);
   private Cluster cluster;
@@ -62,28 +61,95 @@ public class TestPartitionReaderLocalStream {
     preader.init();
     Assert.assertEquals(preader.getCurrentFile(), databusFiles[0]);
 
-    //Read from checkpoint
-    preader = new PartitionReader(partitionId, new PartitionCheckpoint(
-        databusFiles[1].getName(), 20), cluster, buffer, testStream, null,
-        1000, isLocal);
+    // Read from checkpoint with local stream file name
+    preader = new PartitionReader(partitionId,
+        new PartitionCheckpoint(LocalStreamReader.getDatabusStreamFileName(
+            collectorName, files[1]), 20),
+            cluster, buffer, testStream, null, 1000, isLocal);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile(), databusFiles[1]);
 
-    //Read from startTime without checkpoint
-    preader = new PartitionReader(partitionId, null, cluster, buffer,
-        testStream,
+    // Read from checkpoint with local stream file name which does not exist
+    // and is before the stream
+    preader = new PartitionReader(partitionId, new PartitionCheckpoint(
+        LocalStreamReader.getDatabusStreamFileName(collectorName,
+            doesNotExist1), 20),
+            cluster, buffer, testStream, null, 1000, isLocal);
+    preader.init();
+    Assert.assertEquals(preader.getCurrentFile(), databusFiles[0]);
+
+    //Read from startTime in local stream directory, with no checkpoint
+    preader = new PartitionReader(partitionId,
+        null, cluster, buffer, testStream,
         CollectorStreamReader.getDateFromCollectorFile(files[1]), 1000, isLocal);
     preader.init();
-    Assert.assertEquals(preader.getCurrentFile(), databusFiles[1]); 
+    Assert.assertEquals(preader.getCurrentFile(), databusFiles[1]);
 
-    //Read from startTime with checkpoint
+    //Read from startTime in local stream directory, with checkpoint
     preader = new PartitionReader(partitionId,
-        new PartitionCheckpoint(databusFiles[0].getName(), 20), cluster, buffer,
-        testStream, CollectorStreamReader.getDateFromCollectorFile(files[1]),
+        new PartitionCheckpoint(files[0], 10), cluster, buffer, testStream,
+        CollectorStreamReader.getDateFromCollectorFile(files[1]), 1000, isLocal);
+    preader.init();
+    Assert.assertEquals(preader.getCurrentFile(), databusFiles[1]);
+
+    //Read from startTime in local stream directory, with no timestamp file,
+    // with no checkpoint
+    preader = new PartitionReader(partitionId,
+        null, cluster, buffer, testStream,
+        CollectorStreamReader.getDateFromCollectorFile(doesNotExist2), 1000, isLocal);
+    preader.init();
+    Assert.assertEquals(preader.getCurrentFile(), databusFiles[1]);
+
+    //Read from startTime in local stream directory, with no timestamp file,
+    //with checkpoint
+    preader = new PartitionReader(partitionId,
+        new PartitionCheckpoint(files[0], 10), cluster, buffer, testStream,
+        CollectorStreamReader.getDateFromCollectorFile(doesNotExist2), 1000, isLocal);
+    preader.init();
+    Assert.assertEquals(preader.getCurrentFile(), databusFiles[1]);
+
+    //Read from startTime beyond the stream
+    preader = new PartitionReader(partitionId,
+        null, cluster, buffer, testStream,
+        CollectorStreamReader.getDateFromCollectorFile(doesNotExist1), 1000, isLocal);
+    preader.init();
+    Assert.assertEquals(preader.getCurrentFile(), databusFiles[0]);
+
+    //Read from startTime after the stream
+    preader = new PartitionReader(partitionId,
+        null, cluster, buffer, testStream,
+        CollectorStreamReader.getDateFromCollectorFile(doesNotExist3),
+        1000, isLocal, true);
+    preader.init();
+    Assert.assertNotNull(preader.getReader());
+    Assert.assertEquals(preader.getReader().getClass().getName(),
+        ClusterReader.class.getName());
+    Assert.assertEquals(((ClusterReader)preader.getReader())
+        .getReader().getClass().getName(),
+        LocalStreamReader.class.getName());
+    Assert.assertNull(preader.getCurrentFile());
+
+    //Read from startTime beyond the stream, with checkpoint
+    preader = new PartitionReader(partitionId,
+        new PartitionCheckpoint(files[0], 10), cluster, buffer, testStream,
+        CollectorStreamReader.getDateFromCollectorFile(doesNotExist1),
         1000, isLocal);
     preader.init();
-    Assert.assertEquals(preader.getCurrentFile(), databusFiles[1]); 
+    Assert.assertEquals(preader.getCurrentFile(), databusFiles[0]);
 
+    //Read from startTime after the stream, with checkpoint
+    preader = new PartitionReader(partitionId,
+        new PartitionCheckpoint(files[0], 10), cluster, buffer, testStream,
+        CollectorStreamReader.getDateFromCollectorFile(doesNotExist3),
+        1000, isLocal, true);
+    preader.init();
+    Assert.assertNotNull(preader.getReader());
+    Assert.assertEquals(preader.getReader().getClass().getName(),
+        ClusterReader.class.getName());
+    Assert.assertEquals(((ClusterReader)preader.getReader())
+        .getReader().getClass().getName(),
+        LocalStreamReader.class.getName());
+    Assert.assertNull(preader.getCurrentFile());
   }
 
   @Test
