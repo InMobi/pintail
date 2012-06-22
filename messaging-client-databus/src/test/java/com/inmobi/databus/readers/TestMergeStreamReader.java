@@ -26,7 +26,9 @@ public class TestMergeStreamReader {
   private String[] files = new String[] {TestUtil.files[1], TestUtil.files[3],
       TestUtil.files[5]};
   private Path[] databusFiles = new Path[3];
-
+  private String doesNotExist1 = TestUtil.files[0];
+  private String doesNotExist2 = TestUtil.files[2];
+  private String doesNotExist3 = TestUtil.files[7];
 
   @BeforeTest
   public void setup() throws Exception {
@@ -34,7 +36,6 @@ public class TestMergeStreamReader {
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
         testStream, new PartitionId(clusterName, collectorName), files, null,
         databusFiles, 0, 3);
-
   }
 
   @AfterTest
@@ -58,21 +59,22 @@ public class TestMergeStreamReader {
 
     // Read from checkpoint with merge stream file name, which does not exist
     reader.initializeCurrentFile(new PartitionCheckpoint(
-        databusFiles[0].getName(), 20));
+        MergedStreamReader.getDatabusStreamFileName(collectorName,
+            doesNotExist1), 20));
     Assert.assertEquals(reader.getCurrentFile(), databusFiles[0]);
 
     // Read from checkpoint with merge stream file name, which does not exist
     // with file timestamp after the stream
     reader.initializeCurrentFile(new PartitionCheckpoint(
         MergedStreamReader.getDatabusStreamFileName(collectorName,
-            TestUtil.files[7]), 20));
+            doesNotExist2), 20));
     Assert.assertNull(reader.getCurrentFile());  
 
     // Read from checkpoint with merge stream file name, which does not exist
     // with file timestamp within the stream
     reader.initializeCurrentFile(new PartitionCheckpoint(
         MergedStreamReader.getDatabusStreamFileName(collectorName,
-            TestUtil.files[4]), 20));
+            doesNotExist3), 20));
     Assert.assertNull(reader.getCurrentFile());  
 
     //Read from startTime in merge stream directory 
@@ -82,23 +84,32 @@ public class TestMergeStreamReader {
 
     //Read from startTime in merge stream directory, before the stream
     reader.initializeCurrentFile(
-        CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[0]));
+        CollectorStreamReader.getDateFromCollectorFile(doesNotExist1));
     Assert.assertEquals(reader.getCurrentFile(), databusFiles[0]);
 
     //Read from startTime in merge stream directory, within the stream
     reader.initializeCurrentFile(
-        CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[2]));
+        CollectorStreamReader.getDateFromCollectorFile(doesNotExist2));
     Assert.assertEquals(reader.getCurrentFile(), databusFiles[1]);
-
-    //Read from startTime in merge stream directory, within the stream
-    reader.initializeCurrentFile(
-        CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[4]));
-    Assert.assertEquals(reader.getCurrentFile(), databusFiles[2]);
 
     //Read from startTime in after the stream
     reader.initializeCurrentFile(
-        CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[7]));
+        CollectorStreamReader.getDateFromCollectorFile(doesNotExist3));
     Assert.assertNull(reader.getCurrentFile());  
+
+    // startFromNextHigher with filename
+    reader.startFromNextHigher(
+        MergedStreamReader.getDatabusStreamFileName(collectorName, files[1]));
+    Assert.assertEquals(reader.getCurrentFile(), databusFiles[2]);
+
+    // startFromNextHigher with date
+    reader.startFromTimestmp(
+        CollectorStreamReader.getDateFromCollectorFile(files[1]));
+    Assert.assertEquals(reader.getCurrentFile(), databusFiles[1]);
+    
+    // startFromBegining 
+   reader.startFromBegining();
+   Assert.assertEquals(reader.getCurrentFile(), databusFiles[0]);
 
   }
 

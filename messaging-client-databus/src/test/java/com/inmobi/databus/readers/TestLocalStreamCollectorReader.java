@@ -27,6 +27,10 @@ public class TestLocalStreamCollectorReader {
       TestUtil.files[5]};
   private Path[] databusFiles = new Path[3];
 
+  private String doesNotExist1 = TestUtil.files[0];
+  private String doesNotExist2 = TestUtil.files[2];
+  private String doesNotExist3 = TestUtil.files[7];
+
   @BeforeTest
   public void setup() throws Exception {
     // initialize config
@@ -62,9 +66,10 @@ public class TestLocalStreamCollectorReader {
         databusFiles[1]);
 
     // Read from checkpoint with local stream file name, which does not exist
+    // and is before the stream
     lreader.initializeCurrentFile(new PartitionCheckpoint(
         LocalStreamCollectorReader.getDatabusStreamFileName(collectorName,
-            TestUtil.files[0]), 20));
+            doesNotExist1), 20));
     Assert.assertEquals(lreader.getCurrentFile(),
         databusFiles[0]);
 
@@ -72,14 +77,14 @@ public class TestLocalStreamCollectorReader {
     // with file timestamp after the stream
     lreader.initializeCurrentFile(new PartitionCheckpoint(
         LocalStreamCollectorReader.getDatabusStreamFileName(collectorName,
-            TestUtil.files[7]), 20));
+            doesNotExist3), 20));
     Assert.assertNull(lreader.getCurrentFile());  
 
     // Read from checkpoint with local stream file name, which does not exist
     // with file timestamp within the stream
     lreader.initializeCurrentFile(new PartitionCheckpoint(
         LocalStreamCollectorReader.getDatabusStreamFileName(collectorName,
-            TestUtil.files[4]), 20));
+            doesNotExist2), 20));
     Assert.assertNull(lreader.getCurrentFile());  
 
     //Read from startTime in local stream directory 
@@ -88,27 +93,21 @@ public class TestLocalStreamCollectorReader {
     Assert.assertEquals(lreader.getCurrentFile(),
         databusFiles[1]);
 
-    //Read from startTime in local stream directory, before the stream
+    //Read from startTime in before the stream
     lreader.initializeCurrentFile(
-        CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[0]));
+        CollectorStreamReader.getDateFromCollectorFile(doesNotExist1));
     Assert.assertEquals(lreader.getCurrentFile(),
         databusFiles[0]);
 
-    //Read from startTime in local stream directory, within the stream
+    //Read from startTime within the stream
     lreader.initializeCurrentFile(
-        CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[2]));
+        CollectorStreamReader.getDateFromCollectorFile(doesNotExist2));
     Assert.assertEquals(lreader.getCurrentFile(),
         databusFiles[1]);
 
-    //Read from startTime in local stream directory, within the stream
+    //Read from startTime after stream
     lreader.initializeCurrentFile(
-        CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[4]));
-    Assert.assertEquals(lreader.getCurrentFile(),
-        databusFiles[2]);
-
-    //Read from startTime in collector dir
-    lreader.initializeCurrentFile(
-        CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[7]));
+        CollectorStreamReader.getDateFromCollectorFile(doesNotExist3));
     Assert.assertNull(lreader.getCurrentFile());  
 
   }

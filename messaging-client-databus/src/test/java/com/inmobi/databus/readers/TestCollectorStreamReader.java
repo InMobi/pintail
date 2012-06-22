@@ -13,9 +13,6 @@ import org.testng.annotations.Test;
 import com.inmobi.databus.Cluster;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
-import com.inmobi.databus.readers.CollectorStreamReader;
-import com.inmobi.databus.readers.DatabusStreamReader;
-import com.inmobi.databus.readers.LocalStreamCollectorReader;
 import com.inmobi.messaging.consumer.util.MessageUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
@@ -28,11 +25,11 @@ public class TestCollectorStreamReader {
   private Path collectorDir;
   private CollectorStreamReader cReader;
   private Cluster cluster;
-  private String[] files = new String[] {TestUtil.files[0], TestUtil.files[1],
-      TestUtil.files[2]};
-  private String file5 = collectorName + "-" + testStream 
-      + "-2012-05-02-14-24_00000.gz";
-
+  private String[] files = new String[] {TestUtil.files[1], TestUtil.files[3],
+      TestUtil.files[5]};
+  private String doesNotExist1 = TestUtil.files[0];
+  private String doesNotExist2 = TestUtil.files[2];
+  private String doesNotExist3 = TestUtil.files[7];
 
   @BeforeTest
   public void setup() throws Exception {
@@ -69,12 +66,26 @@ public class TestCollectorStreamReader {
 
     // Read from checkpoint with local stream file name
     cReader.initializeCurrentFile(new PartitionCheckpoint(
-        LocalStreamCollectorReader.getDatabusStreamFileName(collectorName, files[1]), 20));
+        LocalStreamCollectorReader.getDatabusStreamFileName(collectorName,
+            files[1]), 20));
     Assert.assertNull(cReader.getCurrentFile());
 
     // Read from checkpoint with collector file name which does not exist
+    // and is before the stream
     cReader.initializeCurrentFile(
-        new PartitionCheckpoint(TestUtil.files[10], 20));
+        new PartitionCheckpoint(doesNotExist1, 20));
+    Assert.assertNull(cReader.getCurrentFile());
+
+    // Read from checkpoint with collector file name which does not exist
+    // and is within the stream
+    cReader.initializeCurrentFile(
+        new PartitionCheckpoint(doesNotExist2, 20));
+    Assert.assertNull(cReader.getCurrentFile());
+
+    // Read from checkpoint with collector file name which does not exist
+    // is after the stream
+    cReader.initializeCurrentFile(
+        new PartitionCheckpoint(doesNotExist3, 20));
     Assert.assertNull(cReader.getCurrentFile());
 
     //Read from startTime in collector dir
@@ -84,14 +95,20 @@ public class TestCollectorStreamReader {
         files[1]));
 
     //Read from startTime in before the stream
-    cReader.initializeCurrentFile(DatabusStreamReader.getDateFromStreamFile(
-        testStream, file5));
+    cReader.initializeCurrentFile(CollectorStreamReader.getDateFromCollectorFile(
+        doesNotExist1));
     Assert.assertEquals(cReader.getCurrentFile(), new Path(collectorDir,
         files[0]));
-    
+
+    //Read from startTime in within the stream
+    cReader.initializeCurrentFile(CollectorStreamReader.getDateFromCollectorFile(
+        doesNotExist2));
+    Assert.assertEquals(cReader.getCurrentFile(), new Path(collectorDir,
+        files[1]));
+
     // Read from startTime after the stream
     cReader.initializeCurrentFile(
-        CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[10]));
+        CollectorStreamReader.getDateFromCollectorFile(doesNotExist3));
     Assert.assertNull(cReader.getCurrentFile());
     
     // startFromNextHigher with filename
