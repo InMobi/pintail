@@ -40,6 +40,7 @@ public class TestCurrentFile {
   private String currentScribeFile = TestUtil.files[3];
   MiniDFSCluster dfsCluster;
   Configuration conf = new Configuration();
+  FileSystem lfs;
 
   private void writeMessages(FSDataOutputStream out, int num)
       throws IOException {
@@ -58,12 +59,13 @@ public class TestCurrentFile {
     if (dfsCluster != null) {
       dfsCluster.shutdown();
     }
-    FileSystem lfs = FileSystem.getLocal(conf);
     lfs.delete(new Path(MiniDFSCluster.getBaseDir().toString()), true);
   }
 
   @BeforeTest
-  public void setup() throws Exception {     
+  public void setup() throws Exception {
+    lfs = FileSystem.getLocal(conf);
+    lfs.delete(new Path(MiniDFSCluster.getBaseDir().toString()), true);
     dfsCluster = new MiniDFSCluster(conf, 1, true, null);
     cluster = TestUtil.setupDFSCluster(this.getClass().getSimpleName(),
         testStream,
