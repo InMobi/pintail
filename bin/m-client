@@ -63,7 +63,9 @@ display_help() {
 Usage: $0 file <topic> <file> --conf <confdir>
        $0 seqgen <topic> <maxSeq> --conf <confdir>
        $0 consoleconsumer --conf <confdir> 
-       $0 benchmark <no-of-msgs> <sleepMillis-every-msg> [<timezone>] --conf <confdir>
+       $0 benchmark 
+          [-producer <topic-name> <no-of-msgs> <sleepMillis-every-msg>]
+          [-consumer <no-of-producers> <no-of-messages> [<timezone>]] --conf <confdir>
        $0 counter <minutes-to-read-from> --conf <confdir> 
 
 EOF

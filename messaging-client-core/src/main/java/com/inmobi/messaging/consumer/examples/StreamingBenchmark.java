@@ -22,51 +22,114 @@ public class StreamingBenchmark {
   static final SimpleDateFormat LogDateFormat = new SimpleDateFormat(
       "yyyy:MM:dd hh:mm:ss");
 
+  static void printUsage() {
+    System.out.println(
+        "Usage: StreamingBenchmark  " +
+        " [-producer <topic-name> <no-of-msgs> <sleepMillis-every-msg> ]" +
+        " [-consumer <no-of-producers> <no-of-msgs> [<timezone>] ]");
+    System.exit(-1);    
+  }
+
   public static void main(String[] args) throws Exception {
     if (args.length < 2) {
-      System.out.println(
-          "Usage: StreamingBenchmark <no-of-msgs> <sleepMillis-every-msg>" +
-          " [<timezone>]");
-      System.exit(-1);
+      printUsage();
     }
-    long maxSent = Long.parseLong(args[0]);
-    int sleepMillis = Integer.parseInt(args[1]);
+    long maxSent = -1;
+    int sleepMillis = -1;
     String timezone = null;
-    if (args.length == 3) {
-      timezone = args[2];
-    }
+    String topic = null;
+    int numProducers = 1;
+    boolean runProducer = false;
+    boolean runConsumer = false;
 
-    ClientConfig config = ClientConfig.loadFromClasspath(
-        MessageConsumerFactory.MESSAGE_CLIENT_CONF_FILE);
-    String topic = config.getString(MessageConsumerFactory.TOPIC_NAME_KEY);
-    System.out.println("Using topic: " + topic);
-
-    Producer producer = new Producer(topic, maxSent, sleepMillis);
-    Date now;
-    if (timezone != null) {
-      now = ConsumerUtil.getCurrenDateForTimeZone(timezone);
+    if (args.length >= 3) {
+      int consumerOptionIndex = -1;
+      if (args[0].equals("-producer")) {
+        topic = args[1];
+        maxSent = Long.parseLong(args[2]);
+        sleepMillis = Integer.parseInt(args[3]);
+        runProducer = true;
+        consumerOptionIndex = 4;
+      } else {
+        consumerOptionIndex = 0;
+      }
+      
+      if (args.length > consumerOptionIndex) {
+        if (args[consumerOptionIndex].equals("-consumer")) {
+          numProducers = Integer.parseInt(args[consumerOptionIndex + 1]);
+          maxSent = Long.parseLong(args[consumerOptionIndex + 2]);
+          if (args.length > consumerOptionIndex + 3) {
+            timezone = args[consumerOptionIndex + 3];
+          }
+          runConsumer = true;
+        }
+      }
     } else {
-      now = Calendar.getInstance().getTime(); 
+      printUsage();
     }
-    System.out.println("Starting from " + now);
-    
-    producer.start();
-    Consumer consumer = new Consumer(config, maxSent, now);
-    consumer.start();
 
-    StatusLogger statusPrinter = new StatusLogger(producer, consumer);
+    assert(runProducer || runConsumer == true);
+    Producer producer = null;
+    Consumer consumer = null;
+    StatusLogger statusPrinter;
+
+    if (runProducer) {
+     System.out.println("Using topic: " + topic);
+      producer = createProducer(topic, maxSent, sleepMillis);
+      producer.start();
+    }
+    
+    if (runConsumer) {
+      ClientConfig config = ClientConfig.loadFromClasspath(
+          MessageConsumerFactory.MESSAGE_CLIENT_CONF_FILE);
+      Date now;
+      if (timezone != null) {
+        now = ConsumerUtil.getCurrenDateForTimeZone(timezone);
+      } else {
+        now = Calendar.getInstance().getTime(); 
+      }
+      System.out.println("Starting from " + now);
+
+      // create and start consumer
+      assert(config != null);
+      consumer = createConsumer(config, maxSent, now, numProducers);
+      consumer.start();
+    }
+    
+    statusPrinter = new StatusLogger(producer, consumer);
     statusPrinter.start();
 
-    producer.join();
-    consumer.join();
-    statusPrinter.stopped = true;
-    statusPrinter.join();
-    if (consumer.received != consumer.seqSet.size()) {
-      System.out.println("Data validation FAILED!");
-    } else {
-      System.out.println("Data validation SUCCESS!");
+    
+    if (runProducer) {
+      assert (producer != null);
+      producer.join();
+      if (!runConsumer) {
+        statusPrinter.stopped = true;
+      }
+    } 
+    if (runConsumer) {
+      assert (consumer !=null);
+      consumer.join();
+      statusPrinter.stopped = true;
+      if (!consumer.success) {
+        System.out.println("Data validation FAILED!");
+      } else {
+        System.out.println("Data validation SUCCESS!");
+      }
     }
+
+    statusPrinter.join();
     System.exit(0);
+  }
+
+  static Producer createProducer(String topic, long maxSent, int sleepMillis)
+      throws IOException {
+    return new Producer(topic, maxSent, sleepMillis); 
+  }
+
+  static Consumer createConsumer(ClientConfig config, long maxSent,
+      Date startTime, int numProducers) throws IOException {
+    return new Consumer(config, maxSent, startTime, numProducers);    
   }
 
   static class Producer extends Thread {
@@ -104,16 +167,24 @@ public class StreamingBenchmark {
   }
 
   static class Consumer extends Thread {
-    volatile Set<Long> seqSet = new HashSet<Long>();
+    //volatile Set<Long> seqSet = new HashSet<Long>();
     final MessageConsumer consumer;
     final long maxSent;
     volatile long received = 0;
     volatile long totalLatency = 0;
+    long[] counter;
+    int numProducers;
+    boolean success = false;
 
-    Consumer(ClientConfig config, long maxSent, Date startTime) 
-        throws IOException {
+    Consumer(ClientConfig config, long maxSent, Date startTime,
+        int numProducers) throws IOException {
       this.maxSent = maxSent;
       consumer = MessageConsumerFactory.create(config, startTime);
+      this.numProducers = numProducers;
+      counter = new long[numProducers];
+      for (int i = 0; i < numProducers; i++) {
+        counter[i] = 0;
+      }
     }
 
     @Override
@@ -127,10 +198,19 @@ public class StreamingBenchmark {
           String s = new String(msg.getData().array());
           String[] ar = s.split(DELIMITER);
           long seq = Long.parseLong(ar[0]);
-          seqSet.add(seq);
+          int m;
+          for (m = 0;  m < numProducers; m++) {
+            if (seq == (counter[m] + 1)) {
+              counter[m]++;
+              break;
+            }
+          }
+          if (m == numProducers) {
+            throw new RuntimeException("Data outof order!");
+          }
           long sentTime = Long.parseLong(ar[1]);
           totalLatency += System.currentTimeMillis() - sentTime;
-          if (received == maxSent) {
+          if (received == maxSent * numProducers) {
             break;
           }
         } catch (InterruptedException e) {
@@ -140,6 +220,14 @@ public class StreamingBenchmark {
           System.out.println("Got exception for " + 
             new String(msg.getData().array()));
           e.printStackTrace();
+        }
+      }
+      for (int i = 0; i < numProducers; i++) {
+        if (counter[i] != maxSent) {
+          success = false;
+          break;
+        } else {
+          success = true;
         }
       }
       consumer.close();
@@ -166,20 +254,36 @@ public class StreamingBenchmark {
         }
         StringBuffer sb = new StringBuffer();
         sb.append(LogDateFormat.format(System.currentTimeMillis()));
-        sb.append(" Invocations:" + producer.publisher.getStats().
-            getInvocationCount());
-        sb.append(" SentSuccess:" + producer.publisher.getStats().
-            getSuccessCount());
-        sb.append(" UnhandledExceptions:" + producer.publisher.getStats().
-            getUnhandledExceptionCount());
-        sb.append(" Received:" + consumer.received);
-        sb.append(" UniqueReceived:" + consumer.seqSet.size());
-        if (consumer.received != 0) {
-          sb.append(" MeanLatency(ms):" 
-              + (consumer.totalLatency / consumer.received));
+        if (producer != null) {
+          constructProducerString(sb);
+        }
+        if (consumer != null) {
+          constructConsumerString(sb);
         }
         System.out.println(sb.toString());
       }
+    }
+    
+    void constructProducerString(StringBuffer sb) {
+      sb.append(" Invocations:" + producer.publisher.getStats().
+          getInvocationCount());
+      sb.append(" SentSuccess:" + producer.publisher.getStats().
+          getSuccessCount());
+      sb.append(" UnhandledExceptions:" + producer.publisher.getStats().
+          getUnhandledExceptionCount());      
+    }
+    
+    void constructConsumerString(StringBuffer sb) {
+      sb.append(" Received:" + consumer.received);
+      sb.append(" UniqueReceived:");
+      for (int i = 0; i< consumer.numProducers; i++) {
+        sb.append(consumer.counter[i]);
+        sb.append(",");
+      }
+      if (consumer.received != 0) {
+        sb.append(" MeanLatency(ms):" 
+            + (consumer.totalLatency / consumer.received));
+      }      
     }
   }
 }
