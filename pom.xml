@@ -12,6 +12,9 @@
     <developerConnection>scm:git:git@github.com/InMobi/messaging-client.git</developerConnection>
   </scm>
 
+  <properties>
+    <test.build.data>${project.build.directory}/test/data</test.build.data>
+  </properties>
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -123,6 +126,9 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <argLine>-Xdebug -Xrunjdwp:transport=dt_socket,address=8888,server=y,suspend=n</argLine>
+          <systemPropertyVariables>
+            <test.build.data>${test.build.data}</test.build.data>
+          </systemPropertyVariables>
         </configuration>
       </plugin>
 
