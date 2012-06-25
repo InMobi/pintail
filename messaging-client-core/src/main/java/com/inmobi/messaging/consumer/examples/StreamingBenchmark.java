@@ -111,14 +111,16 @@ public class StreamingBenchmark {
       assert (consumer !=null);
       consumer.join();
       statusPrinter.stopped = true;
+    }
+
+    statusPrinter.join();
+    if (runConsumer) {
       if (!consumer.success) {
         System.out.println("Data validation FAILED!");
       } else {
         System.out.println("Data validation SUCCESS!");
       }
     }
-
-    statusPrinter.join();
     System.exit(0);
   }
 
