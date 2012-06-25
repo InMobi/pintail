@@ -56,9 +56,10 @@ public class TestCurrentFile {
   public void cleanup() throws IOException {
     TestUtil.cleanupCluster(cluster);
     if (dfsCluster != null) {
-      fs.delete(new Path(dfsCluster.getDataDirectory()), true);
       dfsCluster.shutdown();
     }
+    FileSystem lfs = FileSystem.getLocal(conf);
+    lfs.delete(new Path(MiniDFSCluster.getBaseDir().toString()), true);
   }
 
   @BeforeTest
