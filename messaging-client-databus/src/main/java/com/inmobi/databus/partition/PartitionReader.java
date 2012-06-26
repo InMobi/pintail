@@ -151,7 +151,7 @@ public class PartitionReader {
       LOG.warn("Error while reading stream", e);
     } finally {
       try {
-        reader.close();
+        reader.closeStream();
       } catch (Exception e) {
         LOG.warn("Error while closing stream", e);
       }

@@ -34,6 +34,11 @@ public abstract class AbstractPartitionStreamReader implements
     reader.close();    
   }
 
+  @Override
+  public void closeStream() throws IOException {
+    reader.closeStream();    
+  }
+
   public String readLine() throws IOException, InterruptedException {
     return reader.readLine();
   }

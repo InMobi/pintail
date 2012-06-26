@@ -54,8 +54,12 @@ public abstract class StreamReader<T extends StreamFile> {
     openCurrentFile(false);
   }
 
+  public void closeStream() throws IOException {
+    closeCurrentFile();    
+  }
+
   public void close() throws IOException {
-    closeCurrentFile();
+    closeStream();
     closed = true;
   }
 
@@ -82,14 +86,14 @@ public abstract class StreamReader<T extends StreamFile> {
     }
   }
 
-  private void closeReader() throws IOException {
+  private synchronized void closeReader() throws IOException {
     if (reader != null) {
       reader.close();
       reader = null;
     }
   }
 
-  private void closeCurrentFile() throws IOException {
+  private synchronized void closeCurrentFile() throws IOException {
     closeReader();
     if (inStream != null) {
       inStream.close();
@@ -313,7 +317,7 @@ public abstract class StreamReader<T extends StreamFile> {
 
   private void waitForNextFileCreation() throws IOException,
       InterruptedException {
-    while (!initFromStart()) {
+    while (!closed && !initFromStart()) {
       LOG.info("Waiting for next file creation");
       Thread.sleep(waitTimeForCreate);
       build();
@@ -322,7 +326,7 @@ public abstract class StreamReader<T extends StreamFile> {
 
   private void waitForNextFileCreation(Date timestamp) throws IOException,
       InterruptedException {
-    while (!initializeCurrentFile(timestamp)) {
+    while (!closed && !initializeCurrentFile(timestamp)) {
       LOG.info("Waiting for next file creation");
       Thread.sleep(waitTimeForCreate);
       build();
@@ -331,7 +335,7 @@ public abstract class StreamReader<T extends StreamFile> {
 
   private void waitForNextFileCreation(String fileName) 
       throws IOException, InterruptedException {
-    while (!setNextHigher(fileName)) {
+    while (!closed && !setNextHigher(fileName)) {
       LOG.info("Waiting for next file creation");
       Thread.sleep(waitTimeForCreate);
       build();
