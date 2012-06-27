@@ -5,7 +5,9 @@ import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import com.inmobi.messaging.ClientConfig;
@@ -188,11 +190,11 @@ public class StreamingBenchmark {
 
   static class Consumer extends Thread {
     //volatile Set<Long> seqSet = new HashSet<Long>();
+    Map<Long, Integer> messageToProducerCount = new HashMap<Long, Integer>();
     final MessageConsumer consumer;
     final long maxSent;
     volatile long received = 0;
     volatile long totalLatency = 0;
-    long[] counter;
     int numProducers;
     boolean success = false;
 
@@ -201,10 +203,6 @@ public class StreamingBenchmark {
       this.maxSent = maxSent;
       consumer = MessageConsumerFactory.create(config, startTime);
       this.numProducers = numProducers;
-      counter = new long[numProducers];
-      for (int i = 0; i < numProducers; i++) {
-        counter[i] = 0;
-      }
     }
 
     @Override
@@ -217,21 +215,18 @@ public class StreamingBenchmark {
           received++;
           String s = new String(msg.getData().array());
           String[] ar = s.split(DELIMITER);
-          long seq = Long.parseLong(ar[0]);
-          int m;
-          for (m = 0;  m < numProducers; m++) {
-            if (seq == (counter[m] + 1)) {
-              counter[m]++;
-              break;
-            }
+          Long seq = Long.parseLong(ar[0]);
+          Integer pcount = messageToProducerCount.get(seq);
+          if (pcount == null) {
+            messageToProducerCount.put(seq, new Integer(1));
+          } else {
+            pcount++;
+            messageToProducerCount.put(seq, pcount);
           }
           long sentTime = Long.parseLong(ar[1]);
           totalLatency += System.currentTimeMillis() - sentTime;
           if (received == maxSent * numProducers) {
             break;
-          }
-          if (m == numProducers) {
-            throw new RuntimeException("Data outof order!");
           }
         } catch (InterruptedException e) {
           e.printStackTrace();
@@ -242,13 +237,17 @@ public class StreamingBenchmark {
           e.printStackTrace();
         }
       }
-      for (int i = 0; i < numProducers; i++) {
-        if (counter[i] != maxSent) {
-          success = false;
-          break;
-        } else {
-          success = true;
+      if (messageToProducerCount.size() == maxSent) {
+        for (Integer pcount : messageToProducerCount.values()) {
+          if (pcount != numProducers) {
+            success = false;
+            break;
+          } else {
+            success = true;
+          }
         }
+      } else {
+        success = false;
       }
       consumer.close();
     }
@@ -287,6 +286,7 @@ public class StreamingBenchmark {
     void constructProducerString(StringBuffer sb) {
       sb.append(" Invocations:" + producer.publisher.getStats().
           getInvocationCount());
+      sb.append(" Inflight:" + producer.publisher.getStats().getInFlight());
       sb.append(" SentSuccess:" + producer.publisher.getStats().
           getSuccessCount());
       sb.append(" UnhandledExceptions:" + producer.publisher.getStats().
@@ -296,10 +296,7 @@ public class StreamingBenchmark {
     void constructConsumerString(StringBuffer sb) {
       sb.append(" Received:" + consumer.received);
       sb.append(" UniqueReceived:");
-      for (int i = 0; i< consumer.numProducers; i++) {
-        sb.append(consumer.counter[i]);
-        sb.append(",");
-      }
+      sb.append(consumer.messageToProducerCount.size());
       if (consumer.received != 0) {
         sb.append(" MeanLatency(ms):" 
             + (consumer.totalLatency / consumer.received));
