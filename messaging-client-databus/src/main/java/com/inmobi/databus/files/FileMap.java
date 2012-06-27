@@ -10,7 +10,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
 
-
 public abstract class FileMap<T extends StreamFile> {
   private static final Log LOG = LogFactory.getLog(FileMap.class);
 
@@ -24,6 +23,8 @@ public abstract class FileMap<T extends StreamFile> {
 
   protected abstract TreeMap<T, Path> createFilesMap();
 
+  protected abstract T getStreamFile(Path file);
+
   protected abstract T getStreamFile(String fileName);
 
   protected abstract PathFilter createPathFilter(); 
@@ -36,9 +37,9 @@ public abstract class FileMap<T extends StreamFile> {
   }
 
   public void addPath(Path path) {
-    T fileKey = getStreamFile(path.getName());
+    T fileKey = getStreamFile(path);
     files.put(fileKey, path);
-    LOG.info("Added path" + path);
+    LOG.info("Added path: " + path);
   }
 
   public Path getCeilingValue(String fileName) {
@@ -51,9 +52,20 @@ public abstract class FileMap<T extends StreamFile> {
     }
   }
 
+  public Path getHigherValue(Path file)
+      throws IOException {
+    T fileKey = getStreamFile(file);
+    return getHigherValue(fileKey);
+  }
+
   public Path getHigherValue(String fileName)
       throws IOException {
     T fileKey = getStreamFile(fileName);
+    return getHigherValue(fileKey);
+  }
+
+  private Path getHigherValue(T fileKey)
+      throws IOException {
     Map.Entry<T, Path> higherEntry = files.higherEntry(fileKey);
     if (higherEntry != null) {
       return higherEntry.getValue();

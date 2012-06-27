@@ -113,6 +113,8 @@ public abstract class StreamReader<T extends StreamFile> {
   public boolean initializeCurrentFile(Date timestamp) throws IOException {
     initCurrentFile();
     this.timestamp = timestamp;
+    String fileName = getStreamFileName(streamName, timestamp);
+    LOG.debug("Stream file corresponding to timestamp:" + timestamp + " is " + fileName);
     currentFile = fileMap.getCeilingValue(
         getStreamFileName(streamName, timestamp));
 
@@ -120,6 +122,8 @@ public abstract class StreamReader<T extends StreamFile> {
       setIterator();
       LOG.debug("CurrentFile:" + currentFile + " currentLineNum:"+ 
           currentLineNum);
+    } else {
+      LOG.info("Did not find stream file for timestamp:" + timestamp);
     }
     return currentFile != null;
   }
@@ -167,9 +171,14 @@ public abstract class StreamReader<T extends StreamFile> {
     return fileMap.isEmpty();
   }
 
-  protected boolean setNextHigher(String currentFileName) throws IOException {
-    LOG.debug("finding next higher for " + currentFileName);
-    Path nextHigherFile  = fileMap.getHigherValue(currentFileName);
+  protected boolean setNextHigher(Path currentFile) throws IOException {
+    LOG.debug("finding next higher for " + currentFile);
+    Path nextHigherFile  = fileMap.getHigherValue(currentFile);
+    return setIteratorToNextHigher(nextHigherFile);
+  }
+
+  private boolean setIteratorToNextHigher(Path nextHigherFile) 
+      throws IOException {
     if (nextHigherFile != null) {
       currentFile = nextHigherFile;
       LOG.debug("Next higher entry:" + currentFile);
@@ -178,6 +187,12 @@ public abstract class StreamReader<T extends StreamFile> {
       return true;
     }
     return false;
+  }
+
+  public boolean setNextHigher(String currentFileName) throws IOException {
+    LOG.debug("finding next higher for " + currentFileName);
+    Path nextHigherFile  = fileMap.getHigherValue(currentFileName);
+    return setIteratorToNextHigher(nextHigherFile);
   }
 
   public Path getCurrentFile() {
@@ -283,14 +298,25 @@ public abstract class StreamReader<T extends StreamFile> {
     }
   }
 
-  public void startFromNextHigher(String collectorFileName) 
+  protected void startFromNextHigher(Path file) 
       throws IOException, InterruptedException {
-    if (!setNextHigher(collectorFileName)) {
+    if (!setNextHigher(file)) {
       if (noNewFiles) {
         // this boolean check is only for tests 
         return;
       }
-      waitForNextFileCreation(collectorFileName);
+      waitForNextFileCreation(file);
+    }
+  }
+
+  public void startFromNextHigher(String fileName) 
+      throws IOException, InterruptedException {
+    if (!setNextHigher(fileName)) {
+      if (noNewFiles) {
+        // this boolean check is only for tests 
+        return;
+      }
+      waitForNextFileCreation(fileName);
     }
   }
 
@@ -333,9 +359,18 @@ public abstract class StreamReader<T extends StreamFile> {
     }
   }
 
-  private void waitForNextFileCreation(String fileName) 
+  protected void waitForNextFileCreation(String fileName) 
       throws IOException, InterruptedException {
     while (!closed && !setNextHigher(fileName)) {
+      LOG.info("Waiting for next file creation");
+      Thread.sleep(waitTimeForCreate);
+      build();
+    }
+  }
+
+  protected void waitForNextFileCreation(Path file) 
+      throws IOException, InterruptedException {
+    while (!closed && !setNextHigher(file)) {
       LOG.info("Waiting for next file creation");
       Thread.sleep(waitTimeForCreate);
       build();

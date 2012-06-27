@@ -95,6 +95,11 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
         return CollectorFile.create(fileName);
       }
 
+      @Override
+      protected CollectorFile getStreamFile(Path file) {
+        return CollectorFile.create(file.getName());
+      }
+
     };
   }
   

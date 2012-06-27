@@ -6,7 +6,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -31,6 +30,7 @@ public class TestUtil {
   private static final String testStream = "testclient";
 
   public static String[] files = new String[12];
+  private static int increment = 1;
 
   static {
     Calendar now = Calendar.getInstance();
@@ -53,6 +53,9 @@ public class TestUtil {
     out.close();
   }
 
+  public static void incrementCommitTime() {
+    increment++;
+  }
   public static Path moveFileToStreamLocal(FileSystem fs, String streamName,
       String collectorName, Cluster cluster, Path collectorDir,
       String collectorfileName)
@@ -184,6 +187,12 @@ public class TestUtil {
         numFilesToMoveToStreams);
   }
 
+  public static Path getCollectorDir(Cluster cluster, String streamName,
+      String collectorName) {
+    Path streamDir = new Path(cluster.getDataDir(), streamName);
+    return new Path(streamDir, collectorName);
+  }
+
   private static Cluster setupCluster(String className, String testStream,
       PartitionId pid, String hdfsUrl, String[] collectorFiles, 
       String[] emptyFiles, Path[] databusFiles, 
@@ -200,11 +209,10 @@ public class TestUtil {
     Cluster cluster = new Cluster(clusterConf, 
         "/tmp/test/databus/" + className,
          null, sourceNames);
-    Path streamDir = new Path(cluster.getDataDir(), testStream);
 
     // setup stream and collector dirs
     FileSystem fs = FileSystem.get(cluster.getHadoopConf());
-    Path collectorDir = new Path(streamDir, pid.getCollector());
+    Path collectorDir = getCollectorDir(cluster, testStream, pid.getCollector());
     fs.delete(collectorDir, true);
     fs.delete(new Path(cluster.getLocalFinalDestDirRoot()), true);
     fs.delete(new Path(cluster.getFinalDestDirRoot()), true);
@@ -304,29 +312,26 @@ public class TestUtil {
     fs.delete(new Path(cluster.getRootDir()), true);    
   }
 
-  private static Date getCommitDateForCollectorFile(String fileName)
+  private static Date getCommitDateForCollectorFile(Cluster cluster,
+      String fileName)
       throws IOException {
-    Date date = CollectorStreamReader.getDateFromCollectorFile(fileName);
     Calendar cal = Calendar.getInstance();
-    int rand = new Random().nextInt()%5;
-    if (rand < 0) {
-      rand *= -1;
-    }
+    Date date = CollectorStreamReader.getDateFromCollectorFile(fileName);
     cal.setTime(date);
-    cal.add(Calendar.MINUTE, rand);
+    cal.add(Calendar.MINUTE, increment);
     return cal.getTime();
   }
 
   public static Path getDateLocalDirForCollectorFile(Cluster cluster,
       String streamName, String fileName) throws IOException {
     return TestUtil.getDateLocalDir(cluster, streamName,
-        getCommitDateForCollectorFile(fileName));
+        getCommitDateForCollectorFile(cluster, fileName));
   }
 
   private static Path getDateFinalDirForCollectorFile(Cluster cluster,
       String streamName, String fileName) throws IOException {
     return TestUtil.getDateFinalDir(cluster, streamName, 
-        getCommitDateForCollectorFile(fileName));
+        getCommitDateForCollectorFile(cluster, fileName));
   }
 
   public static Path getDateLocalDir(Cluster cluster, String streamName,

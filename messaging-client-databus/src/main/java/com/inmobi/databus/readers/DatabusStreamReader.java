@@ -3,6 +3,7 @@ package com.inmobi.databus.readers;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TreeMap;
@@ -56,6 +57,12 @@ public abstract class DatabusStreamReader extends StreamReader<DatabusStreamFile
     @Override
     protected DatabusStreamFile getStreamFile(String fileName) {
       return DatabusStreamFile.create(streamName, fileName);
+    }
+
+    @Override
+    protected DatabusStreamFile getStreamFile(Path file) {
+      return DatabusStreamFile.create(streamName, file.getName(),
+          file.getParent().toString());
     }
 
   };
@@ -158,6 +165,16 @@ public abstract class DatabusStreamReader extends StreamReader<DatabusStreamFile
         .getTimestamp();
   }
 
+  static Date getDateFromDatabusStreamDir(Path streamDir, Path dir) {
+    String pathStr = dir.toString();
+    String dirString = pathStr.substring(streamDir.toString().length() + 1);
+    try {
+      return minDirFormat.get().parse(dirString);
+    } catch (ParseException e) {
+      LOG.warn("Could not get date from directory passed", e);
+    }
+    return null;
+  }
 
   static boolean isDatabusStreamFile(String streamName, String fileName) {
     try {

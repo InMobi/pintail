@@ -30,15 +30,15 @@ public abstract class DatabusStreamWaitingReader extends DatabusStreamReader {
     while (line == null) { // reached end of file
       if (!nextFile()) { // reached end of file list
         LOG.info("could not find next file. Rebuilding");
-        build(getDateFromDatabusStreamFile(streamName, 
-            currentFile.getName()));
+        build(getDateFromDatabusStreamDir(streamDir, 
+            currentFile));
         if (!nextFile()) { // reached end of stream
           if (noNewFiles) {
             // this boolean check is only for tests 
             return null;
           } 
           LOG.info("Could not find next file");
-          startFromNextHigher(currentFile.getName());
+          startFromNextHigher(currentFile);
         } else {
           LOG.info("Reading from " + currentFile + " after rebuild");
         }

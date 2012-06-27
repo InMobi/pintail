@@ -5,15 +5,32 @@ public class DatabusStreamFile implements StreamFile {
   private final String collectorName;
   private final CollectorFile collectorFile;
   private final String extension;
+  private String parent;
  
-  public DatabusStreamFile(String collectorName, CollectorFile collectorFile,
+  public DatabusStreamFile(String collectorName,
+      CollectorFile collectorFile,
       String extension) {
     this.collectorName = collectorName;
     this.collectorFile = collectorFile;
     this.extension = extension;
+    this.parent = null;
   }
-  
+
+  public DatabusStreamFile(String collectorName,
+      CollectorFile collectorFile,
+      String extension, String parent) {
+    this.collectorName = collectorName;
+    this.collectorFile = collectorFile;
+    this.extension = extension;
+    this.parent = parent;
+  }
+
   public static DatabusStreamFile create(String streamName, String fileName) {
+    return create(streamName, fileName, null);
+  }
+
+  public static DatabusStreamFile create(String streamName, String fileName,
+      String parentDir) {
     String strs[] = fileName.split(streamName);
     if (strs.length < 2) {
       throw new IllegalArgumentException("Invalid file name:" + fileName);
@@ -32,13 +49,16 @@ public class DatabusStreamFile implements StreamFile {
     CollectorFile collectorFile =  CollectorFile.create(str2[0]);
     String extension = str2[1];
     
-    return new DatabusStreamFile(collectorName, collectorFile, extension);
+    return new DatabusStreamFile(collectorName, collectorFile, extension,
+        parentDir);
+    
   }
 
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
+    result = prime * result + ((parent == null) ? 0 : parent.hashCode());
     result = prime * result + ((collectorFile == null) ? 0 : collectorFile.hashCode());
     result = prime * result + ((collectorName == null) ? 0 : collectorName.hashCode());
     result = prime * result + ((extension == null) ? 0 : extension.hashCode());
@@ -57,6 +77,13 @@ public class DatabusStreamFile implements StreamFile {
       return false;
     }
     DatabusStreamFile other = (DatabusStreamFile) obj;
+    if (parent == null) {
+      if (other.parent != null) {
+        return false;
+      }
+    } else if (!parent.equals(other.parent)) {
+      return false;
+    }
     if (collectorFile == null) {
       if (other.collectorFile != null) {
         return false;
@@ -86,9 +113,7 @@ public class DatabusStreamFile implements StreamFile {
         + "." + extension;
   }
 
-  @Override
-  public int compareTo(Object o) {
-    DatabusStreamFile other = (DatabusStreamFile)o;
+  private int compareNames(DatabusStreamFile other) {
     int cfComp = collectorFile.compareTo(other.collectorFile);
     if ( cfComp== 0) {
       int cnComp = collectorName.compareTo(other.collectorName); 
@@ -97,8 +122,24 @@ public class DatabusStreamFile implements StreamFile {
       } else {
         return cnComp;
       }
+    } else {
+      return cfComp;
+    } 
+  }
+
+  @Override
+  public int compareTo(Object o) {
+    DatabusStreamFile other = (DatabusStreamFile)o;
+    if (parent == null || other.parent == null) {
+      return compareNames(other);
+    } else {
+      int pComp = parent.compareTo(other.parent);
+      if (pComp == 0) {
+        return compareNames(other);
+      } else {
+        return pComp;
+      }
     }
-    return cfComp;
   }
 
   public CollectorFile getCollectorFile() {
