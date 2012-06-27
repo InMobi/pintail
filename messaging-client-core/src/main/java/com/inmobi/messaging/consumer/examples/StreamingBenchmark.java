@@ -163,6 +163,24 @@ public class StreamingBenchmark {
           return;
         }
       }
+      // wait for complete
+      int i = 0;
+      while (publisher.getStats().getInFlight() != 0 && i++ < 10) {
+        try {
+          Thread.sleep(100);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+          return;
+        }
+      }
+
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+        return;
+      }
+
       publisher.close();
     }
 
@@ -207,13 +225,13 @@ public class StreamingBenchmark {
               break;
             }
           }
-          if (m == numProducers) {
-            throw new RuntimeException("Data outof order!");
-          }
           long sentTime = Long.parseLong(ar[1]);
           totalLatency += System.currentTimeMillis() - sentTime;
           if (received == maxSent * numProducers) {
             break;
+          }
+          if (m == numProducers) {
+            throw new RuntimeException("Data outof order!");
           }
         } catch (InterruptedException e) {
           e.printStackTrace();
