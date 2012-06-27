@@ -99,8 +99,7 @@ public class TestLocalStreamReader {
     Assert.assertNull(lreader.getCurrentFile());  
 
     // startFromNextHigher with filename
-    lreader.startFromNextHigher(
-        LocalStreamReader.getDatabusStreamFileName(collectorName, files[1]));
+    lreader.startFromNextHigher(databusFiles[1]);
     Assert.assertEquals(lreader.getCurrentFile(), databusFiles[2]);
 
     // startFromNextHigher with date

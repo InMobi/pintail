@@ -21,6 +21,26 @@ public abstract class DatabusStreamWaitingReader extends DatabusStreamReader {
 
   private static final Log LOG = LogFactory.getLog(DatabusStreamWaitingReader.class);
   
+  protected void startFromNextHigher(Path file) 
+      throws IOException, InterruptedException {
+    if (!setNextHigher(file)) {
+      if (noNewFiles) {
+        // this boolean check is only for tests 
+        return;
+      }
+      waitForNextFileCreation(file);
+    }
+  }
+
+  private void waitForNextFileCreation(Path file) 
+      throws IOException, InterruptedException {
+    while (!closed && !setNextHigher(file)) {
+      LOG.info("Waiting for next file creation");
+      Thread.sleep(waitTimeForCreate);
+      build();
+    }
+  }
+
   @Override
   public String readLine() throws IOException, InterruptedException {
     String line = null;

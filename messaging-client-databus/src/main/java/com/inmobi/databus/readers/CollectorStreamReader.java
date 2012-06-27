@@ -191,6 +191,26 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     openCurrentFile(false);    
   }
 
+  public void startFromNextHigher(String fileName) 
+      throws IOException, InterruptedException {
+    if (!setNextHigher(fileName)) {
+      if (noNewFiles) {
+        // this boolean check is only for tests 
+        return;
+      }
+      waitForNextFileCreation(fileName);
+    }
+  }
+
+  protected void waitForNextFileCreation(String fileName) 
+      throws IOException, InterruptedException {
+    while (!closed && !setNextHigher(fileName)) {
+      LOG.info("Waiting for next file creation");
+      Thread.sleep(waitTimeForCreate);
+      build();
+    }
+  }
+
   private boolean stillInCollectorStream() throws IOException {
     if (fileMap.isWithin(currentFile.getName())) {
       return true;

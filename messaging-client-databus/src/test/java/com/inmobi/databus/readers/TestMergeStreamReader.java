@@ -98,8 +98,7 @@ public class TestMergeStreamReader {
     Assert.assertNull(reader.getCurrentFile());  
 
     // startFromNextHigher with filename
-    reader.startFromNextHigher(
-        MergedStreamReader.getDatabusStreamFileName(collectorName, files[1]));
+    reader.startFromNextHigher(databusFiles[1]);
     Assert.assertEquals(reader.getCurrentFile(), databusFiles[2]);
 
     // startFromNextHigher with date

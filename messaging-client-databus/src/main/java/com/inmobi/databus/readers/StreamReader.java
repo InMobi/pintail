@@ -1,10 +1,7 @@
 package com.inmobi.databus.readers;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.apache.commons.logging.Log;
@@ -298,28 +295,6 @@ public abstract class StreamReader<T extends StreamFile> {
     }
   }
 
-  protected void startFromNextHigher(Path file) 
-      throws IOException, InterruptedException {
-    if (!setNextHigher(file)) {
-      if (noNewFiles) {
-        // this boolean check is only for tests 
-        return;
-      }
-      waitForNextFileCreation(file);
-    }
-  }
-
-  public void startFromNextHigher(String fileName) 
-      throws IOException, InterruptedException {
-    if (!setNextHigher(fileName)) {
-      if (noNewFiles) {
-        // this boolean check is only for tests 
-        return;
-      }
-      waitForNextFileCreation(fileName);
-    }
-  }
-
   public void startFromTimestmp(Date timestamp) throws IOException,
       InterruptedException {
     if (!initializeCurrentFile(timestamp)) {
@@ -359,52 +334,7 @@ public abstract class StreamReader<T extends StreamFile> {
     }
   }
 
-  protected void waitForNextFileCreation(String fileName) 
-      throws IOException, InterruptedException {
-    while (!closed && !setNextHigher(fileName)) {
-      LOG.info("Waiting for next file creation");
-      Thread.sleep(waitTimeForCreate);
-      build();
-    }
-  }
-
-  protected void waitForNextFileCreation(Path file) 
-      throws IOException, InterruptedException {
-    while (!closed && !setNextHigher(file)) {
-      LOG.info("Waiting for next file creation");
-      Thread.sleep(waitTimeForCreate);
-      build();
-    }
-  }
-
   public boolean isBeforeStream(String fileName) throws IOException {
     return fileMap.isBefore(fileName);
   }
-
-  static final ThreadLocal<DateFormat> fileFormat = 
-      new ThreadLocal<DateFormat>() {
-    @Override
-    protected SimpleDateFormat initialValue() {
-      return new SimpleDateFormat("yyyy" + "-" + "MM" + "-" + "dd" + "-" +
-          "HH" + "-" + "mm");
-    }    
-  };
-
-  static final ThreadLocal<DateFormat> minDirFormat = 
-      new ThreadLocal<DateFormat>() {
-    @Override
-    protected SimpleDateFormat initialValue() {
-      return new SimpleDateFormat("yyyy" + File.separator + "MM" +
-          File.separator + "dd" + File.separator + "HH" + File.separator +"mm");
-    }    
-  };
-
-  static final ThreadLocal<DateFormat> hhDirFormat = 
-      new ThreadLocal<DateFormat>() {
-    @Override
-    protected SimpleDateFormat initialValue() {
-      return new SimpleDateFormat("yyyy" + File.separator + "MM" +
-          File.separator + "dd" + File.separator + "HH");
-    }    
-  };
 }

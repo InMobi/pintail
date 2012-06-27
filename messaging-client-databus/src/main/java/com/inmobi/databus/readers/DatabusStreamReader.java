@@ -1,9 +1,12 @@
 package com.inmobi.databus.readers;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TreeMap;
@@ -205,5 +208,23 @@ public abstract class DatabusStreamReader extends StreamReader<DatabusStreamFile
       String collectorFile) {
     return collector + "-" + collectorFile + ".gz";  
   }
+
+  static final ThreadLocal<DateFormat> minDirFormat = 
+      new ThreadLocal<DateFormat>() {
+    @Override
+    protected SimpleDateFormat initialValue() {
+      return new SimpleDateFormat("yyyy" + File.separator + "MM" +
+          File.separator + "dd" + File.separator + "HH" + File.separator +"mm");
+    }    
+  };
+
+  static final ThreadLocal<DateFormat> hhDirFormat = 
+      new ThreadLocal<DateFormat>() {
+    @Override
+    protected SimpleDateFormat initialValue() {
+      return new SimpleDateFormat("yyyy" + File.separator + "MM" +
+          File.separator + "dd" + File.separator + "HH");
+    }    
+  };
 
 }
