@@ -77,12 +77,10 @@ public class DatabusStreamFile implements StreamFile {
       return false;
     }
     DatabusStreamFile other = (DatabusStreamFile) obj;
-    if (parent == null) {
-      if (other.parent != null) {
+    if (parent != null && other.parent != null) {
+      if (!parent.equals(other.parent)) {
         return false;
       }
-    } else if (!parent.equals(other.parent)) {
-      return false;
     }
     if (collectorFile == null) {
       if (other.collectorFile != null) {
@@ -109,36 +107,32 @@ public class DatabusStreamFile implements StreamFile {
   }
 
   public String toString() {
-    return collectorName + "-" + collectorFile.toString() 
-        + "." + extension;
-  }
-
-  private int compareNames(DatabusStreamFile other) {
-    int cfComp = collectorFile.compareTo(other.collectorFile);
-    if ( cfComp== 0) {
-      int cnComp = collectorName.compareTo(other.collectorName); 
-      if ( cnComp == 0) {
-        return extension.compareTo(other.extension);
-      } else {
-        return cnComp;
-      }
-    } else {
-      return cfComp;
-    } 
+    return collectorName + "-" + collectorFile.toString() + "." + extension;
   }
 
   @Override
   public int compareTo(Object o) {
     DatabusStreamFile other = (DatabusStreamFile)o;
+    int pComp;
     if (parent == null || other.parent == null) {
-      return compareNames(other);
+      pComp = 0;
     } else {
-      int pComp = parent.compareTo(other.parent);
-      if (pComp == 0) {
-        return compareNames(other);
+      pComp = parent.compareTo(other.parent);
+    }
+    if (pComp == 0) {
+      int cfComp = collectorFile.compareTo(other.collectorFile);
+      if ( cfComp== 0) {
+        int cnComp = collectorName.compareTo(other.collectorName); 
+        if ( cnComp == 0) {
+          return extension.compareTo(other.extension);
+        } else {
+          return cnComp;
+        }
       } else {
-        return pComp;
-      }
+        return cfComp;
+      } 
+    } else {
+      return pComp;
     }
   }
 
