@@ -48,6 +48,7 @@ public abstract class DatabusStreamWaitingReader extends DatabusStreamReader {
       line = readLine(inStream, reader);
     }
     while (line == null) { // reached end of file
+      LOG.debug("Read " + currentFile + " with lines:" + currentLineNum);
       if (!nextFile()) { // reached end of file list
         LOG.info("could not find next file. Rebuilding");
         build(getDateFromDatabusStreamDir(streamDir, 
@@ -59,6 +60,7 @@ public abstract class DatabusStreamWaitingReader extends DatabusStreamReader {
           } 
           LOG.info("Could not find next file");
           startFromNextHigher(currentFile);
+          LOG.info("Reading from next higher file "+ currentFile);
         } else {
           LOG.info("Reading from " + currentFile + " after rebuild");
         }

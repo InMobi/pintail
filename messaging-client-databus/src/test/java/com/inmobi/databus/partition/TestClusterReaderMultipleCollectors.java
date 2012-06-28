@@ -75,19 +75,34 @@ public class TestClusterReaderMultipleCollectors {
         buffer);
     TestUtil.assertBuffer(databusFiles2[0].getName(), 1, 0, 50, partitionId,
         buffer);
+
     while (buffer.remainingCapacity() > 0) {
       Thread.sleep(10);
     }
     TestUtil.incrementCommitTime();
-    Path movedPath2 = TestUtil.moveFileToStreams(fs, testStream, collectors[0],
+    Path movedPath2 = TestUtil.moveFileToStreams(fs, testStream, collectors[1],
+        cluster, TestUtil.getCollectorDir(cluster, testStream, collectors[1]),
+        files[2]);
+    Path movedPath3 = TestUtil.moveFileToStreams(fs, testStream, collectors[0],
         cluster, TestUtil.getCollectorDir(cluster, testStream, collectors[0]),
         files[1]);
-
     TestUtil.assertBuffer(databusFiles2[0].getName(), 1, 50, 50, partitionId,
         buffer);
     TestUtil.assertBuffer(movedPath1.getName(), 2, 0, 100, partitionId,
         buffer);
-    TestUtil.assertBuffer(movedPath2.getName(), 2, 0, 100, partitionId,
+
+    while (buffer.remainingCapacity() > 0) {
+      Thread.sleep(10);
+    }
+    TestUtil.incrementCommitTime();
+    Path movedPath4 = TestUtil.moveFileToStreams(fs, testStream, collectors[0],
+        cluster, TestUtil.getCollectorDir(cluster, testStream, collectors[0]),
+        files[2]);
+    TestUtil.assertBuffer(movedPath3.getName(), 2, 0, 100, partitionId,
+        buffer);
+    TestUtil.assertBuffer(movedPath2.getName(), 3, 0, 100, partitionId,
+        buffer);
+    TestUtil.assertBuffer(movedPath4.getName(), 3, 0, 100, partitionId,
         buffer);
     Assert.assertTrue(buffer.isEmpty());    
     preader.close(); 

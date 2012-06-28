@@ -73,13 +73,13 @@ public abstract class StreamReader<T extends StreamFile> {
     if (next) {
       resetCurrentFileSettings();
     } 
-    LOG.info("Opening file:" + currentFile);
-    LOG.debug("NumLinesTobeSkipped when opening:" + currentLineNum);
+    LOG.info("Opening file:" + currentFile + " NumLinesTobeSkipped when" +
+    		" opening:" + currentLineNum);
     if (fs.exists(currentFile)) {
       inStream = fs.open(currentFile);
       reader = getReader(inStream);
     } else {
-      LOG.debug("CurrentFile:" + currentFile + " does not exist");
+      LOG.info("CurrentFile:" + currentFile + " does not exist");
     }
   }
 
@@ -111,7 +111,8 @@ public abstract class StreamReader<T extends StreamFile> {
     initCurrentFile();
     this.timestamp = timestamp;
     String fileName = getStreamFileName(streamName, timestamp);
-    LOG.debug("Stream file corresponding to timestamp:" + timestamp + " is " + fileName);
+    LOG.debug("Stream file corresponding to timestamp:" + timestamp +
+        " is " + fileName);
     currentFile = fileMap.getCeilingValue(
         getStreamFileName(streamName, timestamp));
 
@@ -280,7 +281,7 @@ public abstract class StreamReader<T extends StreamFile> {
       currentFile = fileMap.getValue(streamFileName);
       setIterator();
       this.currentLineNum = currentLineNum;
-      LOG.debug("Set current file:" + currentFile +
+      LOG.info("Set current file:" + currentFile +
           "currentLineNum:" + currentLineNum);
       openCurrentFile(false);
       return true;
