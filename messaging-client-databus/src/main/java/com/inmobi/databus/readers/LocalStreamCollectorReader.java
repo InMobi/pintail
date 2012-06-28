@@ -65,20 +65,18 @@ public class LocalStreamCollectorReader extends DatabusStreamReader {
             // read line from next higher file
             LOG.info("Reading from " + currentFile + ". The next higher file" +
                 " after rebuild");
-            line = readLine(inStream, reader);
           }
         } else if (!nextFile()) { // reached end of stream
           LOG.info("Reached end of stream");
           return null;
         } else {
           LOG.info("Reading from " + currentFile + " after rebuild");
-          line = readLine(inStream, reader); 
         }
       } else {
         // read line from next file
         LOG.info("Reading from next file " + currentFile);
-        line = readLine(inStream, reader);
       }
+      line = readLine(inStream, reader);
     }
     return line;
   }
