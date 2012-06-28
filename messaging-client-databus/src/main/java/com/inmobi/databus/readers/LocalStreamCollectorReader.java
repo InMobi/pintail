@@ -58,7 +58,7 @@ public class LocalStreamCollectorReader extends DatabusStreamReader {
         if (!setIterator()) {
           LOG.info("Could not find current file in the stream");
           // set current file to next higher entry
-          if (!setNextHigher(currentFile.getName())) {
+          if (!setNextHigher(currentFile)) {
             LOG.info("Could not find next higher entry for current file");
             return null;
           } else {
