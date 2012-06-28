@@ -14,13 +14,14 @@ import com.inmobi.databus.partition.PartitionId;
 
 public abstract class DatabusStreamWaitingReader extends DatabusStreamReader {
 
+  private static final Log LOG = LogFactory.getLog(
+      DatabusStreamWaitingReader.class);
+
   DatabusStreamWaitingReader(PartitionId partitionId, Cluster cluster,
       String streamName, long waitTimeForCreate) throws IOException {
     super(partitionId, cluster, streamName);
     this.waitTimeForCreate = waitTimeForCreate;
   }
-
-  private static final Log LOG = LogFactory.getLog(DatabusStreamWaitingReader.class);
   
   protected void startFromNextHigher(Path file) 
       throws IOException, InterruptedException {

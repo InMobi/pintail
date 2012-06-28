@@ -21,7 +21,6 @@ public abstract class StreamReader<T extends StreamFile> {
   private static final Log LOG = LogFactory.getLog(StreamReader.class);
 
   protected String streamName;
-  protected FileMap<T> fileMap;
   protected Date timestamp;
   protected PartitionCheckpoint checkpoint;
   protected Cluster cluster;
@@ -31,8 +30,11 @@ public abstract class StreamReader<T extends StreamFile> {
   protected FileSystem fs;
   protected volatile boolean closed = false;
   protected boolean noNewFiles = false; // this is purely for tests
-  protected long waitTimeForCreate = 100;
+  protected long waitTimeForCreate;
   protected Path streamDir;
+  protected FSDataInputStream inStream;
+  protected BufferedReader reader;
+  private FileMap<T> fileMap;
 
   protected StreamReader(PartitionId partitionId, Cluster cluster, 
       String streamName) throws IOException {
@@ -43,9 +45,6 @@ public abstract class StreamReader<T extends StreamFile> {
     this.fileMap = createFileMap();
     this.streamDir = getStreamDir(cluster, streamName);
   }
-
-  protected FSDataInputStream inStream;
-  protected BufferedReader reader;
 
   public void openStream() throws IOException {
     openCurrentFile(false);
@@ -337,5 +336,9 @@ public abstract class StreamReader<T extends StreamFile> {
 
   public boolean isBeforeStream(String fileName) throws IOException {
     return fileMap.isBefore(fileName);
+  }
+  
+  protected boolean isWithinStream(String fileName) throws IOException {
+    return fileMap.isWithin(fileName);
   }
 }

@@ -26,7 +26,8 @@ import com.inmobi.databus.files.FileMap;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 
-public abstract class DatabusStreamReader extends StreamReader<DatabusStreamFile> {
+public abstract class DatabusStreamReader extends 
+    StreamReader<DatabusStreamFile> {
 
   private static final Log LOG = LogFactory.getLog(DatabusStreamReader.class);
 
@@ -42,14 +43,13 @@ public abstract class DatabusStreamReader extends StreamReader<DatabusStreamFile
 
   DatabusStreamReader(PartitionId partitionId, Cluster cluster, 
       String streamName) throws IOException {
-    // initialize cluster and its directories
     super(partitionId, cluster, streamName);
   }
 
   abstract class StreamFileMap extends FileMap<DatabusStreamFile> {
     @Override
     protected void buildList() throws IOException {
-      buildListing(pathFilter);
+      buildListing(this, pathFilter);
     }
     
     @Override
@@ -75,7 +75,8 @@ public abstract class DatabusStreamReader extends StreamReader<DatabusStreamFile
     build();
   }
 
-  void buildListing(PathFilter pathFilter) throws IOException {
+  void buildListing(FileMap<DatabusStreamFile> fmap, PathFilter pathFilter)
+      throws IOException {
     Calendar current = Calendar.getInstance();
     Date now = current.getTime();
     current.setTime(buildTimestamp);
@@ -96,7 +97,7 @@ public abstract class DatabusStreamReader extends StreamReader<DatabusStreamFile
             LOG.debug("No files in directory:" + dir);
           } else {
             for (FileStatus file : fileStatuses) {
-              fileMap.addPath(file.getPath());
+              fmap.addPath(file.getPath());
             }
           }
         } 
@@ -118,7 +119,7 @@ public abstract class DatabusStreamReader extends StreamReader<DatabusStreamFile
     boolean ret = super.initializeCurrentFile(checkpoint);
     if (!ret) {
       LOG.info("Could not find checkpointed file: " + checkpoint.getFileName());
-      if (fileMap.isBefore(checkpoint.getFileName())) {
+      if (isBeforeStream(checkpoint.getFileName())) {
         LOG.info("Reading from start of the stream");
         return initFromStart();
       }

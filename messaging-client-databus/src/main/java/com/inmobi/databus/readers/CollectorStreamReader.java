@@ -77,7 +77,6 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
             return;
           }
           for (FileStatus file : fileStatuses) {
-            LOG.debug("Adding Path:" + file.getPath());
             addPath(file.getPath());
           }
         } else {
@@ -103,16 +102,6 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     };
   }
   
-  public void build() throws IOException {
-    fileMap.build();
-  }
-
-  @Override
-  protected String getStreamFileName(String streamName, Date timestamp) {
-    return getCollectorFileName(streamName, timestamp);
-  }
-
-
   @Override
   protected BufferedReader createReader(FSDataInputStream in)
       throws IOException {
@@ -136,18 +125,9 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     }
   }
 
-  /**
-   * Skip the number of lines passed.
-   * 
-   * @return the actual number of lines skipped.
-   */
   private void seekToOffset(FSDataInputStream in, BufferedReader reader) 
       throws IOException {
     in.seek(currentOffset);
-  }
-
-  public boolean isStreamFile(String fileName) {
-    return isCollectorFile(fileName);
   }
 
   public String readLine() throws IOException, InterruptedException {
@@ -165,7 +145,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
         } 
         if (!setIterator()) {
           LOG.info("Could not find current file in the stream");
-          if (stillInCollectorStream()) {
+          if (isWithinStream(currentFile.getName())) {
             LOG.info("Staying in collector stream as earlier files still exist");
             startFromNextHigher(currentFile.getName());
             LOG.info("Reading from the next higher file");
@@ -203,7 +183,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     }
   }
 
-  protected void waitForNextFileCreation(String fileName) 
+  private void waitForNextFileCreation(String fileName) 
       throws IOException, InterruptedException {
     while (!closed && !setNextHigher(fileName)) {
       LOG.info("Waiting for next file creation");
@@ -212,11 +192,13 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     }
   }
 
-  private boolean stillInCollectorStream() throws IOException {
-    if (fileMap.isWithin(currentFile.getName())) {
-      return true;
-    }
-    return false;
+  @Override
+  protected String getStreamFileName(String streamName, Date timestamp) {
+    return getCollectorFileName(streamName, timestamp);
+  }
+
+  public boolean isStreamFile(String fileName) {
+    return isCollectorFile(fileName);
   }
 
   public boolean isCollectorFile(String fileName) {
