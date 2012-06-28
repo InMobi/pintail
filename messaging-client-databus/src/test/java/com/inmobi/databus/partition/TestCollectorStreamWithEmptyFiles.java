@@ -53,7 +53,7 @@ public class TestCollectorStreamWithEmptyFiles {
     PartitionReader preader = new PartitionReader(partitionId, null, cluster,
         buffer,
         testStream, CollectorStreamReader.getDateFromCollectorFile(files[0]),
-        5, false);
+        5, 1000, false);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),

@@ -52,7 +52,7 @@ public class TestCollectorStreamReader {
   public void testInitialize() throws Exception {
     // Read from start
     cReader = new CollectorStreamReader(partitionId, cluster, testStream, 10,
-        true);
+        10, true);
     cReader.build();
     cReader.initFromStart();
     Assert.assertEquals(cReader.getCurrentFile(), new Path(collectorDir,
@@ -143,7 +143,7 @@ public class TestCollectorStreamReader {
   @Test
   public void testReadFromStart() throws Exception {
     cReader = new CollectorStreamReader(partitionId, cluster, testStream, 10,
-        true);
+        10, true);
     cReader.build();
     cReader.initFromStart();
     cReader.openStream();
@@ -156,7 +156,7 @@ public class TestCollectorStreamReader {
   @Test
   public void testReadFromCheckpoint() throws Exception {
     cReader = new CollectorStreamReader(partitionId, cluster, testStream, 10,
-        true);
+        10, true);
     cReader.build();
     cReader.initializeCurrentFile(new PartitionCheckpoint(files[1], 20));
     cReader.openStream();
@@ -168,7 +168,7 @@ public class TestCollectorStreamReader {
 
   @Test
   public void testReadFromTimeStamp() throws Exception {
-    cReader = new CollectorStreamReader(partitionId, cluster,  testStream,
+    cReader = new CollectorStreamReader(partitionId, cluster, testStream, 10,
         10, true);
     cReader.build();
     cReader.initializeCurrentFile(

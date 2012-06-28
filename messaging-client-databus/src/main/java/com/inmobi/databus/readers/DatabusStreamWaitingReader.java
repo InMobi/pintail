@@ -15,8 +15,9 @@ import com.inmobi.databus.partition.PartitionId;
 public abstract class DatabusStreamWaitingReader extends DatabusStreamReader {
 
   DatabusStreamWaitingReader(PartitionId partitionId, Cluster cluster,
-      String streamName) throws IOException {
+      String streamName, long waitTimeForCreate) throws IOException {
     super(partitionId, cluster, streamName);
+    this.waitTimeForCreate = waitTimeForCreate;
   }
 
   private static final Log LOG = LogFactory.getLog(DatabusStreamWaitingReader.class);

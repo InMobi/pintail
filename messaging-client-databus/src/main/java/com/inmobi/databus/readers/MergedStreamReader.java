@@ -10,9 +10,10 @@ import com.inmobi.databus.partition.PartitionId;
 public class MergedStreamReader extends DatabusStreamWaitingReader {
 
   public MergedStreamReader(PartitionId partitionId, 
-      Cluster cluster, String streamName, boolean noNewFiles)
+      Cluster cluster, String streamName,
+      long waitTimeForFileCreate, boolean noNewFiles)
           throws IOException {
-    super(partitionId, cluster, streamName);
+    super(partitionId, cluster, streamName, waitTimeForFileCreate);
     this.noNewFiles = noNewFiles;
   }
 

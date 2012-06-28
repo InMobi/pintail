@@ -60,7 +60,7 @@ public class TestPartitionReaderMovingFilesFromCollectorStream {
   public void testCollectorFileMoved() throws Exception {
     preader = new PartitionReader(partitionId, null, cluster, buffer,
         testStream, CollectorStreamReader.getDateFromCollectorFile(files[0]),
-        10, false);
+        10, 1000, false);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),

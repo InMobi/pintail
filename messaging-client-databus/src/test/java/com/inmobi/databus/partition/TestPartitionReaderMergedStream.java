@@ -56,7 +56,7 @@ public class TestPartitionReaderMergedStream {
     // Read from start
     preader = new PartitionReader(partitionId, null, cluster, buffer,
         testStream, CollectorStreamReader.getDateFromCollectorFile(files[0]),
-        1000, isLocal);
+        1000, 1000, isLocal);
     Assert.assertEquals(preader.getReader().getClass().getName(),
         ClusterReader.class.getName());
     preader.init();
@@ -66,7 +66,7 @@ public class TestPartitionReaderMergedStream {
     preader = new PartitionReader(partitionId,
         new PartitionCheckpoint(MergedStreamReader.getDatabusStreamFileName(
             collectorName, files[1]), 20),
-            cluster, buffer, testStream, null, 1000, isLocal);
+            cluster, buffer, testStream, null, 1000, 1000, isLocal);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile(), databusFiles[1]);
 
@@ -75,21 +75,21 @@ public class TestPartitionReaderMergedStream {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
         MergedStreamReader.getDatabusStreamFileName(collectorName,
             doesNotExist1), 20),
-            cluster, buffer, testStream, null, 1000, isLocal);
+            cluster, buffer, testStream, null, 1000, 1000, isLocal);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile(), databusFiles[0]);
 
     //Read from startTime in merged stream directory, with no checkpoint
     preader = new PartitionReader(partitionId,
         null, cluster, buffer, testStream,
-        CollectorStreamReader.getDateFromCollectorFile(files[1]), 1000, isLocal);
+        CollectorStreamReader.getDateFromCollectorFile(files[1]), 1000, 1000, isLocal);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile(), databusFiles[1]);
 
     //Read from startTime in merged stream directory, with checkpoint
     preader = new PartitionReader(partitionId,
         new PartitionCheckpoint(files[0], 10), cluster, buffer, testStream,
-        CollectorStreamReader.getDateFromCollectorFile(files[1]), 1000, isLocal);
+        CollectorStreamReader.getDateFromCollectorFile(files[1]), 1000, 1000, isLocal);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile(), databusFiles[1]);
 
@@ -97,7 +97,7 @@ public class TestPartitionReaderMergedStream {
     // with no checkpoint
     preader = new PartitionReader(partitionId,
         null, cluster, buffer, testStream,
-        CollectorStreamReader.getDateFromCollectorFile(doesNotExist2), 1000, isLocal);
+        CollectorStreamReader.getDateFromCollectorFile(doesNotExist2), 1000, 1000, isLocal);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile(), databusFiles[1]);
 
@@ -105,14 +105,14 @@ public class TestPartitionReaderMergedStream {
     //with checkpoint
     preader = new PartitionReader(partitionId,
         new PartitionCheckpoint(files[0], 10), cluster, buffer, testStream,
-        CollectorStreamReader.getDateFromCollectorFile(doesNotExist2), 1000, isLocal);
+        CollectorStreamReader.getDateFromCollectorFile(doesNotExist2), 1000, 1000, isLocal);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile(), databusFiles[1]);
 
     //Read from startTime beyond the stream
     preader = new PartitionReader(partitionId,
         null, cluster, buffer, testStream,
-        CollectorStreamReader.getDateFromCollectorFile(doesNotExist1), 1000, isLocal);
+        CollectorStreamReader.getDateFromCollectorFile(doesNotExist1), 1000, 1000, isLocal);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile(), databusFiles[0]);
 
@@ -120,7 +120,7 @@ public class TestPartitionReaderMergedStream {
     preader = new PartitionReader(partitionId,
         null, cluster, buffer, testStream,
         CollectorStreamReader.getDateFromCollectorFile(doesNotExist3),
-        1000, isLocal, true);
+        1000, 1000, isLocal, true);
     preader.init();
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -134,7 +134,7 @@ public class TestPartitionReaderMergedStream {
     preader = new PartitionReader(partitionId,
         new PartitionCheckpoint(files[0], 10), cluster, buffer, testStream,
         CollectorStreamReader.getDateFromCollectorFile(doesNotExist1),
-        1000, isLocal);
+        1000, 1000, isLocal);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile(), databusFiles[0]);
 
@@ -142,7 +142,7 @@ public class TestPartitionReaderMergedStream {
     preader = new PartitionReader(partitionId,
         new PartitionCheckpoint(files[0], 10), cluster, buffer, testStream,
         CollectorStreamReader.getDateFromCollectorFile(doesNotExist3),
-        1000, isLocal, true);
+        1000, 1000, isLocal, true);
     preader.init();
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -157,7 +157,7 @@ public class TestPartitionReaderMergedStream {
   public void testReadFromStart() throws Exception {
     preader = new PartitionReader(partitionId, null, cluster, buffer,
         testStream, CollectorStreamReader.getDateFromCollectorFile(files[0]),
-        1000, isLocal, true);
+        1000, 1000, isLocal, true);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -185,7 +185,7 @@ public class TestPartitionReaderMergedStream {
   public void testReadFromCheckpoint() throws Exception {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
         databusFiles[1].getName(), 20), cluster, buffer, testStream, null,
-        1000, isLocal, true);
+        1000, 1000, isLocal, true);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -209,8 +209,8 @@ public class TestPartitionReaderMergedStream {
   public void testReadFromCheckpointWhichDoesNotExist() throws Exception {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
         MergedStreamReader.getDatabusStreamFileName(collectorName, doesNotExist1),
-        20), cluster, buffer, testStream, null, 1000, isLocal,
-        true);
+        20), cluster, buffer, testStream, null, 1000, 1000,
+        isLocal, true);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -236,8 +236,8 @@ public class TestPartitionReaderMergedStream {
     Throwable th = null;
     try {
       preader = new PartitionReader(partitionId, new PartitionCheckpoint(
-        doesNotExist2, 20), cluster, buffer, testStream, null, 1000, isLocal,
-        true);
+        doesNotExist2, 20), cluster, buffer, testStream, null, 1000, 1000,
+        isLocal, true);
       preader.init();
     } catch (Exception e) {
       th = e;
@@ -251,8 +251,8 @@ public class TestPartitionReaderMergedStream {
     Throwable th = null;
     try {
       preader = new PartitionReader(partitionId, new PartitionCheckpoint(
-        doesNotExist3, 20), cluster, buffer, testStream, null, 1000, isLocal,
-        true);
+        doesNotExist3, 20), cluster, buffer, testStream, null, 1000, 1000,
+        isLocal, true);
       preader.init();
     } catch (Exception e) {
       th = e;
@@ -265,8 +265,8 @@ public class TestPartitionReaderMergedStream {
   public void testReadFromStartTime() throws Exception {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
         databusFiles[1].getName(), 20), cluster, buffer, testStream,
-        CollectorStreamReader.getDateFromCollectorFile(files[1]), 1000, isLocal,
-        true);
+        CollectorStreamReader.getDateFromCollectorFile(files[1]), 1000, 1000,
+        isLocal, true);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -293,7 +293,7 @@ public class TestPartitionReaderMergedStream {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
         databusFiles[1].getName(), 20), cluster, buffer, testStream,
         CollectorStreamReader.getDateFromCollectorFile(doesNotExist2), 1000,
-        isLocal, true);
+        1000, isLocal, true);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -320,7 +320,7 @@ public class TestPartitionReaderMergedStream {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
         databusFiles[1].getName(), 20), cluster, buffer, testStream,
         CollectorStreamReader.getDateFromCollectorFile(doesNotExist1), 1000,
-        isLocal, true);
+        1000, isLocal, true);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -349,7 +349,7 @@ public class TestPartitionReaderMergedStream {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
         databusFiles[1].getName(), 20), cluster, buffer, testStream,
         CollectorStreamReader.getDateFromCollectorFile(doesNotExist3), 1000,
-        isLocal, true);
+        1000, isLocal, true);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());

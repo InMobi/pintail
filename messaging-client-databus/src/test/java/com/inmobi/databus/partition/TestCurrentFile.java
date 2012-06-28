@@ -81,7 +81,7 @@ public class TestCurrentFile {
     preader = new PartitionReader(partitionId, null, cluster, buffer,
         testStream,
         CollectorStreamReader.getDateFromCollectorFile(currentScribeFile),
-        1000, false);
+        1000, 1000, false);
     preader.start();
     Assert.assertTrue(buffer.isEmpty());
     FSDataOutputStream out = fs.create(

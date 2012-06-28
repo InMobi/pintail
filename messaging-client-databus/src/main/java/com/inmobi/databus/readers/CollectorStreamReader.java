@@ -27,20 +27,18 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   protected long currentOffset = 0;
   private boolean sameStream = false;
 
-  CollectorStreamReader(PartitionId partitionId, Cluster cluster,
-      String streamName, long waitTimeForFlush) throws IOException {
-    this(partitionId, cluster, streamName, waitTimeForFlush, false);
-  }
-
   public CollectorStreamReader(PartitionId partitionId,
       Cluster cluster, String streamName, long waitTimeForFlush,
+      long waitTimeForCreate,
       boolean noNewFiles) throws IOException {
     super(partitionId, cluster, streamName);
     this.waitTimeForFlush = waitTimeForFlush;
+    this.waitTimeForCreate = waitTimeForCreate;
     this.noNewFiles = noNewFiles;
     LOG.info("Collector reader initialized with partitionId:" + partitionId +
         " streamDir:" + streamDir + 
-        " waitTimeForFlush:" + waitTimeForFlush);
+        " waitTimeForFlush:" + waitTimeForFlush +
+        " waitTimeForCreate:" + waitTimeForCreate);
   }
 
   protected void initCurrentFile() {
@@ -82,7 +80,9 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
             LOG.debug("Adding Path:" + file.getPath());
             addPath(file.getPath());
           }
-        }        
+        } else {
+          LOG.info("Collector directory does not exist");
+        }
       }
 
       @Override

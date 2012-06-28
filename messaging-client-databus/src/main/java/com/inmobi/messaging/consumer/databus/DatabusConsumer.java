@@ -83,6 +83,7 @@ implements DatabusConsumerConfig {
   private CheckpointProvider checkpointProvider;
   private Checkpoint currentCheckpoint;
   private long waitTimeForFlush;
+  private long waitTimeForFileCreate;
   private int bufferSize;
   private String[] clusters;
   private StreamType streamType;
@@ -116,6 +117,8 @@ implements DatabusConsumerConfig {
         DEFAULT_CHECKPOINT_DIR);
     waitTimeForFlush = config.getLong(waitTimeForFlushConfig,
         DEFAULT_WAIT_TIME_FOR_FLUSH);
+    waitTimeForFileCreate = config.getLong(waitTimeForFileCreateConfig,
+        DEFAULT_WAIT_TIME_FOR_FILE_CREATE);
 
     String clusterStr = config.getString(databusClustersConfig);
     if (clusterStr != null) {
@@ -282,7 +285,7 @@ implements DatabusConsumerConfig {
     LOG.debug("Creating partition " + id);
     PartitionReader reader = new PartitionReader(id,
         partitionsChkPoints.get(id), cluster, buffer, topicName,
-        partitionTimestamp, waitTimeForFlush,
+        partitionTimestamp, waitTimeForFlush, waitTimeForFileCreate,
         streamType.equals(StreamType.LOCAL));    
     LOG.debug("Created partition " + id);
     readers.put(id, reader);

@@ -24,7 +24,8 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   CollectorReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, Cluster cluster,
       String streamName,
-      Date startTime, long waitTimeForFlush, boolean noNewFiles)
+      Date startTime, long waitTimeForFlush,
+      long waitTimeForFileCreate, boolean noNewFiles)
           throws IOException {
     this.partitionId = partitionId;
     this.startTime = startTime;
@@ -32,7 +33,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     this.partitionCheckpoint = partitionCheckpoint;
     lReader = new LocalStreamCollectorReader(partitionId,  cluster, streamName);
     cReader = new CollectorStreamReader(partitionId, cluster, streamName,
-        waitTimeForFlush, noNewFiles);
+        waitTimeForFlush, waitTimeForFileCreate, noNewFiles);
   }
 
   private void initializeCurrentFileFromTimeStamp(Date timestamp)

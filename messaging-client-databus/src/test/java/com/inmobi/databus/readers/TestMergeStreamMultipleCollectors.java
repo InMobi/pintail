@@ -51,7 +51,7 @@ public class TestMergeStreamMultipleCollectors {
   @Test
   public void testReadFromStart() throws Exception {
     reader = new MergedStreamReader(partitionId, cluster,
-        testStream, true);
+        testStream, 1000, true);
     reader.build(CollectorStreamReader.getDateFromCollectorFile(files[0]));
     reader.initFromStart();
     Assert.assertNotNull(reader.getCurrentFile());

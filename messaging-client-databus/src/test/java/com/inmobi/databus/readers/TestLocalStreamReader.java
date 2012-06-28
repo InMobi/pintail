@@ -47,7 +47,7 @@ public class TestLocalStreamReader {
   @Test
   public void testInitialize() throws Exception {
     // Read from start
-    lreader = new LocalStreamReader(partitionId, cluster, testStream, false);
+    lreader = new LocalStreamReader(partitionId, cluster, testStream, 1000, false);
     lreader.build(CollectorStreamReader.getDateFromCollectorFile(files[0]));
 
     lreader.initFromStart();
@@ -126,7 +126,7 @@ public class TestLocalStreamReader {
 
   @Test
   public void testReadFromStart() throws Exception {
-    lreader = new LocalStreamReader(partitionId, cluster, testStream, false);
+    lreader = new LocalStreamReader(partitionId, cluster, testStream, 1000, false);
     lreader.build(CollectorStreamReader.getDateFromCollectorFile(files[0]));
     lreader.initFromStart();
     Assert.assertNotNull(lreader.getCurrentFile());
@@ -139,7 +139,7 @@ public class TestLocalStreamReader {
 
   @Test
   public void testReadFromCheckpoint() throws Exception {
-    lreader = new LocalStreamReader(partitionId, cluster, testStream, false);
+    lreader = new LocalStreamReader(partitionId, cluster, testStream, 1000, false);
     PartitionCheckpoint pcp = new PartitionCheckpoint(
         LocalStreamReader.getDatabusStreamFileName(collectorName, files[1]), 20);
     lreader.build(DatabusStreamReader.getBuildTimestamp( testStream, 
@@ -154,7 +154,7 @@ public class TestLocalStreamReader {
 
   @Test
   public void testReadFromTimeStamp() throws Exception {
-    lreader = new LocalStreamReader(partitionId, cluster,  testStream, false);
+    lreader = new LocalStreamReader(partitionId, cluster,  testStream, 1000, false);
     lreader.build(CollectorStreamReader.getDateFromCollectorFile(files[1]));
     lreader.initializeCurrentFile(CollectorStreamReader.getDateFromCollectorFile(files[1]));
     Assert.assertNotNull(lreader.getCurrentFile());

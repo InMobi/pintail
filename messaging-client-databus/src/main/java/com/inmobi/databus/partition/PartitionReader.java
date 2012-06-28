@@ -29,15 +29,17 @@ public class PartitionReader {
   public PartitionReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, Cluster cluster,
       BlockingQueue<QueueEntry> buffer, String streamName,
-      Date startTime, long waitTimeForFlush, boolean isLocal) throws IOException {
+      Date startTime, long waitTimeForFlush, long waitTimeForFileCreate,
+      boolean isLocal) throws IOException {
     this(partitionId, partitionCheckpoint, cluster, buffer, streamName,
-        startTime, waitTimeForFlush, isLocal, false);
+        startTime, waitTimeForFlush, waitTimeForFileCreate, isLocal, false);
   }
 
   PartitionReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, Cluster cluster,
       BlockingQueue<QueueEntry> buffer, String streamName,
-      Date startTime, long waitTimeForFlush, boolean isLocal, boolean noNewFiles)
+      Date startTime, long waitTimeForFlush, long waitTimeForFileCreate,
+      boolean isLocal, boolean noNewFiles)
           throws IOException {
     if (startTime == null && partitionCheckpoint == null) {
       String msg = "StartTime and checkpoint both" +
@@ -50,10 +52,11 @@ public class PartitionReader {
 
     if (partitionId.getCollector() == null) {
       reader = new ClusterReader(partitionId, partitionCheckpoint, cluster,
-          streamName, startTime, isLocal, noNewFiles);
+          streamName, startTime, waitTimeForFileCreate, isLocal, noNewFiles);
     } else {
       reader = new CollectorReader(partitionId, partitionCheckpoint, cluster,
-          streamName, startTime, waitTimeForFlush, noNewFiles);
+          streamName, startTime, waitTimeForFlush, waitTimeForFileCreate,
+          noNewFiles);
     }
     // initialize cluster and its directories
     LOG.info("Partition reader initialized with partitionId:" + partitionId +

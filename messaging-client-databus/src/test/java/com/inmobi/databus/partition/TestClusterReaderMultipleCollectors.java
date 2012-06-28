@@ -54,7 +54,7 @@ public class TestClusterReaderMultipleCollectors {
   public void testReadFromStart() throws Exception {
     preader = new PartitionReader(partitionId, null, cluster, buffer,
         testStream, CollectorStreamReader.getDateFromCollectorFile(files[0]),
-        1000, isLocal, false);
+        1000, 1000, isLocal, false);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),

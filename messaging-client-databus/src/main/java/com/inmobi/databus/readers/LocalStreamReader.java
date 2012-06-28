@@ -10,8 +10,9 @@ import com.inmobi.databus.partition.PartitionId;
 public class LocalStreamReader extends DatabusStreamWaitingReader {
 
   public LocalStreamReader(PartitionId partitionId, 
-      Cluster cluster, String streamName, boolean noNewFiles) throws IOException {
-    super(partitionId, cluster, streamName);
+      Cluster cluster, String streamName,
+      long waitTimeForFileCreate, boolean noNewFiles) throws IOException {
+    super(partitionId, cluster, streamName, waitTimeForFileCreate);
     this.noNewFiles = noNewFiles;
   }
 

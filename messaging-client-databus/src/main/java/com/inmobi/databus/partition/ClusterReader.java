@@ -22,7 +22,9 @@ public class ClusterReader extends AbstractPartitionStreamReader {
   ClusterReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, Cluster cluster,
       String streamName,
-      Date startTime, boolean isLocal, boolean noNewFiles)
+      Date startTime,
+      long waitTimeForFileCreate,
+      boolean isLocal, boolean noNewFiles)
           throws IOException {
     this.startTime = startTime;
     this.streamName = streamName;
@@ -31,9 +33,11 @@ public class ClusterReader extends AbstractPartitionStreamReader {
     // initialize cluster and its directories
     if (isLocal) {
       reader = new LocalStreamReader(partitionId,  cluster, streamName,
+          waitTimeForFileCreate,
           noNewFiles);
     } else {
       reader = new MergedStreamReader(partitionId, cluster, streamName,
+          waitTimeForFileCreate,
           noNewFiles);
     }
   }

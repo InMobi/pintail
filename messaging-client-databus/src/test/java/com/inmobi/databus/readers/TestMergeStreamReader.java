@@ -46,7 +46,7 @@ public class TestMergeStreamReader {
   @Test
   public void testInitialize() throws Exception {
     // Read from start
-    reader = new MergedStreamReader(partitionId, cluster, testStream, false);
+    reader = new MergedStreamReader(partitionId, cluster, testStream, 1000, false);
     reader.build(CollectorStreamReader.getDateFromCollectorFile(files[0]));
 
     reader.initFromStart();
@@ -125,7 +125,7 @@ public class TestMergeStreamReader {
 
   @Test
   public void testReadFromStart() throws Exception {
-    reader = new MergedStreamReader(partitionId, cluster, testStream, false);
+    reader = new MergedStreamReader(partitionId, cluster, testStream, 1000, false);
     reader.build(CollectorStreamReader.getDateFromCollectorFile(files[0]));
     reader.initFromStart();
     Assert.assertNotNull(reader.getCurrentFile());
@@ -138,7 +138,7 @@ public class TestMergeStreamReader {
 
   @Test
   public void testReadFromCheckpoint() throws Exception {
-    reader = new MergedStreamReader(partitionId, cluster, testStream, false);
+    reader = new MergedStreamReader(partitionId, cluster, testStream, 1000, false);
     PartitionCheckpoint pcp = new PartitionCheckpoint(
         MergedStreamReader.getDatabusStreamFileName(collectorName, files[1]), 20);
     reader.build(DatabusStreamReader.getBuildTimestamp(testStream, 
@@ -153,7 +153,7 @@ public class TestMergeStreamReader {
 
   @Test
   public void testReadFromTimeStamp() throws Exception {
-    reader = new MergedStreamReader(partitionId, cluster,  testStream, false);
+    reader = new MergedStreamReader(partitionId, cluster,  testStream, 1000, false);
     reader.build(CollectorStreamReader.getDateFromCollectorFile(files[1]));
     reader.initializeCurrentFile(CollectorStreamReader.getDateFromCollectorFile(
         files[1]));
