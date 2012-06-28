@@ -156,6 +156,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
       line = readLine(inStream, reader);
     }
     while (line == null) { // reached end of file?
+      LOG.debug("Read " + currentFile + " with lines:" + currentLineNum);
       build(); // rebuild file list
       if (!nextFile()) { //there is no next file
         if (noNewFiles) {
