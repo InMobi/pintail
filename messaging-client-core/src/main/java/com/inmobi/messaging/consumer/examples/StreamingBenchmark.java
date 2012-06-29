@@ -6,9 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
@@ -166,8 +164,7 @@ public class StreamingBenchmark {
         }
       }
       // wait for complete
-      int i = 0;
-      while (publisher.getStats().getInFlight() != 0 && i++ < 10) {
+      while (publisher.getStats().getInFlight() != 0) {
         try {
           Thread.sleep(100);
         } catch (InterruptedException e) {
@@ -184,13 +181,14 @@ public class StreamingBenchmark {
       }
 
       publisher.close();
+      System.out.println("Producer closed");
     }
 
   }
 
   static class Consumer extends Thread {
     //volatile Set<Long> seqSet = new HashSet<Long>();
-    Map<Long, Integer> messageToProducerCount = new HashMap<Long, Integer>();
+    final Map<Long, Integer> messageToProducerCount;
     final MessageConsumer consumer;
     final long maxSent;
     volatile long received = 0;
@@ -201,8 +199,9 @@ public class StreamingBenchmark {
     Consumer(ClientConfig config, long maxSent, Date startTime,
         int numProducers) throws IOException {
       this.maxSent = maxSent;
-      consumer = MessageConsumerFactory.create(config, startTime);
+      messageToProducerCount = new HashMap<Long, Integer>((int)maxSent);
       this.numProducers = numProducers;
+      consumer = MessageConsumerFactory.create(config, startTime);
     }
 
     @Override
@@ -250,6 +249,7 @@ public class StreamingBenchmark {
         success = false;
       }
       consumer.close();
+      System.out.println("Consumer closed");
     }
 
   }
