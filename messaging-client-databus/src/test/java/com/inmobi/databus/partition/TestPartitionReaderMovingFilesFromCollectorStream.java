@@ -125,6 +125,9 @@ public class TestPartitionReaderMovingFilesFromCollectorStream {
     while (buffer.remainingCapacity() > 0) {
       Thread.sleep(10);
     }
+    Assert.assertEquals(((CollectorReader)preader.getReader()).
+        getReader().getClass().getName(),
+        LocalStreamCollectorReader.class.getName());
     TestUtil.assertBuffer(files[4], 5, 50, 50, partitionId, buffer);
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFileName(
         collectorName, files[5]), 6, 0, 100, partitionId, buffer); 
