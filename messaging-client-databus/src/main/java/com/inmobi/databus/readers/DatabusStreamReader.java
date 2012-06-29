@@ -102,7 +102,7 @@ public abstract class DatabusStreamReader extends
         } 
       } else {
         // go to next hour
-        LOG.warn("Hour directory " + hhDir + " does not exist");
+        LOG.info("Hour directory " + hhDir + " does not exist");
         current.add(Calendar.HOUR_OF_DAY, 1);
         current.set(Calendar.MINUTE, 0);
       }
@@ -137,6 +137,16 @@ public abstract class DatabusStreamReader extends
   protected void skipOldData(FSDataInputStream in, BufferedReader reader)
       throws IOException {
     skipLines(in, reader, currentLineNum);
+  }
+
+  protected boolean setNextHigherAndOpen(Path currentFile) throws IOException {
+    LOG.debug("finding next higher for " + currentFile);
+    Path nextHigherFile  = getHigherValue(currentFile);
+    boolean ret = setIteratorToFile(nextHigherFile);
+    if (ret) {
+      openCurrentFile(true);
+    }
+    return ret;
   }
 
   @Override

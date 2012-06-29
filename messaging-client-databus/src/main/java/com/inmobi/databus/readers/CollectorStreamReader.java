@@ -147,7 +147,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
         LOG.info("Stream closed");
         break;
       }
-      LOG.debug("Read " + currentFile + " with lines:" + currentLineNum);
+      LOG.info("Read " + currentFile + " with lines:" + currentLineNum);
       build(); // rebuild file list
       if (!nextFile()) { //there is no next file
         if (noNewFiles) {
@@ -158,7 +158,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
           LOG.info("Could not find current file in the stream");
           if (isWithinStream(currentFile.getName())) {
             LOG.info("Staying in collector stream as earlier files still exist");
-            startFromNextHigher(currentFile.getName());
+            startFromNextHigherAndOpen(currentFile.getName());
             LOG.info("Reading from the next higher file");
           } else {
             LOG.info("Current file would have been moved to Local Stream");
@@ -185,15 +185,24 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     }
   }
 
-  public void startFromNextHigher(String fileName) 
+  private void startFromNextHigherAndOpen(String fileName) 
+      throws IOException, InterruptedException {
+    boolean ret = startFromNextHigher(fileName);
+    if (ret) {
+      openCurrentFile(true);
+    }
+  }
+
+  public boolean startFromNextHigher(String fileName) 
       throws IOException, InterruptedException {
     if (!setNextHigher(fileName)) {
       if (noNewFiles) {
         // this boolean check is only for tests 
-        return;
+        return false;
       }
       waitForNextFileCreation(fileName);
     }
+    return true;
   }
 
   private void waitForNextFileCreation(String fileName) 

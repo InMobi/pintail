@@ -25,7 +25,7 @@ public abstract class DatabusStreamWaitingReader extends DatabusStreamReader {
   
   protected void startFromNextHigher(Path file) 
       throws IOException, InterruptedException {
-    if (!setNextHigher(file)) {
+    if (!setNextHigherAndOpen(file)) {
       if (noNewFiles) {
         // this boolean check is only for tests 
         return;
@@ -36,7 +36,7 @@ public abstract class DatabusStreamWaitingReader extends DatabusStreamReader {
 
   private void waitForNextFileCreation(Path file) 
       throws IOException, InterruptedException {
-    while (!closed && !setNextHigher(file)) {
+    while (!closed && !setNextHigherAndOpen(file)) {
       LOG.info("Waiting for next file creation");
       Thread.sleep(waitTimeForCreate);
       build();
@@ -54,7 +54,7 @@ public abstract class DatabusStreamWaitingReader extends DatabusStreamReader {
         LOG.info("Stream closed");
         break;
       }
-      LOG.debug("Read " + currentFile + " with lines:" + currentLineNum);
+      LOG.info("Read " + currentFile + " with lines:" + currentLineNum);
       if (!nextFile()) { // reached end of file list
         LOG.info("could not find next file. Rebuilding");
         build(getDateFromDatabusStreamDir(streamDir, 

@@ -168,28 +168,25 @@ public abstract class StreamReader<T extends StreamFile> {
     return fileMap.isEmpty();
   }
 
-  protected boolean setNextHigher(Path currentFile) throws IOException {
-    LOG.debug("finding next higher for " + currentFile);
-    Path nextHigherFile  = fileMap.getHigherValue(currentFile);
-    return setIteratorToNextHigher(nextHigherFile);
+  protected Path getHigherValue(Path file) throws IOException {
+    return fileMap.getHigherValue(file);
   }
 
-  private boolean setIteratorToNextHigher(Path nextHigherFile) 
+  protected boolean setIteratorToFile(Path file) 
       throws IOException {
-    if (nextHigherFile != null) {
-      currentFile = nextHigherFile;
-      LOG.debug("Next higher entry:" + currentFile);
+    if (file != null) {
+      currentFile = file;
+      resetCurrentFileSettings();
       setIterator();
-      openCurrentFile(true);
       return true;
     }
     return false;
   }
 
-  public boolean setNextHigher(String currentFileName) throws IOException {
+  protected boolean setNextHigher(String currentFileName) throws IOException {
     LOG.debug("finding next higher for " + currentFileName);
     Path nextHigherFile  = fileMap.getHigherValue(currentFileName);
-    return setIteratorToNextHigher(nextHigherFile);
+    return setIteratorToFile(nextHigherFile);
   }
 
   public Path getCurrentFile() {
@@ -282,7 +279,6 @@ public abstract class StreamReader<T extends StreamFile> {
       this.currentLineNum = currentLineNum;
       LOG.info("Set current file:" + currentFile +
           "currentLineNum:" + currentLineNum);
-      openCurrentFile(false);
       return true;
     } else {
       LOG.info("Did not find current file." + streamFileName +
