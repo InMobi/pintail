@@ -117,8 +117,11 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     assert (reader != null);
     String line = reader.readLine();
     if (line == null) {
+      if (closed) {
+        return line;
+      }
       if (reader == lReader) {
-        lReader.close();
+        lReader.closeStream();
         LOG.info("Switching to collector stream as we reached end of" +
             " stream on local stream");
         LOG.info("current file:" + reader.getCurrentFile());
@@ -129,7 +132,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
         reader = cReader;
       } else { // reader should be cReader
         assert (reader == cReader);
-        cReader.close();
+        cReader.closeStream();
         LOG.info("Looking for current file in local stream");
         lReader.build(CollectorStreamReader.getDateFromCollectorFile(
             reader.getCurrentFile().getName()));

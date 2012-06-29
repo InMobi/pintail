@@ -89,7 +89,6 @@ public abstract class DatabusStreamReader extends
             hour  == current.get(Calendar.HOUR_OF_DAY)) {
           Path dir = new Path(streamDir, minDirFormat.get().format(
               current.getTime()));
-          LOG.debug("Current dir :" + dir);
           // Move the current minute to next minute
           current.add(Calendar.MINUTE, 1);
           FileStatus[] fileStatuses = fs.listStatus(dir, pathFilter);
@@ -103,6 +102,7 @@ public abstract class DatabusStreamReader extends
         } 
       } else {
         // go to next hour
+        LOG.warn("Hour directory " + hhDir + " does not exist");
         current.add(Calendar.HOUR_OF_DAY, 1);
         current.set(Calendar.MINUTE, 0);
       }

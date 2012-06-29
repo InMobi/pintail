@@ -10,6 +10,7 @@ public abstract class AbstractPartitionStreamReader implements
      PartitionStreamReader {
 
   protected StreamReader reader;
+  protected boolean closed = false;
   
   protected StreamReader getReader() {
     return this.reader;
@@ -31,7 +32,8 @@ public abstract class AbstractPartitionStreamReader implements
 
   @Override
   public void close() throws IOException {
-    reader.close();    
+    closed = true;
+    reader.close();
   }
 
   @Override

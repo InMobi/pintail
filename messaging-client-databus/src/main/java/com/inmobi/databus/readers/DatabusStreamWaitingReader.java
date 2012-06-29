@@ -50,6 +50,10 @@ public abstract class DatabusStreamWaitingReader extends DatabusStreamReader {
       line = readLine(inStream, reader);
     }
     while (line == null) { // reached end of file
+      if (closed) {
+        LOG.info("Stream closed");
+        break;
+      }
       LOG.debug("Read " + currentFile + " with lines:" + currentLineNum);
       if (!nextFile()) { // reached end of file list
         LOG.info("could not find next file. Rebuilding");

@@ -72,7 +72,7 @@ public class PartitionReader {
         while (!stopped && !thread.isInterrupted()) {
           long startTime = System.currentTimeMillis();
           try {
-            while (!inited) {
+            while (!stopped && !inited) {
               init();
             }
             LOG.info("Started streaming the data from reader:" + reader);

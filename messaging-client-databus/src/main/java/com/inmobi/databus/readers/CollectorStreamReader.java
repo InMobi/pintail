@@ -130,12 +130,23 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     in.seek(currentOffset);
   }
 
-  public String readLine() throws IOException, InterruptedException {
+  protected String readLine(FSDataInputStream in, BufferedReader reader)
+      throws IOException {
     String line = null;
     if (inStream != null) {
-      line = readLine(inStream, reader);
+      line = super.readLine(inStream, reader);
+      currentOffset = inStream.getPos();
     }
+    return line;
+  }
+  
+  public String readLine() throws IOException, InterruptedException {
+    String line = readLine(inStream, reader);
     while (line == null) { // reached end of file?
+      if (closed) {
+        LOG.info("Stream closed");
+        break;
+      }
       LOG.debug("Read " + currentFile + " with lines:" + currentLineNum);
       build(); // rebuild file list
       if (!nextFile()) { //there is no next file
@@ -162,14 +173,16 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
       }
       line = readLine(inStream, reader);
     }
-    currentOffset = inStream.getPos();
     return line;
   }
 
-  private void waitForFlushAndReOpen() throws IOException, InterruptedException {
-    LOG.info("Waiting for flush");
-    Thread.sleep(waitTimeForFlush);
-    openCurrentFile(false);    
+  private void waitForFlushAndReOpen() 
+      throws IOException, InterruptedException {
+    if (!closed) {
+      LOG.info("Waiting for flush");
+      Thread.sleep(waitTimeForFlush);
+      openCurrentFile(false);
+    }
   }
 
   public void startFromNextHigher(String fileName) 
