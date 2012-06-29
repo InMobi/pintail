@@ -7,15 +7,15 @@
       <sources>
         <source>
           <name>testcluster1</name>
-          <retentioninhours>24</retentioninhours>
+          <retentioninhours>4</retentioninhours>
         </source>
         <source>
           <name>testcluster2</name>
-          <retentioninhours>24</retentioninhours>
+          <retentioninhours>4</retentioninhours>
         </source>
         <source>
           <name>testcluster3</name>
-          <retentioninhours>24</retentioninhours>
+          <retentioninhours>4</retentioninhours>
         </source>
       </sources>
       <destinations>
