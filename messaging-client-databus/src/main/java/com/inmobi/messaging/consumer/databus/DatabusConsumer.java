@@ -1,25 +1,19 @@
 package com.inmobi.messaging.consumer.databus;
 
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.security.UserGroupInformation;
 
-import com.inmobi.databus.CheckpointProvider;
 import com.inmobi.databus.Cluster;
 import com.inmobi.databus.DatabusConfig;
 import com.inmobi.databus.DatabusConfigParser;
@@ -27,10 +21,7 @@ import com.inmobi.databus.SourceStream;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.partition.PartitionReader;
-import com.inmobi.databus.utils.SecureLoginUtil;
 import com.inmobi.messaging.ClientConfig;
-import com.inmobi.messaging.Message;
-import com.inmobi.messaging.consumer.AbstractMessageConsumer;
 
 /**
  * Consumes data from the configured databus stream topic. 
@@ -68,76 +59,25 @@ import com.inmobi.messaging.consumer.AbstractMessageConsumer;
  * TODO: Dynamically detect if new collectors are added and start readers for
  *  them 
  */
-public class DatabusConsumer extends AbstractMessageConsumer 
-implements DatabusConsumerConfig {
+public class DatabusConsumer extends AbstractMessagingDatabusConsumer 
+    implements DatabusConsumerConfig {
   private static final Log LOG = LogFactory.getLog(DatabusConsumer.class);
 
-  private static final long ONE_HOUR_IN_MILLIS = 1 * 60 * 60 * 1000;
-
   private DatabusConfig databusConfig;
-  private BlockingQueue<QueueEntry> buffer;
 
-  private final Map<PartitionId, PartitionReader> readers = 
-      new HashMap<PartitionId, PartitionReader>();
-
-  private CheckpointProvider checkpointProvider;
-  private Checkpoint currentCheckpoint;
   private long waitTimeForFlush;
-  private long waitTimeForFileCreate;
-  private int bufferSize;
   private String[] clusters;
   private StreamType streamType;
 
-  @Override
-  protected void init(ClientConfig config) throws IOException {
-    initializeConfig(config);
-    start();
-  }
-
-  private static CheckpointProvider createCheckpointProvider(
-      String checkpointProviderClassName, String chkpointDir) {
-    CheckpointProvider chkProvider = null;
-    try {
-      Class<?> clazz = Class.forName(checkpointProviderClassName);
-      Constructor<?> constructor = clazz.getConstructor(String.class);
-      chkProvider = (CheckpointProvider) constructor.newInstance(new Object[]
-          {chkpointDir});
-    } catch (Exception e) {
-      throw new IllegalArgumentException("Could not create checkpoint provider "
-          + checkpointProviderClassName, e);
-    }
-    return chkProvider;
-  }
-
-  void initializeConfig(ClientConfig config) throws IOException {
-    super.init(config);
-    bufferSize = config.getInteger(queueSizeConfig, DEFAULT_QUEUE_SIZE);
-    buffer = new LinkedBlockingQueue<QueueEntry>(bufferSize);
-    String databusCheckpointDir = config.getString(checkpointDirConfig, 
-        DEFAULT_CHECKPOINT_DIR);
+  protected void initializeConfig(ClientConfig config) throws IOException {
+    super.initializeConfig(config);
     waitTimeForFlush = config.getLong(waitTimeForFlushConfig,
         DEFAULT_WAIT_TIME_FOR_FLUSH);
-    waitTimeForFileCreate = config.getLong(waitTimeForFileCreateConfig,
-        DEFAULT_WAIT_TIME_FOR_FILE_CREATE);
-
     String clusterStr = config.getString(databusClustersConfig);
     if (clusterStr != null) {
       clusters = clusterStr.split(",");
     }
 
-    String chkpointProviderClassName = config.getString(
-        databusChkProviderConfig, DEFAULT_CHK_PROVIDER);
-    this.checkpointProvider = createCheckpointProvider(
-        chkpointProviderClassName, databusCheckpointDir);
-
-    byte[] chkpointData = checkpointProvider.read(getChkpointKey());
-    if (chkpointData != null) {
-      this.currentCheckpoint = new Checkpoint(chkpointData);
-    } else {
-      Map<PartitionId, PartitionCheckpoint> partitionsChkPoints = 
-          new HashMap<PartitionId, PartitionCheckpoint>();
-      this.currentCheckpoint = new Checkpoint(partitionsChkPoints);
-    }
     String fileName = config.getString(databusConfigFileKey,
         DEFAULT_DATABUS_CONFIG_FILE);
     try {
@@ -145,17 +85,6 @@ implements DatabusConsumerConfig {
       databusConfig = parser.getConfig();
     } catch (Exception e) {
       throw new IllegalArgumentException("Could not load databusConfig", e);
-    }
-    if (UserGroupInformation.isSecurityEnabled()) {
-      String principal = config.getString(databusConsumerPrincipal);
-      String keytab = config.getString(databusConsumerKeytab);
-      if (principal != null && keytab != null) {
-        SecureLoginUtil.login(databusConsumerPrincipal, principal,
-            databusConsumerKeytab, keytab);
-      } else {
-        LOG.info("There is no principal or key tab file passed. Using the" +
-            " commandline authentication.");
-      }
     }
     String type = config.getString(databusStreamType, DEFAULT_STREAM_TYPE);
     streamType = StreamType.valueOf(type);
@@ -165,43 +94,8 @@ implements DatabusConsumerConfig {
         " streamType:" + streamType);
   }
 
-  Map<PartitionId, PartitionReader> getPartitionReaders() {
-    return readers;
-  }
-
-  Checkpoint getCurrentCheckpoint() {
-    return currentCheckpoint;
-  }
-
   DatabusConfig getDatabusConfig() {
     return databusConfig;
-  }
-
-  CheckpointProvider getCheckpointProvider() {
-    return checkpointProvider; 
-  }
-
-  int getBufferSize() {
-    return bufferSize;
-  }
-
-  @Override
-  public synchronized Message next() throws InterruptedException {
-    QueueEntry entry;
-    try {
-      entry = buffer.take();
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    }
-    currentCheckpoint.set(entry.getPartitionId(), entry.getPartitionChkpoint());
-    return entry.getMessage();
-  }
-
-  private synchronized void start() throws IOException {
-    createPartitionReaders();
-    for (PartitionReader reader : readers.values()) {
-      reader.start();
-    }
   }
 
   private Set<String> getClusters(SourceStream sourceStream) {
@@ -268,20 +162,8 @@ implements DatabusConsumerConfig {
     if (partitionsChkPoints.get(id) == null) {
       partitionsChkPoints.put(id, null);
     }
-    Date partitionTimestamp = startTime;
-    if (startTime == null && partitionsChkPoints.get(id) == null) {
-      LOG.info("There is no startTime passed and no checkpoint exists" +
-          " for the partition: " + id + " starting from the start" +
-          " of the stream.");
-      partitionTimestamp = allowedStartTime;
-    } else if (startTime != null && startTime.before(allowedStartTime)) {
-      LOG.info("Start time passed is before the start of the stream," +
-          " starting from the start of the stream.");
-      partitionTimestamp = allowedStartTime;
-    } else {
-      LOG.info("Creating partition with timestamp: " + partitionTimestamp
-          + " checkpoint:" + partitionsChkPoints.get(id));
-    }
+    Date partitionTimestamp = getPartitionTimestamp(id,
+        partitionsChkPoints.get(id), allowedStartTime);
     LOG.debug("Creating partition " + id);
     PartitionReader reader = new PartitionReader(id,
         partitionsChkPoints.get(id), cluster, buffer, topicName,
@@ -291,7 +173,7 @@ implements DatabusConsumerConfig {
     readers.put(id, reader);
   }
 
-  private void createPartitionReaders() throws IOException {
+  protected void createPartitionReaders() throws IOException {
     Map<PartitionId, PartitionCheckpoint> partitionsChkPoints = 
         currentCheckpoint.getPartitionsCheckpoint();
     if (!databusConfig.getSourceStreams().containsKey(topicName)) {
@@ -322,44 +204,4 @@ implements DatabusConsumerConfig {
       }
     }
   }
-
-  private String getChkpointKey() {
-    return consumerName + "_" + topicName;
-  }
-
-  @Override
-  public synchronized void reset() throws IOException {
-    // restart the service, consumer will start streaming from the last saved
-    // checkpoint
-    close();
-    this.currentCheckpoint = new Checkpoint(
-        checkpointProvider.read(getChkpointKey()));
-    LOG.info("Resetting to checkpoint:" + currentCheckpoint);
-    // reset to last marked position, ignore start time
-    startTime = null;
-    start();
-  }
-
-  @Override
-  public synchronized void mark() throws IOException {
-    checkpointProvider.checkpoint(getChkpointKey(),
-        currentCheckpoint.toBytes());
-    LOG.info("Committed checkpoint:" + currentCheckpoint);
-  }
-
-  @Override
-  public synchronized void close() {
-    for (PartitionReader reader : readers.values()) {
-      reader.close();
-    }
-    readers.clear();
-    buffer.clear();
-    buffer = new LinkedBlockingQueue<QueueEntry>(bufferSize);
-  }
-
-  @Override
-  public boolean isMarkSupported() {
-    return true;
-  }
-
 }

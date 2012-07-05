@@ -21,17 +21,17 @@ import com.inmobi.databus.partition.PartitionId;
  * It holds checkpoint for all the partitions.
  *
  */
-class Checkpoint implements Writable {
+public class Checkpoint implements Writable {
 
   // map of partitionId to partition
   private Map<PartitionId, PartitionCheckpoint> partitionsChkPoint =
       new HashMap<PartitionId, PartitionCheckpoint>();
 
-  Checkpoint(byte[] bytes) throws IOException {
+  public Checkpoint(byte[] bytes) throws IOException {
     readFields(new DataInputStream(new ByteArrayInputStream(bytes)));
   }
 
-  byte[] toBytes() throws IOException {
+  public byte[] toBytes() throws IOException {
     ByteArrayOutputStream bOut = new ByteArrayOutputStream();
     DataOutputStream out = new DataOutputStream(bOut);
     write(out);

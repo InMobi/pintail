@@ -8,6 +8,7 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import com.inmobi.messaging.ClientConfig;
+import com.inmobi.messaging.consumer.util.ConsumerUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
 public class TestDatabusConsumerMultipleCollectors 
@@ -111,7 +112,8 @@ public class TestDatabusConsumerMultipleCollectors
         "/tmp/test/databustest4/checkpoint3");
     config.set(DatabusConsumerConfig.databusStreamType,
         StreamType.COLLECTOR.name());
-    assertMessages(config, 1, 2, 4);
+    ConsumerUtil.assertMessages(config, testStream, consumerName, 1, 2, 4, 100,
+        false);
   }
 
   @Test
@@ -123,7 +125,8 @@ public class TestDatabusConsumerMultipleCollectors
         "/tmp/test/databustest5/checkpoint3");
     config.set(DatabusConsumerConfig.databusStreamType,
         StreamType.COLLECTOR.name());
-    assertMessages(config, 2, 2, 4);
+    ConsumerUtil.assertMessages(config, testStream, consumerName, 2, 2, 4, 100,
+        false);
   }
 
   @Test
@@ -135,7 +138,8 @@ public class TestDatabusConsumerMultipleCollectors
         "/tmp/test/databustest5/checkpoint4");
     config.set(DatabusConsumerConfig.databusStreamType,
         StreamType.COLLECTOR.name());
-    assertMessages(config, 3, 2, 4);
+    ConsumerUtil.assertMessages(config, testStream, consumerName, 3, 2, 4, 100,
+        false);
   }
 
   @AfterTest
