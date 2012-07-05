@@ -3,6 +3,7 @@ package com.inmobi.databus.readers;
 import java.io.IOException;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.testng.Assert;
@@ -31,13 +32,14 @@ public class TestLocalStreamCollectorReader {
   private String doesNotExist1 = TestUtil.files[0];
   private String doesNotExist2 = TestUtil.files[2];
   private String doesNotExist3 = TestUtil.files[7];
+  Configuration conf;
 
   @BeforeTest
   public void setup() throws Exception {
     // initialize config
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
         testStream, partitionId, files, null, databusFiles, 3);
-
+    conf = cluster.getHadoopConf();
   }
 
   @AfterTest
@@ -50,7 +52,7 @@ public class TestLocalStreamCollectorReader {
     // Read from start
     lreader = new LocalStreamCollectorReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
-        DatabusStreamReader.getStreamsLocalDir(cluster, testStream));
+        DatabusStreamReader.getStreamsLocalDir(cluster, testStream), conf);
     lreader.build(CollectorStreamReader.getDateFromCollectorFile(files[0]));
 
     lreader.initFromStart();
@@ -131,7 +133,7 @@ public class TestLocalStreamCollectorReader {
   public void testReadFromStart() throws Exception {
     lreader = new LocalStreamCollectorReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
-        DatabusStreamReader.getStreamsLocalDir(cluster, testStream));
+        DatabusStreamReader.getStreamsLocalDir(cluster, testStream), conf);
     lreader.build(CollectorStreamReader.getDateFromCollectorFile(files[0]));
     lreader.initFromStart();
     Assert.assertNotNull(lreader.getCurrentFile());
@@ -146,7 +148,7 @@ public class TestLocalStreamCollectorReader {
   public void testReadFromCheckpoint() throws Exception {
     lreader = new LocalStreamCollectorReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
-        DatabusStreamReader.getStreamsLocalDir(cluster, testStream));
+        DatabusStreamReader.getStreamsLocalDir(cluster, testStream), conf);
     PartitionCheckpoint pcp = new PartitionCheckpoint(
         LocalStreamCollectorReader.getDatabusStreamFileName(collectorName,
             files[1]), 20);
@@ -164,7 +166,7 @@ public class TestLocalStreamCollectorReader {
   public void testReadFromTimeStamp() throws Exception {
     lreader = new LocalStreamCollectorReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
-        DatabusStreamReader.getStreamsLocalDir(cluster, testStream));
+        DatabusStreamReader.getStreamsLocalDir(cluster, testStream), conf);
     lreader.build(CollectorStreamReader.getDateFromCollectorFile(files[1]));
     lreader.initializeCurrentFile(
         CollectorStreamReader.getDateFromCollectorFile(files[1]));

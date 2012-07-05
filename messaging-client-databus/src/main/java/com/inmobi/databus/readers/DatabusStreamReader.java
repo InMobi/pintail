@@ -1,24 +1,28 @@
 package com.inmobi.databus.readers;
 
-import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TreeMap;
-import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
+import org.apache.hadoop.mapred.FileSplit;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapred.RecordReader;
+import org.apache.hadoop.mapred.InputFormat;
+import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.util.ReflectionUtils;
 
 import com.inmobi.databus.Cluster;
 import com.inmobi.databus.files.CollectorFile;
@@ -30,10 +34,27 @@ import com.inmobi.databus.partition.PartitionId;
 public abstract class DatabusStreamReader extends 
     StreamReader<DatabusStreamFile> {
 
+  FileSplit currentFileSplit;
+  RecordReader<Object, Object> recordReader;
+  String inFormatClass;
+  InputFormat<Object, Object> input;
+  Configuration conf;
+  
   protected DatabusStreamReader(PartitionId partitionId, FileSystem fs,
-      String streamName, Path streamDir, boolean noNewFiles)
+      String streamName, Path streamDir, String inputFormatClass,
+      Configuration conf, boolean noNewFiles)
           throws IOException {
     super(partitionId, fs, streamName, streamDir, noNewFiles);
+    this.inFormatClass = inputFormatClass;
+    this.conf = conf;
+    try {
+      input = (InputFormat<Object, Object>) ReflectionUtils.newInstance(
+              conf.getClassByName(inputFormatClass), conf);
+    } catch (ClassNotFoundException e) {
+      throw new IllegalArgumentException("Input format class" 
+          + inputFormatClass + " not found", e);
+    }
+
   }
 
   private static final Log LOG = LogFactory.getLog(DatabusStreamReader.class);
@@ -129,16 +150,47 @@ public abstract class DatabusStreamReader extends
     return ret;
   }
 
-  protected BufferedReader createReader(FSDataInputStream in)
-      throws IOException {
-    BufferedReader reader = new BufferedReader(new InputStreamReader(
-        new GZIPInputStream(in)));
-    return reader;
+  protected void openCurrentFile(boolean next) throws IOException {
+    closeCurrentFile();
+    if (next) {
+      resetCurrentFileSettings();
+    }
+    LOG.info("Opening file:" + getCurrentFile() + " NumLinesTobeSkipped when" +
+        " opening:" + currentLineNum);
+    try {
+      FileStatus status = fs.getFileStatus(getCurrentFile());
+      if (status != null) {
+        currentFileSplit = new FileSplit(getCurrentFile(), 0L,
+            status.getLen(), new String[0]);
+        recordReader = input.getRecordReader(currentFileSplit, new JobConf(conf),
+            Reporter.NULL);
+        skipLines(currentLineNum);
+      } else {
+        LOG.info("CurrentFile:" + getCurrentFile() + " does not exist");        
+      }
+    } catch (FileNotFoundException fnfe) {
+      LOG.info("CurrentFile:" + getCurrentFile() + " does not exist");
+    }
   }
 
-  protected void skipOldData(FSDataInputStream in, BufferedReader reader)
-      throws IOException {
-    skipLines(in, reader, currentLineNum);
+  protected synchronized void closeCurrentFile() throws IOException {
+    if (recordReader != null) {
+      recordReader.close();
+      recordReader = null;
+    }
+    currentFileSplit = null;
+  }
+
+  protected String readRawLine() throws IOException {
+    if (recordReader != null) {
+      Object key = recordReader.createKey();
+      Object value = recordReader.createValue();
+      boolean ret = recordReader.next(key, value);
+      if (ret) {
+        return value.toString();
+      }
+    }
+    return null;
   }
 
   protected boolean setNextHigherAndOpen(FileStatus currentFile) throws IOException {

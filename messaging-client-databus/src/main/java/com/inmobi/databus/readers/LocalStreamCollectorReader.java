@@ -5,9 +5,11 @@ import java.util.Date;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
+import org.apache.hadoop.mapred.TextInputFormat;
 
 import com.inmobi.databus.files.DatabusStreamFile;
 import com.inmobi.databus.files.FileMap;
@@ -22,8 +24,10 @@ public class LocalStreamCollectorReader extends DatabusStreamReader {
   private final String collector;
   
   public LocalStreamCollectorReader(PartitionId partitionId, 
-      FileSystem fs, String streamName, Path streamDir) throws IOException {
-    super(partitionId, fs, streamName, streamDir, false);
+      FileSystem fs, String streamName, Path streamDir, Configuration conf)
+          throws IOException {
+    super(partitionId, fs, streamName, streamDir,
+        TextInputFormat.class.getCanonicalName(), conf, false);
     this.collector = partitionId.getCollector();
   }
   
@@ -45,16 +49,13 @@ public class LocalStreamCollectorReader extends DatabusStreamReader {
   }
   
   public String readLine() throws IOException {
-    String line = null;
-    if (inStream != null) {
-      line = readLine(inStream, reader);
-    }
+    String line = readNextLine();
     while (line == null) { // reached end of file
       if (closed) {
         LOG.info("Stream closed");
         break;
       }
-      LOG.info("Read " + currentFile + " with lines:" + currentLineNum);
+      LOG.info("Read " + getCurrentFile() + " with lines:" + currentLineNum);
       if (!nextFile()) { // reached end of file list
         LOG.info("could not find next file. Rebuilding");
         build(getDateFromDatabusStreamFile(streamName,
@@ -67,20 +68,20 @@ public class LocalStreamCollectorReader extends DatabusStreamReader {
             return null;
           } else {
             // read line from next higher file
-            LOG.info("Reading from " + currentFile + ". The next higher file" +
+            LOG.info("Reading from " + getCurrentFile() + ". The next higher file" +
                 " after rebuild");
           }
         } else if (!nextFile()) { // reached end of stream
           LOG.info("Reached end of stream");
           return null;
         } else {
-          LOG.info("Reading from " + currentFile + " after rebuild");
+          LOG.info("Reading from " + getCurrentFile() + " after rebuild");
         }
       } else {
         // read line from next file
-        LOG.info("Reading from next file " + currentFile);
+        LOG.info("Reading from next file " + getCurrentFile());
       }
-      line = readLine(inStream, reader);
+      line = readNextLine();
     }
     return line;
   }

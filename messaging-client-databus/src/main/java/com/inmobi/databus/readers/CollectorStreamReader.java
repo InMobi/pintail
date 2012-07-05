@@ -27,6 +27,8 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   private long waitTimeForFlush;
   protected long currentOffset = 0;
   private boolean sameStream = false;
+  protected FSDataInputStream inStream;
+  protected BufferedReader reader;
 
   public CollectorStreamReader(PartitionId partitionId,
       FileSystem fs, String streamName, Path streamDir,
@@ -39,11 +41,6 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
         " streamDir:" + streamDir + 
         " waitTimeForFlush:" + waitTimeForFlush +
         " waitTimeForCreate:" + waitTimeForCreate);
-  }
-
-  protected void initCurrentFile() {
-    super.initCurrentFile();
-    sameStream = false;
   }
 
   protected FileMap<CollectorFile> createFileMap() throws IOException {
@@ -96,53 +93,77 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
 
     };
   }
-  
-  @Override
-  protected BufferedReader createReader(FSDataInputStream in)
-      throws IOException {
-    BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-    return reader;
+
+  protected void initCurrentFile() {
+    super.initCurrentFile();
+    sameStream = false;
   }
 
-  protected void resetCurrentFileSettings() {
-    super.resetCurrentFileSettings();
-    currentOffset = 0;
-  }
-
-  protected void skipOldData(FSDataInputStream in, BufferedReader reader)
-      throws IOException {
-    if (sameStream) {
-      LOG.info("Seeking to offset:" + currentOffset);
-      seekToOffset(in, reader);
+  protected void openCurrentFile(boolean next) throws IOException {
+    closeCurrentFile();
+    if (next) {
+      resetCurrentFileSettings();
+    } 
+    LOG.info("Opening file:" + getCurrentFile() + " NumLinesTobeSkipped when" +
+        " opening:" + currentLineNum);
+    if (fs.exists(getCurrentFile())) {
+      inStream = fs.open(getCurrentFile());
+      reader = new BufferedReader(new InputStreamReader(inStream));
+      skipOldData();
     } else {
-      skipLines(in, reader, currentLineNum);
-      sameStream = true;
+      LOG.info("CurrentFile:" + getCurrentFile() + " does not exist");
     }
   }
 
-  private void seekToOffset(FSDataInputStream in, BufferedReader reader) 
-      throws IOException {
-    in.seek(currentOffset);
+  protected synchronized void closeCurrentFile() throws IOException {
+    if (reader != null) {
+      reader.close();
+      reader = null;
+    }
+    if (inStream != null) {
+      inStream.close();
+      inStream = null;
+    }
   }
 
-  protected String readLine(FSDataInputStream in, BufferedReader reader)
+  protected String readRawLine() throws IOException {
+    return reader.readLine();
+  }
+
+  protected String readNextLine()
       throws IOException {
     String line = null;
     if (inStream != null) {
-      line = super.readLine(inStream, reader);
+      line = super.readNextLine();
       currentOffset = inStream.getPos();
     }
     return line;
   }
   
+  protected void resetCurrentFileSettings() {
+    super.resetCurrentFileSettings();
+    currentOffset = 0;
+  }
+
+  protected void skipOldData()
+      throws IOException {
+    if (sameStream) {
+      LOG.info("Seeking to offset:" + currentOffset);
+      inStream.seek(currentOffset);
+    } else {
+      skipLines(currentLineNum);
+      sameStream = true;
+    }
+  }
+
   public String readLine() throws IOException, InterruptedException {
-    String line = readLine(inStream, reader);
+    String line = readNextLine();
     while (line == null) { // reached end of file?
       if (closed) {
         LOG.info("Stream closed");
         break;
       }
-      LOG.info("Read " + currentFile + " with lines:" + currentLineNum);
+      LOG.info("Read " + getCurrentFile() + " with lines:" + currentLineNum);
       build(); // rebuild file list
       if (!nextFile()) { //there is no next file
         if (noNewFiles) {
@@ -164,9 +185,9 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
           LOG.info("Reading from the same file after reopen");
         }
       } else {
-        LOG.info("Reading from next file: " + currentFile);
+        LOG.info("Reading from next file: " + getCurrentFile());
       }
-      line = readLine(inStream, reader);
+      line = readNextLine();
     }
     return line;
   }
@@ -247,5 +268,4 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   public static String getCollectorFileName(String streamName, Date date) {
     return new CollectorFile(streamName, date, 0).toString();
   }
-
 }

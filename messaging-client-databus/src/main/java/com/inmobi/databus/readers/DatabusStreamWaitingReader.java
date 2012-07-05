@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -19,9 +20,10 @@ public class DatabusStreamWaitingReader extends DatabusStreamReader {
       DatabusStreamWaitingReader.class);
 
   public DatabusStreamWaitingReader(PartitionId partitionId, FileSystem fs,
-      String streamName,  Path streamDir, long waitTimeForCreate,
-      boolean noNewFiles) throws IOException {
-    super(partitionId, fs, streamName, streamDir, noNewFiles);
+      String streamName,  Path streamDir, String inputFormatClass,
+      Configuration conf, long waitTimeForCreate, boolean noNewFiles)
+          throws IOException {
+    super(partitionId, fs, streamName, streamDir, inputFormatClass, conf, noNewFiles);
     this.waitTimeForCreate = waitTimeForCreate;
   }
   
@@ -47,10 +49,7 @@ public class DatabusStreamWaitingReader extends DatabusStreamReader {
 
   @Override
   public String readLine() throws IOException, InterruptedException {
-    String line = null;
-    if (inStream != null) {
-      line = readLine(inStream, reader);
-    }
+    String line = readNextLine();
     while (line == null) { // reached end of file
       if (closed) {
         LOG.info("Stream closed");
@@ -76,7 +75,7 @@ public class DatabusStreamWaitingReader extends DatabusStreamReader {
         // read line from next file
         LOG.info("Reading from next file " + getCurrentFile());
       }
-      line = readLine(inStream, reader);
+      line = readNextLine();
     }
     return line;
   }

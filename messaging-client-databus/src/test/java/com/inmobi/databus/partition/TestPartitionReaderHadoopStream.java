@@ -1,10 +1,13 @@
 package com.inmobi.databus.partition;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapred.SequenceFileInputFormat;
 import org.testng.Assert;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
@@ -15,7 +18,6 @@ import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.partition.PartitionReader;
 import com.inmobi.databus.readers.CollectorStreamReader;
-import com.inmobi.databus.readers.DatabusStreamReader;
 import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
 import com.inmobi.messaging.consumer.util.TestUtil;
@@ -39,15 +41,19 @@ public class TestPartitionReaderHadoopStream {
   protected final String collectorName = "collector1";
   FileSystem fs;
   Path streamDir;
+  Configuration conf = new Configuration();
+  String inputFormatClass;
 
   @BeforeTest
   public void setup() throws Exception {
     // setup fs
-    cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
-        testStream, new PartitionId(fsName, collectorName), files, null,
-        databusFiles, 3);
-    fs = FileSystem.get(cluster.getHadoopConf());
-    streamDir = DatabusStreamReader.getStreamsLocalDir(cluster, testStream);
+    fs = FileSystem.getLocal(conf);
+    String collectorName = "hadoopcollector";
+    streamDir = new Path("/tmp/test/hadoop/" + this.getClass().getSimpleName(),
+         testStream).makeQualified(fs);
+    cluster = TestUtil.setupHadoopCluster(
+        testStream, collectorName, conf, files, databusFiles, streamDir);
+    inputFormatClass = SequenceFileInputFormat.class.getName();
   }
 
   @AfterTest
@@ -59,8 +65,8 @@ public class TestPartitionReaderHadoopStream {
   public void testInitialize() throws Exception {
     // Read from start
     preader = new PartitionReader(partitionId, null, fs, buffer,
-        testStream, CollectorStreamReader.getDateFromCollectorFile(files[0]),
-        1000, streamDir);
+        testStream, streamDir, conf, inputFormatClass,
+        CollectorStreamReader.getDateFromCollectorFile(files[0]), 1000);
     Assert.assertEquals(preader.getReader().getClass().getName(),
         ClusterReader.class.getName());
     preader.init();
@@ -70,7 +76,7 @@ public class TestPartitionReaderHadoopStream {
     preader = new PartitionReader(partitionId,
         new PartitionCheckpoint(DatabusStreamWaitingReader.getDatabusStreamFileName(
             collectorName, files[1]), 20),
-            fs, buffer, testStream, null, 1000, streamDir);
+            fs, buffer, testStream, streamDir, conf, inputFormatClass, null, 1000);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile(), databusFiles[1]);
 
@@ -79,29 +85,31 @@ public class TestPartitionReaderHadoopStream {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
         DatabusStreamWaitingReader.getDatabusStreamFileName(collectorName,
             doesNotExist1), 20),
-            fs, buffer, testStream, null, 1000, streamDir);
+            fs, buffer, testStream, streamDir, conf, inputFormatClass, null, 1000);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile(), databusFiles[0]);
 
     //Read from startTime in local stream directory, with no checkpoint
     preader = new PartitionReader(partitionId,
         null, fs, buffer, testStream,
-        CollectorStreamReader.getDateFromCollectorFile(files[1]), 1000, streamDir);
+        streamDir, conf, inputFormatClass,
+        CollectorStreamReader.getDateFromCollectorFile(files[1]), 1000);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile(), databusFiles[1]);
 
     //Read from startTime in local stream directory, with checkpoint
     preader = new PartitionReader(partitionId,
         new PartitionCheckpoint(files[0], 10), fs, buffer, testStream,
-        CollectorStreamReader.getDateFromCollectorFile(files[1]), 1000, streamDir);
+        streamDir, conf, inputFormatClass,
+        CollectorStreamReader.getDateFromCollectorFile(files[1]), 1000);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile(), databusFiles[1]);
 
     //Read from startTime in local stream directory, with no timestamp file,
     // with no checkpoint
-    preader = new PartitionReader(partitionId,
-        null, fs, buffer, testStream,
-        CollectorStreamReader.getDateFromCollectorFile(doesNotExist2), 1000, streamDir);
+    preader = new PartitionReader(partitionId, null, fs, buffer, testStream,
+        streamDir, conf, inputFormatClass,
+        CollectorStreamReader.getDateFromCollectorFile(doesNotExist2), 1000);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile(), databusFiles[1]);
 
@@ -109,22 +117,22 @@ public class TestPartitionReaderHadoopStream {
     //with checkpoint
     preader = new PartitionReader(partitionId,
         new PartitionCheckpoint(files[0], 10), fs, buffer, testStream,
-        CollectorStreamReader.getDateFromCollectorFile(doesNotExist2), 1000, streamDir);
+        streamDir, conf, inputFormatClass,
+        CollectorStreamReader.getDateFromCollectorFile(doesNotExist2), 1000);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile(), databusFiles[1]);
 
     //Read from startTime beyond the stream
-    preader = new PartitionReader(partitionId,
-        null, fs, buffer, testStream,
-        CollectorStreamReader.getDateFromCollectorFile(doesNotExist1), 1000, streamDir);
+    preader = new PartitionReader(partitionId, null, fs, buffer, testStream,
+         streamDir, conf, inputFormatClass,
+         CollectorStreamReader.getDateFromCollectorFile(doesNotExist1), 1000);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile(), databusFiles[0]);
 
     //Read from startTime after the stream
-    preader = new PartitionReader(partitionId,
-        null, fs, buffer, testStream,
-        CollectorStreamReader.getDateFromCollectorFile(doesNotExist3),
-        1000, streamDir, true);
+    preader = new PartitionReader(partitionId, null, fs, buffer, testStream,
+        streamDir, conf, inputFormatClass,
+        CollectorStreamReader.getDateFromCollectorFile(doesNotExist3), 1000, true);
     preader.init();
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -137,16 +145,16 @@ public class TestPartitionReaderHadoopStream {
     //Read from startTime beyond the stream, with checkpoint
     preader = new PartitionReader(partitionId,
         new PartitionCheckpoint(files[0], 10), fs, buffer, testStream,
-        CollectorStreamReader.getDateFromCollectorFile(doesNotExist1),
-        1000, streamDir);
+        streamDir,
+        conf, inputFormatClass, CollectorStreamReader.getDateFromCollectorFile(doesNotExist1), 1000);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile(), databusFiles[0]);
 
     //Read from startTime after the stream, with checkpoint
     preader = new PartitionReader(partitionId,
         new PartitionCheckpoint(files[0], 10), fs, buffer, testStream,
-        CollectorStreamReader.getDateFromCollectorFile(doesNotExist3),
-        1000, streamDir, true);
+        streamDir, conf, inputFormatClass,
+        CollectorStreamReader.getDateFromCollectorFile(doesNotExist3), 1000, true);
     preader.init();
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -160,8 +168,8 @@ public class TestPartitionReaderHadoopStream {
   @Test
   public void testReadFromStart() throws Exception {
     preader = new PartitionReader(partitionId, null, fs, buffer,
-        testStream, CollectorStreamReader.getDateFromCollectorFile(files[0]),
-        1000, streamDir, true);
+        testStream, streamDir, conf, inputFormatClass,
+        CollectorStreamReader.getDateFromCollectorFile(files[0]), 1000, true);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -188,8 +196,8 @@ public class TestPartitionReaderHadoopStream {
   @Test
   public void testReadFromCheckpoint() throws Exception {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
-        databusFiles[1].getName(), 20), fs, buffer, testStream, null,
-        1000, streamDir, true);
+        databusFiles[1].getName(), 20), fs, buffer, testStream, streamDir,
+        conf, inputFormatClass, null, 1000, true);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -213,8 +221,8 @@ public class TestPartitionReaderHadoopStream {
   public void testReadFromCheckpointWhichDoesNotExist() throws Exception {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
         DatabusStreamWaitingReader.getDatabusStreamFileName(collectorName, doesNotExist1),
-        20), fs, buffer, testStream, null, 1000, 
-        streamDir, true);
+        20), fs, buffer, testStream, streamDir, conf, 
+        inputFormatClass, null, 1000, true);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -240,8 +248,8 @@ public class TestPartitionReaderHadoopStream {
     Throwable th = null;
     try {
       preader = new PartitionReader(partitionId, new PartitionCheckpoint(
-          doesNotExist2, 20), fs, buffer, testStream, null, 1000,
-          streamDir, true);
+          doesNotExist2, 20), fs, buffer, testStream, streamDir, conf,
+          inputFormatClass, null, 1000, true);
       preader.init();
     } catch (Exception e) {
       th = e;
@@ -255,8 +263,8 @@ public class TestPartitionReaderHadoopStream {
     Throwable th = null;
     try {
       preader = new PartitionReader(partitionId, new PartitionCheckpoint(
-          doesNotExist3, 20), fs, buffer, testStream, null, 1000, 
-          streamDir, true);
+          doesNotExist3, 20), fs, buffer, testStream, streamDir, conf, 
+          inputFormatClass, null, 1000, true);
       preader.init();
     } catch (Exception e) {
       th = e;
@@ -269,8 +277,8 @@ public class TestPartitionReaderHadoopStream {
   public void testReadFromStartTime() throws Exception {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
         databusFiles[1].getName(), 20), fs, buffer, testStream,
-        CollectorStreamReader.getDateFromCollectorFile(files[1]), 1000,
-        streamDir, true);
+        streamDir, conf, inputFormatClass,
+        CollectorStreamReader.getDateFromCollectorFile(files[1]), 1000, true);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -296,8 +304,8 @@ public class TestPartitionReaderHadoopStream {
   public void testReadFromStartTimeWithinStream() throws Exception {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
         databusFiles[1].getName(), 20), fs, buffer, testStream,
-        CollectorStreamReader.getDateFromCollectorFile(doesNotExist2), 1000,
-        streamDir, true);
+        streamDir, conf, inputFormatClass,
+        CollectorStreamReader.getDateFromCollectorFile(doesNotExist2), 1000, true);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -323,8 +331,8 @@ public class TestPartitionReaderHadoopStream {
   public void testReadFromStartTimeBeforeStream() throws Exception {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
         databusFiles[1].getName(), 20), fs, buffer, testStream,
-        CollectorStreamReader.getDateFromCollectorFile(doesNotExist1), 1000,
-        streamDir, true);
+        streamDir, conf, inputFormatClass,
+        CollectorStreamReader.getDateFromCollectorFile(doesNotExist1), 1000, true);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -352,8 +360,9 @@ public class TestPartitionReaderHadoopStream {
   public void testReadFromStartTimeAfterStream() throws Exception {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
         databusFiles[1].getName(), 20), fs, buffer, testStream,
+        streamDir, conf, inputFormatClass,
         CollectorStreamReader.getDateFromCollectorFile(doesNotExist3), 1000,
-        streamDir, true);
+        true);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());

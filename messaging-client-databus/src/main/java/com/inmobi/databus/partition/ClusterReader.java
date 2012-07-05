@@ -5,6 +5,7 @@ import java.util.Date;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
@@ -20,17 +21,16 @@ public class ClusterReader extends AbstractPartitionStreamReader {
 
   ClusterReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, FileSystem fs,
-      String streamName,
-      Date startTime,
-      long waitTimeForFileCreate,
-      Path streamDir, boolean noNewFiles)
+      String streamName, Path streamDir, Configuration conf,
+      String inputFormatClass, Date startTime, long waitTimeForFileCreate,
+      boolean noNewFiles)
           throws IOException {
     this.startTime = startTime;
     this.streamName = streamName;
     this.partitionCheckpoint = partitionCheckpoint;
 
     reader = new DatabusStreamWaitingReader(partitionId, fs, streamName,
-        streamDir, waitTimeForFileCreate, noNewFiles);
+        streamDir, inputFormatClass, conf, waitTimeForFileCreate, noNewFiles);
   }
 
   public void initializeCurrentFile() throws IOException, InterruptedException {

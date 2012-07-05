@@ -2,18 +2,13 @@ package com.inmobi.databus.readers;
 
 import java.io.IOException;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.testng.Assert;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-import com.inmobi.databus.Cluster;
-import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
-import com.inmobi.messaging.consumer.util.MessageUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
 public class TestLocalStreamReader extends TestAbstractDatabusWaitingReader{
@@ -24,7 +19,8 @@ public class TestLocalStreamReader extends TestAbstractDatabusWaitingReader{
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
     testStream, new PartitionId(clusterName, collectorName), files, null,
     databusFiles, 3, 0);
-    fs = FileSystem.get(cluster.getHadoopConf());
+    conf = cluster.getHadoopConf();
+    fs = FileSystem.get(conf);
   }
 
   @AfterTest

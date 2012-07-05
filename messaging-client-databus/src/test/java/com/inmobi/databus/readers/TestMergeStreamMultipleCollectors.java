@@ -1,7 +1,9 @@
 package com.inmobi.databus.readers;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapred.TextInputFormat;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -23,6 +25,7 @@ public class TestMergeStreamMultipleCollectors {
       TestUtil.files[5]};
   Path[] databusFiles1 = new Path[3];
   Path[] databusFiles2 = new Path[3];
+  Configuration conf;
 
   @BeforeTest
   public void setup() throws Exception {
@@ -32,13 +35,15 @@ public class TestMergeStreamMultipleCollectors {
         databusFiles1, 0, 3);
     TestUtil.setUpFiles(cluster, collectors[1], files, null, databusFiles2, 0,
         3);
+    conf = cluster.getHadoopConf();
   }
 
   @Test
   public void testReadFromStart() throws Exception {
     reader = new DatabusStreamWaitingReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
-        DatabusStreamReader.getStreamsDir(cluster, testStream), 1000, false);
+        DatabusStreamReader.getStreamsDir(cluster, testStream),
+        TextInputFormat.class.getCanonicalName(), conf, 1000, false);
     reader.build(CollectorStreamReader.getDateFromCollectorFile(files[0]));
     reader.initFromStart();
     Assert.assertNotNull(reader.getCurrentFile());

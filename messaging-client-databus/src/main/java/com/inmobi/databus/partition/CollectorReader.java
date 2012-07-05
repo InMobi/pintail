@@ -5,6 +5,7 @@ import java.util.Date;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
@@ -26,6 +27,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       PartitionCheckpoint partitionCheckpoint, FileSystem fs,
       String streamName,
       Path collectorDir, Path streamsLocalDir,
+      Configuration conf,
       Date startTime, long waitTimeForFlush,
       long waitTimeForFileCreate, boolean noNewFiles)
           throws IOException {
@@ -34,7 +36,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     this.streamName = streamName;
     this.partitionCheckpoint = partitionCheckpoint;
     lReader = new LocalStreamCollectorReader(partitionId,  fs, streamName,
-        streamsLocalDir);
+        streamsLocalDir, conf);
     cReader = new CollectorStreamReader(partitionId, fs, streamName,
         collectorDir, waitTimeForFlush, waitTimeForFileCreate, noNewFiles);
   }

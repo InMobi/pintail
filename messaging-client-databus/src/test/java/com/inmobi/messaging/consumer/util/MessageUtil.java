@@ -3,9 +3,14 @@ package com.inmobi.messaging.consumer.util;
 import java.io.IOException;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.SequenceFile;
+import org.apache.hadoop.io.SequenceFile.CompressionType;
+import org.apache.hadoop.io.Text;
 
 public class MessageUtil {
 
@@ -25,6 +30,21 @@ public class MessageUtil {
     }
     out.close();
     TestUtil.LOG.debug("Created data file:" + new Path(parent, fileName));
+  }
+
+  public static void createMessageSequenceFile(String fileName, FileSystem fs,
+      Path parent, int msgIndex, Configuration conf) throws IOException {
+    Path file = new Path(parent, fileName);
+    SequenceFile.Writer writer = SequenceFile.createWriter(fs, conf, file, 
+        IntWritable.class, Text.class, CompressionType.NONE);
+
+    for (int i = 0; i < 100; i++) {
+      writer.append(new IntWritable(i),
+          new Text(Base64.encodeBase64(constructMessage(msgIndex).getBytes())));
+      msgIndex++;
+    }
+    writer.close();
+    TestUtil.LOG.debug("Created sequence data file:" + file);
   }
 
 }

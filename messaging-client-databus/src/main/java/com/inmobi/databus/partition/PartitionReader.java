@@ -8,8 +8,10 @@ import java.util.concurrent.BlockingQueue;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapred.TextInputFormat;
 
 import com.inmobi.databus.Cluster;
 import com.inmobi.databus.readers.CollectorStreamReader;
@@ -41,10 +43,12 @@ public class PartitionReader {
   public PartitionReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, FileSystem fs,
       BlockingQueue<QueueEntry> buffer, String streamName,
-      Date startTime, long waitTimeForFileCreate,
-      Path streamDir) throws IOException {
+      Path streamDir, Configuration conf,
+      String inputFormatClass, Date startTime, long waitTimeForFileCreate)
+          throws IOException {
     this(partitionId, partitionCheckpoint, fs, buffer, streamName,
-        startTime, waitTimeForFileCreate, streamDir, false);
+        streamDir, conf, inputFormatClass, startTime, waitTimeForFileCreate,
+        false);
   }
 
   PartitionReader(PartitionId partitionId,
@@ -59,14 +63,18 @@ public class PartitionReader {
     if (partitionId.getCollector() == null) {
       if (isLocal) {
         reader = new ClusterReader(partitionId, partitionCheckpoint,
-            fs, streamName, startTime, waitTimeForFileCreate,
-            DatabusStreamReader.getStreamsLocalDir(cluster, streamName),
-            noNewFiles);
+            fs, streamName,
+            DatabusStreamReader.getStreamsLocalDir(cluster, streamName), 
+            cluster.getHadoopConf(),
+            TextInputFormat.class.getCanonicalName(),
+            startTime, waitTimeForFileCreate, noNewFiles);
       } else {
         reader = new ClusterReader(partitionId, partitionCheckpoint,
-            fs, streamName, startTime, waitTimeForFileCreate,
+            fs, streamName,
             DatabusStreamReader.getStreamsDir(cluster, streamName),
-            noNewFiles);        
+            cluster.getHadoopConf(),
+            TextInputFormat.class.getCanonicalName(),
+            startTime, waitTimeForFileCreate, noNewFiles);        
       }
     } else {
       reader = new CollectorReader(partitionId, partitionCheckpoint, fs,
@@ -74,6 +82,7 @@ public class PartitionReader {
           CollectorStreamReader.getCollectorDir(cluster, streamName,
               partitionId.getCollector()),
          DatabusStreamReader.getStreamsLocalDir(cluster, streamName),
+         cluster.getHadoopConf(),
          startTime, waitTimeForFlush, waitTimeForFileCreate, noNewFiles);
     }
     // initialize cluster and its directories
@@ -86,13 +95,14 @@ public class PartitionReader {
   PartitionReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, FileSystem fs,
       BlockingQueue<QueueEntry> buffer, String streamName,
-      Date startTime, long waitTimeForFileCreate,
-      Path streamDir, boolean noNewFiles)
+      Path streamDir, Configuration conf,
+      String inputFormatClass, Date startTime, long waitTimeForFileCreate,
+      boolean noNewFiles)
           throws IOException {
     this(partitionId, partitionCheckpoint, buffer, startTime);
     reader = new ClusterReader(partitionId, partitionCheckpoint,
-        fs, streamName, startTime, waitTimeForFileCreate, streamDir,
-        noNewFiles);
+        fs, streamName, streamDir, conf, inputFormatClass,
+        startTime, waitTimeForFileCreate, noNewFiles);
     // initialize cluster and its directories
     LOG.info("Partition reader initialized with partitionId:" + partitionId +
         " checkPoint:" + partitionCheckpoint +  

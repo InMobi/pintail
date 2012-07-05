@@ -1,12 +1,10 @@
 package com.inmobi.databus.readers;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Date;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -31,8 +29,6 @@ public abstract class StreamReader<T extends StreamFile> {
   protected boolean noNewFiles = false; // this is purely for tests
   protected long waitTimeForCreate;
   protected Path streamDir;
-  protected FSDataInputStream inStream;
-  protected BufferedReader reader;
   private FileMap<T> fileMap;
 
   protected StreamReader(PartitionId partitionId, FileSystem fs, 
@@ -65,40 +61,13 @@ public abstract class StreamReader<T extends StreamFile> {
     fileMap.build();
   }
 
-  protected void openCurrentFile(boolean next) throws IOException {
-    closeCurrentFile();
-    if (next) {
-      resetCurrentFileSettings();
-    } 
-    LOG.info("Opening file:" + currentFile.getPath() + " NumLinesTobeSkipped when" +
-    		" opening:" + currentLineNum);
-    if (fs.exists(currentFile.getPath())) {
-      inStream = fs.open(currentFile.getPath());
-      reader = getReader(inStream);
-    } else {
-      LOG.info("CurrentFile:" + currentFile + " does not exist");
-    }
-  }
-
-  private synchronized void closeReader() throws IOException {
-    if (reader != null) {
-      reader.close();
-      reader = null;
-    }
-  }
-
-  private synchronized void closeCurrentFile() throws IOException {
-    closeReader();
-    if (inStream != null) {
-      inStream.close();
-      inStream = null;
-    }
-  }
-
   protected boolean setIterator() {
     return fileMap.setIterator(currentFile);
   }
 
+  protected abstract void openCurrentFile(boolean next) throws IOException;
+  
+  protected abstract void closeCurrentFile() throws IOException; 
   protected void initCurrentFile() {
     currentFile = null;
     resetCurrentFile();    
@@ -115,7 +84,7 @@ public abstract class StreamReader<T extends StreamFile> {
 
     if (currentFile != null) {
       setIterator();
-      LOG.debug("CurrentFile:" + currentFile + " currentLineNum:"+ 
+      LOG.debug("CurrentFile:" + getCurrentFile() + " currentLineNum:"+ 
           currentLineNum);
     } else {
       LOG.info("Did not find stream file for timestamp:" + timestamp);
@@ -136,7 +105,7 @@ public abstract class StreamReader<T extends StreamFile> {
     currentFile = fileMap.getValue(checkpoint.getFileName());
     if (currentFile != null) {
       currentLineNum = checkpoint.getLineNum();
-      LOG.debug("CurrentFile:" + currentFile + " currentLineNum:" + 
+      LOG.debug("CurrentFile:" + getCurrentFile() + " currentLineNum:" + 
           currentLineNum);
       setIterator();
     } 
@@ -148,7 +117,7 @@ public abstract class StreamReader<T extends StreamFile> {
     currentFile = fileMap.getFirstFile();
 
     if (currentFile != null) {
-      LOG.debug("CurrentFile:" + currentFile + " currentLineNum:" + 
+      LOG.debug("CurrentFile:" + getCurrentFile() + " currentLineNum:" + 
           currentLineNum);
       setIterator();
     }
@@ -199,25 +168,22 @@ public abstract class StreamReader<T extends StreamFile> {
 
   protected abstract String getStreamFileName(String streamName, Date timestamp);
 
-  protected abstract BufferedReader createReader(FSDataInputStream in)
-      throws IOException;
-
   /** 
    * Returns null when reached end of stream 
    */
   public abstract String readLine() throws IOException, InterruptedException;
+
+  protected abstract String readRawLine() throws IOException;
 
   /**
    * Skip the number of lines passed.
    * 
    * @return the actual number of lines skipped.
    */
-  protected long skipLines(FSDataInputStream in, BufferedReader reader, 
-      long numLines) 
-          throws IOException {
+  protected long skipLines(long numLines) throws IOException {
     long lineNum = 0;
     while (lineNum != numLines) {
-      String line = reader.readLine();
+      String line = readRawLine();
       if (line == null) {
         break;
       }
@@ -230,27 +196,20 @@ public abstract class StreamReader<T extends StreamFile> {
     return lineNum;
   }
 
-  protected String readLine(FSDataInputStream in, BufferedReader reader)
-      throws IOException {
-    if (reader != null) {
-      String line = reader.readLine();
-      if (line != null) {
-        currentLineNum++;
-      }
-      return line;
+  /**
+   * Read the next line in the current file. 
+   * @return Null if end of file is reached, the line itself if read successfully
+   * 
+   * @throws IOException
+   */
+  protected String readNextLine() throws IOException {
+    String line = readRawLine();
+    if (line != null) {
+      currentLineNum++;
     }
-    return null;
+    return line;
   }
 
-  protected BufferedReader getReader(FSDataInputStream in) throws IOException {
-    BufferedReader reader = createReader(in);
-    skipOldData(in, reader);
-    return reader;
-  }
-
-
-  protected abstract void skipOldData(FSDataInputStream in,
-      BufferedReader reader) throws IOException;
 
   protected void resetCurrentFileSettings() {
     currentLineNum = 0;
@@ -277,7 +236,7 @@ public abstract class StreamReader<T extends StreamFile> {
       currentFile = fileMap.getValue(streamFileName);
       setIterator();
       this.currentLineNum = currentLineNum;
-      LOG.info("Set current file:" + currentFile +
+      LOG.info("Set current file:" + getCurrentFile() +
           "currentLineNum:" + currentLineNum);
       return true;
     } else {
