@@ -38,28 +38,30 @@ public class PartitionReader {
         startTime, waitTimeForFlush, waitTimeForFileCreate, isLocal, false);
   }
 
+  public PartitionReader(PartitionId partitionId,
+      PartitionCheckpoint partitionCheckpoint, FileSystem fs,
+      BlockingQueue<QueueEntry> buffer, String streamName,
+      Date startTime, long waitTimeForFileCreate,
+      Path streamDir) throws IOException {
+    this(partitionId, partitionCheckpoint, fs, buffer, streamName,
+        startTime, waitTimeForFileCreate, streamDir, false);
+  }
+
   PartitionReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, Cluster cluster,
       BlockingQueue<QueueEntry> buffer, String streamName,
       Date startTime, long waitTimeForFlush, long waitTimeForFileCreate,
       boolean isLocal, boolean noNewFiles)
           throws IOException {
-    if (startTime == null && partitionCheckpoint == null) {
-      String msg = "StartTime and checkpoint both" +
-        " cannot be null in PartitionReader";
-      LOG.warn(msg);
-      throw new IllegalArgumentException(msg);
-    }
-    this.partitionId = partitionId;
-    this.buffer = buffer;
+    this(partitionId, partitionCheckpoint, buffer, startTime);
     FileSystem fs = FileSystem.get(cluster.getHadoopConf());
 
     if (partitionId.getCollector() == null) {
       if (isLocal) {
         reader = new ClusterReader(partitionId, partitionCheckpoint,
-          fs, streamName, startTime, waitTimeForFileCreate,
-          DatabusStreamReader.getStreamsLocalDir(cluster, streamName),
-          noNewFiles);
+            fs, streamName, startTime, waitTimeForFileCreate,
+            DatabusStreamReader.getStreamsLocalDir(cluster, streamName),
+            noNewFiles);
       } else {
         reader = new ClusterReader(partitionId, partitionCheckpoint,
             fs, streamName, startTime, waitTimeForFileCreate,
@@ -71,15 +73,45 @@ public class PartitionReader {
           streamName,
           CollectorStreamReader.getCollectorDir(cluster, streamName,
               partitionId.getCollector()),
-          DatabusStreamReader.getStreamsLocalDir(cluster, streamName),
-          startTime, waitTimeForFlush, waitTimeForFileCreate,
-          noNewFiles);
+         DatabusStreamReader.getStreamsLocalDir(cluster, streamName),
+         startTime, waitTimeForFlush, waitTimeForFileCreate, noNewFiles);
     }
     // initialize cluster and its directories
     LOG.info("Partition reader initialized with partitionId:" + partitionId +
         " checkPoint:" + partitionCheckpoint +  
         " startTime:" + startTime +
         " currentReader:" + reader);
+  }
+
+  PartitionReader(PartitionId partitionId,
+      PartitionCheckpoint partitionCheckpoint, FileSystem fs,
+      BlockingQueue<QueueEntry> buffer, String streamName,
+      Date startTime, long waitTimeForFileCreate,
+      Path streamDir, boolean noNewFiles)
+          throws IOException {
+    this(partitionId, partitionCheckpoint, buffer, startTime);
+    reader = new ClusterReader(partitionId, partitionCheckpoint,
+        fs, streamName, startTime, waitTimeForFileCreate, streamDir,
+        noNewFiles);
+    // initialize cluster and its directories
+    LOG.info("Partition reader initialized with partitionId:" + partitionId +
+        " checkPoint:" + partitionCheckpoint +  
+        " startTime:" + startTime +
+        " currentReader:" + reader);
+  }
+
+  private PartitionReader(PartitionId partitionId,
+      PartitionCheckpoint partitionCheckpoint,
+      BlockingQueue<QueueEntry> buffer, Date startTime)
+          throws IOException {
+    if (startTime == null && partitionCheckpoint == null) {
+      String msg = "StartTime and checkpoint both" +
+          " cannot be null in PartitionReader";
+      LOG.warn(msg);
+      throw new IllegalArgumentException(msg);
+    }
+    this.partitionId = partitionId;
+    this.buffer = buffer;
   }
 
   public synchronized void start() {
