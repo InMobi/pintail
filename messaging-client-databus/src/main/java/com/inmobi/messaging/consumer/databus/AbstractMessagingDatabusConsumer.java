@@ -13,7 +13,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.security.UserGroupInformation;
 
 import com.inmobi.databus.CheckpointProvider;
-import com.inmobi.databus.Cluster;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.partition.PartitionReader;
@@ -23,8 +22,8 @@ import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.AbstractMessageConsumer;
 
 public abstract class AbstractMessagingDatabusConsumer 
-extends AbstractMessageConsumer 
-implements DatabusConsumerConfig {
+    extends AbstractMessageConsumer 
+    implements MessagingConsumerConfig {
   protected static final Log LOG = LogFactory.getLog(
       AbstractMessagingDatabusConsumer.class);
   protected static final long ONE_HOUR_IN_MILLIS = 1 * 60 * 60 * 1000;
@@ -38,6 +37,7 @@ implements DatabusConsumerConfig {
   protected Checkpoint currentCheckpoint;
   protected long waitTimeForFileCreate;
   protected int bufferSize;
+  protected DataEncodingType dataEncodingType;
 
   @Override
   protected void init(ClientConfig config) throws IOException {
@@ -99,6 +99,9 @@ implements DatabusConsumerConfig {
     // initialize other common configuration
     waitTimeForFileCreate = config.getLong(waitTimeForFileCreateConfig,
         DEFAULT_WAIT_TIME_FOR_FILE_CREATE);
+    dataEncodingType = DataEncodingType.valueOf(
+        config.getString(dataEncodingConfg, DEFAULT_DATA_ENCODING));
+    LOG.debug("Using data encoding type as " + dataEncodingType);
   }
 
   public Map<PartitionId, PartitionReader> getPartitionReaders() {

@@ -80,7 +80,7 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
       PartitionReader reader = new PartitionReader(id,
           partitionsChkPoints.get(id), fileSystems[i], buffer, topicName,
           new Path(rootDirs[i], topicName), conf, inputFormatClassName,
-          partitionTimestamp, waitTimeForFileCreate);    
+          partitionTimestamp, waitTimeForFileCreate, dataEncodingType);    
       LOG.debug("Created partition " + id);
       readers.put(id, reader);
     }

@@ -17,6 +17,7 @@ import com.inmobi.databus.Cluster;
 import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.databus.readers.DatabusStreamReader;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.consumer.databus.DataEncodingType;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
 
 public class PartitionReader {
@@ -30,34 +31,37 @@ public class PartitionReader {
   private Thread thread;
   private volatile boolean stopped;
   private boolean inited = false;
+  private final DataEncodingType dataEncoding;
 
   public PartitionReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, Cluster cluster,
       BlockingQueue<QueueEntry> buffer, String streamName,
       Date startTime, long waitTimeForFlush, long waitTimeForFileCreate,
-      boolean isLocal) throws IOException {
+      boolean isLocal, DataEncodingType dataEncoding) throws IOException {
     this(partitionId, partitionCheckpoint, cluster, buffer, streamName,
-        startTime, waitTimeForFlush, waitTimeForFileCreate, isLocal, false);
+        startTime, waitTimeForFlush, waitTimeForFileCreate, isLocal,
+        dataEncoding, false);
   }
 
   public PartitionReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, FileSystem fs,
       BlockingQueue<QueueEntry> buffer, String streamName,
       Path streamDir, Configuration conf,
-      String inputFormatClass, Date startTime, long waitTimeForFileCreate)
+      String inputFormatClass, Date startTime, long waitTimeForFileCreate,
+      DataEncodingType dataEncoding)
           throws IOException {
     this(partitionId, partitionCheckpoint, fs, buffer, streamName,
         streamDir, conf, inputFormatClass, startTime, waitTimeForFileCreate,
-        false);
+        dataEncoding, false);
   }
 
   PartitionReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, Cluster cluster,
       BlockingQueue<QueueEntry> buffer, String streamName,
       Date startTime, long waitTimeForFlush, long waitTimeForFileCreate,
-      boolean isLocal, boolean noNewFiles)
+      boolean isLocal, DataEncodingType dataEncoding, boolean noNewFiles)
           throws IOException {
-    this(partitionId, partitionCheckpoint, buffer, startTime);
+    this(partitionId, partitionCheckpoint, buffer, startTime, dataEncoding);
     FileSystem fs = FileSystem.get(cluster.getHadoopConf());
 
     if (partitionId.getCollector() == null) {
@@ -97,9 +101,9 @@ public class PartitionReader {
       BlockingQueue<QueueEntry> buffer, String streamName,
       Path streamDir, Configuration conf,
       String inputFormatClass, Date startTime, long waitTimeForFileCreate,
-      boolean noNewFiles)
+      DataEncodingType dataEncoding, boolean noNewFiles)
           throws IOException {
-    this(partitionId, partitionCheckpoint, buffer, startTime);
+    this(partitionId, partitionCheckpoint, buffer, startTime, dataEncoding);
     reader = new ClusterReader(partitionId, partitionCheckpoint,
         fs, streamName, streamDir, conf, inputFormatClass,
         startTime, waitTimeForFileCreate, noNewFiles);
@@ -112,7 +116,8 @@ public class PartitionReader {
 
   private PartitionReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint,
-      BlockingQueue<QueueEntry> buffer, Date startTime)
+      BlockingQueue<QueueEntry> buffer, Date startTime,
+      DataEncodingType dataEncoding)
           throws IOException {
     if (startTime == null && partitionCheckpoint == null) {
       String msg = "StartTime and checkpoint both" +
@@ -122,6 +127,7 @@ public class PartitionReader {
     }
     this.partitionId = partitionId;
     this.buffer = buffer;
+    this.dataEncoding = dataEncoding;
   }
 
   public synchronized void start() {
@@ -199,7 +205,12 @@ public class PartitionReader {
         String line = reader.readLine();
         if (line != null) {
           // add the data to queue
-          byte[] data = Base64.decodeBase64(line);
+          byte[] data;
+          if (dataEncoding.equals(DataEncodingType.BASE64)) {
+            data = Base64.decodeBase64(line);
+          } else {
+            data = line.getBytes();
+          }
           buffer.put(new QueueEntry(new Message(
               ByteBuffer.wrap(data)), partitionId,
               new PartitionCheckpoint(reader.getCurrentFile().getName(),

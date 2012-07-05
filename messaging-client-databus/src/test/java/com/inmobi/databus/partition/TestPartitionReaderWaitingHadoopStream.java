@@ -15,6 +15,7 @@ import org.testng.annotations.Test;
 import com.inmobi.databus.Cluster;
 import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.databus.readers.DatabusStreamWaitingReader;
+import com.inmobi.messaging.consumer.databus.DataEncodingType;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
@@ -60,7 +61,8 @@ public class TestPartitionReaderWaitingHadoopStream {
   public void testReadFromStart() throws Exception {
     preader = new PartitionReader(partitionId, null, fs, buffer,
         testStream, streamDir, conf, inputFormatClass,
-        CollectorStreamReader.getDateFromCollectorFile(files[0]), 1000);
+        CollectorStreamReader.getDateFromCollectorFile(files[0]), 1000,
+        DataEncodingType.NONE);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),

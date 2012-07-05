@@ -12,6 +12,7 @@ import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.partition.PartitionReader;
 import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.databus.readers.DatabusStreamWaitingReader;
+import com.inmobi.messaging.consumer.databus.DataEncodingType;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
@@ -43,7 +44,7 @@ public abstract class TestAbstractClusterReader {
     // Read from start
     preader = new PartitionReader(partitionId, null, cluster, buffer,
         testStream, CollectorStreamReader.getDateFromCollectorFile(files[0]),
-        1000, 1000, isLocal());
+        1000, 1000, isLocal(), DataEncodingType.BASE64);
     Assert.assertEquals(preader.getReader().getClass().getName(),
         ClusterReader.class.getName());
     preader.init();
@@ -51,9 +52,11 @@ public abstract class TestAbstractClusterReader {
 
     // Read from checkpoint with local stream file name
     preader = new PartitionReader(partitionId,
-        new PartitionCheckpoint(DatabusStreamWaitingReader.getDatabusStreamFileName(
+        new PartitionCheckpoint(
+            DatabusStreamWaitingReader.getDatabusStreamFileName(
             collectorName, files[1]), 20),
-            cluster, buffer, testStream, null, 1000, 1000, isLocal());
+            cluster, buffer, testStream, null, 1000, 1000, isLocal(),
+            DataEncodingType.BASE64);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile(), databusFiles[1]);
 
@@ -62,21 +65,24 @@ public abstract class TestAbstractClusterReader {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
         DatabusStreamWaitingReader.getDatabusStreamFileName(collectorName,
             doesNotExist1), 20),
-            cluster, buffer, testStream, null, 1000, 1000, isLocal());
+            cluster, buffer, testStream, null, 1000, 1000, isLocal(),
+            DataEncodingType.BASE64);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile(), databusFiles[0]);
 
     //Read from startTime in local stream directory, with no checkpoint
     preader = new PartitionReader(partitionId,
         null, cluster, buffer, testStream,
-        CollectorStreamReader.getDateFromCollectorFile(files[1]), 1000, 1000, isLocal());
+        CollectorStreamReader.getDateFromCollectorFile(files[1]), 1000, 1000,
+        isLocal(), DataEncodingType.BASE64);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile(), databusFiles[1]);
 
     //Read from startTime in local stream directory, with checkpoint
     preader = new PartitionReader(partitionId,
         new PartitionCheckpoint(files[0], 10), cluster, buffer, testStream,
-        CollectorStreamReader.getDateFromCollectorFile(files[1]), 1000, 1000, isLocal());
+        CollectorStreamReader.getDateFromCollectorFile(files[1]), 1000, 1000,
+        isLocal(), DataEncodingType.BASE64);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile(), databusFiles[1]);
 
@@ -84,7 +90,8 @@ public abstract class TestAbstractClusterReader {
     // with no checkpoint
     preader = new PartitionReader(partitionId,
         null, cluster, buffer, testStream,
-        CollectorStreamReader.getDateFromCollectorFile(doesNotExist2), 1000, 1000, isLocal());
+        CollectorStreamReader.getDateFromCollectorFile(doesNotExist2), 1000,
+        1000, isLocal(), DataEncodingType.BASE64);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile(), databusFiles[1]);
 
@@ -92,14 +99,16 @@ public abstract class TestAbstractClusterReader {
     //with checkpoint
     preader = new PartitionReader(partitionId,
         new PartitionCheckpoint(files[0], 10), cluster, buffer, testStream,
-        CollectorStreamReader.getDateFromCollectorFile(doesNotExist2), 1000, 1000, isLocal());
+        CollectorStreamReader.getDateFromCollectorFile(doesNotExist2), 1000,
+        1000, isLocal(), DataEncodingType.BASE64);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile(), databusFiles[1]);
 
     //Read from startTime beyond the stream
     preader = new PartitionReader(partitionId,
         null, cluster, buffer, testStream,
-        CollectorStreamReader.getDateFromCollectorFile(doesNotExist1), 1000, 1000, isLocal());
+        CollectorStreamReader.getDateFromCollectorFile(doesNotExist1), 1000,
+        1000, isLocal(), DataEncodingType.BASE64);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile(), databusFiles[0]);
 
@@ -107,7 +116,7 @@ public abstract class TestAbstractClusterReader {
     preader = new PartitionReader(partitionId,
         null, cluster, buffer, testStream,
         CollectorStreamReader.getDateFromCollectorFile(doesNotExist3),
-        1000, 1000, isLocal(), true);
+        1000, 1000, isLocal(), DataEncodingType.BASE64, true);
     preader.init();
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -121,7 +130,7 @@ public abstract class TestAbstractClusterReader {
     preader = new PartitionReader(partitionId,
         new PartitionCheckpoint(files[0], 10), cluster, buffer, testStream,
         CollectorStreamReader.getDateFromCollectorFile(doesNotExist1),
-        1000, 1000, isLocal());
+        1000, 1000, isLocal(), DataEncodingType.BASE64);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile(), databusFiles[0]);
 
@@ -129,7 +138,7 @@ public abstract class TestAbstractClusterReader {
     preader = new PartitionReader(partitionId,
         new PartitionCheckpoint(files[0], 10), cluster, buffer, testStream,
         CollectorStreamReader.getDateFromCollectorFile(doesNotExist3),
-        1000, 1000, isLocal(), true);
+        1000, 1000, isLocal(), DataEncodingType.BASE64, true);
     preader.init();
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -143,7 +152,7 @@ public abstract class TestAbstractClusterReader {
   public void testReadFromStart() throws Exception {
     preader = new PartitionReader(partitionId, null, cluster, buffer,
         testStream, CollectorStreamReader.getDateFromCollectorFile(files[0]),
-        1000, 1000, isLocal(), true);
+        1000, 1000, isLocal(), DataEncodingType.BASE64, true);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -170,7 +179,7 @@ public abstract class TestAbstractClusterReader {
   public void testReadFromCheckpoint() throws Exception {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
         databusFiles[1].getName(), 20), cluster, buffer, testStream, null,
-        1000, 1000, isLocal(), true);
+        1000, 1000, isLocal(), DataEncodingType.BASE64, true);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -179,8 +188,10 @@ public abstract class TestAbstractClusterReader {
         .getReader().getClass().getName(),
         DatabusStreamWaitingReader.class.getName());
     preader.execute();
-    TestUtil.assertBuffer(databusFiles[1].getName(), 2, 20, 80, partitionId, buffer);
-    TestUtil.assertBuffer(databusFiles[2].getName(), 3, 0, 100, partitionId, buffer);
+    TestUtil.assertBuffer(databusFiles[1].getName(), 2, 20, 80, partitionId,
+        buffer);
+    TestUtil.assertBuffer(databusFiles[2].getName(), 3, 0, 100, partitionId,
+        buffer);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -192,9 +203,10 @@ public abstract class TestAbstractClusterReader {
 
   public void testReadFromCheckpointWhichDoesNotExist() throws Exception {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
-        DatabusStreamWaitingReader.getDatabusStreamFileName(collectorName, doesNotExist1),
+        DatabusStreamWaitingReader.getDatabusStreamFileName(collectorName,
+            doesNotExist1),
         20), cluster, buffer, testStream, null, 1000, 1000,
-        isLocal(), true);
+        isLocal(), DataEncodingType.BASE64, true);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -203,9 +215,12 @@ public abstract class TestAbstractClusterReader {
         .getReader().getClass().getName(),
         DatabusStreamWaitingReader.class.getName());
     preader.execute();
-    TestUtil.assertBuffer(databusFiles[0].getName(), 1, 0, 100, partitionId, buffer);
-    TestUtil.assertBuffer(databusFiles[1].getName(), 2, 0, 100, partitionId, buffer);
-    TestUtil.assertBuffer(databusFiles[2].getName(), 3, 0, 100, partitionId, buffer);
+    TestUtil.assertBuffer(databusFiles[0].getName(), 1, 0, 100, partitionId,
+        buffer);
+    TestUtil.assertBuffer(databusFiles[1].getName(), 2, 0, 100, partitionId,
+        buffer);
+    TestUtil.assertBuffer(databusFiles[2].getName(), 3, 0, 100, partitionId,
+        buffer);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -220,7 +235,7 @@ public abstract class TestAbstractClusterReader {
     try {
       preader = new PartitionReader(partitionId, new PartitionCheckpoint(
           doesNotExist2, 20), cluster, buffer, testStream, null, 1000, 1000,
-          isLocal(), true);
+          isLocal(), DataEncodingType.BASE64, true);
       preader.init();
     } catch (Exception e) {
       th = e;
@@ -234,7 +249,7 @@ public abstract class TestAbstractClusterReader {
     try {
       preader = new PartitionReader(partitionId, new PartitionCheckpoint(
           doesNotExist3, 20), cluster, buffer, testStream, null, 1000, 1000,
-          isLocal(), true);
+          isLocal(), DataEncodingType.BASE64, true);
       preader.init();
     } catch (Exception e) {
       th = e;
@@ -247,7 +262,7 @@ public abstract class TestAbstractClusterReader {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
         databusFiles[1].getName(), 20), cluster, buffer, testStream,
         CollectorStreamReader.getDateFromCollectorFile(files[1]), 1000, 1000,
-        isLocal(), true);
+        isLocal(), DataEncodingType.BASE64, true);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -273,7 +288,7 @@ public abstract class TestAbstractClusterReader {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
         databusFiles[1].getName(), 20), cluster, buffer, testStream,
         CollectorStreamReader.getDateFromCollectorFile(doesNotExist2), 1000,
-        1000, isLocal(), true);
+        1000, isLocal(), DataEncodingType.BASE64, true);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -299,7 +314,7 @@ public abstract class TestAbstractClusterReader {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
         databusFiles[1].getName(), 20), cluster, buffer, testStream,
         CollectorStreamReader.getDateFromCollectorFile(doesNotExist1), 1000,
-        1000, isLocal(), true);
+        1000, isLocal(), DataEncodingType.BASE64, true);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -327,7 +342,7 @@ public abstract class TestAbstractClusterReader {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
         databusFiles[1].getName(), 20), cluster, buffer, testStream,
         CollectorStreamReader.getDateFromCollectorFile(doesNotExist3), 1000,
-        1000, isLocal(), true);
+        1000, isLocal(), DataEncodingType.BASE64, true);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());

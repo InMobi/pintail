@@ -73,6 +73,8 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
     super.initializeConfig(config);
     waitTimeForFlush = config.getLong(waitTimeForFlushConfig,
         DEFAULT_WAIT_TIME_FOR_FLUSH);
+    dataEncodingType = DataEncodingType.valueOf(
+        config.getString(dataEncodingConfg, DataEncodingType.BASE64.name()));
     String clusterStr = config.getString(databusClustersConfig);
     if (clusterStr != null) {
       clusters = clusterStr.split(",");
@@ -168,7 +170,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
     PartitionReader reader = new PartitionReader(id,
         partitionsChkPoints.get(id), cluster, buffer, topicName,
         partitionTimestamp, waitTimeForFlush, waitTimeForFileCreate,
-        streamType.equals(StreamType.LOCAL));    
+        streamType.equals(StreamType.LOCAL), dataEncodingType);    
     LOG.debug("Created partition " + id);
     readers.put(id, reader);
   }

@@ -22,7 +22,12 @@ public interface MessagingConsumerConfig {
       "messaging.consumer.keytab.path";
 
   public static final String waitTimeForFileCreateConfig = 
-       "messaging.consumer.waittime.forfilecreate";
+      "messaging.consumer.waittime.forfilecreate";
   public static final long DEFAULT_WAIT_TIME_FOR_FILE_CREATE = 1000; //1 second
+  
+  public static final String dataEncodingConfg =
+      "messaging.consumer.data.encoding.type";
+  public static final String DEFAULT_DATA_ENCODING = DataEncodingType.NONE
+      .name();
 
 }

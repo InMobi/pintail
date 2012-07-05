@@ -40,7 +40,7 @@ public class MessageUtil {
 
     for (int i = 0; i < 100; i++) {
       writer.append(new IntWritable(i),
-          new Text(Base64.encodeBase64(constructMessage(msgIndex).getBytes())));
+          new Text(constructMessage(msgIndex).getBytes()));
       msgIndex++;
     }
     writer.close();
