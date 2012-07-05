@@ -5,8 +5,9 @@ import java.util.Date;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 
-import com.inmobi.databus.Cluster;
 import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.databus.readers.LocalStreamCollectorReader;
 
@@ -22,8 +23,9 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   private CollectorStreamReader cReader;
 
   CollectorReader(PartitionId partitionId,
-      PartitionCheckpoint partitionCheckpoint, Cluster cluster,
+      PartitionCheckpoint partitionCheckpoint, FileSystem fs,
       String streamName,
+      Path collectorDir, Path streamsLocalDir,
       Date startTime, long waitTimeForFlush,
       long waitTimeForFileCreate, boolean noNewFiles)
           throws IOException {
@@ -31,9 +33,10 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     this.startTime = startTime;
     this.streamName = streamName;
     this.partitionCheckpoint = partitionCheckpoint;
-    lReader = new LocalStreamCollectorReader(partitionId,  cluster, streamName);
-    cReader = new CollectorStreamReader(partitionId, cluster, streamName,
-        waitTimeForFlush, waitTimeForFileCreate, noNewFiles);
+    lReader = new LocalStreamCollectorReader(partitionId,  fs, streamName,
+        streamsLocalDir);
+    cReader = new CollectorStreamReader(partitionId, fs, streamName,
+        collectorDir, waitTimeForFlush, waitTimeForFileCreate, noNewFiles);
   }
 
   private void initializeCurrentFileFromTimeStamp(Date timestamp)

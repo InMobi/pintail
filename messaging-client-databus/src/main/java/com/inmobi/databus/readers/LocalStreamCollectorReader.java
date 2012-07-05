@@ -5,10 +5,10 @@ import java.util.Date;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
 
-import com.inmobi.databus.Cluster;
 import com.inmobi.databus.files.DatabusStreamFile;
 import com.inmobi.databus.files.FileMap;
 import com.inmobi.databus.partition.PartitionCheckpoint;
@@ -22,8 +22,8 @@ public class LocalStreamCollectorReader extends DatabusStreamReader {
   private final String collector;
   
   public LocalStreamCollectorReader(PartitionId partitionId, 
-      Cluster cluster, String streamName) throws IOException {
-    super(partitionId, cluster, streamName);
+      FileSystem fs, String streamName, Path streamDir) throws IOException {
+    super(partitionId, fs, streamName, streamDir, false);
     this.collector = partitionId.getCollector();
   }
   
@@ -97,10 +97,4 @@ public class LocalStreamCollectorReader extends DatabusStreamReader {
     }
     return getBuildTimestamp(streamName, fileName);
   }
-
-  @Override
-  protected Path getStreamDir(Cluster cluster, String streamName) {
-    return new Path(cluster.getLocalFinalDestDirRoot(), streamName);
-  }
-
 }

@@ -11,7 +11,6 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
-import com.inmobi.databus.Cluster;
 import com.inmobi.databus.files.FileMap;
 import com.inmobi.databus.files.StreamFile;
 import com.inmobi.databus.partition.PartitionCheckpoint;
@@ -24,7 +23,6 @@ public abstract class StreamReader<T extends StreamFile> {
   protected String streamName;
   protected Date timestamp;
   protected PartitionCheckpoint checkpoint;
-  protected Cluster cluster;
   protected PartitionId partitionId;
   protected FileStatus currentFile;
   protected long currentLineNum = 0;
@@ -37,14 +35,15 @@ public abstract class StreamReader<T extends StreamFile> {
   protected BufferedReader reader;
   private FileMap<T> fileMap;
 
-  protected StreamReader(PartitionId partitionId, Cluster cluster, 
-      String streamName) throws IOException {
+  protected StreamReader(PartitionId partitionId, FileSystem fs, 
+      String streamName, Path streamDir, boolean noNewFiles)
+          throws IOException {
     this.streamName = streamName;
-    this.cluster = cluster;
     this.partitionId = partitionId;
-    this.fs = FileSystem.get(cluster.getHadoopConf());
+    this.fs = fs;
     this.fileMap = createFileMap();
-    this.streamDir = getStreamDir(cluster, streamName);
+    this.streamDir = streamDir;
+    this.noNewFiles = noNewFiles;
   }
 
   public void openStream() throws IOException {
@@ -61,8 +60,6 @@ public abstract class StreamReader<T extends StreamFile> {
   }
 
   protected abstract FileMap<T> createFileMap() throws IOException;
-
-  protected abstract Path getStreamDir(Cluster cluster, String streamName);
 
   public void build() throws IOException {
     fileMap.build();

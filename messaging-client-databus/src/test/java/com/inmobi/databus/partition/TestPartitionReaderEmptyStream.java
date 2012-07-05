@@ -14,8 +14,7 @@ import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.partition.PartitionReader;
 import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.databus.readers.DatabusStreamReader;
-import com.inmobi.databus.readers.LocalStreamReader;
-import com.inmobi.databus.readers.MergedStreamReader;
+import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
@@ -51,10 +50,10 @@ public class TestPartitionReaderEmptyStream {
         CollectorStreamReader.class.getName());
 
     testInitialize(clusterId, true, ClusterReader.class.getName(),
-        LocalStreamReader.class.getName());
+        DatabusStreamWaitingReader.class.getName());
     
     testInitialize(clusterId, false, ClusterReader.class.getName(),
-        MergedStreamReader.class.getName());
+        DatabusStreamWaitingReader.class.getName());
   }
   
   public void testInitialize(PartitionId partitionId, boolean isLocal,

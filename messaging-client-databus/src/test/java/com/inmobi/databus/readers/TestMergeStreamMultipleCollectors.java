@@ -1,6 +1,6 @@
 package com.inmobi.databus.readers;
 
-import org.apache.commons.codec.binary.Base64;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
@@ -8,7 +8,6 @@ import org.testng.annotations.Test;
 
 import com.inmobi.databus.Cluster;
 import com.inmobi.databus.partition.PartitionId;
-import com.inmobi.messaging.consumer.util.MessageUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
 public class TestMergeStreamMultipleCollectors {
@@ -18,7 +17,7 @@ public class TestMergeStreamMultipleCollectors {
   private String[] collectors = new String[] {"collector1", "collector2"};
   private static final String clusterName = "testCluster";
   private PartitionId partitionId = new PartitionId(clusterName, null);
-  private MergedStreamReader reader;
+  private DatabusStreamWaitingReader reader;
   private Cluster cluster;
   private String[] files = new String[] {TestUtil.files[1], TestUtil.files[3],
       TestUtil.files[5]};
@@ -35,33 +34,21 @@ public class TestMergeStreamMultipleCollectors {
         3);
   }
 
-  private void readFile(int fileNum, int startIndex, Path filePath)
-      throws Exception {
-    int fileIndex = fileNum * 100 ;
-    for (int i = startIndex; i < 100; i++) {
-      String line = reader.readLine();
-      Assert.assertNotNull(line);
-      Assert.assertEquals(new String(Base64.decodeBase64(line)),
-          MessageUtil.constructMessage(fileIndex + i));
-    }
-    Assert.assertEquals(reader.getCurrentFile(), filePath);
-  }
-
-
   @Test
   public void testReadFromStart() throws Exception {
-    reader = new MergedStreamReader(partitionId, cluster,
-        testStream, 1000, true);
+    reader = new DatabusStreamWaitingReader(partitionId,
+        FileSystem.get(cluster.getHadoopConf()), testStream,
+        DatabusStreamReader.getStreamsDir(cluster, testStream), 1000, false);
     reader.build(CollectorStreamReader.getDateFromCollectorFile(files[0]));
     reader.initFromStart();
     Assert.assertNotNull(reader.getCurrentFile());
     reader.openStream();
-    readFile(0, 0, databusFiles1[0]);
-    readFile(0, 0, databusFiles2[0]);
-    readFile(1, 0, databusFiles1[1]);
-    readFile(1, 0, databusFiles2[1]);
-    readFile(2, 0, databusFiles1[2]);
-    readFile(2, 0, databusFiles2[2]);
+    TestAbstractDatabusWaitingReader.readFile(reader, 0, 0, databusFiles1[0]);
+    TestAbstractDatabusWaitingReader.readFile(reader, 0, 0, databusFiles2[0]);
+    TestAbstractDatabusWaitingReader.readFile(reader, 1, 0, databusFiles1[1]);
+    TestAbstractDatabusWaitingReader.readFile(reader, 1, 0, databusFiles2[1]);
+    TestAbstractDatabusWaitingReader.readFile(reader, 2, 0, databusFiles1[2]);
+    TestAbstractDatabusWaitingReader.readFile(reader, 2, 0, databusFiles2[2]);
     reader.close();
   }
 }

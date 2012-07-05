@@ -8,9 +8,12 @@ import java.util.concurrent.BlockingQueue;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
 import com.inmobi.databus.Cluster;
+import com.inmobi.databus.readers.CollectorStreamReader;
+import com.inmobi.databus.readers.DatabusStreamReader;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
 
@@ -49,13 +52,27 @@ public class PartitionReader {
     }
     this.partitionId = partitionId;
     this.buffer = buffer;
+    FileSystem fs = FileSystem.get(cluster.getHadoopConf());
 
     if (partitionId.getCollector() == null) {
-      reader = new ClusterReader(partitionId, partitionCheckpoint, cluster,
-          streamName, startTime, waitTimeForFileCreate, isLocal, noNewFiles);
+      if (isLocal) {
+        reader = new ClusterReader(partitionId, partitionCheckpoint,
+          fs, streamName, startTime, waitTimeForFileCreate,
+          DatabusStreamReader.getStreamsLocalDir(cluster, streamName),
+          noNewFiles);
+      } else {
+        reader = new ClusterReader(partitionId, partitionCheckpoint,
+            fs, streamName, startTime, waitTimeForFileCreate,
+            DatabusStreamReader.getStreamsDir(cluster, streamName),
+            noNewFiles);        
+      }
     } else {
-      reader = new CollectorReader(partitionId, partitionCheckpoint, cluster,
-          streamName, startTime, waitTimeForFlush, waitTimeForFileCreate,
+      reader = new CollectorReader(partitionId, partitionCheckpoint, fs,
+          streamName,
+          CollectorStreamReader.getCollectorDir(cluster, streamName,
+              partitionId.getCollector()),
+          DatabusStreamReader.getStreamsLocalDir(cluster, streamName),
+          startTime, waitTimeForFlush, waitTimeForFileCreate,
           noNewFiles);
     }
     // initialize cluster and its directories

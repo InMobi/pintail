@@ -5,11 +5,10 @@ import java.util.Date;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 
-import com.inmobi.databus.Cluster;
 import com.inmobi.databus.readers.DatabusStreamWaitingReader;
-import com.inmobi.databus.readers.LocalStreamReader;
-import com.inmobi.databus.readers.MergedStreamReader;
 
 public class ClusterReader extends AbstractPartitionStreamReader {
 
@@ -20,26 +19,18 @@ public class ClusterReader extends AbstractPartitionStreamReader {
   private Date startTime;
 
   ClusterReader(PartitionId partitionId,
-      PartitionCheckpoint partitionCheckpoint, Cluster cluster,
+      PartitionCheckpoint partitionCheckpoint, FileSystem fs,
       String streamName,
       Date startTime,
       long waitTimeForFileCreate,
-      boolean isLocal, boolean noNewFiles)
+      Path streamDir, boolean noNewFiles)
           throws IOException {
     this.startTime = startTime;
     this.streamName = streamName;
     this.partitionCheckpoint = partitionCheckpoint;
 
-    // initialize cluster and its directories
-    if (isLocal) {
-      reader = new LocalStreamReader(partitionId,  cluster, streamName,
-          waitTimeForFileCreate,
-          noNewFiles);
-    } else {
-      reader = new MergedStreamReader(partitionId, cluster, streamName,
-          waitTimeForFileCreate,
-          noNewFiles);
-    }
+    reader = new DatabusStreamWaitingReader(partitionId, fs, streamName,
+        streamDir, waitTimeForFileCreate, noNewFiles);
   }
 
   public void initializeCurrentFile() throws IOException, InterruptedException {

@@ -3,6 +3,7 @@ package com.inmobi.databus.readers;
 import java.io.IOException;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.testng.Assert;
 import org.testng.annotations.AfterTest;
@@ -47,7 +48,9 @@ public class TestLocalStreamCollectorReader {
   @Test
   public void testInitialize() throws Exception {
     // Read from start
-    lreader = new LocalStreamCollectorReader(partitionId, cluster, testStream);
+    lreader = new LocalStreamCollectorReader(partitionId,
+        FileSystem.get(cluster.getHadoopConf()), testStream,
+        DatabusStreamReader.getStreamsLocalDir(cluster, testStream));
     lreader.build(CollectorStreamReader.getDateFromCollectorFile(files[0]));
 
     lreader.initFromStart();
@@ -126,7 +129,9 @@ public class TestLocalStreamCollectorReader {
 
   @Test
   public void testReadFromStart() throws Exception {
-    lreader = new LocalStreamCollectorReader(partitionId, cluster, testStream);
+    lreader = new LocalStreamCollectorReader(partitionId,
+        FileSystem.get(cluster.getHadoopConf()), testStream,
+        DatabusStreamReader.getStreamsLocalDir(cluster, testStream));
     lreader.build(CollectorStreamReader.getDateFromCollectorFile(files[0]));
     lreader.initFromStart();
     Assert.assertNotNull(lreader.getCurrentFile());
@@ -139,7 +144,9 @@ public class TestLocalStreamCollectorReader {
 
   @Test
   public void testReadFromCheckpoint() throws Exception {
-    lreader = new LocalStreamCollectorReader(partitionId, cluster, testStream);
+    lreader = new LocalStreamCollectorReader(partitionId,
+        FileSystem.get(cluster.getHadoopConf()), testStream,
+        DatabusStreamReader.getStreamsLocalDir(cluster, testStream));
     PartitionCheckpoint pcp = new PartitionCheckpoint(
         LocalStreamCollectorReader.getDatabusStreamFileName(collectorName,
             files[1]), 20);
@@ -155,7 +162,9 @@ public class TestLocalStreamCollectorReader {
 
   @Test
   public void testReadFromTimeStamp() throws Exception {
-    lreader = new LocalStreamCollectorReader(partitionId, cluster,  testStream);
+    lreader = new LocalStreamCollectorReader(partitionId,
+        FileSystem.get(cluster.getHadoopConf()), testStream,
+        DatabusStreamReader.getStreamsLocalDir(cluster, testStream));
     lreader.build(CollectorStreamReader.getDateFromCollectorFile(files[1]));
     lreader.initializeCurrentFile(
         CollectorStreamReader.getDateFromCollectorFile(files[1]));

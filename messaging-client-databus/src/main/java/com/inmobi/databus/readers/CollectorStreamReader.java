@@ -10,6 +10,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
 
@@ -28,13 +29,12 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   private boolean sameStream = false;
 
   public CollectorStreamReader(PartitionId partitionId,
-      Cluster cluster, String streamName, long waitTimeForFlush,
-      long waitTimeForCreate,
-      boolean noNewFiles) throws IOException {
-    super(partitionId, cluster, streamName);
+      FileSystem fs, String streamName, Path streamDir,
+      long waitTimeForFlush,
+      long waitTimeForCreate, boolean noNewFiles) throws IOException {
+    super(partitionId, fs, streamName, streamDir, noNewFiles);
     this.waitTimeForFlush = waitTimeForFlush;
     this.waitTimeForCreate = waitTimeForCreate;
-    this.noNewFiles = noNewFiles;
     LOG.info("Collector reader initialized with partitionId:" + partitionId +
         " streamDir:" + streamDir + 
         " waitTimeForFlush:" + waitTimeForFlush +
@@ -44,11 +44,6 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   protected void initCurrentFile() {
     super.initCurrentFile();
     sameStream = false;
-  }
-
-  protected Path getStreamDir(Cluster cluster, String streamName) {
-    Path streamDataDir = new Path(cluster.getDataDir(), streamName);
-    return new Path(streamDataDir, partitionId.getCollector());
   }
 
   protected FileMap<CollectorFile> createFileMap() throws IOException {
@@ -230,6 +225,12 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
       return false;
     }
     return true;
+  }
+
+  public static Path getCollectorDir(Cluster cluster, String streamName,
+      String collectorName) {
+    Path streamDataDir = new Path(cluster.getDataDir(), streamName);
+    return new Path(streamDataDir, collectorName);
   }
 
   public static String getCollectorFileName(String streamName,

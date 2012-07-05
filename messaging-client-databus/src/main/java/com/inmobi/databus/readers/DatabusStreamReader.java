@@ -16,6 +16,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
 
@@ -29,6 +30,12 @@ import com.inmobi.databus.partition.PartitionId;
 public abstract class DatabusStreamReader extends 
     StreamReader<DatabusStreamFile> {
 
+  protected DatabusStreamReader(PartitionId partitionId, FileSystem fs,
+      String streamName, Path streamDir, boolean noNewFiles)
+          throws IOException {
+    super(partitionId, fs, streamName, streamDir, noNewFiles);
+  }
+
   private static final Log LOG = LogFactory.getLog(DatabusStreamReader.class);
 
   protected Date buildTimestamp;
@@ -39,11 +46,6 @@ public abstract class DatabusStreamReader extends
 
   public void setBuildTimestamp(Date buildTimestamp) {
     this.buildTimestamp = buildTimestamp;
-  }
-
-  DatabusStreamReader(PartitionId partitionId, Cluster cluster, 
-      String streamName) throws IOException {
-    super(partitionId, cluster, streamName);
   }
 
   abstract class StreamFileMap extends FileMap<DatabusStreamFile> {
@@ -238,4 +240,11 @@ public abstract class DatabusStreamReader extends
     }    
   };
 
+  public static Path getStreamsLocalDir(Cluster cluster, String streamName) {
+    return new Path(cluster.getLocalFinalDestDirRoot(), streamName);
+  }
+
+  public static Path getStreamsDir(Cluster cluster, String streamName) {
+    return new Path(cluster.getFinalDestDirRoot(), streamName);
+  }
 }

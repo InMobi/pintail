@@ -5,22 +5,23 @@ import java.io.IOException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
 
-import com.inmobi.databus.Cluster;
 import com.inmobi.databus.files.DatabusStreamFile;
 import com.inmobi.databus.files.FileMap;
 import com.inmobi.databus.partition.PartitionId;
 
-public abstract class DatabusStreamWaitingReader extends DatabusStreamReader {
+public class DatabusStreamWaitingReader extends DatabusStreamReader {
 
   private static final Log LOG = LogFactory.getLog(
       DatabusStreamWaitingReader.class);
 
-  DatabusStreamWaitingReader(PartitionId partitionId, Cluster cluster,
-      String streamName, long waitTimeForCreate) throws IOException {
-    super(partitionId, cluster, streamName);
+  public DatabusStreamWaitingReader(PartitionId partitionId, FileSystem fs,
+      String streamName,  Path streamDir, long waitTimeForCreate,
+      boolean noNewFiles) throws IOException {
+    super(partitionId, fs, streamName, streamDir, noNewFiles);
     this.waitTimeForCreate = waitTimeForCreate;
   }
   

@@ -14,7 +14,7 @@ import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.partition.PartitionReader;
 import com.inmobi.databus.readers.CollectorStreamReader;
-import com.inmobi.databus.readers.LocalStreamReader;
+import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
@@ -63,7 +63,7 @@ public class TestPartitionReaderLocalStream {
 
     // Read from checkpoint with local stream file name
     preader = new PartitionReader(partitionId,
-        new PartitionCheckpoint(LocalStreamReader.getDatabusStreamFileName(
+        new PartitionCheckpoint(DatabusStreamWaitingReader.getDatabusStreamFileName(
             collectorName, files[1]), 20),
             cluster, buffer, testStream, null, 1000, 1000, isLocal);
     preader.init();
@@ -72,7 +72,7 @@ public class TestPartitionReaderLocalStream {
     // Read from checkpoint with local stream file name which does not exist
     // and is before the stream
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
-        LocalStreamReader.getDatabusStreamFileName(collectorName,
+        DatabusStreamWaitingReader.getDatabusStreamFileName(collectorName,
             doesNotExist1), 20),
             cluster, buffer, testStream, null, 1000, 1000, isLocal);
     preader.init();
@@ -126,7 +126,7 @@ public class TestPartitionReaderLocalStream {
         ClusterReader.class.getName());
     Assert.assertEquals(((ClusterReader)preader.getReader())
         .getReader().getClass().getName(),
-        LocalStreamReader.class.getName());
+        DatabusStreamWaitingReader.class.getName());
     Assert.assertNull(preader.getCurrentFile());
 
     //Read from startTime beyond the stream, with checkpoint
@@ -148,7 +148,7 @@ public class TestPartitionReaderLocalStream {
         ClusterReader.class.getName());
     Assert.assertEquals(((ClusterReader)preader.getReader())
         .getReader().getClass().getName(),
-        LocalStreamReader.class.getName());
+        DatabusStreamWaitingReader.class.getName());
     Assert.assertNull(preader.getCurrentFile());
   }
 
@@ -163,7 +163,7 @@ public class TestPartitionReaderLocalStream {
         ClusterReader.class.getName());
     Assert.assertEquals(((ClusterReader)preader.getReader())
         .getReader().getClass().getName(),
-        LocalStreamReader.class.getName());
+        DatabusStreamWaitingReader.class.getName());
     preader.execute();
     TestUtil.assertBuffer(databusFiles[0].getName(), 1, 0, 100, partitionId,
         buffer);
@@ -177,7 +177,7 @@ public class TestPartitionReaderLocalStream {
         ClusterReader.class.getName());
     Assert.assertEquals(((ClusterReader)preader.getReader())
         .getReader().getClass().getName(),
-        LocalStreamReader.class.getName());
+        DatabusStreamWaitingReader.class.getName());
   }
 
   @Test
@@ -191,7 +191,7 @@ public class TestPartitionReaderLocalStream {
         ClusterReader.class.getName());
     Assert.assertEquals(((ClusterReader)preader.getReader())
         .getReader().getClass().getName(),
-        LocalStreamReader.class.getName());
+        DatabusStreamWaitingReader.class.getName());
     preader.execute();
     TestUtil.assertBuffer(databusFiles[1].getName(), 2, 20, 80, partitionId, buffer);
     TestUtil.assertBuffer(databusFiles[2].getName(), 3, 0, 100, partitionId, buffer);
@@ -201,13 +201,13 @@ public class TestPartitionReaderLocalStream {
         ClusterReader.class.getName());
     Assert.assertEquals(((ClusterReader)preader.getReader())
         .getReader().getClass().getName(),
-        LocalStreamReader.class.getName());
+        DatabusStreamWaitingReader.class.getName());
   }
 
   @Test
   public void testReadFromCheckpointWhichDoesNotExist() throws Exception {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
-        LocalStreamReader.getDatabusStreamFileName(collectorName, doesNotExist1),
+        DatabusStreamWaitingReader.getDatabusStreamFileName(collectorName, doesNotExist1),
         20), cluster, buffer, testStream, null, 1000, 1000,
         isLocal, true);
     preader.init();
@@ -216,7 +216,7 @@ public class TestPartitionReaderLocalStream {
         ClusterReader.class.getName());
     Assert.assertEquals(((ClusterReader)preader.getReader())
         .getReader().getClass().getName(),
-        LocalStreamReader.class.getName());
+        DatabusStreamWaitingReader.class.getName());
     preader.execute();
     TestUtil.assertBuffer(databusFiles[0].getName(), 1, 0, 100, partitionId, buffer);
     TestUtil.assertBuffer(databusFiles[1].getName(), 2, 0, 100, partitionId, buffer);
@@ -227,7 +227,7 @@ public class TestPartitionReaderLocalStream {
         ClusterReader.class.getName());
     Assert.assertEquals(((ClusterReader)preader.getReader())
         .getReader().getClass().getName(),
-        LocalStreamReader.class.getName());
+        DatabusStreamWaitingReader.class.getName());
   }
 
   @Test
@@ -272,7 +272,7 @@ public class TestPartitionReaderLocalStream {
         ClusterReader.class.getName());
     Assert.assertEquals(((ClusterReader)preader.getReader())
         .getReader().getClass().getName(),
-        LocalStreamReader.class.getName());
+        DatabusStreamWaitingReader.class.getName());
     preader.execute();
     TestUtil.assertBuffer(databusFiles[1].getName(), 2, 0, 100, partitionId,
         buffer);
@@ -284,7 +284,7 @@ public class TestPartitionReaderLocalStream {
         ClusterReader.class.getName());
     Assert.assertEquals(((ClusterReader)preader.getReader())
         .getReader().getClass().getName(),
-        LocalStreamReader.class.getName());
+        DatabusStreamWaitingReader.class.getName());
   }
 
   @Test
@@ -299,7 +299,7 @@ public class TestPartitionReaderLocalStream {
         ClusterReader.class.getName());
     Assert.assertEquals(((ClusterReader)preader.getReader())
         .getReader().getClass().getName(),
-        LocalStreamReader.class.getName());
+        DatabusStreamWaitingReader.class.getName());
     preader.execute();
     TestUtil.assertBuffer(databusFiles[1].getName(), 2, 0, 100, partitionId,
         buffer);
@@ -311,7 +311,7 @@ public class TestPartitionReaderLocalStream {
         ClusterReader.class.getName());
     Assert.assertEquals(((ClusterReader)preader.getReader())
         .getReader().getClass().getName(),
-        LocalStreamReader.class.getName());
+        DatabusStreamWaitingReader.class.getName());
   }
 
   @Test
@@ -326,7 +326,7 @@ public class TestPartitionReaderLocalStream {
         ClusterReader.class.getName());
     Assert.assertEquals(((ClusterReader)preader.getReader())
         .getReader().getClass().getName(),
-        LocalStreamReader.class.getName());
+        DatabusStreamWaitingReader.class.getName());
     preader.execute();
     TestUtil.assertBuffer(databusFiles[0].getName(), 1, 0, 100, partitionId,
         buffer);
@@ -340,7 +340,7 @@ public class TestPartitionReaderLocalStream {
         ClusterReader.class.getName());
     Assert.assertEquals(((ClusterReader)preader.getReader())
         .getReader().getClass().getName(),
-        LocalStreamReader.class.getName());
+        DatabusStreamWaitingReader.class.getName());
   }
 
   @Test
@@ -356,7 +356,7 @@ public class TestPartitionReaderLocalStream {
         ClusterReader.class.getName());
     Assert.assertEquals(((ClusterReader)preader.getReader())
         .getReader().getClass().getName(),
-        LocalStreamReader.class.getName());
+        DatabusStreamWaitingReader.class.getName());
   }
 
 }

@@ -12,7 +12,7 @@ import org.testng.annotations.Test;
 
 import com.inmobi.databus.Cluster;
 import com.inmobi.databus.readers.CollectorStreamReader;
-import com.inmobi.databus.readers.MergedStreamReader;
+import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
@@ -60,7 +60,7 @@ public class TestPartitionReaderWaitingMergeStream {
         ClusterReader.class.getName());
     Assert.assertEquals(((ClusterReader)preader.getReader())
         .getReader().getClass().getName(),
-        MergedStreamReader.class.getName());
+        DatabusStreamWaitingReader.class.getName());
     preader.start();
     while (buffer.remainingCapacity() > 0) {
       Thread.sleep(10);
@@ -87,7 +87,7 @@ public class TestPartitionReaderWaitingMergeStream {
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(((ClusterReader)preader.getReader())
         .getReader().getClass().getName(),
-        MergedStreamReader.class.getName());
+        DatabusStreamWaitingReader.class.getName());
     TestUtil.setUpFiles(cluster, collectorName, new String[] {TestUtil.files[7],
         TestUtil.files[8]}, null, newDatabusFiles, 0, 2);
     TestUtil.assertBuffer(newDatabusFiles[0].getName(), 1, 0, 100, partitionId,
