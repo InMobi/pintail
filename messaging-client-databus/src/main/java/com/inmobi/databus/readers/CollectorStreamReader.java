@@ -77,7 +77,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
             return;
           }
           for (FileStatus file : fileStatuses) {
-            addPath(file.getPath());
+            addPath(file);
           }
         } else {
           LOG.info("Collector directory does not exist");
@@ -85,8 +85,8 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
       }
 
       @Override
-      protected TreeMap<CollectorFile, Path> createFilesMap() {
-        return new TreeMap<CollectorFile, Path>();
+      protected TreeMap<CollectorFile, FileStatus> createFilesMap() {
+        return new TreeMap<CollectorFile, FileStatus>();
       }
 
       @Override
@@ -95,8 +95,8 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
       }
 
       @Override
-      protected CollectorFile getStreamFile(Path file) {
-        return CollectorFile.create(file.getName());
+      protected CollectorFile getStreamFile(FileStatus file) {
+        return CollectorFile.create(file.getPath().getName());
       }
 
     };
@@ -156,9 +156,9 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
         } 
         if (!setIterator()) {
           LOG.info("Could not find current file in the stream");
-          if (isWithinStream(currentFile.getName())) {
+          if (isWithinStream(getCurrentFile().getName())) {
             LOG.info("Staying in collector stream as earlier files still exist");
-            startFromNextHigherAndOpen(currentFile.getName());
+            startFromNextHigherAndOpen(getCurrentFile().getName());
             LOG.info("Reading from the next higher file");
           } else {
             LOG.info("Current file would have been moved to Local Stream");

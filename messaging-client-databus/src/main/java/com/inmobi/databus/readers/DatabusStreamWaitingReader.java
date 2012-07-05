@@ -1,9 +1,10 @@
-package com.inmobi.databus.readers;
+  package com.inmobi.databus.readers;
 
 import java.io.IOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
 
@@ -23,7 +24,7 @@ public abstract class DatabusStreamWaitingReader extends DatabusStreamReader {
     this.waitTimeForCreate = waitTimeForCreate;
   }
   
-  protected void startFromNextHigher(Path file) 
+  protected void startFromNextHigher(FileStatus file)
       throws IOException, InterruptedException {
     if (!setNextHigherAndOpen(file)) {
       if (noNewFiles) {
@@ -34,7 +35,7 @@ public abstract class DatabusStreamWaitingReader extends DatabusStreamReader {
     }
   }
 
-  private void waitForNextFileCreation(Path file) 
+  private void waitForNextFileCreation(FileStatus file)
       throws IOException, InterruptedException {
     while (!closed && !setNextHigherAndOpen(file)) {
       LOG.info("Waiting for next file creation");
@@ -54,11 +55,11 @@ public abstract class DatabusStreamWaitingReader extends DatabusStreamReader {
         LOG.info("Stream closed");
         break;
       }
-      LOG.info("Read " + currentFile + " with lines:" + currentLineNum);
+      LOG.info("Read " + getCurrentFile() + " with lines:" + currentLineNum);
       if (!nextFile()) { // reached end of file list
         LOG.info("could not find next file. Rebuilding");
         build(getDateFromDatabusStreamDir(streamDir, 
-            currentFile));
+            getCurrentFile()));
         if (!nextFile()) { // reached end of stream
           if (noNewFiles) {
             // this boolean check is only for tests 
@@ -66,13 +67,13 @@ public abstract class DatabusStreamWaitingReader extends DatabusStreamReader {
           } 
           LOG.info("Could not find next file");
           startFromNextHigher(currentFile);
-          LOG.info("Reading from next higher file "+ currentFile);
+          LOG.info("Reading from next higher file "+ getCurrentFile());
         } else {
-          LOG.info("Reading from " + currentFile + " after rebuild");
+          LOG.info("Reading from " + getCurrentFile() + " after rebuild");
         }
       } else {
         // read line from next file
-        LOG.info("Reading from next file " + currentFile);
+        LOG.info("Reading from next file " + getCurrentFile());
       }
       line = readLine(inStream, reader);
     }

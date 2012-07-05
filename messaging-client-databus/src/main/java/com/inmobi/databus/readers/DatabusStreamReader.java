@@ -53,8 +53,8 @@ public abstract class DatabusStreamReader extends
     }
     
     @Override
-    protected TreeMap<DatabusStreamFile, Path> createFilesMap() {
-      return new TreeMap<DatabusStreamFile, Path>();
+    protected TreeMap<DatabusStreamFile, FileStatus> createFilesMap() {
+      return new TreeMap<DatabusStreamFile, FileStatus>();
     }
 
     @Override
@@ -63,9 +63,9 @@ public abstract class DatabusStreamReader extends
     }
 
     @Override
-    protected DatabusStreamFile getStreamFile(Path file) {
-      return DatabusStreamFile.create(streamName, file.getName(),
-          file.getParent().toString());
+    protected DatabusStreamFile getStreamFile(FileStatus file) {
+      return DatabusStreamFile.create(streamName, file.getPath().getName(),
+          file.getPath().getParent().toString(), file.getModificationTime());
     }
 
   };
@@ -96,7 +96,7 @@ public abstract class DatabusStreamReader extends
             LOG.debug("No files in directory:" + dir);
           } else {
             for (FileStatus file : fileStatuses) {
-              fmap.addPath(file.getPath());
+              fmap.addPath(file);
             }
           }
         } 
@@ -139,9 +139,9 @@ public abstract class DatabusStreamReader extends
     skipLines(in, reader, currentLineNum);
   }
 
-  protected boolean setNextHigherAndOpen(Path currentFile) throws IOException {
-    LOG.debug("finding next higher for " + currentFile);
-    Path nextHigherFile  = getHigherValue(currentFile);
+  protected boolean setNextHigherAndOpen(FileStatus currentFile) throws IOException {
+    LOG.debug("finding next higher for " + getCurrentFile());
+    FileStatus nextHigherFile  = getHigherValue(currentFile);
     boolean ret = setIteratorToFile(nextHigherFile);
     if (ret) {
       openCurrentFile(true);

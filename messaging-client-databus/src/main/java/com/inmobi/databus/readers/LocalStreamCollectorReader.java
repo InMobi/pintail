@@ -58,7 +58,7 @@ public class LocalStreamCollectorReader extends DatabusStreamReader {
       if (!nextFile()) { // reached end of file list
         LOG.info("could not find next file. Rebuilding");
         build(getDateFromDatabusStreamFile(streamName,
-            currentFile.getName()));
+        getCurrentFile().getName()));
         if (!setIterator()) {
           LOG.info("Could not find current file in the stream");
           // set current file to next higher entry

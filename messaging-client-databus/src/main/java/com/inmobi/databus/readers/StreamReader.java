@@ -7,6 +7,7 @@ import java.util.Date;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
@@ -25,7 +26,7 @@ public abstract class StreamReader<T extends StreamFile> {
   protected PartitionCheckpoint checkpoint;
   protected Cluster cluster;
   protected PartitionId partitionId;
-  protected Path currentFile;
+  protected FileStatus currentFile;
   protected long currentLineNum = 0;
   protected FileSystem fs;
   protected volatile boolean closed = false;
@@ -72,10 +73,10 @@ public abstract class StreamReader<T extends StreamFile> {
     if (next) {
       resetCurrentFileSettings();
     } 
-    LOG.info("Opening file:" + currentFile + " NumLinesTobeSkipped when" +
+    LOG.info("Opening file:" + currentFile.getPath() + " NumLinesTobeSkipped when" +
     		" opening:" + currentLineNum);
-    if (fs.exists(currentFile)) {
-      inStream = fs.open(currentFile);
+    if (fs.exists(currentFile.getPath())) {
+      inStream = fs.open(currentFile.getPath());
       reader = getReader(inStream);
     } else {
       LOG.info("CurrentFile:" + currentFile + " does not exist");
@@ -168,11 +169,11 @@ public abstract class StreamReader<T extends StreamFile> {
     return fileMap.isEmpty();
   }
 
-  protected Path getHigherValue(Path file) throws IOException {
+  protected FileStatus getHigherValue(FileStatus file) throws IOException {
     return fileMap.getHigherValue(file);
   }
 
-  protected boolean setIteratorToFile(Path file) 
+  protected boolean setIteratorToFile(FileStatus file)
       throws IOException {
     if (file != null) {
       currentFile = file;
@@ -185,12 +186,14 @@ public abstract class StreamReader<T extends StreamFile> {
 
   protected boolean setNextHigher(String currentFileName) throws IOException {
     LOG.debug("finding next higher for " + currentFileName);
-    Path nextHigherFile  = fileMap.getHigherValue(currentFileName);
+    FileStatus nextHigherFile  = fileMap.getHigherValue(currentFileName);
     return setIteratorToFile(nextHigherFile);
   }
 
   public Path getCurrentFile() {
-    return currentFile;
+    if (currentFile == null)
+      return null;
+    return currentFile.getPath();
   }
 
   public long getCurrentLineNum() {
@@ -262,7 +265,7 @@ public abstract class StreamReader<T extends StreamFile> {
       LOG.info("could not set iterator for currentfile");
       return false;
     }
-    Path nextFile = fileMap.getNext();
+    FileStatus nextFile = fileMap.getNext();
     if (nextFile != null) {
       currentFile = nextFile;
       openCurrentFile(true);

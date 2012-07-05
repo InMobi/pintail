@@ -29,7 +29,7 @@ public class TestClusterReaderMultipleCollectors {
   private Cluster cluster;
   private boolean isLocal = false;
   private String[] files = new String[] {TestUtil.files[1], TestUtil.files[3],
-      TestUtil.files[5]};
+      TestUtil.files[5], TestUtil.files[6]};
   Path[] databusFiles1 = new Path[3];
   Path[] databusFiles2 = new Path[3];
   FileSystem fs;
@@ -100,12 +100,33 @@ public class TestClusterReaderMultipleCollectors {
         files[2]);
     TestUtil.assertBuffer(movedPath3.getName(), 2, 0, 100, partitionId,
         buffer);
-    TestUtil.assertBuffer(movedPath2.getName(), 3, 0, 100, partitionId,
+    TestUtil.assertBuffer(movedPath2.getName(), 3, 0, 50, partitionId,
         buffer);
-    TestUtil.assertBuffer(movedPath4.getName(), 3, 0, 100, partitionId,
+    while (buffer.remainingCapacity() > 0) {
+      Thread.sleep(10);
+    }
+    TestUtil.incrementCommitTime();
+    Path movedPath5 = TestUtil.moveFileToStreams(fs, testStream, collectors[1],
+    cluster, TestUtil.getCollectorDir(cluster, testStream, collectors[1]),
+    files[3]);
+    TestUtil.assertBuffer(movedPath2.getName(), 3, 50, 50, partitionId,
+    buffer);
+    TestUtil.assertBuffer(movedPath4.getName(), 3, 0, 50, partitionId,
+    buffer);
+    while (buffer.remainingCapacity() > 0) {
+      Thread.sleep(10);
+    }
+    Path movedPath6 = TestUtil.moveFileToStreams(fs, testStream, collectors[0],
+    cluster, TestUtil.getCollectorDir(cluster, testStream, collectors[0]),
+    files[3]);
+    TestUtil.assertBuffer(movedPath4.getName(), 3, 50, 50, partitionId,
         buffer);
-    Assert.assertTrue(buffer.isEmpty());    
-    preader.close(); 
+    TestUtil.assertBuffer(movedPath5.getName(), 4, 0, 100, partitionId,
+    buffer);
+    TestUtil.assertBuffer(movedPath6.getName(), 4, 0, 100, partitionId,
+    buffer);
+    Assert.assertTrue(buffer.isEmpty());
+    preader.close();
   }
 
 }

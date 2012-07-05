@@ -3,6 +3,7 @@ package com.inmobi.databus.readers;
 import java.io.IOException;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.testng.Assert;
 import org.testng.annotations.AfterTest;
@@ -23,6 +24,7 @@ public class TestMergeStreamReader {
   private PartitionId partitionId = new PartitionId(clusterName, null);
   private MergedStreamReader reader;
   private Cluster cluster;
+  private FileSystem fs;
   private String[] files = new String[] {TestUtil.files[1], TestUtil.files[3],
       TestUtil.files[5]};
   private Path[] databusFiles = new Path[3];
@@ -36,6 +38,8 @@ public class TestMergeStreamReader {
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
         testStream, new PartitionId(clusterName, collectorName), files, null,
         databusFiles, 0, 3);
+    fs = FileSystem.get(cluster.getHadoopConf());
+
   }
 
   @AfterTest
@@ -98,7 +102,7 @@ public class TestMergeStreamReader {
     Assert.assertNull(reader.getCurrentFile());  
 
     // startFromNextHigher with filename
-    reader.startFromNextHigher(databusFiles[1]);
+    reader.startFromNextHigher(fs.getFileStatus(databusFiles[1]));
     Assert.assertEquals(reader.getCurrentFile(), databusFiles[2]);
 
     // startFromNextHigher with date
