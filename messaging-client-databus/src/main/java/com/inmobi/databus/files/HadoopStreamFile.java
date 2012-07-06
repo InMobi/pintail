@@ -51,19 +51,15 @@ public class HadoopStreamFile implements StreamFile {
     } else if (!parent.equals(other.parent)) {
       return false;
     }
-    if (timeStamp == null) {
-      if (other.timeStamp != null) {
+    if (timeStamp != null && other.timeStamp != null) {
+      if (!timeStamp.equals(other.timeStamp)) {
         return false;
       }
-    } else if (!timeStamp.equals(other.timeStamp)) {
-      return false;
     }
-    if (fileName == null) {
-      if (other.fileName != null) {
+    if (fileName != null && other.fileName != null) {
+      if (!fileName.equals(other.fileName)) {
         return false;
       }
-    } else if (!fileName.equals(other.fileName)) {
-      return false;
     }
     return true;
   }
@@ -77,14 +73,17 @@ public class HadoopStreamFile implements StreamFile {
     HadoopStreamFile other = (HadoopStreamFile)o;
     int pComp = parent.compareTo(other.parent);
     if ( pComp== 0) {
-      int tComp = timeStamp.compareTo(other.timeStamp);
-      if ( tComp == 0) {
-        return fileName.compareTo(other.fileName);
-      } else {
-        return tComp;
+      if (timeStamp != null && other.timeStamp != null) {
+        int tComp = timeStamp.compareTo(other.timeStamp);
+        if ( tComp == 0) {
+          if (fileName != null && other.fileName != null) {
+            return fileName.compareTo(other.fileName);
+          }
+        } else {
+          return tComp;
+        }
       }
-    } else {
-      return pComp;
     }
+    return pComp;
   }
 }
