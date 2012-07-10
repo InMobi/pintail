@@ -122,6 +122,9 @@ public class DatabusStreamWaitingReader
         return new PathFilter() {
           @Override
           public boolean accept(Path path) {
+            if (path.getName().startsWith("_")) {
+              return false;
+            }
             return true;
           }          
         };
