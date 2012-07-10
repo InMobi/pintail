@@ -2,13 +2,13 @@ package com.inmobi.databus.partition;
 
 import java.io.IOException;
 
-import org.apache.hadoop.fs.Path;
+import com.inmobi.databus.files.StreamFile;
 
 public interface PartitionStreamReader {
 
   void initializeCurrentFile() throws IOException, InterruptedException;
   
-  Path getCurrentFile();
+  StreamFile getCurrentFile();
   
   long getCurrentLineNum();
 

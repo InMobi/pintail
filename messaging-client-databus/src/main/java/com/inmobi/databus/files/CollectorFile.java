@@ -1,5 +1,8 @@
 package com.inmobi.databus.files;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -7,9 +10,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class CollectorFile implements StreamFile {
-  private final String streamName;
-  private final String timestamp;
-  private final int id;
+  private String streamName;
+  private String timestamp;
+  private int id;
 
   private  static final NumberFormat idFormat = NumberFormat.getInstance();
 
@@ -33,6 +36,12 @@ public class CollectorFile implements StreamFile {
     this.id = id;
   }
   
+  /**
+   * Used only during serialization
+   */
+  public CollectorFile() {
+  }
+
   public static CollectorFile create(String fileName) {
     String strs[] = fileName.split("-");
     if (strs.length < 2) {
@@ -122,5 +131,19 @@ public class CollectorFile implements StreamFile {
   
   public int getId() {
     return id;
+  }
+
+  @Override
+  public void write(DataOutput out) throws IOException {
+    out.writeUTF(streamName);
+    out.writeUTF(timestamp);
+    out.writeInt(id);
+  }
+
+  @Override
+  public void readFields(DataInput in) throws IOException {
+    this.streamName = in.readUTF();
+    this.timestamp = in.readUTF();
+    this.id = in.readInt();
   }
 }

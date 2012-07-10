@@ -71,17 +71,6 @@ public class TestDatabusStreamFile {
     }
     Assert.assertNotNull(th);
     Assert.assertTrue(th instanceof IllegalArgumentException);
-
-    df1 = new DatabusStreamFile(collector1, cf1, "gz", null);
-    DatabusStreamFile dsf1 = new DatabusStreamFile(collector2, cf2, "gz", "1");
-    DatabusStreamFile dsf2 = new DatabusStreamFile(collector1, cf1, "gz", "2");
-    DatabusStreamFile dsf3 = new DatabusStreamFile(collector1, cf2, "gz", "2");
-    DatabusStreamFile dsf4 = new DatabusStreamFile(collector2, cf2, "gz", "2");
-    
-    Assert.assertTrue(dsf1.compareTo(df1) > 0);
-    Assert.assertTrue(dsf2.compareTo(dsf1) > 0); 
-    Assert.assertTrue(dsf3.compareTo(dsf2) > 0);
-    Assert.assertTrue(dsf4.compareTo(dsf3) > 0);
   }
 
 }

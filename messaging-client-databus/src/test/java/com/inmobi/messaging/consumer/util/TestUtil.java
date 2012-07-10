@@ -11,17 +11,17 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.testng.Assert;
 
 import com.inmobi.databus.Cluster;
+import com.inmobi.databus.files.StreamFile;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.readers.CollectorStreamReader;
-import com.inmobi.databus.readers.DatabusStreamReader;
+import com.inmobi.databus.readers.LocalStreamCollectorReader;
 import com.inmobi.databus.utils.FileUtil;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
 
@@ -85,21 +85,10 @@ public class TestUtil {
     return targetFile;
   }
 
-  public static Path moveDataFile(FileSystem fs, String streamName,
-      String collectorName, Cluster cluster, Path collectorDir,
-      String collectorfileName, Path finalDir)
-          throws Exception {
-    Path targetFile = getTargetPath(streamName, collectorName, cluster,
-        collectorfileName, finalDir);
-    Path srcPath =  new Path(collectorDir, collectorfileName);
-    fs.rename(srcPath, targetFile);
-    return targetFile;
-  }
-
   private static Path getTargetPath(String streamName,
       String collectorName, Cluster cluster, 
       String collectorfileName, boolean finalDir) throws IOException {
-    String streamFileName = DatabusStreamReader.getDatabusStreamFileName(
+    String streamFileName = LocalStreamCollectorReader.getDatabusStreamFileName(
         collectorName, collectorfileName);
     
     Path streamDir;
@@ -110,16 +99,6 @@ public class TestUtil {
       streamDir = TestUtil.getDateLocalDirForCollectorFile(cluster,
           streamName, collectorfileName);
     }
-    return new Path(streamDir, streamFileName);
-  }
-
-  private static Path getTargetPath(String streamName,
-      String collectorName, Cluster cluster, 
-      String collectorfileName, Path finalDir) throws IOException {
-    String streamFileName = DatabusStreamReader.getDatabusStreamFileName(
-        collectorName, collectorfileName);
-    Path streamDir = TestUtil.getDateDir(cluster,
-        streamName, collectorfileName, finalDir);
     return new Path(streamDir, streamFileName);
   }
 
@@ -153,7 +132,7 @@ public class TestUtil {
     return targetFile;
   }
 
-  public static void assertBuffer(String fileName, int fileNum, int startIndex,
+  public static void assertBuffer(StreamFile file, int fileNum, int startIndex,
       int numMsgs, PartitionId pid, LinkedBlockingQueue<QueueEntry> buffer)
           throws InterruptedException {
     int fileIndex = (fileNum - 1) * 100 ;
@@ -161,7 +140,7 @@ public class TestUtil {
       QueueEntry entry = buffer.take();
       Assert.assertEquals(entry.getPartitionId(), pid);
       Assert.assertEquals(entry.getPartitionChkpoint(),
-          new PartitionCheckpoint(fileName, i + 1));
+          new PartitionCheckpoint(file, i + 1));
       Assert.assertEquals(new String(entry.getMessage().getData().array()),
           MessageUtil.constructMessage(fileIndex + i));
     }
@@ -276,43 +255,6 @@ public class TestUtil {
     return cluster;
   }
 
-  public static Cluster setupHadoopCluster(String streamName,
-      String collectorName,
-      Configuration conf, String[] files,  
-      Path[] finalFiles, Path finalDir)
-          throws Exception {
-    Set<String> sourceNames = new HashSet<String>();
-    sourceNames.add(streamName);
-    FileSystem fs = finalDir.getFileSystem(conf);
-    Map<String, String> clusterConf = new HashMap<String, String>();
-    clusterConf.put("hdfsurl", fs.getUri().toString());
-    clusterConf.put("jturl", "local");
-    clusterConf.put("name", "hadoopcluster");
-    clusterConf.put("jobqueuename", "default");
-    
-    Path rootDir = finalDir.getParent();
-    Cluster cluster = new Cluster(clusterConf,
-        rootDir.toString(), null, sourceNames);
-    fs.delete(rootDir, true);
-    Path tmpDataDir = new Path(rootDir, "data");
-    fs.mkdirs(tmpDataDir);
-
-    // setup data dirs
-    if (files != null) {
-      int i = 0;
-      int j = 0;
-      for (String file : files) {
-        MessageUtil.createMessageSequenceFile(file, fs, tmpDataDir, i, conf);
-        i += 100;
-        Path movedPath = TestUtil.moveDataFile(fs, streamName,
-            collectorName, cluster, tmpDataDir, file, finalDir);
-        finalFiles[j] = movedPath;
-        j++;
-      }
-    }
-    return cluster;
-  }
-
   public static void setUpFiles(Cluster cluster, String collectorName, 
       String[] collectorFiles, 
       String[] emptyFiles, Path[] databusFiles, 
@@ -360,28 +302,6 @@ public class TestUtil {
     }    
   }
 
-  public static void setUpHadoopFiles(Path finalDir, String streamName,
-      String collectorName, Cluster cluster, Configuration conf,
-      String[] files, Path[] finalFiles)
-          throws Exception {
-    Path rootDir = finalDir.getParent();
-    Path tmpDataDir = new Path(rootDir, "data");
-    FileSystem fs = FileSystem.get(cluster.getHadoopConf());
-    // setup data dirs
-    if (files != null) {
-      int i = 0;
-      int j = 0;
-      for (String file : files) {
-        MessageUtil.createMessageSequenceFile(file, fs, tmpDataDir, i, conf);
-        i += 100;
-        Path movedPath = TestUtil.moveDataFile(fs, streamName,
-            collectorName, cluster, tmpDataDir, file, finalDir);
-        finalFiles[j] = movedPath;
-        j++;
-      }
-    }
-  }
-
   public static Cluster setupDFSCluster(String className, String testStream,
       PartitionId pid, String hdfsUrl, String[] collectorFiles,
       String[] emptyFiles, int numFilesToMoveToStreamLocal) throws Exception {
@@ -394,8 +314,7 @@ public class TestUtil {
     fs.delete(new Path(cluster.getRootDir()), true);    
   }
 
-  private static Date getCommitDateForCollectorFile(Cluster cluster,
-      String fileName)
+  static Date getCommitDateForCollectorFile(String fileName)
       throws IOException {
     Calendar cal = Calendar.getInstance();
     Date date = CollectorStreamReader.getDateFromCollectorFile(fileName);
@@ -407,13 +326,13 @@ public class TestUtil {
   public static Path getDateLocalDirForCollectorFile(Cluster cluster,
       String streamName, String fileName) throws IOException {
     return TestUtil.getDateLocalDir(cluster, streamName,
-        getCommitDateForCollectorFile(cluster, fileName));
+        getCommitDateForCollectorFile(fileName));
   }
 
   private static Path getDateFinalDirForCollectorFile(Cluster cluster,
       String streamName, String fileName) throws IOException {
     return TestUtil.getDateFinalDir(cluster, streamName, 
-        getCommitDateForCollectorFile(cluster, fileName));
+        getCommitDateForCollectorFile(fileName));
   }
 
   public static Path getDateLocalDir(Cluster cluster, String streamName,
@@ -425,11 +344,4 @@ public class TestUtil {
       Date date) throws IOException{
     return new Path(cluster.getFinalDestDir(streamName, date.getTime()));
   }
-  
-  private static Path getDateDir(Cluster cluster, String streamName,
-       String fileName, Path finalDir) throws IOException {
-    return new Path(finalDir,
-        cluster.getDateAsYYYYMMDDHHMNPath(getCommitDateForCollectorFile(cluster, fileName)));
   }
-
-}

@@ -43,8 +43,7 @@ public abstract class FileMap<T extends StreamFile> {
     .getModificationTime() + "]");
   }
 
-  public FileStatus getCeilingValue(String fileName) {
-    T fileKey = getStreamFile(fileName);
+  public FileStatus getCeilingValue(T fileKey) {
     Map.Entry<T, FileStatus> ceilingEntry = files.ceilingEntry(fileKey);
     if (ceilingEntry != null) {
       return ceilingEntry.getValue();
@@ -53,20 +52,17 @@ public abstract class FileMap<T extends StreamFile> {
     }
   }
 
-  public FileStatus getHigherValue(FileStatus file)
-      throws IOException {
+  public FileStatus getHigherValue(FileStatus file) {
     T fileKey = getStreamFile(file);
     return getHigherValue(fileKey);
   }
 
-  public FileStatus getHigherValue(String fileName)
-      throws IOException {
+  public FileStatus getHigherValue(String fileName) {
     T fileKey = getStreamFile(fileName);
     return getHigherValue(fileKey);
   }
 
-  private FileStatus getHigherValue(T fileKey)
-      throws IOException {
+  private FileStatus getHigherValue(T fileKey) {
     Map.Entry<T, FileStatus> higherEntry = files.higherEntry(fileKey);
     if (higherEntry != null) {
       return higherEntry.getValue();
@@ -94,13 +90,16 @@ public abstract class FileMap<T extends StreamFile> {
     return files.isEmpty();
   }
 
-  public FileStatus getFirstFile()
-      throws IOException {
+  public FileStatus getFirstFile() {
     Map.Entry<T, FileStatus> first = files.firstEntry();
     if (first != null) {
       return first.getValue();
     }
     return null;
+  }
+
+  private Map.Entry<T, FileStatus> getFirstEntry() {
+    return files.firstEntry();
   }
 
   public boolean containsFile(String fileName) {
@@ -109,19 +108,20 @@ public abstract class FileMap<T extends StreamFile> {
 
   public boolean setIterator(FileStatus cfile) {
     createIterator();
+    T file = getStreamFile(cfile);
     if (cfile != null) {
       while (fileNameIterator.hasNext()) {
-        StreamFile file = fileNameIterator.next();
-        if (cfile.getPath().getName().equals(file.toString())) {
+        StreamFile nextfile = fileNameIterator.next();
+        if (nextfile.equals(file)) {
           return true;
         } 
       }
     } 
-    LOG.info("Did not find file" + cfile);
+    LOG.info("Did not find file" + cfile.getPath());
     return false;
   }
 
-  public boolean isBefore(String fileName) throws IOException {
+  public boolean isBefore(String fileName) {
     if (!isEmpty()
         && getFirstFile().getPath().getName().compareTo(fileName) > 0) {
       return true;
@@ -129,7 +129,14 @@ public abstract class FileMap<T extends StreamFile> {
     return false;
   }
 
-  public boolean isWithin(String fileName) throws IOException {
+  public boolean isBefore(T streamFile) {
+    if (!isEmpty() && getFirstEntry().getKey().compareTo(streamFile) > 0) {
+      return true;
+    }
+    return false;
+  }
+
+  public boolean isWithin(String fileName) {
     if (!isEmpty()
         && getFirstFile().getPath().getName().compareTo(fileName) < 1) {
       return true;
@@ -145,4 +152,5 @@ public abstract class FileMap<T extends StreamFile> {
     }
     return null;
   }
+
 }

@@ -2,21 +2,25 @@ package com.inmobi.databus.readers;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.TreeMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.mapred.TextInputFormat;
 
+import com.inmobi.databus.files.CollectorFile;
 import com.inmobi.databus.files.DatabusStreamFile;
 import com.inmobi.databus.files.FileMap;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 
-public class LocalStreamCollectorReader extends DatabusStreamReader {
+public class LocalStreamCollectorReader extends 
+    DatabusStreamReader<DatabusStreamFile> {
 
   private static final Log LOG = LogFactory.getLog(
       LocalStreamCollectorReader.class);
@@ -30,21 +34,50 @@ public class LocalStreamCollectorReader extends DatabusStreamReader {
         TextInputFormat.class.getCanonicalName(), conf, false);
     this.collector = partitionId.getCollector();
   }
-  
+
+  @Override
+  protected DatabusStreamFile getStreamFile(Date timestamp) {
+    return getDatabusStreamFile(streamName, timestamp);
+  }
+
+  protected DatabusStreamFile getStreamFile(FileStatus status) {
+    return DatabusStreamFile.create(streamName, status.getPath().getName());
+  }
+
   public FileMap<DatabusStreamFile> createFileMap() throws IOException {
-    return new StreamFileMap() {
-      @Override
-      protected PathFilter createPathFilter() {
-        return new PathFilter() {
-          @Override
-          public boolean accept(Path p) {
-            if (p.getName().startsWith(collector)) {
-              return true;
-            }
-            return false;
-          }          
-        };
-      }
+    return new FileMap<DatabusStreamFile>() {
+    @Override
+    protected void buildList() throws IOException {
+      buildListing(this, pathFilter);
+    }
+    
+    @Override
+    protected TreeMap<DatabusStreamFile, FileStatus> createFilesMap() {
+      return new TreeMap<DatabusStreamFile, FileStatus>();
+    }
+
+    @Override
+    protected DatabusStreamFile getStreamFile(String fileName) {
+      return DatabusStreamFile.create(streamName, fileName);
+    }
+
+    @Override
+    protected DatabusStreamFile getStreamFile(FileStatus file) {
+      return DatabusStreamFile.create(streamName, file.getPath().getName());
+    }
+
+    @Override
+    protected PathFilter createPathFilter() {
+      return new PathFilter() {
+        @Override
+        public boolean accept(Path p) {
+          if (p.getName().startsWith(collector)) {
+            return true;
+          }
+          return false;
+        }          
+      };
+    }
     };
   }
   
@@ -89,13 +122,67 @@ public class LocalStreamCollectorReader extends DatabusStreamReader {
   public static Date getBuildTimestamp(String streamName, String collectorName,
       PartitionCheckpoint partitionCheckpoint) {
     String fileName = null;
-    if (partitionCheckpoint != null) {
-      fileName = partitionCheckpoint.getFileName();
-      if (fileName != null && 
-          !isDatabusStreamFile(streamName, fileName)) {
-        fileName = getDatabusStreamFileName(collectorName, fileName);
+    try {
+      if (partitionCheckpoint != null) {
+        fileName = partitionCheckpoint.getFileName();
+        if (fileName != null && 
+            !isDatabusStreamFile(streamName, fileName)) {
+          fileName = getDatabusStreamFileName(collectorName, fileName);
+        }
       }
+      return getDateFromStreamFile(streamName, fileName);
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Invalid fileName:" + 
+          fileName, e);
     }
-    return getBuildTimestamp(streamName, fileName);
   }
+
+  static Date getDateFromDatabusStreamFile(String streamName, String fileName) {
+    return DatabusStreamFile.create(streamName, fileName).getCollectorFile()
+        .getTimestamp();
+  }
+
+  static Date getDateFromStreamFile(String streamName,
+      String fileName) throws Exception {
+    return getDatabusStreamFileFromLocalStreamFile(streamName, fileName).
+        getCollectorFile().getTimestamp();
+  }
+
+  public static String getDatabusStreamFileName(String streamName,
+      Date date) {
+    return getDatabusStreamFile(streamName, date).toString();  
+  }
+
+  public static DatabusStreamFile getDatabusStreamFile(String streamName,
+      Date date) {
+    return new DatabusStreamFile("", new CollectorFile(streamName, date, 0),
+        "gz");  
+  }
+
+  public static DatabusStreamFile getDatabusStreamFileFromLocalStreamFile(
+      String streamName,
+      String localStreamfileName) {
+    return DatabusStreamFile.create(streamName, localStreamfileName);  
+  }
+
+  static boolean isDatabusStreamFile(String streamName, String fileName) {
+    try {
+      getDatabusStreamFileFromLocalStreamFile(streamName, fileName);
+    } catch (IllegalArgumentException ie) {
+      return false;
+    }
+    return true;
+  }
+
+  public static String getDatabusStreamFileName(String collector,
+      String collectorFile) {
+    return getDatabusStreamFile(collector, collectorFile).toString();  
+  }
+
+  public static DatabusStreamFile getDatabusStreamFile(String collector,
+      String collectorFileName) {
+    return new DatabusStreamFile(collector,
+        CollectorFile.create(collectorFileName), "gz");  
+  }
+
 }

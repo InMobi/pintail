@@ -9,6 +9,8 @@ import org.testng.annotations.Test;
 
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
+import com.inmobi.databus.readers.CollectorStreamReader;
+import com.inmobi.messaging.consumer.util.TestUtil;
 
 
 public class TestCheckpointSerialization {
@@ -20,8 +22,10 @@ public class TestCheckpointSerialization {
     PartitionId id1 = new PartitionId("cluster1", "collector1");
     PartitionId id2 = new PartitionId("cluster1", "collector2");
     PartitionId id3 = new PartitionId("cluster1", "collector3");
-    PartitionCheckpoint pcp1 = new PartitionCheckpoint("file1", 100);
-    PartitionCheckpoint pcp2 = new PartitionCheckpoint("file2", 100);
+    PartitionCheckpoint pcp1 = new PartitionCheckpoint(
+        CollectorStreamReader.getCollectorFile(TestUtil.files[0]), 100);
+    PartitionCheckpoint pcp2 = new PartitionCheckpoint(
+        CollectorStreamReader.getCollectorFile(TestUtil.files[1]), 100);
     partitionsChkPoint.put(id1, pcp1);
     partitionsChkPoint.put(id2, pcp2);
     partitionsChkPoint.put(id3, null);

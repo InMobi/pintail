@@ -10,9 +10,10 @@ import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-import com.inmobi.databus.readers.CollectorStreamReader;
+import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.consumer.util.ConsumerUtil;
+import com.inmobi.messaging.consumer.util.HadoopUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
 public class TestHadoopConsumer {
@@ -29,6 +30,7 @@ public class TestHadoopConsumer {
   protected String[] dataFiles;
   protected String consumerName;
   protected Path[] rootDirs;
+  Path [][] finalPaths = new Path[3][3];
   Configuration conf;
 
   ClientConfig loadConfig() {
@@ -41,7 +43,6 @@ public class TestHadoopConsumer {
     consumerName = "c1";
     dataFiles = new String[] {TestUtil.files[0], TestUtil.files[1],
         TestUtil.files[2]};
-    Path [] finalPaths = new Path[3];
     // setup 
     ClientConfig config = loadConfig();    
     testConsumer = new HadoopConsumer();
@@ -49,14 +50,12 @@ public class TestHadoopConsumer {
 
     conf = testConsumer.getHadoopConf();
     Assert.assertEquals(conf.get("myhadoop.property"), "myvalue");
-    String collectorName = "hadoopcollector";
 
     rootDirs = testConsumer.getRootDirs();
     Assert.assertEquals(rootDirs.length, 3);
     for (int i = 0; i < rootDirs.length; i++) {
-      TestUtil.setupHadoopCluster(
-          testStream, collectorName, conf, dataFiles, finalPaths,
-          new Path(rootDirs[i], testStream));
+      HadoopUtil.setupHadoopCluster(
+          conf, dataFiles, finalPaths[i], new Path(rootDirs[i], testStream));
     }
   }
 
@@ -76,7 +75,8 @@ public class TestHadoopConsumer {
     config.set(HadoopConsumerConfig.rootDirsConfig,
         "file:///tmp/test/hadoop/1");
     ConsumerUtil.testMarkAndResetWithStartTime(config, testStream, consumerName,
-        CollectorStreamReader.getDateFromCollectorFile(dataFiles[1]), true);
+        DatabusStreamWaitingReader.getDateFromStreamDir(
+            new Path(rootDirs[0], testStream), finalPaths[0][1]), true);
   }
 
   @Test

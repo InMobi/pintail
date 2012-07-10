@@ -14,6 +14,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.TextInputFormat;
 
 import com.inmobi.databus.Cluster;
+import com.inmobi.databus.files.StreamFile;
 import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.databus.readers.DatabusStreamReader;
 import com.inmobi.messaging.Message;
@@ -187,7 +188,7 @@ public class PartitionReader {
     }
   }
 
-  Path getCurrentFile() {
+  StreamFile getCurrentFile() {
     return reader.getCurrentFile();
   }
 
@@ -213,7 +214,7 @@ public class PartitionReader {
           }
           buffer.put(new QueueEntry(new Message(
               ByteBuffer.wrap(data)), partitionId,
-              new PartitionCheckpoint(reader.getCurrentFile().getName(),
+              new PartitionCheckpoint(reader.getCurrentFile(),
                   reader.getCurrentLineNum())));
         } else {
           LOG.info("No stream to read");

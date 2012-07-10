@@ -88,7 +88,8 @@ public class TestCurrentFile {
     FSDataOutputStream out = fs.create(
         new Path(collectorDir, currentScribeFile));
     writeMessages(out, 10);
-    TestUtil.assertBuffer(currentScribeFile, 4, 0, 10, partitionId, buffer);
+    TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(
+        currentScribeFile), 4, 0, 10, partitionId, buffer);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -97,12 +98,15 @@ public class TestCurrentFile {
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     writeMessages(out, 20);
-    TestUtil.assertBuffer(currentScribeFile, 4, 10, 20, partitionId, buffer);
+    TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(
+        currentScribeFile), 4, 10, 20, partitionId, buffer);
     writeMessages(out, 20);
-    TestUtil.assertBuffer(currentScribeFile, 4, 30, 20, partitionId, buffer);
+    TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(
+        currentScribeFile), 4, 30, 20, partitionId, buffer);
     writeMessages(out, 50);
     out.close();
-    TestUtil.assertBuffer(currentScribeFile, 4, 50, 50, partitionId, buffer);
+    TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(
+        currentScribeFile), 4, 50, 50, partitionId, buffer);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),

@@ -6,12 +6,14 @@ import java.io.IOException;
 
 import org.apache.hadoop.io.Writable;
 
+import com.inmobi.databus.files.StreamFile;
+
 public class PartitionCheckpoint implements Writable {
-  private String fileName;
+  private StreamFile streamFile;
   private long lineNum;
 
-  public PartitionCheckpoint(String fileName, long lineNum) {
-    this.fileName = fileName;
+  public PartitionCheckpoint(StreamFile streamFile, long lineNum) {
+    this.streamFile = streamFile;
     this.lineNum = lineNum;
   }
 
@@ -20,7 +22,11 @@ public class PartitionCheckpoint implements Writable {
   }
 
   public String getFileName() {
-    return fileName;
+    return streamFile.toString();
+  }
+
+  public StreamFile getStreamFile() {
+    return streamFile;
   }
 
   public long getLineNum() {
@@ -29,25 +35,34 @@ public class PartitionCheckpoint implements Writable {
 
   @Override
   public void readFields(DataInput in) throws IOException {
-    fileName = in.readUTF();
-    lineNum = in.readLong();
+    String streamFileClassName = in.readUTF();
+    Class<?> clazz;
+    try {
+      clazz = Class.forName(streamFileClassName);
+      streamFile = (StreamFile) clazz.newInstance();
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Invalid checkpoint");
+    }
+    streamFile.readFields(in);
+    lineNum = in.readLong(); 
   }
 
   @Override
   public void write(DataOutput out) throws IOException {
-    out.writeUTF(fileName);
+    out.writeUTF(streamFile.getClass().getCanonicalName());
+    streamFile.write(out);
     out.writeLong(lineNum);
   }
 
   public String toString() {
-    return fileName + "-" + lineNum;
+    return streamFile + "-" + lineNum;
   }
 
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((fileName == null) ? 0 : fileName.hashCode());
+    result = prime * result + ((streamFile == null) ? 0 : streamFile.hashCode());
     result = prime * result + (int) (lineNum ^ (lineNum >>> 32));
     return result;
   }
@@ -64,11 +79,11 @@ public class PartitionCheckpoint implements Writable {
       return false;
     }
     PartitionCheckpoint other = (PartitionCheckpoint) obj;
-    if (fileName == null) {
-      if (other.fileName != null) {
+    if (streamFile == null) {
+      if (other.streamFile != null) {
         return false;
       }
-    } else if (!fileName.equals(other.fileName)) {
+    } else if (!streamFile.equals(other.streamFile)) {
       return false;
     }
     if (lineNum != other.lineNum) {

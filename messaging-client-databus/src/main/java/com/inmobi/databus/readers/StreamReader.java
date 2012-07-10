@@ -76,11 +76,10 @@ public abstract class StreamReader<T extends StreamFile> {
   public boolean initializeCurrentFile(Date timestamp) throws IOException {
     initCurrentFile();
     this.timestamp = timestamp;
-    String fileName = getStreamFileName(streamName, timestamp);
+    T file = getStreamFile(timestamp);
     LOG.debug("Stream file corresponding to timestamp:" + timestamp +
-        " is " + fileName);
-    currentFile = fileMap.getCeilingValue(
-        getStreamFileName(streamName, timestamp));
+        " is " + file);
+    currentFile = fileMap.getCeilingValue(file);
 
     if (currentFile != null) {
       setIterator();
@@ -95,14 +94,9 @@ public abstract class StreamReader<T extends StreamFile> {
   public boolean initializeCurrentFile(PartitionCheckpoint checkpoint)
       throws IOException {
     initCurrentFile();
-    if (!isStreamFile(checkpoint.getFileName())) {
-      LOG.info("The file " + checkpoint.getFileName() + " is not a " +
-          "stream file");
-      return false;
-    }
     this.checkpoint = checkpoint;
     LOG.debug("checkpoint:" + checkpoint);
-    currentFile = fileMap.getValue(checkpoint.getFileName());
+    currentFile = fileMap.getValue(checkpoint.getStreamFile());
     if (currentFile != null) {
       currentLineNum = checkpoint.getLineNum();
       LOG.debug("CurrentFile:" + getCurrentFile() + " currentLineNum:" + 
@@ -123,8 +117,6 @@ public abstract class StreamReader<T extends StreamFile> {
     }
     return currentFile != null;
   }
-
-  public abstract boolean isStreamFile(String fileName);
 
   protected void resetCurrentFile() {
     currentFile = null;
@@ -162,11 +154,20 @@ public abstract class StreamReader<T extends StreamFile> {
     return currentFile.getPath();
   }
 
+  public T getCurrentStreamFile() {
+    if (currentFile == null) {
+      return null;
+    }
+    return getStreamFile(currentFile);
+  }
+
   public long getCurrentLineNum() {
     return currentLineNum;
   }
 
-  protected abstract String getStreamFileName(String streamName, Date timestamp);
+  protected abstract T getStreamFile(Date timestamp);
+
+  protected abstract T getStreamFile(FileStatus status);
 
   /** 
    * Returns null when reached end of stream 
@@ -287,6 +288,10 @@ public abstract class StreamReader<T extends StreamFile> {
       Thread.sleep(waitTimeForCreate);
       build();
     }
+  }
+
+  protected boolean isBeforeStream(T streamFile) {
+    return fileMap.isBefore(streamFile);
   }
 
   public boolean isBeforeStream(String fileName) throws IOException {

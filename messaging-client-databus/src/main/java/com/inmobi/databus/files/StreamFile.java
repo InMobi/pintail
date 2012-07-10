@@ -1,5 +1,7 @@
 package com.inmobi.databus.files;
 
-public interface StreamFile extends Comparable<Object> {
+import org.apache.hadoop.io.Writable;
+
+public interface StreamFile extends Comparable<Object>, Writable {
 
 }

@@ -51,8 +51,8 @@ public class TestCollectorStreamReader {
   @Test
   public void testInitialize() throws Exception {
     // Read from start
-    cReader = new CollectorStreamReader(partitionId,
-        FileSystem.get(cluster.getHadoopConf()), testStream,
+    cReader = new CollectorStreamReader(partitionId, FileSystem.get(
+        cluster.getHadoopConf()), testStream,
         CollectorStreamReader.getCollectorDir(cluster, testStream, collectorName),
         10, 10, true);
     cReader.build();
@@ -61,33 +61,27 @@ public class TestCollectorStreamReader {
         files[0]));
 
     // Read from checkpoint with collector file name
-    cReader.initializeCurrentFile(
-        new PartitionCheckpoint(files[1], 20));
+    cReader.initializeCurrentFile(new PartitionCheckpoint(
+        CollectorStreamReader.getCollectorFile(files[1]), 20));
     Assert.assertEquals(cReader.getCurrentFile(), new Path(collectorDir,
         files[1]));
 
-    // Read from checkpoint with local stream file name
-    cReader.initializeCurrentFile(new PartitionCheckpoint(
-        LocalStreamCollectorReader.getDatabusStreamFileName(collectorName,
-            files[1]), 20));
-    Assert.assertNull(cReader.getCurrentFile());
-
     // Read from checkpoint with collector file name which does not exist
     // and is before the stream
-    cReader.initializeCurrentFile(
-        new PartitionCheckpoint(doesNotExist1, 20));
+    cReader.initializeCurrentFile(new PartitionCheckpoint(
+        CollectorStreamReader.getCollectorFile(doesNotExist1), 20));
     Assert.assertNull(cReader.getCurrentFile());
 
     // Read from checkpoint with collector file name which does not exist
     // and is within the stream
-    cReader.initializeCurrentFile(
-        new PartitionCheckpoint(doesNotExist2, 20));
+    cReader.initializeCurrentFile(new PartitionCheckpoint(
+        CollectorStreamReader.getCollectorFile(doesNotExist2), 20));
     Assert.assertNull(cReader.getCurrentFile());
 
     // Read from checkpoint with collector file name which does not exist
     // is after the stream
-    cReader.initializeCurrentFile(
-        new PartitionCheckpoint(doesNotExist3, 20));
+    cReader.initializeCurrentFile(new PartitionCheckpoint(
+        CollectorStreamReader.getCollectorFile(doesNotExist3), 20));
     Assert.assertNull(cReader.getCurrentFile());
 
     //Read from startTime in collector dir
@@ -164,7 +158,8 @@ public class TestCollectorStreamReader {
         CollectorStreamReader.getCollectorDir(cluster, testStream, collectorName),
         10, 10, true);
     cReader.build();
-    cReader.initializeCurrentFile(new PartitionCheckpoint(files[1], 20));
+    cReader.initializeCurrentFile(new PartitionCheckpoint(
+        CollectorStreamReader.getCollectorFile(files[1]), 20));
     cReader.openStream();
 
     readFile(1, 20);

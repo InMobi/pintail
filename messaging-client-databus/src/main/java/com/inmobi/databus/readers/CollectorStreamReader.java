@@ -90,7 +90,6 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
       protected CollectorFile getStreamFile(FileStatus file) {
         return CollectorFile.create(file.getPath().getName());
       }
-
     };
   }
 
@@ -231,17 +230,17 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   }
 
   @Override
-  protected String getStreamFileName(String streamName, Date timestamp) {
-    return getCollectorFileName(streamName, timestamp);
+  protected CollectorFile getStreamFile(Date timestamp) {
+    return getCollectorFile(streamName, timestamp);
   }
 
-  public boolean isStreamFile(String fileName) {
-    return isCollectorFile(fileName);
+  protected CollectorFile getStreamFile(FileStatus status) {
+    return getCollectorFile(status.getPath().getName());
   }
 
-  public boolean isCollectorFile(String fileName) {
+  public static boolean isCollectorFile(String fileName) {
     try {
-      CollectorFile.create(fileName);
+      getCollectorFile(fileName);
     } catch (IllegalArgumentException ie) {
       return false;
     }
@@ -262,10 +261,18 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
 
   public static Date getDateFromCollectorFile(String fileName)
       throws IOException {
-    return CollectorFile.create(fileName).getTimestamp();
+    return getCollectorFile(fileName).getTimestamp();
   }
 
   public static String getCollectorFileName(String streamName, Date date) {
-    return new CollectorFile(streamName, date, 0).toString();
+    return getCollectorFile(streamName, date).toString();
+  }
+
+  public static CollectorFile getCollectorFile(String streamName, Date date) {
+    return new CollectorFile(streamName, date, 0);
+  }
+
+  public static CollectorFile getCollectorFile(String fileName) {
+    return CollectorFile.create(fileName);
   }
 }

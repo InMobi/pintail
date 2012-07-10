@@ -30,7 +30,7 @@ public class TestClusterReaderMultipleCollectors {
   private Cluster cluster;
   private boolean isLocal = false;
   private String[] files = new String[] {TestUtil.files[1], TestUtil.files[3],
-      TestUtil.files[5]};
+      TestUtil.files[5], TestUtil.files[6]};
   Path[] databusFiles1 = new Path[3];
   Path[] databusFiles2 = new Path[3];
   FileSystem fs;
@@ -72,9 +72,11 @@ public class TestClusterReaderMultipleCollectors {
     Path movedPath1 = TestUtil.moveFileToStreams(fs, testStream, collectors[1],
         cluster, TestUtil.getCollectorDir(cluster, testStream, collectors[1]),
         files[1]);
-    TestUtil.assertBuffer(databusFiles1[0].getName(), 1, 0, 100, partitionId,
+    TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
+        fs.getFileStatus(databusFiles1[0])), 1, 0, 100, partitionId,
         buffer);
-    TestUtil.assertBuffer(databusFiles2[0].getName(), 1, 0, 50, partitionId,
+    TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
+        fs.getFileStatus(databusFiles2[0])), 1, 0, 50, partitionId,
         buffer);
 
     while (buffer.remainingCapacity() > 0) {
@@ -87,9 +89,11 @@ public class TestClusterReaderMultipleCollectors {
     Path movedPath3 = TestUtil.moveFileToStreams(fs, testStream, collectors[0],
         cluster, TestUtil.getCollectorDir(cluster, testStream, collectors[0]),
         files[1]);
-    TestUtil.assertBuffer(databusFiles2[0].getName(), 1, 50, 50, partitionId,
+    TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
+        fs.getFileStatus(databusFiles2[0])), 1, 50, 50, partitionId,
         buffer);
-    TestUtil.assertBuffer(movedPath1.getName(), 2, 0, 100, partitionId,
+    TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
+        fs.getFileStatus(movedPath1)), 2, 0, 100, partitionId,
         buffer);
 
     while (buffer.remainingCapacity() > 0) {
@@ -99,14 +103,58 @@ public class TestClusterReaderMultipleCollectors {
     Path movedPath4 = TestUtil.moveFileToStreams(fs, testStream, collectors[0],
         cluster, TestUtil.getCollectorDir(cluster, testStream, collectors[0]),
         files[2]);
-    TestUtil.assertBuffer(movedPath3.getName(), 2, 0, 100, partitionId,
+    TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
+        fs.getFileStatus(movedPath3)), 2, 0, 100, partitionId,
         buffer);
-    TestUtil.assertBuffer(movedPath2.getName(), 3, 0, 100, partitionId,
+    TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
+        fs.getFileStatus(movedPath2)), 3, 0, 50, partitionId,
         buffer);
-    TestUtil.assertBuffer(movedPath4.getName(), 3, 0, 100, partitionId,
+    while (buffer.remainingCapacity() > 0) {
+      Thread.sleep(10);
+    }
+    TestUtil.incrementCommitTime();
+    Path movedPath5 = TestUtil.moveFileToStreams(fs, testStream, collectors[1],
+    cluster, TestUtil.getCollectorDir(cluster, testStream, collectors[1]),
+    files[3]);
+    TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
+        fs.getFileStatus(movedPath2)), 3, 50, 50, partitionId,
+    buffer);
+    TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
+        fs.getFileStatus(movedPath4)), 3, 0, 50, partitionId,
+    buffer);
+    while (buffer.remainingCapacity() > 0) {
+      Thread.sleep(10);
+    }
+    Path movedPath6 = TestUtil.moveFileToStreams(fs, testStream, collectors[0],
+    cluster, TestUtil.getCollectorDir(cluster, testStream, collectors[0]),
+    files[3]);
+    TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
+        fs.getFileStatus(movedPath4)), 3, 50, 50, partitionId,
         buffer);
-    Assert.assertTrue(buffer.isEmpty());    
-    preader.close(); 
+    TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
+        fs.getFileStatus(movedPath5)), 4, 0, 100, partitionId,
+    buffer);
+    TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
+        fs.getFileStatus(movedPath6)), 4, 0, 100, partitionId,
+    buffer);
+    Assert.assertTrue(buffer.isEmpty());
+    preader.close();
+    
+    preader = new PartitionReader(partitionId, new PartitionCheckpoint(
+        DatabusStreamWaitingReader.getHadoopStreamFile(
+        fs.getFileStatus(movedPath5)), 50), cluster, buffer,
+        testStream, null,
+        1000, 1000, isLocal, DataEncodingType.BASE64, false);
+    preader.start();
+    TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
+        fs.getFileStatus(movedPath5)), 4, 50, 50, partitionId,
+    buffer);
+    TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
+        fs.getFileStatus(movedPath6)), 4, 0, 100, partitionId,
+    buffer);
+    Assert.assertTrue(buffer.isEmpty());
+    preader.close();
+
   }
 
 }

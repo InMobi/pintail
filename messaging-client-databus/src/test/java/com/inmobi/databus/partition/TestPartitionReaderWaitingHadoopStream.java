@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.SequenceFileInputFormat;
@@ -12,11 +13,11 @@ import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-import com.inmobi.databus.Cluster;
 import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 import com.inmobi.messaging.consumer.databus.DataEncodingType;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
+import com.inmobi.messaging.consumer.util.HadoopUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
 public class TestPartitionReaderWaitingHadoopStream {
@@ -27,7 +28,6 @@ public class TestPartitionReaderWaitingHadoopStream {
 
   protected LinkedBlockingQueue<QueueEntry> buffer = 
       new LinkedBlockingQueue<QueueEntry>(150);
-  protected Cluster cluster;
   protected PartitionReader preader;
 
   protected String[] files = new String[] {TestUtil.files[1], TestUtil.files[3],
@@ -47,14 +47,13 @@ public class TestPartitionReaderWaitingHadoopStream {
     fs = FileSystem.getLocal(conf);
     streamDir = new Path("/tmp/test/hadoop/" + this.getClass().getSimpleName(),
          testStream).makeQualified(fs);
-    cluster = TestUtil.setupHadoopCluster(
-        testStream, collectorName, conf, files, databusFiles, streamDir);
+    HadoopUtil.setupHadoopCluster(conf, files, databusFiles, streamDir);
     inputFormatClass = SequenceFileInputFormat.class.getName();
   }
 
   @AfterTest
   public void cleanup() throws IOException {
-    TestUtil.cleanupCluster(cluster);
+    fs.delete(streamDir.getParent(), true);
   }
 
   @Test
@@ -74,35 +73,39 @@ public class TestPartitionReaderWaitingHadoopStream {
     while (buffer.remainingCapacity() > 0) {
       Thread.sleep(10);
     }
+    FileStatus fs0 = fs.getFileStatus(databusFiles[0]); 
+    FileStatus fs1 = fs.getFileStatus(databusFiles[1]); 
     fs.delete(databusFiles[0], true);
     fs.delete(databusFiles[1], true);
     fs.delete(databusFiles[2], true);
     Path[] newDatabusFiles = new Path[3];
-    TestUtil.setUpHadoopFiles(streamDir, testStream, collectorName, cluster,
-        conf,  new String[] {TestUtil.files[6]}, newDatabusFiles);
-    TestUtil.assertBuffer(databusFiles[0].getName(), 1, 0, 100, partitionId,
+    HadoopUtil.setUpHadoopFiles(streamDir, conf, new String[] {TestUtil.files[6]},
+        newDatabusFiles);
+    TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
+        fs0), 1, 0, 100, partitionId,
         buffer);
-    TestUtil.assertBuffer(databusFiles[1].getName(), 2, 0, 50, partitionId,
-        buffer);
+    TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
+        fs1), 2, 0, 50, partitionId, buffer);
     
     while (buffer.remainingCapacity() > 0) {
       Thread.sleep(10);
     }
-    TestUtil.assertBuffer(databusFiles[1].getName(), 2, 50, 50, partitionId,
-        buffer);
-    TestUtil.assertBuffer(newDatabusFiles[0].getName(), 1, 0, 100, partitionId,
+    TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
+        fs1), 2, 50, 50, partitionId, buffer);
+    TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
+        fs.getFileStatus(newDatabusFiles[0])), 1, 0, 100, partitionId,
         buffer);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(((ClusterReader)preader.getReader())
         .getReader().getClass().getName(),
         DatabusStreamWaitingReader.class.getName());
-    TestUtil.setUpHadoopFiles(streamDir, testStream, collectorName, cluster,
-        conf,  new String[] {TestUtil.files[7], TestUtil.files[8]},
-        newDatabusFiles);
-    TestUtil.assertBuffer(newDatabusFiles[0].getName(), 1, 0, 100, partitionId,
-        buffer);
-    TestUtil.assertBuffer(newDatabusFiles[1].getName(), 2, 0, 100, partitionId,
+    HadoopUtil.setUpHadoopFiles(streamDir, conf, new String[] {TestUtil.files[7],
+        TestUtil.files[8]}, newDatabusFiles);
+    TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
+        fs.getFileStatus(newDatabusFiles[0])), 1, 0, 100, partitionId, buffer);
+    TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
+        fs.getFileStatus(newDatabusFiles[1])), 2, 0, 100, partitionId,
         buffer);
     Assert.assertTrue(buffer.isEmpty());    
     preader.close();

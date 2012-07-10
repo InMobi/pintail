@@ -1,6 +1,8 @@
   package com.inmobi.databus.readers;
 
 import java.io.IOException;
+import java.util.Date;
+import java.util.TreeMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -10,11 +12,13 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
 
-import com.inmobi.databus.files.DatabusStreamFile;
 import com.inmobi.databus.files.FileMap;
+import com.inmobi.databus.files.HadoopStreamFile;
+import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 
-public class DatabusStreamWaitingReader extends DatabusStreamReader {
+public class DatabusStreamWaitingReader 
+     extends DatabusStreamReader<HadoopStreamFile> {
 
   private static final Log LOG = LogFactory.getLog(
       DatabusStreamWaitingReader.class);
@@ -26,7 +30,17 @@ public class DatabusStreamWaitingReader extends DatabusStreamReader {
     super(partitionId, fs, streamName, streamDir, inputFormatClass, conf, noNewFiles);
     this.waitTimeForCreate = waitTimeForCreate;
   }
-  
+
+  @Override
+  protected HadoopStreamFile getStreamFile(Date timestamp) {
+    return new HadoopStreamFile(getMinuteDirPath(streamDir, timestamp),
+        null, null);
+  }
+
+  protected HadoopStreamFile getStreamFile(FileStatus status) {
+    return getHadoopStreamFile(status);
+  }
+
   protected void startFromNextHigher(FileStatus file)
       throws IOException, InterruptedException {
     if (!setNextHigherAndOpen(file)) {
@@ -58,7 +72,7 @@ public class DatabusStreamWaitingReader extends DatabusStreamReader {
       LOG.info("Read " + getCurrentFile() + " with lines:" + currentLineNum);
       if (!nextFile()) { // reached end of file list
         LOG.info("could not find next file. Rebuilding");
-        build(getDateFromDatabusStreamDir(streamDir, 
+        build(getDateFromStreamDir(streamDir, 
             getCurrentFile()));
         if (!nextFile()) { // reached end of stream
           if (noNewFiles) {
@@ -81,8 +95,27 @@ public class DatabusStreamWaitingReader extends DatabusStreamReader {
   }
 
   @Override
-  protected FileMap<DatabusStreamFile> createFileMap() throws IOException {
-    return new StreamFileMap() {
+  protected FileMap<HadoopStreamFile> createFileMap() throws IOException {
+    return new FileMap<HadoopStreamFile>() {
+        @Override
+        protected void buildList() throws IOException {
+          buildListing(this, pathFilter);
+        }
+        
+        @Override
+        protected TreeMap<HadoopStreamFile, FileStatus> createFilesMap() {
+          return new TreeMap<HadoopStreamFile, FileStatus>();
+        }
+
+        @Override
+        protected HadoopStreamFile getStreamFile(String fileName) {
+          throw new RuntimeException("Not implemented");
+        }
+
+        @Override
+        protected HadoopStreamFile getStreamFile(FileStatus file) {
+          return HadoopStreamFile.create(file);
+        }
 
       @Override
       protected PathFilter createPathFilter() {
@@ -93,8 +126,21 @@ public class DatabusStreamWaitingReader extends DatabusStreamReader {
           }          
         };
       }
-      
     };
   }
 
+  public static Date getBuildTimestamp(Path streamDir,
+      PartitionCheckpoint partitionCheckpoint) {
+    try {
+      return getDateFromStreamDir(streamDir,
+          ((HadoopStreamFile)partitionCheckpoint.getStreamFile()).getParent());
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Invalid checkpoint:" + 
+          partitionCheckpoint.getStreamFile(), e);
+    }
+  }
+
+  public static HadoopStreamFile getHadoopStreamFile(FileStatus status) {
+    return HadoopStreamFile.create(status);
+  }
 }

@@ -1,14 +1,25 @@
 package com.inmobi.databus.files;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.File;
+import java.io.IOException;
+
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 
 public class HadoopStreamFile implements StreamFile {
 
-  private final String fileName;
+  private String fileName;
   private Path parent;
   //file creation time
   private Long timeStamp;
+
+  /**
+   * Used only during serialization
+   */
+  public HadoopStreamFile() {
+  }
 
   public HadoopStreamFile(Path parent, String fileName, Long timeStamp) {
     this.fileName = fileName;
@@ -65,7 +76,7 @@ public class HadoopStreamFile implements StreamFile {
   }
 
   public String toString() {
-    return new Path(parent, fileName).toString();
+    return parent + File.separator + fileName;
   }
 
   @Override
@@ -85,5 +96,32 @@ public class HadoopStreamFile implements StreamFile {
       }
     }
     return pComp;
+  }
+
+  @Override
+  public void write(DataOutput out) throws IOException {
+    out.writeUTF(parent.toString());
+    out.writeUTF(fileName);
+    out.writeLong(timeStamp);
+  }
+
+  @Override
+  public void readFields(DataInput in) throws IOException {
+    String strPath = in.readUTF();
+    this.parent = new Path(strPath);
+    this.fileName = in.readUTF();
+    this.timeStamp = in.readLong();
+  }
+
+  public Path getParent() {
+    return parent;
+  }
+
+  public Long getTimestamp() {
+    return timeStamp;
+  }
+
+  public String getFileName() {
+    return fileName;
   }
 }

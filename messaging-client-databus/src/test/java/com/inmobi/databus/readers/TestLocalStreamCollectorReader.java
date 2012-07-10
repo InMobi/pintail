@@ -59,13 +59,9 @@ public class TestLocalStreamCollectorReader {
     Assert.assertEquals(lreader.getCurrentFile(),
         databusFiles[0]);
 
-    // Read from checkpoint with collector file name
-    lreader.initializeCurrentFile(new PartitionCheckpoint(files[1], 20));
-    Assert.assertNull(lreader.getCurrentFile());
-
     // Read from checkpoint with local stream file name
     lreader.initializeCurrentFile(new PartitionCheckpoint(
-        LocalStreamCollectorReader.getDatabusStreamFileName(collectorName,
+        LocalStreamCollectorReader.getDatabusStreamFile(collectorName,
             files[1]), 20));
     Assert.assertEquals(lreader.getCurrentFile(),
         databusFiles[1]);
@@ -73,22 +69,21 @@ public class TestLocalStreamCollectorReader {
     // Read from checkpoint with local stream file name, which does not exist
     // and is before the stream
     lreader.initializeCurrentFile(new PartitionCheckpoint(
-        LocalStreamCollectorReader.getDatabusStreamFileName(collectorName,
+        LocalStreamCollectorReader.getDatabusStreamFile(collectorName,
             doesNotExist1), 20));
-    Assert.assertEquals(lreader.getCurrentFile(),
-        databusFiles[0]);
+    Assert.assertEquals(lreader.getCurrentFile(), databusFiles[0]);
 
     // Read from checkpoint with local stream file name, which does not exist
     // with file timestamp after the stream
     lreader.initializeCurrentFile(new PartitionCheckpoint(
-        LocalStreamCollectorReader.getDatabusStreamFileName(collectorName,
+        LocalStreamCollectorReader.getDatabusStreamFile(collectorName,
             doesNotExist3), 20));
     Assert.assertNull(lreader.getCurrentFile());  
 
     // Read from checkpoint with local stream file name, which does not exist
     // with file timestamp within the stream
     lreader.initializeCurrentFile(new PartitionCheckpoint(
-        LocalStreamCollectorReader.getDatabusStreamFileName(collectorName,
+        LocalStreamCollectorReader.getDatabusStreamFile(collectorName,
             doesNotExist2), 20));
     Assert.assertNull(lreader.getCurrentFile());  
 
@@ -150,7 +145,7 @@ public class TestLocalStreamCollectorReader {
         FileSystem.get(cluster.getHadoopConf()), testStream,
         DatabusStreamReader.getStreamsLocalDir(cluster, testStream), conf);
     PartitionCheckpoint pcp = new PartitionCheckpoint(
-        LocalStreamCollectorReader.getDatabusStreamFileName(collectorName,
+        LocalStreamCollectorReader.getDatabusStreamFile(collectorName,
             files[1]), 20);
     lreader.build(LocalStreamCollectorReader.getBuildTimestamp(testStream, 
         collectorName, pcp));

@@ -2,8 +2,7 @@ package com.inmobi.databus.partition;
 
 import java.io.IOException;
 
-import org.apache.hadoop.fs.Path;
-
+import com.inmobi.databus.files.StreamFile;
 import com.inmobi.databus.readers.StreamReader;
 
 public abstract class AbstractPartitionStreamReader implements 
@@ -16,8 +15,8 @@ public abstract class AbstractPartitionStreamReader implements
     return this.reader;
   }
 
-  public Path getCurrentFile() {
-    return reader.getCurrentFile();
+  public StreamFile getCurrentFile() {
+    return reader.getCurrentStreamFile();
   }
 
   @Override

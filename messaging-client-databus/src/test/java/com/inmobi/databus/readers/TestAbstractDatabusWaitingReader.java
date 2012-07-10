@@ -1,6 +1,7 @@
 package com.inmobi.databus.readers;
 
 import java.io.IOException;
+import java.util.Calendar;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.hadoop.conf.Configuration;
@@ -11,6 +12,7 @@ import org.testng.Assert;
 import com.inmobi.databus.Cluster;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
+import com.inmobi.messaging.consumer.util.HadoopUtil;
 import com.inmobi.messaging.consumer.util.MessageUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
@@ -24,12 +26,10 @@ public abstract class TestAbstractDatabusWaitingReader {
   protected Cluster cluster;
   protected String[] files = new String[] {TestUtil.files[1], TestUtil.files[3],
       TestUtil.files[5]};
-  protected Path[] databusFiles = new Path[3];
-  protected String doesNotExist1 = TestUtil.files[0];
-  protected String doesNotExist2 = TestUtil.files[2];
-  protected String doesNotExist3 = TestUtil.files[7];
+  protected Path[] finalFiles = new Path[3];
   protected FileSystem fs;
   protected Configuration conf;
+  protected Path streamDir;
 
   public void cleanup() throws IOException {
     TestUtil.cleanupCluster(cluster);
@@ -41,69 +41,65 @@ public abstract class TestAbstractDatabusWaitingReader {
     // Read from start
     lreader = new DatabusStreamWaitingReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
-        getStreamsDir(), TextInputFormat.class.getCanonicalName(), conf, 1000, false);
-    lreader.build(CollectorStreamReader.getDateFromCollectorFile(files[0]));
+        streamDir, TextInputFormat.class.getCanonicalName(), conf, 1000,
+        false);
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
+        finalFiles[0].getParent()));
+    lreader.build(cal.getTime());
 
     lreader.initFromStart();
-    Assert.assertEquals(lreader.getCurrentFile(), databusFiles[0]);
+    Assert.assertEquals(lreader.getCurrentFile(), finalFiles[0]);
 
-    // Read from checkpoint with local stream file name
+    // Read from checkpoint with stream file name
     lreader.initializeCurrentFile(new PartitionCheckpoint(
-        databusFiles[1].getName(), 20));
-    Assert.assertEquals(lreader.getCurrentFile(), databusFiles[1]);
+        DatabusStreamWaitingReader.getHadoopStreamFile(
+            fs.getFileStatus(finalFiles[1])), 20));
+    Assert.assertEquals(lreader.getCurrentFile(), finalFiles[1]);
 
-    // Read from checkpoint with local stream file name, which does not exist
+    // Read from checkpoint with stream file name, which does not exist
     lreader.initializeCurrentFile(new PartitionCheckpoint(
-        DatabusStreamWaitingReader.getDatabusStreamFileName(collectorName,
-            doesNotExist1), 20));
-    Assert.assertEquals(lreader.getCurrentFile(), databusFiles[0]);
+        HadoopUtil.getOlderFile(streamDir, fs, finalFiles[0]), 20));
+    Assert.assertEquals(lreader.getCurrentFile(), finalFiles[0]);
 
-    // Read from checkpoint with local stream file name, which does not exist
-    // with file timestamp after the stream
-    lreader.initializeCurrentFile(new PartitionCheckpoint(
-        DatabusStreamWaitingReader.getDatabusStreamFileName(collectorName,
-            doesNotExist3), 20));
-    Assert.assertNull(lreader.getCurrentFile());  
+    //Read from startTime in stream directory, before the stream
+    cal.add(Calendar.MINUTE, -2);
+    lreader.initializeCurrentFile(cal.getTime());
+    Assert.assertEquals(lreader.getCurrentFile(), finalFiles[0]);
 
-    // Read from checkpoint with local stream file name, which does not exist
-    // with file timestamp within the stream
-    lreader.initializeCurrentFile(new PartitionCheckpoint(
-        DatabusStreamWaitingReader.getDatabusStreamFileName(collectorName,
-            doesNotExist2), 20));
-    Assert.assertNull(lreader.getCurrentFile());  
+    //Read from startTime within stream directory
+    cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
+        finalFiles[1].getParent()));
+    lreader.initializeCurrentFile(cal.getTime());
+    Assert.assertEquals(lreader.getCurrentFile(), finalFiles[1]);
 
-    //Read from startTime in local stream directory 
-    lreader.initializeCurrentFile(
-        CollectorStreamReader.getDateFromCollectorFile(files[1]));
-    Assert.assertEquals(lreader.getCurrentFile(), databusFiles[1]);
-
-    //Read from startTime in local stream directory, before the stream
-    lreader.initializeCurrentFile(
-        CollectorStreamReader.getDateFromCollectorFile(doesNotExist1));
-    Assert.assertEquals(lreader.getCurrentFile(), databusFiles[0]);
-
-    //Read from startTime in local stream directory, within the stream
-    lreader.initializeCurrentFile(
-        CollectorStreamReader.getDateFromCollectorFile(doesNotExist2));
-    Assert.assertEquals(lreader.getCurrentFile(), databusFiles[1]);
+    //Read from startTime within the stream, but no min directory
+    cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
+        finalFiles[0].getParent()));
+    cal.add(Calendar.MINUTE, 1);
+    lreader.initializeCurrentFile(cal.getTime());
+    Assert.assertEquals(lreader.getCurrentFile(), finalFiles[1]);
 
     //Read from startTime in after the stream
-    lreader.initializeCurrentFile(
-        CollectorStreamReader.getDateFromCollectorFile(doesNotExist3));
+    cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
+        finalFiles[2].getParent()));
+    cal.add(Calendar.MINUTE, 2);
+    lreader.initializeCurrentFile(cal.getTime());
     Assert.assertNull(lreader.getCurrentFile());  
 
     // startFromNextHigher with filename
-    lreader.startFromNextHigher(fs.getFileStatus(databusFiles[1]));
-    Assert.assertEquals(lreader.getCurrentFile(), databusFiles[2]);
+    lreader.startFromNextHigher(fs.getFileStatus(finalFiles[1]));
+    Assert.assertEquals(lreader.getCurrentFile(), finalFiles[2]);
 
-    // startFromNextHigher with date
-    lreader.startFromTimestmp(
-        CollectorStreamReader.getDateFromCollectorFile(files[1]));
-    Assert.assertEquals(lreader.getCurrentFile(), databusFiles[1]);
+    // startFromTimestamp with date
+    cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
+        finalFiles[1].getParent()));
+    lreader.startFromTimestmp(cal.getTime());
+    Assert.assertEquals(lreader.getCurrentFile(), finalFiles[1]);
     
     // startFromBegining 
    lreader.startFromBegining();
-   Assert.assertEquals(lreader.getCurrentFile(), databusFiles[0]);
+   Assert.assertEquals(lreader.getCurrentFile(), finalFiles[0]);
   }
 
   static void readFile(StreamReader reader, int fileNum,
@@ -123,43 +119,50 @@ public abstract class TestAbstractDatabusWaitingReader {
   public void testReadFromStart() throws Exception {
     lreader = new DatabusStreamWaitingReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
-        getStreamsDir(), TextInputFormat.class.getCanonicalName(), conf, 1000, false);
-    lreader.build(CollectorStreamReader.getDateFromCollectorFile(files[0]));
+        getStreamsDir(), TextInputFormat.class.getCanonicalName(), conf, 1000,
+        false);
+    lreader.build(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
+        finalFiles[0].getParent()));
     lreader.initFromStart();
     Assert.assertNotNull(lreader.getCurrentFile());
     lreader.openStream();
-    readFile(lreader, 0, 0, databusFiles[0]);
-    readFile(lreader, 1, 0, databusFiles[1]);
-    readFile(lreader, 2, 0, databusFiles[2]);
+    readFile(lreader, 0, 0, finalFiles[0]);
+    readFile(lreader, 1, 0, finalFiles[1]);
+    readFile(lreader, 2, 0, finalFiles[2]);
     lreader.close();
   }
 
   public void testReadFromCheckpoint() throws Exception {
     lreader = new DatabusStreamWaitingReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
-        getStreamsDir(), TextInputFormat.class.getCanonicalName(), conf, 1000, false);
+        getStreamsDir(), TextInputFormat.class.getCanonicalName(), conf, 1000,
+        false);
     PartitionCheckpoint pcp = new PartitionCheckpoint(
-        DatabusStreamWaitingReader.getDatabusStreamFileName(collectorName, files[1]), 20);
-    lreader.build(DatabusStreamReader.getBuildTimestamp( testStream, 
-        DatabusStreamWaitingReader.getDatabusStreamFileName(collectorName, files[1])));
+        DatabusStreamWaitingReader.getHadoopStreamFile(
+            fs.getFileStatus( finalFiles[1])), 20);
+    lreader.build(DatabusStreamWaitingReader.getBuildTimestamp(streamDir, pcp));
     lreader.initializeCurrentFile(pcp);
     Assert.assertNotNull(lreader.getCurrentFile());
     lreader.openStream();
-    readFile(lreader, 1, 20, databusFiles[1]);
-    readFile(lreader, 2, 0, databusFiles[2]);
+    readFile(lreader, 1, 20, finalFiles[1]);
+    readFile(lreader, 2, 0, finalFiles[2]);
     lreader.close();
   }
 
   public void testReadFromTimeStamp() throws Exception {
     lreader = new DatabusStreamWaitingReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
-        getStreamsDir(), TextInputFormat.class.getCanonicalName(), conf, 1000, false);
-    lreader.build(CollectorStreamReader.getDateFromCollectorFile(files[1]));
-    lreader.initializeCurrentFile(CollectorStreamReader.getDateFromCollectorFile(files[1]));
+        getStreamsDir(), TextInputFormat.class.getCanonicalName(), conf, 1000,
+        false);
+    lreader.build(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
+        finalFiles[1].getParent()));
+    lreader.initializeCurrentFile(
+        DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
+        finalFiles[1].getParent()));
     Assert.assertNotNull(lreader.getCurrentFile());
     lreader.openStream();
-    readFile(lreader, 1, 0, databusFiles[1]);
-    readFile(lreader, 2, 0, databusFiles[2]);
+    readFile(lreader, 1, 0, finalFiles[1]);
+    readFile(lreader, 2, 0, finalFiles[2]);
     lreader.close();
   }
 

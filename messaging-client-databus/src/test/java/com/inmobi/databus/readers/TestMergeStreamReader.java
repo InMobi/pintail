@@ -20,9 +20,10 @@ public class TestMergeStreamReader extends TestAbstractDatabusWaitingReader{
     // initialize config
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
         testStream, new PartitionId(clusterName, collectorName), files, null,
-        databusFiles, 0, 3);
+        finalFiles, 0, 3);
     conf = cluster.getHadoopConf();
     fs = FileSystem.get(conf);
+    streamDir = getStreamsDir();
   }
 
   @AfterTest

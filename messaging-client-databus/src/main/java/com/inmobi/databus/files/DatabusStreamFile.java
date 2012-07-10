@@ -1,13 +1,14 @@
 package com.inmobi.databus.files;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+
 public class DatabusStreamFile implements StreamFile {
 
-  private final String collectorName;
-  private final CollectorFile collectorFile;
-  private final String extension;
-  private String parent;
-  //file creation time
-  private Long timeStamp;
+  private String collectorName;
+  private CollectorFile collectorFile;
+  private String extension;
 
   public DatabusStreamFile(String collectorName,
                            CollectorFile collectorFile,
@@ -15,37 +16,14 @@ public class DatabusStreamFile implements StreamFile {
     this.collectorName = collectorName;
     this.collectorFile = collectorFile;
     this.extension = extension;
-    this.parent = null;
-    this.timeStamp = null;
   }
 
-  public DatabusStreamFile(String collectorName,
-                           CollectorFile collectorFile,
-                           String extension, String parent) {
-    this.collectorName = collectorName;
-    this.collectorFile = collectorFile;
-    this.extension = extension;
-    this.parent = parent;
-    this.timeStamp = null;
+  /**
+   * Used only in case of serialization
+   */
+  public DatabusStreamFile() {
   }
-
-  public DatabusStreamFile(String collectorName,
-                           CollectorFile collectorFile,
-                           String extension, String parent,
-                           Long timeStamp) {
-    this.collectorName = collectorName;
-    this.collectorFile = collectorFile;
-    this.extension = extension;
-    this.parent = parent;
-    this.timeStamp = timeStamp;
-  }
-
   public static DatabusStreamFile create(String streamName, String fileName) {
-    return create(streamName, fileName, null, null);
-  }
-
-  public static DatabusStreamFile create(String streamName, String fileName,
-                                         String parentDir, Long timeStamp) {
     String strs[] = fileName.split(streamName);
     if (strs.length < 2) {
       throw new IllegalArgumentException("Invalid file name:" + fileName);
@@ -64,20 +42,16 @@ public class DatabusStreamFile implements StreamFile {
     CollectorFile collectorFile =  CollectorFile.create(str2[0]);
     String extension = str2[1];
 
-    return new DatabusStreamFile(collectorName, collectorFile, extension,
-    parentDir, timeStamp);
-
+    return new DatabusStreamFile(collectorName, collectorFile, extension);
   }
 
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((parent == null) ? 0 : parent.hashCode());
     result = prime * result + ((collectorFile == null) ? 0 : collectorFile.hashCode());
     result = prime * result + ((collectorName == null) ? 0 : collectorName.hashCode());
     result = prime * result + ((extension == null) ? 0 : extension.hashCode());
-    result = prime * result + ((timeStamp == null) ? 0 : timeStamp.hashCode());
     return result;
   }
 
@@ -93,17 +67,6 @@ public class DatabusStreamFile implements StreamFile {
       return false;
     }
     DatabusStreamFile other = (DatabusStreamFile) obj;
-
-    if (parent != null && other.parent != null) {
-      if (!parent.equals(other.parent)) {
-        return false;
-      }
-    }
-    if (timeStamp != null && other.timeStamp != null) {
-      if (timeStamp.compareTo(other.timeStamp) != 0) {
-        return false;
-      }
-    }
 
     if (collectorFile == null) {
       if (other.collectorFile != null) {
@@ -137,23 +100,6 @@ public class DatabusStreamFile implements StreamFile {
   @Override
   public int compareTo(Object o) {
     DatabusStreamFile other = (DatabusStreamFile)o;
-    int pComp;
-    int tComp;
-    if (parent == null || other.parent == null) {
-      pComp = 0;
-    } else {
-      pComp = parent.compareTo(other.parent);
-    }
-    if (pComp != 0)
-      return pComp;
-    if (timeStamp == null || other.timeStamp == null) {
-      tComp = 0;
-    } else {
-      tComp = timeStamp.compareTo(other.timeStamp);
-    }
-    if (tComp != 0)
-      return tComp;
-
     int cfComp = collectorFile.compareTo(other.collectorFile);
     if ( cfComp== 0) {
       int cnComp = collectorName.compareTo(other.collectorName);
@@ -169,6 +115,22 @@ public class DatabusStreamFile implements StreamFile {
 
   public CollectorFile getCollectorFile() {
     return collectorFile;
+  }
+
+  @Override
+  public void write(DataOutput out) throws IOException {
+    out.writeUTF(collectorName);
+    collectorFile.write(out);
+    out.writeUTF(extension);
+  }
+
+  @Override
+  public void readFields(DataInput in) throws IOException {
+    collectorName = in.readUTF();
+    collectorFile = new CollectorFile();
+    collectorFile.readFields(in);
+    extension = in.readUTF();
+    
   }
 
 }

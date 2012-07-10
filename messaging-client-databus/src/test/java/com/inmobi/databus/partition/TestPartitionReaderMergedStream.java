@@ -2,11 +2,13 @@ package com.inmobi.databus.partition;
 
 import java.io.IOException;
 
+import org.apache.hadoop.fs.FileSystem;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import com.inmobi.databus.partition.PartitionId;
+import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
 public class TestPartitionReaderMergedStream extends TestAbstractClusterReader {
@@ -16,6 +18,10 @@ public class TestPartitionReaderMergedStream extends TestAbstractClusterReader {
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
         testStream, new PartitionId(clusterName, collectorName), files, null,
         databusFiles, 0, 3);
+    fs = FileSystem.get(cluster.getHadoopConf());
+    streamDir = DatabusStreamWaitingReader.getStreamsDir(cluster,
+        testStream);
+
   }
 
   @AfterTest
@@ -41,16 +47,6 @@ public class TestPartitionReaderMergedStream extends TestAbstractClusterReader {
   @Test
   public void testReadFromCheckpointWhichDoesNotExist() throws Exception {
     super.testReadFromCheckpointWhichDoesNotExist();
-  }
-
-  @Test
-  public void testReadFromCheckpointWhichDoesNotExist2() throws Exception {
-    super.testReadFromCheckpointWhichDoesNotExist2();
-  }
-
-  @Test
-  public void testReadFromCheckpointWhichDoesNotExist3() throws Exception {
-    super.testReadFromCheckpointWhichDoesNotExist3();
   }
 
   @Test

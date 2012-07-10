@@ -9,6 +9,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
+import com.inmobi.databus.files.DatabusStreamFile;
 import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.databus.readers.LocalStreamCollectorReader;
 
@@ -57,7 +58,8 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     String error = "Checkpoint file does not exist";
     if (!lReader.isEmpty()) {
       if (lReader.initializeCurrentFile(new PartitionCheckpoint(
-          localStreamFileName, partitionCheckpoint.getLineNum()))) {
+          DatabusStreamFile.create(streamName, localStreamFileName),
+          partitionCheckpoint.getLineNum()))) {
         reader = lReader;
       } else {
         throw new IllegalArgumentException(error);
@@ -91,11 +93,9 @@ public class CollectorReader extends AbstractPartitionStreamReader {
                 partitionId.getCollector(), fileName);
         initializeCurrentFileFromCheckpointLocalStream(localStreamFileName);
       }
-    } else if (lReader.isStreamFile(fileName)) {
+    } else {
       LOG.debug("Checkpointed file is in local stream directory");
       initializeCurrentFileFromCheckpointLocalStream(fileName);
-    } else {
-      LOG.warn("Would never reach here");
     }
   }
 
@@ -106,8 +106,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       if (startTime != null) {
         lReader.build(startTime);
         initializeCurrentFileFromTimeStamp(startTime);
-      } else if (partitionCheckpoint != null &&
-          partitionCheckpoint.getFileName() != null) {
+      } else if (partitionCheckpoint != null) {
           lReader.build(LocalStreamCollectorReader.getBuildTimestamp(
             streamName, partitionId.getCollector(), partitionCheckpoint));
         initializeCurrentFileFromCheckpoint();

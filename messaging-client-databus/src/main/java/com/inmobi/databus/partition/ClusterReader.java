@@ -15,9 +15,9 @@ public class ClusterReader extends AbstractPartitionStreamReader {
 
   private static final Log LOG = LogFactory.getLog(PartitionReader.class);
 
-  private final String streamName;
   private final PartitionCheckpoint partitionCheckpoint;
-  private Date startTime;
+  private final Date startTime;
+  private final Path streamDir;
 
   ClusterReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, FileSystem fs,
@@ -26,7 +26,7 @@ public class ClusterReader extends AbstractPartitionStreamReader {
       boolean noNewFiles)
           throws IOException {
     this.startTime = startTime;
-    this.streamName = streamName;
+    this.streamDir = streamDir;
     this.partitionCheckpoint = partitionCheckpoint;
 
     reader = new DatabusStreamWaitingReader(partitionId, fs, streamName,
@@ -41,11 +41,10 @@ public class ClusterReader extends AbstractPartitionStreamReader {
         LOG.debug("Did not find the file associated with timestamp");
         reader.startFromTimestmp(startTime);
       }
-    } else if (partitionCheckpoint != null &&
-        partitionCheckpoint.getFileName() != null) {
+    } else if (partitionCheckpoint != null) {
       ((DatabusStreamWaitingReader)reader).build(
-          DatabusStreamWaitingReader.getBuildTimestamp(streamName,
-          partitionCheckpoint.getFileName()));
+          DatabusStreamWaitingReader.getBuildTimestamp(streamDir,
+          partitionCheckpoint));
       if (!reader.isEmpty()) {
         if (!reader.initializeCurrentFile(partitionCheckpoint)) {
           throw new IllegalArgumentException("Checkpoint file does not exist");
