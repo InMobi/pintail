@@ -24,8 +24,6 @@ import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.util.ReflectionUtils;
 
 import com.inmobi.databus.Cluster;
-import com.inmobi.databus.files.CollectorFile;
-import com.inmobi.databus.files.DatabusStreamFile;
 import com.inmobi.databus.files.FileMap;
 import com.inmobi.databus.files.StreamFile;
 import com.inmobi.databus.partition.PartitionCheckpoint;
@@ -104,7 +102,7 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
     boolean ret = super.initializeCurrentFile(checkpoint);
     if (!ret) {
       LOG.info("Could not find checkpointed file: " + checkpoint.getStreamFile());
-      if (isBeforeStream(checkpoint.getStreamFile())) {
+      if (isBeforeStream((T)checkpoint.getStreamFile())) {
         LOG.info("Reading from start of the stream");
         return initFromStart();
       } else {
