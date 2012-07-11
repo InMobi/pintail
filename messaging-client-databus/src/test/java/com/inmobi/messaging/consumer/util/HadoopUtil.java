@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -13,6 +15,25 @@ import com.inmobi.databus.files.HadoopStreamFile;
 import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 
 public class HadoopUtil {
+  static final Log LOG = LogFactory.getLog(HadoopUtil.class);
+
+  private static int increment = 1;
+  public static String[] files = new String[12];
+  static Date startCommitTime;
+  private static String fileNamePrefix = "datafile";
+  static {
+    Calendar now = Calendar.getInstance();
+    now.add(Calendar.MINUTE, - (files.length + 5));
+    startCommitTime = now.getTime();
+    LOG.debug("startCommitTime:" + startCommitTime);
+    for (int i = 0; i < files.length; i++) {
+      files[i] = fileNamePrefix + i;
+    }
+  }
+
+  public static void incrementCommitTime() {
+    increment++;
+  }
 
   public static void setUpHadoopFiles(Path finalDir, Configuration conf,
       String[] files, Path[] finalFiles)
@@ -28,8 +49,10 @@ public class HadoopUtil {
         MessageUtil.createMessageSequenceFile(file, fs, tmpDataDir, i, conf);
         i += 100;
         Path movedPath = moveDataFile(fs, tmpDataDir, file, finalDir);
-        finalFiles[j] = movedPath;
-        j++;
+        if (finalFiles != null) {
+          finalFiles[j] = movedPath;
+          j++;
+        }
       }
     }
   }
@@ -90,7 +113,31 @@ public class HadoopUtil {
   private static Path getTargetPath(String fileName, Path streamDirPrefix) 
       throws IOException {
     Path streamDir = DatabusStreamWaitingReader.getMinuteDirPath(streamDirPrefix,
-        TestUtil.getCommitDateForCollectorFile(fileName));
+        getCommitDateForFile(fileName));
     return new Path(streamDir, fileName);
+  }
+
+  static Date getCommitDateForFile(String fileName)
+      throws IOException {
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(startCommitTime);
+    LOG.debug("index for " + fileName + ":" + getIndex(fileName));
+    cal.add(Calendar.MINUTE, getIndex(fileName));
+    cal.add(Calendar.MINUTE, increment);
+    LOG.debug("Commit time for file:" + fileName + " is " + cal.getTime());
+    return cal.getTime();
+  }
+
+  private static int getIndex(String fileName) {
+    try {
+      String indexStr = fileName.substring(fileNamePrefix.length());
+      LOG.debug("indexStr:" + indexStr);
+      if (indexStr != null && !indexStr.isEmpty()) {
+        return Integer.parseInt(indexStr);
+      }
+    } catch (Exception e) {
+      LOG.debug("Exception while getting file index for " + fileName, e);
+    }
+    return 1;
   }
 }

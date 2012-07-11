@@ -58,6 +58,7 @@ public class TestUtil {
   public static void incrementCommitTime() {
     increment++;
   }
+
   public static Path moveFileToStreamLocal(FileSystem fs, String streamName,
       String collectorName, Cluster cluster, Path collectorDir,
       String collectorfileName)

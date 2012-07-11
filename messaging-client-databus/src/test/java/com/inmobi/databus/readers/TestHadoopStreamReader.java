@@ -16,6 +16,8 @@ public class TestHadoopStreamReader extends TestAbstractDatabusWaitingReader{
 
   @BeforeTest
   public void setup() throws Exception {
+    files = new String[] {HadoopUtil.files[1], HadoopUtil.files[3],
+        HadoopUtil.files[5]};
     conf = new Configuration();
     fs = FileSystem.getLocal(conf);
     streamDir = new Path("/tmp/test/hadoop/" + this.getClass().getSimpleName(),

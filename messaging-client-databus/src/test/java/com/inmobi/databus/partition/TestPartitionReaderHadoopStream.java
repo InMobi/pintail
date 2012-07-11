@@ -13,9 +13,12 @@ import com.inmobi.messaging.consumer.databus.DataEncodingType;
 import com.inmobi.messaging.consumer.util.HadoopUtil;
 
 public class TestPartitionReaderHadoopStream extends TestAbstractClusterReader2 {
+
   @BeforeTest
   public void setup() throws Exception {
     // setup fs
+    files = new String[] {HadoopUtil.files[1], HadoopUtil.files[3],
+        HadoopUtil.files[5]};
     fs = FileSystem.getLocal(conf);
     streamDir = new Path("/tmp/test/hadoop/" + this.getClass().getSimpleName(),
          testStream).makeQualified(fs);

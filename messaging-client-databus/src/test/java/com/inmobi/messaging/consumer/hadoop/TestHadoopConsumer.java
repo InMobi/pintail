@@ -14,7 +14,6 @@ import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.consumer.util.ConsumerUtil;
 import com.inmobi.messaging.consumer.util.HadoopUtil;
-import com.inmobi.messaging.consumer.util.TestUtil;
 
 public class TestHadoopConsumer {
 
@@ -41,8 +40,8 @@ public class TestHadoopConsumer {
   @BeforeTest
   public void setup() throws Exception {
     consumerName = "c1";
-    dataFiles = new String[] {TestUtil.files[0], TestUtil.files[1],
-        TestUtil.files[2]};
+    dataFiles = new String[] {HadoopUtil.files[0], HadoopUtil.files[1],
+        HadoopUtil.files[2]};
     // setup 
     ClientConfig config = loadConfig();    
     testConsumer = new HadoopConsumer();
@@ -57,6 +56,8 @@ public class TestHadoopConsumer {
       HadoopUtil.setupHadoopCluster(
           conf, dataFiles, finalPaths[i], new Path(rootDirs[i], testStream));
     }
+    HadoopUtil.setUpHadoopFiles(new Path(rootDirs[0], testStream), conf, 
+        new String[] {"_SUCCESS", "_DONE"}, null);
   }
 
   @Test
@@ -105,6 +106,7 @@ public class TestHadoopConsumer {
   public void cleanup() throws IOException {
     FileSystem lfs = FileSystem.getLocal(conf);
     for (Path rootDir : rootDirs) {
+      System.out.println("Cleaning up:" + rootDir);
       lfs.delete(rootDir, true);
     }
   }
