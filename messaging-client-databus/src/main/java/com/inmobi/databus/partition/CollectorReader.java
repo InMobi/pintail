@@ -1,5 +1,7 @@
 package com.inmobi.databus.partition;
 
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.Date;
 
@@ -8,6 +10,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.Text;
 
 import com.inmobi.databus.files.DatabusStreamFile;
 import com.inmobi.databus.readers.CollectorStreamReader;
@@ -117,9 +120,9 @@ public class CollectorReader extends AbstractPartitionStreamReader {
           " currentLineNum:" + reader.getCurrentLineNum());
   }
 
-  public String readLine() throws IOException, InterruptedException {
+  public byte[] readLine() throws IOException, InterruptedException {
     assert (reader != null);
-    String line = reader.readLine();
+    byte[] line = reader.readLine();
     if (line == null) {
       if (closed) {
         return line;
@@ -152,6 +155,17 @@ public class CollectorReader extends AbstractPartitionStreamReader {
           LOG.info("Switching to local stream as the file got moved");
           reader = lReader;
         }
+      }
+    } else {
+      if (reader == lReader) {
+        if (line != null) {
+          Text text = new Text();
+          ByteArrayInputStream bais = new ByteArrayInputStream(line);
+          text.readFields(new DataInputStream(bais));
+          return text.getBytes();
+        }
+      } else { // reader should be cReader
+        return line;
       }
     }
     return line;

@@ -1,5 +1,7 @@
 package com.inmobi.messaging.consumer.util;
 
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.io.IOException;
 
 import org.apache.commons.codec.binary.Base64;
@@ -47,4 +49,10 @@ public class MessageUtil {
     TestUtil.LOG.debug("Created sequence data file:" + file);
   }
 
+  public static Text getTextMessage(byte[] line) throws IOException {
+    Text text = new Text();
+    ByteArrayInputStream bais = new ByteArrayInputStream(line);
+    text.readFields(new DataInputStream(bais));
+    return text;
+  }
 }

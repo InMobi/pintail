@@ -33,7 +33,7 @@ public class ConsumerUtil {
 
     for (int i = 0; i < totalMessages/2; i++) {
       Message msg = consumer.next();
-      String msgStr = new String(msg.getData().array());
+      String msgStr = getMessage(msg.getData().array(), hadoop);
       for (int m = 0;  m < numCounters; m++) {
         if (msgStr.equals(MessageUtil.constructMessage(counter[m]))) {
           counter[m]++;
@@ -48,7 +48,7 @@ public class ConsumerUtil {
 
     for (int i = 0; i < totalMessages/2; i++) {
       Message msg = consumer.next();
-      String msgStr = new String(msg.getData().array());
+      String msgStr = getMessage(msg.getData().array(), hadoop);
       for (int m = 0;  m < numCounters; m++) {
         if (msgStr.equals(MessageUtil.constructMessage(counter[m]))) {
           counter[m]++;
@@ -64,7 +64,7 @@ public class ConsumerUtil {
 
     for (int i = 0; i < totalMessages/2; i++) {
       Message msg = consumer.next();
-      String msgStr = new String(msg.getData().array());
+      String msgStr = getMessage(msg.getData().array(), hadoop);
       for (int m = 0;  m < numCounters; m++) {
         if (msgStr.equals(MessageUtil.constructMessage(markedcounter[m]))) {
           markedcounter[m]++;
@@ -87,6 +87,14 @@ public class ConsumerUtil {
     }
   }
 
+  private static String getMessage(byte[] array, boolean hadoop) throws IOException {
+    if (hadoop) {
+      return MessageUtil.getTextMessage(array).toString();
+    } else {
+      return new String(array);
+    }
+  }
+
   public static void testMarkAndResetWithStartTime(ClientConfig config,
       String streamName, String consumerName, Date startTime, boolean hadoop)
           throws Exception {
@@ -100,13 +108,13 @@ public class ConsumerUtil {
     int i;
     for (i = 100; i < 120; i++) {
       Message msg = consumer.next();
-      Assert.assertEquals(new String(msg.getData().array()),
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
     consumer.mark(); 
     for (i = 120; i < 130; i++) {
       Message msg = consumer.next();
-      Assert.assertEquals(new String(msg.getData().array()),
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
 
@@ -114,7 +122,7 @@ public class ConsumerUtil {
 
     for (i = 120; i < 240; i++) {
       Message msg = consumer.next();
-      Assert.assertEquals(new String(msg.getData().array()),
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
 
@@ -124,14 +132,14 @@ public class ConsumerUtil {
 
     for (i = 240; i < 260; i++) {
       Message msg = consumer.next();
-      Assert.assertEquals(new String(msg.getData().array()),
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
 
     consumer.reset();
     for (i = 240; i < 300; i++) {
       Message msg = consumer.next();
-      Assert.assertEquals(new String(msg.getData().array()),
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
 
@@ -144,7 +152,7 @@ public class ConsumerUtil {
 
     for (i = 240; i < 300; i++) {
       Message msg = consumer.next();
-      Assert.assertEquals(new String(msg.getData().array()),
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
     consumer.mark();
@@ -164,13 +172,13 @@ public class ConsumerUtil {
     int i;
     for (i = 0; i < 20; i++) {
       Message msg = consumer.next();
-      Assert.assertEquals(new String(msg.getData().array()),
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
     consumer.mark(); 
     for (i = 20; i < 30; i++) {
       Message msg = consumer.next();
-      Assert.assertEquals(new String(msg.getData().array()),
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
 
@@ -178,7 +186,7 @@ public class ConsumerUtil {
 
     for (i = 20; i < 140; i++) {
       Message msg = consumer.next();
-      Assert.assertEquals(new String(msg.getData().array()),
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
 
@@ -188,14 +196,14 @@ public class ConsumerUtil {
 
     for (i = 140; i < 160; i++) {
       Message msg = consumer.next();
-      Assert.assertEquals(new String(msg.getData().array()),
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
 
     consumer.reset();
     for (i = 140; i < 300; i++) {
       Message msg = consumer.next();
-      Assert.assertEquals(new String(msg.getData().array()),
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
 
@@ -208,7 +216,7 @@ public class ConsumerUtil {
 
     for (i = 140; i < 300; i++) {
       Message msg = consumer.next();
-      Assert.assertEquals(new String(msg.getData().array()),
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
     consumer.mark();

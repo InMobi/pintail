@@ -81,8 +81,8 @@ public class LocalStreamCollectorReader extends
     };
   }
   
-  public String readLine() throws IOException {
-    String line = readNextLine();
+  public byte[] readLine() throws IOException {
+    byte[] line = readNextLine();
     while (line == null) { // reached end of file
       if (closed) {
         LOG.info("Stream closed");

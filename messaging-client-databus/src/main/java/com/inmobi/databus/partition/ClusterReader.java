@@ -1,5 +1,7 @@
 package com.inmobi.databus.partition;
 
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.Date;
 
@@ -8,6 +10,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.Text;
 
 import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 
@@ -18,16 +21,18 @@ public class ClusterReader extends AbstractPartitionStreamReader {
   private final PartitionCheckpoint partitionCheckpoint;
   private final Date startTime;
   private final Path streamDir;
+  private final boolean isDatabusData;
 
   ClusterReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, FileSystem fs,
       String streamName, Path streamDir, Configuration conf,
       String inputFormatClass, Date startTime, long waitTimeForFileCreate,
-      boolean noNewFiles)
+      boolean isDatabusData, boolean noNewFiles)
           throws IOException {
     this.startTime = startTime;
     this.streamDir = streamDir;
     this.partitionCheckpoint = partitionCheckpoint;
+    this.isDatabusData = isDatabusData;
 
     reader = new DatabusStreamWaitingReader(partitionId, fs, streamName,
         streamDir, inputFormatClass, conf, waitTimeForFileCreate, noNewFiles);
@@ -57,5 +62,16 @@ public class ClusterReader extends AbstractPartitionStreamReader {
     }
     LOG.info("Intialized currentFile:" + reader.getCurrentFile() +
         " currentLineNum:" + reader.getCurrentLineNum());
+  }
+
+  public byte[] readLine() throws IOException, InterruptedException {
+    byte[] line = reader.readLine();
+    if (line != null && isDatabusData) {
+      Text text = new Text();
+      ByteArrayInputStream bais = new ByteArrayInputStream(line);
+      text.readFields(new DataInputStream(bais));
+      return text.getBytes();
+    } 
+    return line;
   }
 }

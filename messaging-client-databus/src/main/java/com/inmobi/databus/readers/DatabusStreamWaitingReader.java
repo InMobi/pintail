@@ -62,8 +62,8 @@ public class DatabusStreamWaitingReader
   }
 
   @Override
-  public String readLine() throws IOException, InterruptedException {
-    String line = readNextLine();
+  public byte[] readLine() throws IOException, InterruptedException {
+    byte[] line = readNextLine();
     while (line == null) { // reached end of file
       if (closed) {
         LOG.info("Stream closed");

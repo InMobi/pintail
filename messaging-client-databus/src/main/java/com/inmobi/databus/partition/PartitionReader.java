@@ -72,14 +72,14 @@ public class PartitionReader {
             DatabusStreamReader.getStreamsLocalDir(cluster, streamName), 
             cluster.getHadoopConf(),
             TextInputFormat.class.getCanonicalName(),
-            startTime, waitTimeForFileCreate, noNewFiles);
+            startTime, waitTimeForFileCreate, true, noNewFiles);
       } else {
         reader = new ClusterReader(partitionId, partitionCheckpoint,
             fs, streamName,
             DatabusStreamReader.getStreamsDir(cluster, streamName),
             cluster.getHadoopConf(),
             TextInputFormat.class.getCanonicalName(),
-            startTime, waitTimeForFileCreate, noNewFiles);        
+            startTime, waitTimeForFileCreate, true, noNewFiles);        
       }
     } else {
       reader = new CollectorReader(partitionId, partitionCheckpoint, fs,
@@ -107,7 +107,7 @@ public class PartitionReader {
     this(partitionId, partitionCheckpoint, buffer, startTime, dataEncoding);
     reader = new ClusterReader(partitionId, partitionCheckpoint,
         fs, streamName, streamDir, conf, inputFormatClass,
-        startTime, waitTimeForFileCreate, noNewFiles);
+        startTime, waitTimeForFileCreate, false, noNewFiles);
     // initialize cluster and its directories
     LOG.info("Partition reader initialized with partitionId:" + partitionId +
         " checkPoint:" + partitionCheckpoint +  
@@ -203,14 +203,14 @@ public class PartitionReader {
       LOG.info("Reading file " + reader.getCurrentFile() + 
           " and lineNum:" + reader.getCurrentLineNum());
       while (!stopped) {
-        String line = reader.readLine();
+        byte[] line = reader.readLine();
         if (line != null) {
           // add the data to queue
           byte[] data;
           if (dataEncoding.equals(DataEncodingType.BASE64)) {
             data = Base64.decodeBase64(line);
           } else {
-            data = line.getBytes();
+            data = line;
           }
           buffer.put(new QueueEntry(new Message(
               ByteBuffer.wrap(data)), partitionId,

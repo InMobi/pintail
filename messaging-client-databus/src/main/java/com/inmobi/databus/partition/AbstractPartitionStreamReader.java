@@ -40,7 +40,7 @@ public abstract class AbstractPartitionStreamReader implements
     reader.closeStream();    
   }
 
-  public String readLine() throws IOException, InterruptedException {
+  public byte[] readLine() throws IOException, InterruptedException {
     return reader.readLine();
   }
 

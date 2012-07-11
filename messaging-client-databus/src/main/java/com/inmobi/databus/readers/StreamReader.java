@@ -172,9 +172,9 @@ public abstract class StreamReader<T extends StreamFile> {
   /** 
    * Returns null when reached end of stream 
    */
-  public abstract String readLine() throws IOException, InterruptedException;
+  public abstract byte[] readLine() throws IOException, InterruptedException;
 
-  protected abstract String readRawLine() throws IOException;
+  protected abstract byte[] readRawLine() throws IOException;
 
   /**
    * Skip the number of lines passed.
@@ -184,7 +184,7 @@ public abstract class StreamReader<T extends StreamFile> {
   protected long skipLines(long numLines) throws IOException {
     long lineNum = 0;
     while (lineNum != numLines) {
-      String line = readRawLine();
+      byte[] line = readRawLine();
       if (line == null) {
         break;
       }
@@ -203,8 +203,8 @@ public abstract class StreamReader<T extends StreamFile> {
    * 
    * @throws IOException
    */
-  protected String readNextLine() throws IOException {
-    String line = readRawLine();
+  protected byte[] readNextLine() throws IOException {
+    byte[] line = readRawLine();
     if (line != null) {
       currentLineNum++;
     }

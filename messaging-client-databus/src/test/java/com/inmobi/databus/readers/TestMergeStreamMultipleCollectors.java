@@ -26,6 +26,7 @@ public class TestMergeStreamMultipleCollectors {
   Path[] databusFiles1 = new Path[3];
   Path[] databusFiles2 = new Path[3];
   Configuration conf;
+  boolean encoded = true;
 
   @BeforeTest
   public void setup() throws Exception {
@@ -48,12 +49,18 @@ public class TestMergeStreamMultipleCollectors {
     reader.initFromStart();
     Assert.assertNotNull(reader.getCurrentFile());
     reader.openStream();
-    TestAbstractDatabusWaitingReader.readFile(reader, 0, 0, databusFiles1[0]);
-    TestAbstractDatabusWaitingReader.readFile(reader, 0, 0, databusFiles2[0]);
-    TestAbstractDatabusWaitingReader.readFile(reader, 1, 0, databusFiles1[1]);
-    TestAbstractDatabusWaitingReader.readFile(reader, 1, 0, databusFiles2[1]);
-    TestAbstractDatabusWaitingReader.readFile(reader, 2, 0, databusFiles1[2]);
-    TestAbstractDatabusWaitingReader.readFile(reader, 2, 0, databusFiles2[2]);
+    TestAbstractDatabusWaitingReader.readFile(reader, 0, 0, databusFiles1[0],
+        encoded);
+    TestAbstractDatabusWaitingReader.readFile(reader, 0, 0, databusFiles2[0],
+        encoded);
+    TestAbstractDatabusWaitingReader.readFile(reader, 1, 0, databusFiles1[1],
+        encoded);
+    TestAbstractDatabusWaitingReader.readFile(reader, 1, 0, databusFiles2[1],
+        encoded);
+    TestAbstractDatabusWaitingReader.readFile(reader, 2, 0, databusFiles1[2],
+        encoded);
+    TestAbstractDatabusWaitingReader.readFile(reader, 2, 0, databusFiles2[2],
+        encoded);
     reader.close();
   }
 }

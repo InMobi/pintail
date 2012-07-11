@@ -115,7 +115,7 @@ public class TestLocalStreamCollectorReader {
   private void readFile(int fileNum, int startIndex) throws Exception {
     int fileIndex = fileNum * 100 ;
     for (int i = startIndex; i < 100; i++) {
-      String line = lreader.readLine();
+      byte[] line = lreader.readLine();
       Assert.assertNotNull(line);
       Assert.assertEquals(new String(Base64.decodeBase64(line)),
           MessageUtil.constructMessage(fileIndex + i));

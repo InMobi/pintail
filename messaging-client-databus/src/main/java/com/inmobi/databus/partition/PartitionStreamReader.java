@@ -14,7 +14,7 @@ public interface PartitionStreamReader {
 
   void openStream() throws IOException;
   
-  String readLine() throws IOException, InterruptedException;
+  byte[] readLine() throws IOException, InterruptedException;
   
   void closeStream() throws IOException;
   

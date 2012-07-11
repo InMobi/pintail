@@ -1,5 +1,7 @@
 package com.inmobi.databus.readers;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -16,6 +18,7 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
+import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapred.FileSplit;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordReader;
@@ -39,7 +42,10 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
   private InputFormat<Object, Object> input;
   private Configuration conf;
   private Date buildTimestamp;
-  
+  private Object msgKey;
+  private Object msgValue;
+  private ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
   protected DatabusStreamReader(PartitionId partitionId, FileSystem fs,
       String streamName, Path streamDir, String inputFormatClass,
       Configuration conf, boolean noNewFiles)
@@ -101,8 +107,9 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
       throws IOException {
     boolean ret = super.initializeCurrentFile(checkpoint);
     if (!ret) {
-      LOG.info("Could not find checkpointed file: " + checkpoint.getStreamFile());
-      if (isBeforeStream((T)checkpoint.getStreamFile())) {
+      T streamFile = (T)checkpoint.getStreamFile();
+      LOG.info("Could not find checkpointed file: " + streamFile);
+      if (isBeforeStream(streamFile)) {
         LOG.info("Reading from start of the stream");
         return initFromStart();
       } else {
@@ -126,6 +133,9 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
             status.getLen(), new String[0]);
         recordReader = input.getRecordReader(currentFileSplit, new JobConf(conf),
             Reporter.NULL);
+        msgKey = recordReader.createKey();
+        msgValue = recordReader.createValue();
+        assert(msgValue instanceof Writable);
         skipLines(currentLineNum);
       } else {
         LOG.info("CurrentFile:" + getCurrentFile() + " does not exist");        
@@ -143,13 +153,13 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
     currentFileSplit = null;
   }
 
-  protected String readRawLine() throws IOException {
+  protected byte[] readRawLine() throws IOException {
     if (recordReader != null) {
-      Object key = recordReader.createKey();
-      Object value = recordReader.createValue();
-      boolean ret = recordReader.next(key, value);
+      boolean ret = recordReader.next(msgKey, msgValue);
       if (ret) {
-        return value.toString();
+        baos.reset();
+        ((Writable)msgValue).write(new DataOutputStream(baos));
+        return baos.toByteArray();
       }
     }
     return null;

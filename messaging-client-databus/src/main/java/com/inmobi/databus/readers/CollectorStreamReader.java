@@ -125,13 +125,18 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     }
   }
 
-  protected String readRawLine() throws IOException {
-    return reader.readLine();
+  protected byte[] readRawLine() throws IOException {
+    String line = reader.readLine();
+    if (line != null) {
+      return line.getBytes();
+    } else {
+      return null;
+    }
   }
 
-  protected String readNextLine()
+  protected byte[] readNextLine()
       throws IOException {
-    String line = null;
+    byte[] line = null;
     if (inStream != null) {
       line = super.readNextLine();
       currentOffset = inStream.getPos();
@@ -155,8 +160,8 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     }
   }
 
-  public String readLine() throws IOException, InterruptedException {
-    String line = readNextLine();
+  public byte[] readLine() throws IOException, InterruptedException {
+    byte[] line = readNextLine();
     while (line == null) { // reached end of file?
       if (closed) {
         LOG.info("Stream closed");

@@ -1,15 +1,15 @@
 package com.inmobi.databus.readers;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Calendar;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapred.TextInputFormat;
+import org.apache.hadoop.io.Text;
 import org.testng.Assert;
-import com.inmobi.databus.Cluster;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.consumer.util.HadoopUtil;
@@ -23,16 +23,16 @@ public abstract class TestAbstractDatabusWaitingReader {
   protected static final String clusterName = "testCluster";
   protected PartitionId partitionId = new PartitionId(clusterName, null);
   protected DatabusStreamWaitingReader lreader;
-  protected Cluster cluster;
   protected String[] files = new String[] {TestUtil.files[1], TestUtil.files[3],
       TestUtil.files[5]};
   protected Path[] finalFiles = new Path[3];
   protected FileSystem fs;
   protected Configuration conf;
   protected Path streamDir;
+  protected String inputFormatClass;
+  protected boolean encoded;
 
   public void cleanup() throws IOException {
-    TestUtil.cleanupCluster(cluster);
   }
 
   abstract Path getStreamsDir();
@@ -40,8 +40,8 @@ public abstract class TestAbstractDatabusWaitingReader {
   public void testInitialize() throws Exception {
     // Read from start
     lreader = new DatabusStreamWaitingReader(partitionId,
-        FileSystem.get(cluster.getHadoopConf()), testStream,
-        streamDir, TextInputFormat.class.getCanonicalName(), conf, 1000,
+        fs, testStream,
+        streamDir, inputFormatClass, conf, 1000,
         false);
     Calendar cal = Calendar.getInstance();
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
@@ -103,14 +103,20 @@ public abstract class TestAbstractDatabusWaitingReader {
   }
 
   static void readFile(StreamReader reader, int fileNum,
-      int startIndex, Path filePath)
+      int startIndex, Path filePath, boolean encoded)
       throws Exception {
     int fileIndex = fileNum * 100 ;
     for (int i = startIndex; i < 100; i++) {
-      String line = reader.readLine();
+      byte[] line = reader.readLine();
+      Text text = MessageUtil.getTextMessage(line);
       Assert.assertNotNull(line);
-      Assert.assertEquals(new String(Base64.decodeBase64(line)),
-          MessageUtil.constructMessage(fileIndex + i));
+      if (encoded) {
+        Assert.assertEquals(new String(Base64.decodeBase64(text.getBytes())),
+            MessageUtil.constructMessage(fileIndex + i));
+      } else {
+        Assert.assertEquals(text,
+            new Text(MessageUtil.constructMessage(fileIndex + i)));        
+      }
     }
     Assert.assertEquals(reader.getCurrentFile(), filePath);
   }
@@ -118,24 +124,23 @@ public abstract class TestAbstractDatabusWaitingReader {
 
   public void testReadFromStart() throws Exception {
     lreader = new DatabusStreamWaitingReader(partitionId,
-        FileSystem.get(cluster.getHadoopConf()), testStream,
-        getStreamsDir(), TextInputFormat.class.getCanonicalName(), conf, 1000,
+        fs, testStream,
+        getStreamsDir(), inputFormatClass , conf, 1000,
         false);
     lreader.build(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         finalFiles[0].getParent()));
     lreader.initFromStart();
     Assert.assertNotNull(lreader.getCurrentFile());
     lreader.openStream();
-    readFile(lreader, 0, 0, finalFiles[0]);
-    readFile(lreader, 1, 0, finalFiles[1]);
-    readFile(lreader, 2, 0, finalFiles[2]);
+    readFile(lreader, 0, 0, finalFiles[0], encoded);
+    readFile(lreader, 1, 0, finalFiles[1], encoded);
+    readFile(lreader, 2, 0, finalFiles[2], encoded);
     lreader.close();
   }
 
   public void testReadFromCheckpoint() throws Exception {
     lreader = new DatabusStreamWaitingReader(partitionId,
-        FileSystem.get(cluster.getHadoopConf()), testStream,
-        getStreamsDir(), TextInputFormat.class.getCanonicalName(), conf, 1000,
+        fs, testStream, getStreamsDir(), inputFormatClass, conf, 1000,
         false);
     PartitionCheckpoint pcp = new PartitionCheckpoint(
         DatabusStreamWaitingReader.getHadoopStreamFile(
@@ -144,15 +149,14 @@ public abstract class TestAbstractDatabusWaitingReader {
     lreader.initializeCurrentFile(pcp);
     Assert.assertNotNull(lreader.getCurrentFile());
     lreader.openStream();
-    readFile(lreader, 1, 20, finalFiles[1]);
-    readFile(lreader, 2, 0, finalFiles[2]);
+    readFile(lreader, 1, 20, finalFiles[1], encoded);
+    readFile(lreader, 2, 0, finalFiles[2], encoded);
     lreader.close();
   }
 
   public void testReadFromTimeStamp() throws Exception {
     lreader = new DatabusStreamWaitingReader(partitionId,
-        FileSystem.get(cluster.getHadoopConf()), testStream,
-        getStreamsDir(), TextInputFormat.class.getCanonicalName(), conf, 1000,
+        fs, testStream, getStreamsDir(), inputFormatClass, conf, 1000,
         false);
     lreader.build(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         finalFiles[1].getParent()));
@@ -161,8 +165,8 @@ public abstract class TestAbstractDatabusWaitingReader {
         finalFiles[1].getParent()));
     Assert.assertNotNull(lreader.getCurrentFile());
     lreader.openStream();
-    readFile(lreader, 1, 0, finalFiles[1]);
-    readFile(lreader, 2, 0, finalFiles[2]);
+    readFile(lreader, 1, 0, finalFiles[1], encoded);
+    readFile(lreader, 2, 0, finalFiles[2], encoded);
     lreader.close();
   }
 
