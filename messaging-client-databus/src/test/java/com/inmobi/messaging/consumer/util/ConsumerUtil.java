@@ -24,7 +24,8 @@ public class ConsumerUtil {
     for (int i = 0; i <numCounters; i++) {
       counter[i] = 0;
     }
-    int[] markedcounter = new int[numCounters];
+    int[] markedcounter1 = new int[numCounters];
+    int[] markedcounter2 = new int[numCounters];
     AbstractMessagingDatabusConsumer consumer = createConsumer(hadoop);
 
     consumer.init(streamName, consumerName, null, config);
@@ -42,8 +43,12 @@ public class ConsumerUtil {
       }
     }
     consumer.mark();
+    Checkpoint lastCheckpoint = new Checkpoint(
+        consumer.getCurrentCheckpoint().toBytes());
+
     for (int i = 0; i < numCounters; i++) {
-      markedcounter[i] = counter[i];
+      markedcounter1[i] = counter[i];
+      markedcounter2[i] = counter[i];
     }
 
     for (int i = 0; i < totalMessages/2; i++) {
@@ -66,17 +71,39 @@ public class ConsumerUtil {
       Message msg = consumer.next();
       String msgStr = getMessage(msg.getData().array(), hadoop);
       for (int m = 0;  m < numCounters; m++) {
-        if (msgStr.equals(MessageUtil.constructMessage(markedcounter[m]))) {
-          markedcounter[m]++;
+        if (msgStr.equals(MessageUtil.constructMessage(markedcounter1[m]))) {
+          markedcounter1[m]++;
           break;
         }
       }
     }
 
     for (int i= 0; i < numCounters; i++) {
-      Assert.assertEquals(markedcounter[i], numDataFiles * numMessagesPerFile);
+      Assert.assertEquals(markedcounter1[i], numDataFiles * numMessagesPerFile);
     }
     consumer.close();
+    
+    // test checkpoint and consumer crash
+    consumer = createConsumer(hadoop);
+
+    consumer.init(streamName, consumerName, null, config);
+    Assert.assertEquals(consumer.getCurrentCheckpoint(), lastCheckpoint);
+    for (int i = 0; i < totalMessages/2; i++) {
+      Message msg = consumer.next();
+      String msgStr = getMessage(msg.getData().array(), hadoop);
+      for (int m = 0;  m < numCounters; m++) {
+        if (msgStr.equals(MessageUtil.constructMessage(markedcounter2[m]))) {
+          markedcounter2[m]++;
+          break;
+        }
+      }
+    }
+
+    for (int i= 0; i < numCounters; i++) {
+      Assert.assertEquals(markedcounter2[i], numDataFiles * numMessagesPerFile);
+    }
+    consumer.close();
+    
   }
 
   private static AbstractMessagingDatabusConsumer createConsumer(boolean hadoop) {
