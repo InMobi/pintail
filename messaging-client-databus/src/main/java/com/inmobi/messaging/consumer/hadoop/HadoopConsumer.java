@@ -36,7 +36,8 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
     String rootDirStr = config.getString(rootDirsConfig);
     String[] rootDirStrs;
     if (rootDirStr == null) {
-      throw new IllegalArgumentException("Invalid root dir" + rootDirStr);
+      throw new IllegalArgumentException("Missing root dir configuration:" 
+          + rootDirsConfig);
     } else {
       rootDirStrs = rootDirStr.split(",");
     }
