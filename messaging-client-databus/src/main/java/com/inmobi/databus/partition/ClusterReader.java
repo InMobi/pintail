@@ -65,7 +65,7 @@ public class ClusterReader extends AbstractPartitionStreamReader {
   }
 
   public byte[] readLine() throws IOException, InterruptedException {
-    byte[] line = reader.readLine();
+    byte[] line = super.readLine();
     if (line != null && isDatabusData) {
       Text text = new Text();
       ByteArrayInputStream bais = new ByteArrayInputStream(line);

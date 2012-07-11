@@ -122,7 +122,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
 
   public byte[] readLine() throws IOException, InterruptedException {
     assert (reader != null);
-    byte[] line = reader.readLine();
+    byte[] line = super.readLine();
     if (line == null) {
       if (closed) {
         return line;
@@ -158,14 +158,10 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       }
     } else {
       if (reader == lReader) {
-        if (line != null) {
-          Text text = new Text();
-          ByteArrayInputStream bais = new ByteArrayInputStream(line);
-          text.readFields(new DataInputStream(bais));
-          return text.getBytes();
-        }
-      } else { // reader should be cReader
-        return line;
+        Text text = new Text();
+        ByteArrayInputStream bais = new ByteArrayInputStream(line);
+        text.readFields(new DataInputStream(bais));
+        return text.getBytes();
       }
     }
     return line;
