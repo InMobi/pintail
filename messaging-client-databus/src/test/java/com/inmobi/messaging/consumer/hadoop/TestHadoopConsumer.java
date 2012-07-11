@@ -106,7 +106,6 @@ public class TestHadoopConsumer {
   public void cleanup() throws IOException {
     FileSystem lfs = FileSystem.getLocal(conf);
     for (Path rootDir : rootDirs) {
-      System.out.println("Cleaning up:" + rootDir);
       lfs.delete(rootDir, true);
     }
   }
