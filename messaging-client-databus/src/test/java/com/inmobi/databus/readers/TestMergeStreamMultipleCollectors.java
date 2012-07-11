@@ -1,10 +1,13 @@
 package com.inmobi.databus.readers;
 
+import java.io.IOException;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.testng.Assert;
+import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
@@ -37,6 +40,11 @@ public class TestMergeStreamMultipleCollectors {
     TestUtil.setUpFiles(cluster, collectors[1], files, null, databusFiles2, 0,
         3);
     conf = cluster.getHadoopConf();
+  }
+
+  @AfterTest
+  public void cleanup() throws IOException {
+    TestUtil.cleanupCluster(cluster);
   }
 
   @Test
