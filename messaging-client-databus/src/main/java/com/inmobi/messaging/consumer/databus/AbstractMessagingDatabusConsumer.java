@@ -115,11 +115,7 @@ public abstract class AbstractMessagingDatabusConsumer
   @Override
   public synchronized Message next() throws InterruptedException {
     QueueEntry entry;
-    try {
-      entry = buffer.take();
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    }
+    entry = buffer.take();
     currentCheckpoint.set(entry.getPartitionId(), entry.getPartitionChkpoint());
     return entry.getMessage();
   }
