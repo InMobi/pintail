@@ -22,6 +22,8 @@ import com.inmobi.databus.partition.PartitionId;
 public class LocalStreamCollectorReader extends 
     DatabusStreamReader<DatabusStreamFile> {
 
+  protected final String streamName;
+
   private static final Log LOG = LogFactory.getLog(
       LocalStreamCollectorReader.class);
 
@@ -30,8 +32,9 @@ public class LocalStreamCollectorReader extends
   public LocalStreamCollectorReader(PartitionId partitionId, 
       FileSystem fs, String streamName, Path streamDir, Configuration conf)
           throws IOException {
-    super(partitionId, fs, streamName, streamDir,
+    super(partitionId, fs, streamDir,
         TextInputFormat.class.getCanonicalName(), conf, false);
+    this.streamName = streamName;
     this.collector = partitionId.getCollector();
   }
 

@@ -50,9 +50,9 @@ public class TestMergeStreamMultipleCollectors {
   @Test
   public void testReadFromStart() throws Exception {
     reader = new DatabusStreamWaitingReader(partitionId,
-        FileSystem.get(cluster.getHadoopConf()), testStream,
-        DatabusStreamReader.getStreamsDir(cluster, testStream),
-        TextInputFormat.class.getCanonicalName(), conf, 1000, false);
+        FileSystem.get(cluster.getHadoopConf()), DatabusStreamReader.getStreamsDir(cluster, testStream),
+        TextInputFormat.class.getCanonicalName(),
+        conf, 1000, false);
     reader.build(CollectorStreamReader.getDateFromCollectorFile(files[0]));
     reader.initFromStart();
     Assert.assertNotNull(reader.getCurrentFile());

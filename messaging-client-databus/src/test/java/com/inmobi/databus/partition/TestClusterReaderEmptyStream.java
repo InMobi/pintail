@@ -58,9 +58,9 @@ public class TestClusterReaderEmptyStream {
 
     // Read from start time 
     preader = new PartitionReader(clusterId, null, fs, buffer,
-        testStream, streamDir, conf, inputFormatClass, 
-        CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[0]),
-        1000, DataEncodingType.BASE64, true);
+        streamDir, conf, inputFormatClass, CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[0]), 
+        1000,
+        DataEncodingType.BASE64, true);
     preader.init();
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -74,8 +74,8 @@ public class TestClusterReaderEmptyStream {
         new HadoopStreamFile(DatabusStreamWaitingReader.getMinuteDirPath(streamDir,
             CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[0])),
             "dummyfile", 0L), 20), fs, buffer,
-        testStream, streamDir, conf, inputFormatClass, 
-        null, 1000, DataEncodingType.BASE64, true);
+        streamDir, conf, inputFormatClass, null, 
+        1000, DataEncodingType.BASE64, true);
     preader.init();
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -89,9 +89,9 @@ public class TestClusterReaderEmptyStream {
         new HadoopStreamFile(DatabusStreamWaitingReader.getMinuteDirPath(streamDir,
             CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[0])),
             "dummyfile", 0L), 20), fs, buffer,
-        testStream, streamDir, conf, inputFormatClass, 
-        CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[0]),
-        1000, DataEncodingType.BASE64, true);
+        streamDir, conf, inputFormatClass, CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[0]), 
+        1000,
+        DataEncodingType.BASE64, true);
     preader.init();
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),

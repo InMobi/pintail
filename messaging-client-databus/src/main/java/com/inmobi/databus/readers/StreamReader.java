@@ -18,7 +18,6 @@ public abstract class StreamReader<T extends StreamFile> {
 
   private static final Log LOG = LogFactory.getLog(StreamReader.class);
 
-  protected String streamName;
   protected Date timestamp;
   protected PartitionCheckpoint checkpoint;
   protected PartitionId partitionId;
@@ -32,14 +31,13 @@ public abstract class StreamReader<T extends StreamFile> {
   private FileMap<T> fileMap;
 
   protected StreamReader(PartitionId partitionId, FileSystem fs, 
-      String streamName, Path streamDir, boolean noNewFiles)
+      Path streamDir, boolean noNewFiles)
           throws IOException {
-    this.streamName = streamName;
     this.partitionId = partitionId;
     this.fs = fs;
-    this.fileMap = createFileMap();
     this.streamDir = streamDir;
     this.noNewFiles = noNewFiles;
+    this.fileMap = createFileMap();
   }
 
   public void openStream() throws IOException {

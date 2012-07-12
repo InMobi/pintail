@@ -40,9 +40,8 @@ public abstract class TestAbstractDatabusWaitingReader {
   public void testInitialize() throws Exception {
     // Read from start
     lreader = new DatabusStreamWaitingReader(partitionId,
-        fs, testStream,
-        streamDir, inputFormatClass, conf, 1000,
-        false);
+        fs, streamDir,
+        inputFormatClass, conf, 1000, false);
     Calendar cal = Calendar.getInstance();
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         finalFiles[0].getParent()));
@@ -124,9 +123,8 @@ public abstract class TestAbstractDatabusWaitingReader {
 
   public void testReadFromStart() throws Exception {
     lreader = new DatabusStreamWaitingReader(partitionId,
-        fs, testStream,
-        getStreamsDir(), inputFormatClass , conf, 1000,
-        false);
+        fs, getStreamsDir(),
+        inputFormatClass, conf , 1000, false);
     lreader.build(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         finalFiles[0].getParent()));
     lreader.initFromStart();
@@ -140,8 +138,7 @@ public abstract class TestAbstractDatabusWaitingReader {
 
   public void testReadFromCheckpoint() throws Exception {
     lreader = new DatabusStreamWaitingReader(partitionId,
-        fs, testStream, getStreamsDir(), inputFormatClass, conf, 1000,
-        false);
+        fs, getStreamsDir(), inputFormatClass, conf, 1000, false);
     PartitionCheckpoint pcp = new PartitionCheckpoint(
         DatabusStreamWaitingReader.getHadoopStreamFile(
             fs.getFileStatus( finalFiles[1])), 20);
@@ -156,8 +153,7 @@ public abstract class TestAbstractDatabusWaitingReader {
 
   public void testReadFromTimeStamp() throws Exception {
     lreader = new DatabusStreamWaitingReader(partitionId,
-        fs, testStream, getStreamsDir(), inputFormatClass, conf, 1000,
-        false);
+        fs, getStreamsDir(), inputFormatClass, conf, 1000, false);
     lreader.build(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         finalFiles[1].getParent()));
     lreader.initializeCurrentFile(

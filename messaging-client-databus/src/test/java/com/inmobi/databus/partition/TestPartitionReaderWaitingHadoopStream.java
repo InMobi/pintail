@@ -61,10 +61,9 @@ public class TestPartitionReaderWaitingHadoopStream {
   @Test
   public void testReadFromStart() throws Exception {
     preader = new PartitionReader(partitionId, null, fs, buffer,
-        testStream, streamDir, conf, inputFormatClass,
-        DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
-            databusFiles[0]), 1000,
-        DataEncodingType.NONE);
+        streamDir, conf, inputFormatClass, DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
+            databusFiles[0]),
+        1000, DataEncodingType.NONE);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),

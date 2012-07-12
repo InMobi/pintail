@@ -47,10 +47,10 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
   private ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
   protected DatabusStreamReader(PartitionId partitionId, FileSystem fs,
-      String streamName, Path streamDir, String inputFormatClass,
+      Path streamDir, String inputFormatClass,
       Configuration conf, boolean noNewFiles)
           throws IOException {
-    super(partitionId, fs, streamName, streamDir, noNewFiles);
+    super(partitionId, fs, streamDir, noNewFiles);
     this.conf = conf;
     try {
       input = (InputFormat<Object, Object>) ReflectionUtils.newInstance(

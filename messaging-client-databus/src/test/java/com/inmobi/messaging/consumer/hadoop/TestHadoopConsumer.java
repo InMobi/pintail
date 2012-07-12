@@ -54,9 +54,9 @@ public class TestHadoopConsumer {
     Assert.assertEquals(rootDirs.length, 3);
     for (int i = 0; i < rootDirs.length; i++) {
       HadoopUtil.setupHadoopCluster(
-          conf, dataFiles, finalPaths[i], new Path(rootDirs[i], testStream));
+          conf, dataFiles, finalPaths[i], rootDirs[i]);
     }
-    HadoopUtil.setUpHadoopFiles(new Path(rootDirs[0], testStream), conf, 
+    HadoopUtil.setUpHadoopFiles(rootDirs[0], conf, 
         new String[] {"_SUCCESS", "_DONE"}, null);
   }
 
@@ -65,7 +65,7 @@ public class TestHadoopConsumer {
     ClientConfig config = loadConfig();
     config.set(HadoopConsumerConfig.checkpointDirConfig, ck1);
     config.set(HadoopConsumerConfig.rootDirsConfig,
-        "file:///tmp/test/hadoop/1");
+        rootDirs[0].toString());
     ConsumerUtil.testMarkAndReset(config, testStream, consumerName, true);
   }
 
@@ -74,17 +74,17 @@ public class TestHadoopConsumer {
     ClientConfig config = loadConfig();
     config.set(HadoopConsumerConfig.checkpointDirConfig, ck2);
     config.set(HadoopConsumerConfig.rootDirsConfig,
-        "file:///tmp/test/hadoop/1");
+        rootDirs[0].toString());
     ConsumerUtil.testMarkAndResetWithStartTime(config, testStream, consumerName,
         DatabusStreamWaitingReader.getDateFromStreamDir(
-            new Path(rootDirs[0], testStream), finalPaths[0][1]), true);
+            rootDirs[0], finalPaths[0][1]), true);
   }
 
   @Test
   public void testMultipleClusters() throws Exception {
     ClientConfig config = loadConfig();
     config.set(HadoopConsumerConfig.rootDirsConfig,
-        "file:///tmp/test/hadoop/1,file:///tmp/test/hadoop/2");
+        rootDirs[0].toString() + "," + rootDirs[1].toString());
     config.set(HadoopConsumerConfig.checkpointDirConfig,
         ck3);
 
@@ -95,8 +95,8 @@ public class TestHadoopConsumer {
   @Test
   public void testMultipleClusters2() throws Exception {
     ClientConfig config = loadConfig();
-    config.set(HadoopConsumerConfig.rootDirsConfig, "file:///tmp/test/hadoop/1,"
-    		+ "file:///tmp/test/hadoop/2,file:///tmp/test/hadoop/3");
+    config.set(HadoopConsumerConfig.rootDirsConfig, rootDirs[0].toString() 
+        + "," + rootDirs[1] + "," + rootDirs[2]);
     config.set(HadoopConsumerConfig.checkpointDirConfig, ck4);
     ConsumerUtil.assertMessages(config, testStream, consumerName, 3, 1,
         numDataFiles, numMessagesPerFile, true);
@@ -106,7 +106,7 @@ public class TestHadoopConsumer {
   public void cleanup() throws IOException {
     FileSystem lfs = FileSystem.getLocal(conf);
     for (Path rootDir : rootDirs) {
-      lfs.delete(rootDir, true);
+      lfs.delete(rootDir.getParent(), true);
     }
   }
 }

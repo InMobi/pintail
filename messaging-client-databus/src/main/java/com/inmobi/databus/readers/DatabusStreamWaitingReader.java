@@ -24,10 +24,10 @@ public class DatabusStreamWaitingReader
       DatabusStreamWaitingReader.class);
 
   public DatabusStreamWaitingReader(PartitionId partitionId, FileSystem fs,
-      String streamName,  Path streamDir, String inputFormatClass,
-      Configuration conf, long waitTimeForCreate, boolean noNewFiles)
+      Path streamDir,  String inputFormatClass, Configuration conf,
+      long waitTimeForCreate, boolean noNewFiles)
           throws IOException {
-    super(partitionId, fs, streamName, streamDir, inputFormatClass, conf, noNewFiles);
+    super(partitionId, fs, streamDir, inputFormatClass, conf, noNewFiles);
     this.waitTimeForCreate = waitTimeForCreate;
   }
 

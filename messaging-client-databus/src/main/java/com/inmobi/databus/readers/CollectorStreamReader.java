@@ -29,12 +29,14 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   private boolean sameStream = false;
   protected FSDataInputStream inStream;
   protected BufferedReader reader;
+  protected final String streamName;
 
   public CollectorStreamReader(PartitionId partitionId,
       FileSystem fs, String streamName, Path streamDir,
       long waitTimeForFlush,
       long waitTimeForCreate, boolean noNewFiles) throws IOException {
-    super(partitionId, fs, streamName, streamDir, noNewFiles);
+    super(partitionId, fs, streamDir, noNewFiles);
+    this.streamName = streamName;
     this.waitTimeForFlush = waitTimeForFlush;
     this.waitTimeForCreate = waitTimeForCreate;
     LOG.info("Collector reader initialized with partitionId:" + partitionId +

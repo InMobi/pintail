@@ -46,14 +46,13 @@ public class PartitionReader {
 
   public PartitionReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, FileSystem fs,
-      BlockingQueue<QueueEntry> buffer, String streamName,
-      Path streamDir, Configuration conf,
-      String inputFormatClass, Date startTime, long waitTimeForFileCreate,
-      DataEncodingType dataEncoding)
+      BlockingQueue<QueueEntry> buffer, Path streamDir,
+      Configuration conf, String inputFormatClass,
+      Date startTime, long waitTimeForFileCreate, DataEncodingType dataEncoding)
           throws IOException {
-    this(partitionId, partitionCheckpoint, fs, buffer, streamName,
-        streamDir, conf, inputFormatClass, startTime, waitTimeForFileCreate,
-        dataEncoding, false);
+    this(partitionId, partitionCheckpoint, fs, buffer, streamDir,
+        conf, inputFormatClass, startTime, waitTimeForFileCreate, dataEncoding,
+        false);
   }
 
   PartitionReader(PartitionId partitionId,
@@ -68,18 +67,18 @@ public class PartitionReader {
     if (partitionId.getCollector() == null) {
       if (isLocal) {
         reader = new ClusterReader(partitionId, partitionCheckpoint,
-            fs, streamName,
-            DatabusStreamReader.getStreamsLocalDir(cluster, streamName), 
-            cluster.getHadoopConf(),
+            fs, DatabusStreamReader.getStreamsLocalDir(cluster, streamName),
+            cluster.getHadoopConf(), 
             TextInputFormat.class.getCanonicalName(),
-            startTime, waitTimeForFileCreate, true, noNewFiles);
+            startTime,
+            waitTimeForFileCreate, true, noNewFiles);
       } else {
         reader = new ClusterReader(partitionId, partitionCheckpoint,
-            fs, streamName,
-            DatabusStreamReader.getStreamsDir(cluster, streamName),
+            fs, DatabusStreamReader.getStreamsDir(cluster, streamName),
             cluster.getHadoopConf(),
             TextInputFormat.class.getCanonicalName(),
-            startTime, waitTimeForFileCreate, true, noNewFiles);        
+            startTime,
+            waitTimeForFileCreate, true, noNewFiles);        
       }
     } else {
       reader = new CollectorReader(partitionId, partitionCheckpoint, fs,
@@ -99,15 +98,15 @@ public class PartitionReader {
 
   PartitionReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, FileSystem fs,
-      BlockingQueue<QueueEntry> buffer, String streamName,
-      Path streamDir, Configuration conf,
-      String inputFormatClass, Date startTime, long waitTimeForFileCreate,
-      DataEncodingType dataEncoding, boolean noNewFiles)
+      BlockingQueue<QueueEntry> buffer, Path streamDir,
+      Configuration conf, String inputFormatClass,
+      Date startTime, long waitTimeForFileCreate, DataEncodingType dataEncoding,
+      boolean noNewFiles)
           throws IOException {
     this(partitionId, partitionCheckpoint, buffer, startTime, dataEncoding);
     reader = new ClusterReader(partitionId, partitionCheckpoint,
-        fs, streamName, streamDir, conf, inputFormatClass,
-        startTime, waitTimeForFileCreate, false, noNewFiles);
+        fs, streamDir, conf, inputFormatClass, startTime,
+        waitTimeForFileCreate, false, noNewFiles);
     // initialize cluster and its directories
     LOG.info("Partition reader initialized with partitionId:" + partitionId +
         " checkPoint:" + partitionCheckpoint +  

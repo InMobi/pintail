@@ -25,17 +25,17 @@ public class ClusterReader extends AbstractPartitionStreamReader {
 
   ClusterReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, FileSystem fs,
-      String streamName, Path streamDir, Configuration conf,
-      String inputFormatClass, Date startTime, long waitTimeForFileCreate,
-      boolean isDatabusData, boolean noNewFiles)
+      Path streamDir, Configuration conf, String inputFormatClass,
+      Date startTime, long waitTimeForFileCreate, boolean isDatabusData,
+      boolean noNewFiles)
           throws IOException {
     this.startTime = startTime;
     this.streamDir = streamDir;
     this.partitionCheckpoint = partitionCheckpoint;
     this.isDatabusData = isDatabusData;
 
-    reader = new DatabusStreamWaitingReader(partitionId, fs, streamName,
-        streamDir, inputFormatClass, conf, waitTimeForFileCreate, noNewFiles);
+    reader = new DatabusStreamWaitingReader(partitionId, fs, streamDir,
+        inputFormatClass, conf, waitTimeForFileCreate, noNewFiles);
   }
 
   public void initializeCurrentFile() throws IOException, InterruptedException {
