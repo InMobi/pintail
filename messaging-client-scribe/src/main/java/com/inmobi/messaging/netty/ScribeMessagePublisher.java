@@ -21,7 +21,7 @@ import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 public class ScribeMessagePublisher extends AbstractMessagePublisher {
   private static final Log LOG = LogFactory.getLog(ScribeMessagePublisher.class);
 
-  private static final Timer timer = new HashedWheelTimer();
+  private final Timer timer = new HashedWheelTimer();
 
   public static final String maxConnectionRetriesConfig =
       "scribe.maxconnectionretries";

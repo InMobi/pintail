@@ -50,6 +50,7 @@ public class TestTimeouts {
       assertEquals(inspector.getUnhandledExceptionCount(), error + 1,
           "check if recorded as error");
     } finally {
+      mb.close();
       tserver.stop();
     }
   }

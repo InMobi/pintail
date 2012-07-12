@@ -31,7 +31,12 @@ public class TestSimple {
   @Test()
   public void simpleSend() throws Exception {
     server.start();
-    
+    runTest();
+    //create the publisher again
+    runTest();
+  }
+
+  private void runTest() throws Exception {
     publisher = TestServerStarter.createPublisher();
     TimingAccumulator inspector = publisher.getStats();
     long success = inspector.getSuccessCount();
@@ -42,6 +47,6 @@ public class TestSimple {
       Thread.sleep(100);
     }
     assertEquals(inspector.getSuccessCount(), success + 1);
+    publisher.close();   
   }
-
 }
