@@ -44,7 +44,7 @@ public class TestClusterReaderEmptyStream {
     fs = FileSystem.getLocal(conf);
     streamDir = new Path("/tmp/test/hadoop/" + this.getClass().getSimpleName(),
          testStream).makeQualified(fs);
-    HadoopUtil.setupHadoopCluster(conf, null, null, streamDir);
+    HadoopUtil.setupHadoopCluster(conf, null, null, null, streamDir);
     inputFormatClass = SequenceFileInputFormat.class.getName();
   }
 

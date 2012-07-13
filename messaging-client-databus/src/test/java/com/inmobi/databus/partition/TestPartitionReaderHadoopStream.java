@@ -22,7 +22,7 @@ public class TestPartitionReaderHadoopStream extends TestAbstractClusterReader2 
     fs = FileSystem.getLocal(conf);
     streamDir = new Path("/tmp/test/hadoop/" + this.getClass().getSimpleName(),
          testStream).makeQualified(fs);
-    HadoopUtil.setupHadoopCluster(conf, files, databusFiles, streamDir);
+    HadoopUtil.setupHadoopCluster(conf, files, null, databusFiles, streamDir);
     inputFormatClass = SequenceFileInputFormat.class.getName();
     dataEncoding = DataEncodingType.NONE;
   }

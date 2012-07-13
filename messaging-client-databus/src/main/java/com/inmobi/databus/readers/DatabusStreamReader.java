@@ -80,20 +80,29 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
           Path dir = getMinuteDirPath(streamDir, current.getTime());
           // Move the current minute to next minute
           current.add(Calendar.MINUTE, 1);
-          FileStatus[] fileStatuses = fs.listStatus(dir, pathFilter);
-          if (fileStatuses == null || fileStatuses.length == 0) {
-            LOG.debug("No files in directory:" + dir);
-          } else {
-            for (FileStatus file : fileStatuses) {
-              fmap.addPath(file);
-            }
-          }
+          doRecursiveListing(dir, pathFilter, fmap);
         } 
       } else {
         // go to next hour
         LOG.info("Hour directory " + hhDir + " does not exist");
         current.add(Calendar.HOUR_OF_DAY, 1);
         current.set(Calendar.MINUTE, 0);
+      }
+    }
+  }
+
+  private void doRecursiveListing(Path dir, PathFilter pathFilter,
+      FileMap<T> fmap) throws IOException {
+    FileStatus[] fileStatuses = fs.listStatus(dir, pathFilter);
+    if (fileStatuses == null || fileStatuses.length == 0) {
+      LOG.debug("No files in directory:" + dir);
+    } else {
+      for (FileStatus file : fileStatuses) {
+        if (file.isDir()) {
+          doRecursiveListing(file.getPath(), pathFilter, fmap);
+        } else {
+          fmap.addPath(file);
+        }
       }
     }
   }
@@ -178,7 +187,9 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
 
   public static Date getDateFromStreamDir(Path streamDir, Path dir) {
     String pathStr = dir.toString();
-    String dirString = pathStr.substring(streamDir.toString().length() + 1);
+    int startIndex = streamDir.toString().length() + 1;
+    String dirString = pathStr.substring(startIndex,
+        startIndex + minDirFormatStr.length());
     try {
       return minDirFormat.get().parse(dirString);
     } catch (ParseException e) {
@@ -187,12 +198,14 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
     return null;
   }
 
+  static String minDirFormatStr = "yyyy" + File.separator + "MM" +
+      File.separator + "dd" + File.separator + "HH" + File.separator +"mm";
+
   static final ThreadLocal<DateFormat> minDirFormat = 
       new ThreadLocal<DateFormat>() {
     @Override
     protected SimpleDateFormat initialValue() {
-      return new SimpleDateFormat("yyyy" + File.separator + "MM" +
-          File.separator + "dd" + File.separator + "HH" + File.separator +"mm");
+      return new SimpleDateFormat(minDirFormatStr);
     }    
   };
 

@@ -48,7 +48,7 @@ public class TestPartitionReaderWaitingHadoopStream {
     fs = FileSystem.getLocal(conf);
     streamDir = new Path("/tmp/test/hadoop/" + this.getClass().getSimpleName(),
          testStream).makeQualified(fs);
-    HadoopUtil.setupHadoopCluster(conf, files, databusFiles, streamDir);
+    HadoopUtil.setupHadoopCluster(conf, files, null, databusFiles, streamDir);
     inputFormatClass = SequenceFileInputFormat.class.getName();
     dataEncoding = DataEncodingType.NONE;
   }
@@ -61,7 +61,8 @@ public class TestPartitionReaderWaitingHadoopStream {
   @Test
   public void testReadFromStart() throws Exception {
     preader = new PartitionReader(partitionId, null, fs, buffer,
-        streamDir, conf, inputFormatClass, DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
+        streamDir, conf, inputFormatClass,
+        DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
             databusFiles[0]),
         1000, DataEncodingType.NONE);
     preader.init();
@@ -83,7 +84,7 @@ public class TestPartitionReaderWaitingHadoopStream {
     Path[] newDatabusFiles = new Path[3];
     HadoopUtil.setUpHadoopFiles(streamDir, conf, new String[] {
         HadoopUtil.files[6]},
-        newDatabusFiles);
+        null, newDatabusFiles);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs0), 1, 0, 100, partitionId, buffer,
         dataEncoding.equals(DataEncodingType.BASE64));
@@ -95,7 +96,8 @@ public class TestPartitionReaderWaitingHadoopStream {
       Thread.sleep(10);
     }
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
-        fs1), 2, 50, 50, partitionId, buffer, dataEncoding.equals(DataEncodingType.BASE64));
+        fs1), 2, 50, 50, partitionId, buffer, dataEncoding.equals(
+            DataEncodingType.BASE64));
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(newDatabusFiles[0])), 1, 0, 100, partitionId,
         buffer, dataEncoding.equals(DataEncodingType.BASE64));
@@ -106,7 +108,7 @@ public class TestPartitionReaderWaitingHadoopStream {
         DatabusStreamWaitingReader.class.getName());
     HadoopUtil.setUpHadoopFiles(streamDir, conf, new String[] {
         HadoopUtil.files[7],
-        HadoopUtil.files[8]}, newDatabusFiles);
+        HadoopUtil.files[8]}, null, newDatabusFiles);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(newDatabusFiles[0])), 1, 0, 100, partitionId, buffer,
         dataEncoding.equals(DataEncodingType.BASE64));

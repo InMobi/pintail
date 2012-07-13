@@ -9,21 +9,21 @@ import org.testng.annotations.Test;
 
 import com.inmobi.messaging.ClientConfig;
 
-public class TestHadoopConsumer extends TestAbstractHadoopConsumer {
-
+public class TestHadoopConsumerWithSuffixDir extends TestAbstractHadoopConsumer {
   ClientConfig loadConfig() {
     return ClientConfig.loadFromClasspath(
-        "messaging-consumer-hadoop-conf.properties");
+        "messaging-consumer-hadoop-conf3.properties");
   }
 
   @BeforeTest
   public void setup() throws Exception {
-    consumerName = "c1";
-    ck1 = "/tmp/test/hadoop/1/checkpoint1";
-    ck2 = "/tmp/test/hadoop/1/checkpoint2";
-    ck3 = "/tmp/test/hadoop/1/checkpoint3";
-    ck4 = "/tmp/test/hadoop/2/checkpoint1";
-    ck5 = "/tmp/test/hadoop/2/checkpoint2";
+    consumerName = "c3";
+    ck1 = "/tmp/test/hadoop/7/checkpoint1";
+    ck2 = "/tmp/test/hadoop/7/checkpoint2";
+    ck3 = "/tmp/test/hadoop/7/checkpoint3";
+    ck4 = "/tmp/test/hadoop/8/checkpoint1";
+    ck5 = "/tmp/test/hadoop/8/checkpoint2";
+    suffixDirs = new String[] {"xyz"};
     super.setup();
     Assert.assertEquals(rootDirs.length, 3);
   }
@@ -36,6 +36,11 @@ public class TestHadoopConsumer extends TestAbstractHadoopConsumer {
   @Test
   public void testMarkAndResetWithStartTime() throws Exception {
     super.testMarkAndResetWithStartTime();
+  }
+
+  @Test
+  public void testSuffixDirs() throws Exception {
+    super.testSuffixDirs();
   }
 
   @Test
@@ -52,4 +57,6 @@ public class TestHadoopConsumer extends TestAbstractHadoopConsumer {
   public void cleanup() throws IOException {
     super.cleanup();
   }
+
+
 }

@@ -1,8 +1,10 @@
 package com.inmobi.messaging.consumer.util;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -35,11 +37,11 @@ public class HadoopUtil {
     increment++;
   }
 
-  public static void setUpHadoopFiles(Path finalDir, Configuration conf,
-      String[] files, Path[] finalFiles)
+  public static void setUpHadoopFiles(Path streamDirPrefix, Configuration conf,
+      String[] files, String[] suffixDirs, Path[] finalFiles)
           throws Exception {
-    FileSystem fs = finalDir.getFileSystem(conf);
-    Path rootDir = finalDir.getParent();
+    FileSystem fs = streamDirPrefix.getFileSystem(conf);
+    Path rootDir = streamDirPrefix.getParent();
     Path tmpDataDir = new Path(rootDir, "data");
     // setup data dirs
     if (files != null) {
@@ -48,11 +50,28 @@ public class HadoopUtil {
       for (String file : files) {
         MessageUtil.createMessageSequenceFile(file, fs, tmpDataDir, i, conf);
         i += 100;
-        Path movedPath = moveDataFile(fs, tmpDataDir, file, finalDir);
-        if (finalFiles != null) {
-          finalFiles[j] = movedPath;
-          j++;
+        Path srcPath =  new Path(tmpDataDir, file);
+        Path targetDateDir = getTargetDateDir(file, streamDirPrefix);
+        List<Path> targetDirs = new ArrayList<Path>();
+        if (suffixDirs != null) {
+          for (String suffixDir : suffixDirs) {
+            targetDirs.add(new Path(targetDateDir, suffixDir));
+          }
+        } else {
+          targetDirs.add(targetDateDir);
         }
+        for (Path targetDir : targetDirs) {
+          fs.mkdirs(targetDir);
+          Path targetPath = new Path(targetDir, file);
+          fs.copyFromLocalFile(srcPath, targetPath);
+          LOG.info("Copied " + srcPath + " to " + targetPath);
+          if (finalFiles != null) {
+            finalFiles[j] = targetPath;
+            j++;
+          }
+          Thread.sleep(1000);
+        }
+        fs.delete(srcPath, true);
       }
     }
   }
@@ -88,7 +107,7 @@ public class HadoopUtil {
   }
 
   public static void setupHadoopCluster(Configuration conf,
-      String[] files,
+      String[] files, String[] suffixDirs,
       Path[] finalFiles, Path finalDir)
           throws Exception {
     FileSystem fs = finalDir.getFileSystem(conf);
@@ -98,23 +117,14 @@ public class HadoopUtil {
     Path tmpDataDir = new Path(rootDir, "data");
     fs.mkdirs(tmpDataDir);
     
-    setUpHadoopFiles(finalDir, conf, files, finalFiles);
+    setUpHadoopFiles(finalDir, conf, files, suffixDirs, finalFiles);
   }
 
-  private static Path moveDataFile(FileSystem fs, Path dataDir,
-      String fileName, Path finalDir)
-          throws Exception {
-    Path targetFile = getTargetPath(fileName, finalDir);
-    Path srcPath =  new Path(dataDir, fileName);
-    fs.rename(srcPath, targetFile);
-    return targetFile;
-  }
-
-  private static Path getTargetPath(String fileName, Path streamDirPrefix) 
-      throws IOException {
-    Path streamDir = DatabusStreamWaitingReader.getMinuteDirPath(streamDirPrefix,
+  private static Path getTargetDateDir(String fileName, 
+      Path streamDirPrefix) throws IOException {
+    Path dateDir = DatabusStreamWaitingReader.getMinuteDirPath(streamDirPrefix,
         getCommitDateForFile(fileName));
-    return new Path(streamDir, fileName);
+    return dateDir;
   }
 
   static Date getCommitDateForFile(String fileName)
