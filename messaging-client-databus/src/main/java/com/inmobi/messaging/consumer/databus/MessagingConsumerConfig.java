@@ -1,5 +1,7 @@
 package com.inmobi.messaging.consumer.databus;
 
+import org.apache.hadoop.mapred.TextInputFormat;
+
 import com.inmobi.databus.FSCheckpointProvider;
 
 public interface MessagingConsumerConfig {
@@ -30,4 +32,15 @@ public interface MessagingConsumerConfig {
   public static final String DEFAULT_DATA_ENCODING = DataEncodingType.NONE
       .name();
 
+  public static final String inputFormatClassNameConfig =
+      "messaging.consumer.inputformat.classname";
+  public static final String DEFAULT_INPUT_FORMAT_CLASSNAME =
+      TextInputFormat.class.getCanonicalName();
+  
+  public static final String retentionConfig =
+      "messaging.consumer.topic.retention.inhours";
+  public static final int DEFAULT_RETENTION_HOURS = 24;
+
+  public static final String hadoopConfigFileKey =
+      "messaging.consumer.hadoop.conf";
 }
