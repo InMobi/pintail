@@ -3,8 +3,10 @@ package com.inmobi.databus.partition;
 import java.io.IOException;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapred.TextInputFormat;
 import org.testng.Assert;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
@@ -15,6 +17,8 @@ import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 import com.inmobi.messaging.consumer.databus.DataEncodingType;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
+import com.inmobi.messaging.consumer.databus.StreamType;
+import com.inmobi.messaging.consumer.util.DatabusUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
 public class TestClusterReaderMultipleCollectors {
@@ -28,13 +32,13 @@ public class TestClusterReaderMultipleCollectors {
       new LinkedBlockingQueue<QueueEntry>(150);
   private PartitionReader preader;
   private Cluster cluster;
-  private boolean isLocal = false;
   private String[] files = new String[] {TestUtil.files[1], TestUtil.files[3],
       TestUtil.files[5], TestUtil.files[6]};
   Path[] databusFiles1 = new Path[3];
   Path[] databusFiles2 = new Path[3];
   FileSystem fs;
-
+  Path streamDir;
+  Configuration conf = new Configuration();
   @BeforeTest
   public void setup() throws Exception {
     // initialize config
@@ -44,6 +48,8 @@ public class TestClusterReaderMultipleCollectors {
     TestUtil.setUpFiles(cluster, collectors[1], files, null, databusFiles2, 0,
         1);
     fs = FileSystem.get(cluster.getHadoopConf());
+    streamDir = DatabusUtil.getStreamDir(StreamType.MERGED,
+        new Path(cluster.getRootDir()), testStream);
   }
 
   @AfterTest
@@ -53,9 +59,10 @@ public class TestClusterReaderMultipleCollectors {
 
   @Test
   public void testReadFromStart() throws Exception {
-    preader = new PartitionReader(partitionId, null, cluster, buffer,
-        testStream, CollectorStreamReader.getDateFromCollectorFile(files[0]),
-        1000, 1000, isLocal, DataEncodingType.BASE64, false);
+    preader = new PartitionReader(partitionId, null, fs, buffer, streamDir,
+        conf, TextInputFormat.class.getCanonicalName(),
+        CollectorStreamReader.getDateFromCollectorFile(files[0]), 1000, true,
+        DataEncodingType.BASE64, false);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -140,11 +147,13 @@ public class TestClusterReaderMultipleCollectors {
     Assert.assertTrue(buffer.isEmpty());
     preader.close();
     
-    preader = new PartitionReader(partitionId, new PartitionCheckpoint(
+    preader = new PartitionReader(partitionId,  new PartitionCheckpoint(
         DatabusStreamWaitingReader.getHadoopStreamFile(
-        fs.getFileStatus(movedPath5)), 50), cluster, buffer,
-        testStream, null,
-        1000, 1000, isLocal, DataEncodingType.BASE64, false);
+        fs.getFileStatus(movedPath5)), 50), fs, buffer, streamDir,
+        conf, TextInputFormat.class.getCanonicalName(),
+        null, 1000, true,
+        DataEncodingType.BASE64, false);
+
     preader.start();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath5)), 4, 50, 50, partitionId,

@@ -12,7 +12,7 @@ import org.testng.annotations.Test;
 import com.inmobi.messaging.consumer.databus.DataEncodingType;
 import com.inmobi.messaging.consumer.util.HadoopUtil;
 
-public class TestPartitionReaderHadoopStream extends TestAbstractClusterReader2 {
+public class TestPartitionReaderHadoopStream extends TestAbstractClusterReader {
 
   @BeforeTest
   public void setup() throws Exception {
@@ -75,6 +75,11 @@ public class TestPartitionReaderHadoopStream extends TestAbstractClusterReader2 
   @Override
   Path getStreamsDir() {
     return streamDir;
+  }
+
+  @Override
+  boolean isDatabusData() {
+    return false;
   }
 
 }

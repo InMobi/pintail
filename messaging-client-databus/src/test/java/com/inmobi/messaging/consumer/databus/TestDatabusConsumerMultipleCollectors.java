@@ -32,30 +32,24 @@ public class TestDatabusConsumerMultipleCollectors
   @Test
   public void testMergeStream() throws Exception {
     ClientConfig config = loadConfig();
-    config.set(DatabusConsumerConfig.databusClustersConfig,
-        "testcluster1");
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+        rootDirs[0].toString());
     config.set(DatabusConsumerConfig.checkpointDirConfig,
         "/tmp/test/databustest4/checkpoint1");
-    assertMessages(config, 1, 2);
-  }
-
-  @Test
-  public void testDefaultMergeStream() throws Exception {
-    ClientConfig config = loadConfig();
-    config.set(DatabusConsumerConfig.databusClustersConfig,
-        null);
-    config.set(DatabusConsumerConfig.checkpointDirConfig,
-        "/tmp/test/databustest6/checkpoint1");
+    config.set(DatabusConsumerConfig.databusStreamType,
+        StreamType.MERGED.name());
     assertMessages(config, 1, 2);
   }
 
   @Test
   public void testMergeStreamMultipleClusters() throws Exception {
     ClientConfig config = loadConfig();
-    config.set(DatabusConsumerConfig.databusClustersConfig,
-        "testcluster1,testcluster2");
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+        rootDirs[0].toString() + "," + rootDirs[1].toString());
     config.set(DatabusConsumerConfig.checkpointDirConfig,
         "/tmp/test/databustest6/checkpoint1");
+    config.set(DatabusConsumerConfig.databusStreamType,
+        StreamType.MERGED.name());
     Throwable th = null;
     try {
       DatabusConsumer consumer = new DatabusConsumer();
@@ -70,8 +64,8 @@ public class TestDatabusConsumerMultipleCollectors
   @Test
   public void testLocalStream() throws Exception {
     ClientConfig config = loadConfig();
-    config.set(DatabusConsumerConfig.databusClustersConfig,
-        "testcluster1");
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+        rootDirs[0].toString());
     config.set(DatabusConsumerConfig.checkpointDirConfig,
         "/tmp/test/databustest4/checkpoint2");
     config.set(DatabusConsumerConfig.databusStreamType,
@@ -82,8 +76,8 @@ public class TestDatabusConsumerMultipleCollectors
   @Test
   public void testLocalStreamMultipleClusters() throws Exception {
     ClientConfig config = loadConfig();
-    config.set(DatabusConsumerConfig.databusClustersConfig,
-        "testcluster1,testcluster2");
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+        rootDirs[0].toString()+ "," + rootDirs[1].toString());
     config.set(DatabusConsumerConfig.checkpointDirConfig,
         "/tmp/test/databustest5/checkpoint1");
     config.set(DatabusConsumerConfig.databusStreamType,
@@ -94,8 +88,9 @@ public class TestDatabusConsumerMultipleCollectors
   @Test
   public void testLocalStreamAllClusters() throws Exception {
     ClientConfig config = loadConfig();
-    config.set(DatabusConsumerConfig.databusClustersConfig,
-        null);
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+        rootDirs[0].toString()+ "," + rootDirs[1].toString() + "," 
+        + rootDirs[2].toString());
     config.set(DatabusConsumerConfig.checkpointDirConfig,
         "/tmp/test/databustest5/checkpoint2");
     config.set(DatabusConsumerConfig.databusStreamType,
@@ -106,8 +101,8 @@ public class TestDatabusConsumerMultipleCollectors
   @Test
   public void testCollectorStream() throws Exception {
     ClientConfig config = loadConfig();
-    config.set(DatabusConsumerConfig.databusClustersConfig,
-        "testcluster1");
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+        rootDirs[0].toString());
     config.set(DatabusConsumerConfig.checkpointDirConfig,
         "/tmp/test/databustest4/checkpoint3");
     config.set(DatabusConsumerConfig.databusStreamType,
@@ -119,8 +114,8 @@ public class TestDatabusConsumerMultipleCollectors
   @Test
   public void testCollectorStreamMultipleClusters() throws Exception {
     ClientConfig config = loadConfig();
-    config.set(DatabusConsumerConfig.databusClustersConfig,
-        "testcluster1,testcluster2");
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+        rootDirs[0].toString() + "," + rootDirs[1].toString());
     config.set(DatabusConsumerConfig.checkpointDirConfig,
         "/tmp/test/databustest5/checkpoint3");
     config.set(DatabusConsumerConfig.databusStreamType,
@@ -132,8 +127,9 @@ public class TestDatabusConsumerMultipleCollectors
   @Test
   public void testCollectorStreamAllClusters() throws Exception {
     ClientConfig config = loadConfig();
-    config.set(DatabusConsumerConfig.databusClustersConfig,
-        null);
+    config.set(DatabusConsumerConfig.databusRootDirsConfig, 
+        rootDirs[0].toString()+ "," + rootDirs[1].toString() + "," + 
+        rootDirs[2].toString());
     config.set(DatabusConsumerConfig.checkpointDirConfig,
         "/tmp/test/databustest5/checkpoint4");
     config.set(DatabusConsumerConfig.databusStreamType,

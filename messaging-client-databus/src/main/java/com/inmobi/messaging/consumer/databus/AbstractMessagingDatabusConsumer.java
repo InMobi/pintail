@@ -38,6 +38,7 @@ public abstract class AbstractMessagingDatabusConsumer
   protected long waitTimeForFileCreate;
   protected int bufferSize;
   protected DataEncodingType dataEncodingType;
+  protected int retentionInHours;
 
   @Override
   protected void init(ClientConfig config) throws IOException {
@@ -101,6 +102,11 @@ public abstract class AbstractMessagingDatabusConsumer
         DEFAULT_WAIT_TIME_FOR_FILE_CREATE);
     dataEncodingType = DataEncodingType.valueOf(
         config.getString(dataEncodingConfg, DEFAULT_DATA_ENCODING));
+
+    // get the retention period of the topic
+    retentionInHours = config.getInteger(retentionConfig,
+        DEFAULT_RETENTION_HOURS); 
+
     LOG.debug("Using data encoding type as " + dataEncodingType);
   }
 

@@ -60,7 +60,7 @@ public class TestClusterReaderEmptyStream {
     preader = new PartitionReader(clusterId, null, fs, buffer,
         streamDir, conf, inputFormatClass, CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[0]), 
         1000,
-        DataEncodingType.BASE64, true);
+        false, DataEncodingType.BASE64, true);
     preader.init();
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -75,7 +75,7 @@ public class TestClusterReaderEmptyStream {
             CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[0])),
             "dummyfile", 0L), 20), fs, buffer,
         streamDir, conf, inputFormatClass, null, 
-        1000, DataEncodingType.BASE64, true);
+        1000, false, DataEncodingType.BASE64, true);
     preader.init();
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -91,7 +91,7 @@ public class TestClusterReaderEmptyStream {
             "dummyfile", 0L), 20), fs, buffer,
         streamDir, conf, inputFormatClass, CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[0]), 
         1000,
-        DataEncodingType.BASE64, true);
+        false, DataEncodingType.BASE64, true);
     preader.init();
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),

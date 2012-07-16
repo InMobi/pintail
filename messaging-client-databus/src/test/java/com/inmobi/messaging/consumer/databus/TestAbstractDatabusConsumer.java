@@ -1,13 +1,16 @@
 package com.inmobi.messaging.consumer.databus;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
 import com.inmobi.databus.Cluster;
-import com.inmobi.databus.DatabusConfig;
-import com.inmobi.databus.SourceStream;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.consumer.util.ConsumerUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
@@ -21,7 +24,8 @@ public abstract class TestAbstractDatabusConsumer {
   protected String[] collectors;
   protected String[] dataFiles;
   protected String consumerName;
-
+  Path[] rootDirs;
+  Configuration conf = new Configuration();
 
   public void setup(int numFileToMove) throws Exception {
 
@@ -30,12 +34,25 @@ public abstract class TestAbstractDatabusConsumer {
     testConsumer.initializeConfig(config);
 
     // setup stream, collector dirs and data files
-    DatabusConfig databusConfig = testConsumer.getDatabusConfig();
-    SourceStream sourceStream = 
-        databusConfig.getSourceStreams().get(testStream);
-    for (String c : sourceStream.getSourceClusters()) {
-      Cluster cluster = databusConfig.getClusters().get(c);
-      FileSystem fs = FileSystem.get(cluster.getHadoopConf());
+    Set<String> sourceNames = new HashSet<String>();
+    sourceNames.add(testStream);
+
+    rootDirs = testConsumer.getRootDirs();
+    for (int i =0; i <rootDirs.length; i++) {
+      Map<String, String> clusterConf = new HashMap<String, String>();
+      FileSystem fs = rootDirs[i].getFileSystem(conf);
+      clusterConf.put("hdfsurl", fs.getUri().toString());
+      clusterConf.put("jturl", "local");
+      clusterConf.put("name", "databusCluster" + i);
+      clusterConf.put("jobqueuename", "default");
+      
+      String rootDir = rootDirs[i].toUri().toString();
+      if (rootDirs[i].toString().startsWith("file:")) {
+        String[] rootDirSplit = rootDirs[i].toString().split("file:");
+        rootDir = rootDirSplit[1];
+      }
+      Cluster cluster = new Cluster(clusterConf, 
+          rootDir, null, sourceNames);
       fs.delete(new Path(cluster.getRootDir()), true);
       Path streamDir = new Path(cluster.getDataDir(), testStream);
       fs.delete(streamDir, true);
@@ -55,19 +72,16 @@ public abstract class TestAbstractDatabusConsumer {
   void assertMessages(
       ClientConfig config, int numClusters, int numCollectors) 
       throws IOException, InterruptedException {
-    ConsumerUtil.assertMessages(config, testStream, consumerName, numClusters, numCollectors,
+    ConsumerUtil.assertMessages(config, testStream, consumerName, numClusters,
+        numCollectors,
         numDataFiles, 100, false);
   }
 
   public void cleanup() throws IOException {
     testConsumer.close();
-    DatabusConfig databusConfig = testConsumer.getDatabusConfig();
-    SourceStream sourceStream = 
-        databusConfig.getSourceStreams().get(testStream);
-    for (String c : sourceStream.getSourceClusters()) {
-      Cluster cluster = databusConfig.getClusters().get(c);
-      FileSystem fs = FileSystem.get(cluster.getHadoopConf());
-      fs.delete(new Path(cluster.getRootDir()), true);
+    for (Path p : rootDirs) {
+      FileSystem fs = p.getFileSystem(conf);
+      fs.delete(p, true);
     }
   }
 

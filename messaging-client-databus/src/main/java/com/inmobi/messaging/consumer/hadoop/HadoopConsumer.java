@@ -18,7 +18,6 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
     implements HadoopConsumerConfig {
 
   private String[] clusterNames;
-  private int retentionInHours;
   private Path[] rootDirs;
   private FileSystem[] fileSystems;
   private Configuration conf;
@@ -54,8 +53,6 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
 
     inputFormatClassName = config.getString(inputFormatClassNameConfig,
         DEFAULT_INPUT_FORMAT_CLASSNAME);
-    retentionInHours = config.getInteger(retentionConfig,
-        DEFAULT_RETENTION_HOURS); 
   }
 
   protected void createPartitionReaders() throws IOException {
@@ -81,7 +78,7 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
       PartitionReader reader = new PartitionReader(id,
           partitionsChkPoints.get(id), fileSystems[i], buffer, rootDirs[i],
           conf, inputFormatClassName, partitionTimestamp,
-          waitTimeForFileCreate, dataEncodingType);    
+          waitTimeForFileCreate, false, dataEncodingType);    
       LOG.debug("Created partition " + id);
       readers.put(id, reader);
     }

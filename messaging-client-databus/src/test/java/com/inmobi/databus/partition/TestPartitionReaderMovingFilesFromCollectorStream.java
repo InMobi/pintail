@@ -3,6 +3,7 @@ package com.inmobi.databus.partition;
 import java.io.IOException;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.testng.Assert;
@@ -18,6 +19,8 @@ import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.databus.readers.LocalStreamCollectorReader;
 import com.inmobi.messaging.consumer.databus.DataEncodingType;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
+import com.inmobi.messaging.consumer.databus.StreamType;
+import com.inmobi.messaging.consumer.util.DatabusUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
 public class TestPartitionReaderMovingFilesFromCollectorStream {
@@ -31,8 +34,10 @@ public class TestPartitionReaderMovingFilesFromCollectorStream {
       new LinkedBlockingQueue<QueueEntry>(149);
   private Cluster cluster;
   private Path collectorDir;
+  private Path streamsLocalDir;
   private PartitionReader preader;
   private FileSystem fs;
+  private Configuration conf = new Configuration();
   
   private String[] files = new String[] {TestUtil.files[0],
       TestUtil.files[2], TestUtil.files[3], TestUtil.files[4],
@@ -47,8 +52,11 @@ public class TestPartitionReaderMovingFilesFromCollectorStream {
     // setup cluster
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
         testStream, partitionId, files, emptyfiles, 1);
-    collectorDir = new Path(new Path(cluster.getDataDir(), testStream),
+    collectorDir = DatabusUtil.getCollectorStreamDir(
+        new Path(cluster.getRootDir()), testStream,
         collectorName);
+    streamsLocalDir = DatabusUtil.getStreamDir(StreamType.LOCAL,
+        new Path(cluster.getRootDir()), testStream);
     fs = FileSystem.get(cluster.getHadoopConf());
   }
 
@@ -59,9 +67,10 @@ public class TestPartitionReaderMovingFilesFromCollectorStream {
 
   @Test
   public void testCollectorFileMoved() throws Exception {
-    preader = new PartitionReader(partitionId, null, cluster, buffer,
+    preader = new PartitionReader(partitionId, null, conf, fs,
+        collectorDir, streamsLocalDir, buffer,
         testStream, CollectorStreamReader.getDateFromCollectorFile(files[0]),
-        10, 1000, false, DataEncodingType.BASE64);
+        10, 1000, DataEncodingType.BASE64);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),

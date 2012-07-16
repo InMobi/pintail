@@ -3,13 +3,13 @@ package com.inmobi.databus.partition;
 import java.io.IOException;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.testng.Assert;
 
 import com.inmobi.databus.Cluster;
-import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 import com.inmobi.messaging.consumer.databus.DataEncodingType;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
@@ -28,22 +28,31 @@ public abstract class TestAbstractWaitingClusterReader {
 
   protected String[] files = new String[] {TestUtil.files[1], TestUtil.files[3],
       TestUtil.files[5]};
+  protected String[] newFiles = new String[] {TestUtil.files[6], TestUtil.files[7],
+      TestUtil.files[8]};
   protected Path[] databusFiles = new Path[3];
 
   protected final String collectorName = "collector1";
   FileSystem fs;
+  String inputFormatClass;
+  DataEncodingType dataEncoding;
+  Path streamDir;
+  Configuration conf;
 
   abstract void setupFiles(String[] files, Path[] newDatabusFiles) throws Exception;
-  abstract boolean isLocal();
+  abstract boolean isDatabusData();
   
   public void cleanup() throws IOException {
     TestUtil.cleanupCluster(cluster);
   }
 
   public void testReadFromStart() throws Exception {
-    preader = new PartitionReader(partitionId, null, cluster, buffer,
-        testStream, CollectorStreamReader.getDateFromCollectorFile(files[0]),
-        1000, 1000, isLocal(), DataEncodingType.BASE64, false);
+    preader = new PartitionReader(partitionId, null, fs, buffer,
+        streamDir, conf, inputFormatClass,
+        DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
+            databusFiles[0]),
+        1000, isDatabusData(), dataEncoding, false);
+
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -61,36 +70,36 @@ public abstract class TestAbstractWaitingClusterReader {
     fs.delete(databusFiles[1], true);
     fs.delete(databusFiles[2], true);
     Path[] newDatabusFiles = new Path[3];
-    setupFiles(new String[] {TestUtil.files[6]}, newDatabusFiles);
+    setupFiles(new String[] {newFiles[0]}, newDatabusFiles);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
-        fs0), 1, 0, 100, partitionId,
-        buffer, true);
+        fs0), 1, 0, 100, partitionId, buffer,
+        dataEncoding.equals(DataEncodingType.BASE64));
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
-        fs1), 2, 0, 50, partitionId,
-        buffer, true);
+        fs1), 2, 0, 50, partitionId, buffer,
+        dataEncoding.equals(DataEncodingType.BASE64));
     
     while (buffer.remainingCapacity() > 0) {
       Thread.sleep(10);
     }
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
-        fs1), 2, 50, 50, partitionId,
-        buffer, true);
+        fs1), 2, 50, 50, partitionId, buffer, dataEncoding.equals(
+            DataEncodingType.BASE64));
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(newDatabusFiles[0])), 1, 0, 100, partitionId,
-        buffer, true);
+        buffer, dataEncoding.equals(DataEncodingType.BASE64));
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(((ClusterReader)preader.getReader())
         .getReader().getClass().getName(),
         DatabusStreamWaitingReader.class.getName());
-    setupFiles(new String[] {TestUtil.files[7], TestUtil.files[8]},
+    setupFiles(new String[] {newFiles[1], newFiles[2]},
         newDatabusFiles);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
-        fs.getFileStatus(newDatabusFiles[0])), 1, 0, 100, partitionId,
-        buffer, true);
+        fs.getFileStatus(newDatabusFiles[0])), 1, 0, 100, partitionId, buffer,
+        dataEncoding.equals(DataEncodingType.BASE64));
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(newDatabusFiles[1])), 2, 0, 100, partitionId,
-        buffer, true);
+        buffer, dataEncoding.equals(DataEncodingType.BASE64));
     Assert.assertTrue(buffer.isEmpty());    
     preader.close();
   }

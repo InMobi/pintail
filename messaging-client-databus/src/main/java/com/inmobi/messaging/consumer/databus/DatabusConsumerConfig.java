@@ -5,10 +5,7 @@ package com.inmobi.messaging.consumer.databus;
  */
 public interface DatabusConsumerConfig extends MessagingConsumerConfig {
 
-  public static final String databusConfigFileKey = "databus.conf";
-  public static final String DEFAULT_DATABUS_CONFIG_FILE = "databus.xml";
-
-  public static final String databusClustersConfig = "databus.consumer.clusters";
+  public static final String databusRootDirsConfig = "databus.consumer.rootdirs";
 
   public static final String databusStreamType = "databus.consumer.stream.type";
   public static final String DEFAULT_STREAM_TYPE = StreamType.COLLECTOR.name();

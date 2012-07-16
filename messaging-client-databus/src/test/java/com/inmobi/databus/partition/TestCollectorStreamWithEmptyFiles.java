@@ -3,6 +3,7 @@ package com.inmobi.databus.partition;
 import java.io.IOException;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.testng.Assert;
@@ -16,6 +17,8 @@ import com.inmobi.databus.partition.PartitionReader;
 import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.messaging.consumer.databus.DataEncodingType;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
+import com.inmobi.messaging.consumer.databus.StreamType;
+import com.inmobi.messaging.consumer.util.DatabusUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
 public class TestCollectorStreamWithEmptyFiles {
@@ -24,14 +27,16 @@ public class TestCollectorStreamWithEmptyFiles {
   private static final String collectorName = "collector1";
   private static final String clusterName = "testCluster";
   private PartitionId partitionId = new PartitionId(clusterName, collectorName);
-  private Path collectorDir;
   private Cluster cluster;
   private String[] files = new String[] {TestUtil.files[0]};
   private String[] emptyfiles = new String[] {TestUtil.files[1]};
   private LinkedBlockingQueue<QueueEntry> buffer = 
       new LinkedBlockingQueue<QueueEntry>(101);
 
-  FileSystem fs;
+  private Path collectorDir;
+  private Path streamsLocalDir;
+  private Configuration conf = new Configuration();
+  private FileSystem fs;
 
 
   @BeforeTest
@@ -39,8 +44,11 @@ public class TestCollectorStreamWithEmptyFiles {
     // setup cluster
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
         testStream, partitionId, files, emptyfiles, 0);
-    collectorDir = new Path(new Path(cluster.getDataDir(), testStream),
+    collectorDir = DatabusUtil.getCollectorStreamDir(
+        new Path(cluster.getRootDir()), testStream,
         collectorName);
+    streamsLocalDir = DatabusUtil.getStreamDir(StreamType.LOCAL,
+        new Path(cluster.getRootDir()), testStream);
     fs = FileSystem.get(cluster.getHadoopConf());
   }
 
@@ -51,10 +59,10 @@ public class TestCollectorStreamWithEmptyFiles {
 
   @Test
   public void testReadFromStart() throws Exception {
-    PartitionReader preader = new PartitionReader(partitionId, null, cluster,
-        buffer,
-        testStream, CollectorStreamReader.getDateFromCollectorFile(files[0]),
-        5, 1000, false, DataEncodingType.BASE64);
+    PartitionReader preader = new PartitionReader(partitionId, null, conf,
+        fs, collectorDir, streamsLocalDir, buffer, testStream,
+        CollectorStreamReader.getDateFromCollectorFile(files[0]), 5, 1000,
+        DataEncodingType.BASE64);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),

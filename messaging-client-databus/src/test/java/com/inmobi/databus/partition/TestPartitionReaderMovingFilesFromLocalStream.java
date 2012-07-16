@@ -3,6 +3,7 @@ package com.inmobi.databus.partition;
 import java.io.IOException;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.testng.Assert;
@@ -17,6 +18,8 @@ import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.databus.readers.LocalStreamCollectorReader;
 import com.inmobi.messaging.consumer.databus.DataEncodingType;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
+import com.inmobi.messaging.consumer.databus.StreamType;
+import com.inmobi.messaging.consumer.util.DatabusUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
 public class TestPartitionReaderMovingFilesFromLocalStream {
@@ -32,6 +35,8 @@ public class TestPartitionReaderMovingFilesFromLocalStream {
   private PartitionReader preader;
   private FileSystem fs;
   private Path collectorDir;
+  private Path streamsLocalDir;
+  private Configuration conf = new Configuration();
 
   private String[] files = new String[] {TestUtil.files[1],
       TestUtil.files[2], TestUtil.files[3], TestUtil.files[4],
@@ -44,8 +49,11 @@ public class TestPartitionReaderMovingFilesFromLocalStream {
     // setup cluster
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
         testStream, partitionId, files, null, databusFiles, 4);
-    collectorDir = new Path(new Path(cluster.getDataDir(), testStream),
+    collectorDir = DatabusUtil.getCollectorStreamDir(
+        new Path(cluster.getRootDir()), testStream,
         collectorName);
+    streamsLocalDir = DatabusUtil.getStreamDir(StreamType.LOCAL,
+        new Path(cluster.getRootDir()), testStream);
     fs = FileSystem.get(cluster.getHadoopConf());
   }
 
@@ -56,9 +64,11 @@ public class TestPartitionReaderMovingFilesFromLocalStream {
 
   @Test
   public void testLocalStreamFileMoved() throws Exception {
-    preader = new PartitionReader(partitionId, null, cluster, buffer,
+    preader = new PartitionReader(partitionId, null, conf, fs,
+        collectorDir, streamsLocalDir, buffer,
         testStream, CollectorStreamReader.getDateFromCollectorFile(files[0]),
-        1000, 1000, false, DataEncodingType.BASE64);
+        1000, 1000, DataEncodingType.BASE64);
+
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
     preader.init();
@@ -121,7 +131,8 @@ public class TestPartitionReaderMovingFilesFromLocalStream {
         collectorName, files[5]), 6, 50, 50, partitionId, buffer, true);
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
         collectorName, files[6]), 7, 0, 100, partitionId, buffer, true);
-    TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[7]), 8, 0, 100, partitionId, buffer, true);
+    TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[7]),
+        8, 0, 100, partitionId, buffer, true);
     Assert.assertEquals(((CollectorReader)preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());

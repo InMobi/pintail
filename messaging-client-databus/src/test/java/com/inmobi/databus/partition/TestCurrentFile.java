@@ -20,6 +20,8 @@ import com.inmobi.databus.partition.PartitionReader;
 import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.messaging.consumer.databus.DataEncodingType;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
+import com.inmobi.messaging.consumer.databus.StreamType;
+import com.inmobi.messaging.consumer.util.DatabusUtil;
 import com.inmobi.messaging.consumer.util.MessageUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
@@ -42,6 +44,8 @@ public class TestCurrentFile {
   MiniDFSCluster dfsCluster;
   Configuration conf = new Configuration();
   FileSystem lfs;
+  private Path streamsLocalDir;
+
 
   private void writeMessages(FSDataOutputStream out, int num)
       throws IOException {
@@ -72,17 +76,20 @@ public class TestCurrentFile {
         testStream,
         partitionId, dfsCluster.getFileSystem().getUri().toString(),
         null, null, 0);
-    collectorDir = new Path(new Path(cluster.getDataDir(), testStream),
+    collectorDir = DatabusUtil.getCollectorStreamDir(
+        new Path(cluster.getRootDir()), testStream,
         collectorName);
+    streamsLocalDir = DatabusUtil.getStreamDir(StreamType.LOCAL,
+        new Path(cluster.getRootDir()), testStream);
     fs = FileSystem.get(cluster.getHadoopConf());
   }
 
   @Test
   public void testReadFromCurrentScribeFile() throws Exception {
-    preader = new PartitionReader(partitionId, null, cluster, buffer,
-        testStream,
-        CollectorStreamReader.getDateFromCollectorFile(currentScribeFile),
-        1000, 1000, false, DataEncodingType.BASE64);
+    preader = new PartitionReader(partitionId, null, conf, fs,
+        collectorDir, streamsLocalDir, buffer, testStream,
+        CollectorStreamReader.getDateFromCollectorFile(currentScribeFile), 1000,
+        1000, DataEncodingType.BASE64);
     preader.start();
     Assert.assertTrue(buffer.isEmpty());
     FSDataOutputStream out = fs.create(

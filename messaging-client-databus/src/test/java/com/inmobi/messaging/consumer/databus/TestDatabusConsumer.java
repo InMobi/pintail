@@ -37,6 +37,8 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
   @Test
   public void testMarkAndReset() throws Exception {
     ClientConfig config = loadConfig();
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+        rootDirs[0].toUri().toString());
     config.set(DatabusConsumerConfig.checkpointDirConfig, ck1);
     ConsumerUtil.testMarkAndReset(config, testStream, consumerName, false);
   }
@@ -44,6 +46,8 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
   @Test
   public void testMarkAndResetWithStartTime() throws Exception {
     ClientConfig config = loadConfig();
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+        rootDirs[0].toUri().toString());
     config.set(DatabusConsumerConfig.checkpointDirConfig, ck2);
     ConsumerUtil.testMarkAndResetWithStartTime(config, testStream, consumerName,
         CollectorStreamReader.getDateFromCollectorFile(dataFiles[1]), false);
@@ -52,8 +56,8 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
   @Test
   public void testMultipleClusters() throws Exception {
     ClientConfig config = loadConfig();
-    config.set(DatabusConsumerConfig.databusClustersConfig,
-        "testcluster1,testcluster2");
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+        rootDirs[0].toUri().toString() + "," + rootDirs[1].toUri().toString());
     config.set(DatabusConsumerConfig.checkpointDirConfig,
         ck3);
     assertMessages(config, 2, 1);
@@ -62,20 +66,11 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
   @Test
   public void testMultipleClusters2() throws Exception {
     ClientConfig config = loadConfig();
-    config.set(DatabusConsumerConfig.databusClustersConfig,
-        "testcluster1,testcluster2,testcluster3");
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+        rootDirs[0].toString() + "," + rootDirs[1].toString() + "," + 
+        rootDirs[2].toString());
     config.set(DatabusConsumerConfig.checkpointDirConfig, ck4);
     assertMessages(config, 3, 1);
-  }
-
-  @Test
-  public void testMultipleClusters3() throws Exception {
-
-    ClientConfig config = loadConfig();
-    config.set(DatabusConsumerConfig.databusClustersConfig,
-        null);
-    config.set(DatabusConsumerConfig.checkpointDirConfig, ck5);
-    assertMessages( config, 3, 1);
   }
 
   @AfterTest

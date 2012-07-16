@@ -8,7 +8,6 @@ import org.testng.annotations.Test;
 
 import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.messaging.ClientConfig;
-import com.inmobi.messaging.consumer.MessageConsumerFactory;
 import com.inmobi.messaging.consumer.util.ConsumerUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
@@ -22,11 +21,10 @@ public class TestDatabusConsumerCollectorStream
   private String ck5 = "/tmp/test/databustest8/checkpoint32";
 
   ClientConfig loadConfig() {
-    ClientConfig config = ClientConfig.loadFromClasspath(
-        MessageConsumerFactory.MESSAGE_CLIENT_CONF_FILE);
-    config.set(DatabusConsumerConfig.databusConfigFileKey, "databus1.xml");
-    return config;
+    return ClientConfig
+        .loadFromClasspath("messaging-consumer-conf3.properties");
   }
+
 
   @BeforeTest
   public void setup() throws Exception {
@@ -40,6 +38,8 @@ public class TestDatabusConsumerCollectorStream
   @Test
   public void testMarkAndReset() throws Exception {
     ClientConfig config = loadConfig();
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+        rootDirs[0].toUri().toString());
     config.set(DatabusConsumerConfig.checkpointDirConfig, ck1);
     ConsumerUtil.testMarkAndReset(config, testStream, consumerName, false);
   }
@@ -47,6 +47,8 @@ public class TestDatabusConsumerCollectorStream
   @Test
   public void testMarkAndResetWithStartTime() throws Exception {
     ClientConfig config = loadConfig();
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+        rootDirs[0].toUri().toString());
     config.set(DatabusConsumerConfig.checkpointDirConfig, ck2);
     ConsumerUtil.testMarkAndResetWithStartTime(config, testStream, consumerName,
         CollectorStreamReader.getDateFromCollectorFile(dataFiles[1]), false);
@@ -55,8 +57,8 @@ public class TestDatabusConsumerCollectorStream
   @Test
   public void testMultipleClusters() throws Exception {
     ClientConfig config = loadConfig();
-    config.set(DatabusConsumerConfig.databusClustersConfig,
-        "testcluster1,testcluster2");
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+        rootDirs[0].toUri().toString() + "," + rootDirs[1].toUri().toString());
     config.set(DatabusConsumerConfig.checkpointDirConfig,
         ck3);
     assertMessages(config, 2, 1);
@@ -65,22 +67,13 @@ public class TestDatabusConsumerCollectorStream
   @Test
   public void testMultipleClusters2() throws Exception {
     ClientConfig config = loadConfig();
-    config.set(DatabusConsumerConfig.databusClustersConfig,
-        "testcluster1,testcluster2,testcluster3");
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+        rootDirs[0].toUri().toString() + "," + 
+        rootDirs[1].toUri().toString() + "," + 
+        rootDirs[0].toUri().toString());
     config.set(DatabusConsumerConfig.checkpointDirConfig, ck4);
     assertMessages(config, 3, 1);
   }
-
-  @Test
-  public void testMultipleClusters3() throws Exception {
-
-    ClientConfig config = loadConfig();
-    config.set(DatabusConsumerConfig.databusClustersConfig,
-        null);
-    config.set(DatabusConsumerConfig.checkpointDirConfig, ck5);
-    assertMessages( config, 3, 1);
-  }
-
 
   @AfterTest
   public void cleanup() throws IOException {

@@ -4,10 +4,14 @@ import java.io.IOException;
 
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapred.TextInputFormat;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
+import com.inmobi.messaging.consumer.databus.DataEncodingType;
+import com.inmobi.messaging.consumer.databus.StreamType;
+import com.inmobi.messaging.consumer.util.DatabusUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
 public class TestPartitionReaderWaitingMergeStream
@@ -15,11 +19,20 @@ public class TestPartitionReaderWaitingMergeStream
 
   @BeforeTest
   public void setup() throws Exception {
+    files = new String[] {TestUtil.files[1],
+        TestUtil.files[3], TestUtil.files[5]};
+    newFiles = new String[] {TestUtil.files[6],
+        TestUtil.files[7], TestUtil.files[8] };
+    inputFormatClass = TextInputFormat.class.getName();
+    dataEncoding = DataEncodingType.BASE64;
     // setup cluster
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
         testStream, new PartitionId(clusterName, collectorName), files, null,
         databusFiles, 0, 3);
-    fs = FileSystem.get(cluster.getHadoopConf());
+    conf = cluster.getHadoopConf();
+    fs = FileSystem.get(conf);
+    streamDir = DatabusUtil.getStreamDir(StreamType.MERGED,
+        new Path(cluster.getRootDir()), testStream);
   }
 
   void setupFiles(String[] files, Path[] newDatabusFiles) throws Exception {
@@ -38,7 +51,7 @@ public class TestPartitionReaderWaitingMergeStream
   }
 
   @Override
-  boolean isLocal() {
-    return false;
+  boolean isDatabusData() {
+    return true;
   }
 }
