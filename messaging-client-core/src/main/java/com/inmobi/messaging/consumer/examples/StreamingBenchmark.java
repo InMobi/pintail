@@ -1,5 +1,7 @@
 package com.inmobi.messaging.consumer.examples;
 
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
@@ -16,6 +18,9 @@ import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 import com.inmobi.messaging.publisher.MessagePublisherFactory;
 import com.inmobi.messaging.util.ConsumerUtil;
 
+import org.apache.commons.codec.binary.Base64;
+import org.apache.hadoop.io.Text;
+
 public class StreamingBenchmark {
 
   static final String DELIMITER = "/t";
@@ -26,7 +31,7 @@ public class StreamingBenchmark {
     System.out.println(
         "Usage: StreamingBenchmark  " +
         " [-producer <topic-name> <no-of-msgs> <sleepMillis-every-msg> ]" +
-        " [-consumer <no-of-producers> <no-of-msgs> [<timezone>] ]");
+        " [-consumer <no-of-producers> <no-of-msgs> [<hadoopconsumerflag>] [<timezone>]]");
     System.exit(-1);    
   }
 
@@ -41,6 +46,7 @@ public class StreamingBenchmark {
     int numProducers = 1;
     boolean runProducer = false;
     boolean runConsumer = false;
+    boolean hadoopConsumer = false;
 
     if (args.length >= 3) {
       int consumerOptionIndex = -1;
@@ -59,7 +65,10 @@ public class StreamingBenchmark {
           numProducers = Integer.parseInt(args[consumerOptionIndex + 1]);
           maxSent = Long.parseLong(args[consumerOptionIndex + 2]);
           if (args.length > consumerOptionIndex + 3) {
-            timezone = args[consumerOptionIndex + 3];
+            hadoopConsumer = (Integer.parseInt(args[consumerOptionIndex + 3]) > 0);
+          }
+          if (args.length > consumerOptionIndex + 4) {
+            timezone = args[consumerOptionIndex + 4];
           }
           runConsumer = true;
         }
@@ -92,7 +101,7 @@ public class StreamingBenchmark {
 
       // create and start consumer
       assert(config != null);
-      consumer = createConsumer(config, maxSent, now, numProducers);
+      consumer = createConsumer(config, maxSent, now, numProducers, hadoopConsumer);
       consumer.start();
     }
     
@@ -130,8 +139,8 @@ public class StreamingBenchmark {
   }
 
   static Consumer createConsumer(ClientConfig config, long maxSent,
-      Date startTime, int numProducers) throws IOException {
-    return new Consumer(config, maxSent, startTime, numProducers);    
+      Date startTime, int numProducers, boolean hadoopConsumer) throws IOException {
+    return new Consumer(config, maxSent, startTime, numProducers, hadoopConsumer);    
   }
 
   static class Producer extends Thread {
@@ -195,15 +204,28 @@ public class StreamingBenchmark {
     volatile long totalLatency = 0;
     int numProducers;
     boolean success = false;
+    boolean hadoopConsumer = false;
 
     Consumer(ClientConfig config, long maxSent, Date startTime,
-        int numProducers) throws IOException {
+        int numProducers, boolean hadoopConsumer) throws IOException {
       this.maxSent = maxSent;
       messageToProducerCount = new HashMap<Long, Integer>((int)maxSent);
       this.numProducers = numProducers;
       consumer = MessageConsumerFactory.create(config, startTime);
+      this.hadoopConsumer = hadoopConsumer;
     }
 
+    private String getMessage(Message msg) throws IOException {
+      byte[] byteArray = msg.getData().array();
+      if (!hadoopConsumer) {
+        return new String(byteArray);
+      } else {
+        Text text = new Text();
+        ByteArrayInputStream bais = new ByteArrayInputStream(byteArray);
+        text.readFields(new DataInputStream(bais));
+        return new String(Base64.decodeBase64(text.getBytes()));
+      }
+    }
     @Override
     public void run() {
       System.out.println("Consumer started!");
@@ -212,7 +234,7 @@ public class StreamingBenchmark {
         try {
           msg = consumer.next();
           received++;
-          String s = new String(msg.getData().array());
+          String s = getMessage(msg);
           String[] ar = s.split(DELIMITER);
           Long seq = Long.parseLong(ar[0]);
           Integer pcount = messageToProducerCount.get(seq);
