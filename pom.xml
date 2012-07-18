@@ -128,10 +128,11 @@
           <systemPropertyVariables>
             <test.build.data>${test.build.data}</test.build.data>
           </systemPropertyVariables>
+          <forkedProcessTimeoutInSeconds>300</forkedProcessTimeoutInSeconds>
+          <redirectTestOutputToFile>true</redirectTestOutputToFile>
         </configuration>
       </plugin>
-
-
+      
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
