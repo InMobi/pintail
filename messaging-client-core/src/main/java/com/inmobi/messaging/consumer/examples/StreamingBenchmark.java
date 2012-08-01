@@ -7,8 +7,10 @@ import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
@@ -259,8 +261,7 @@ public class StreamingBenchmark {
   }
 
   static class Consumer extends Thread {
-    //volatile Set<Long> seqSet = new HashSet<Long>();
-    final Map<Long, Integer> messageToProducerCount;
+    final TreeMap<Long, Integer> messageToProducerCount;
     final MessageConsumer consumer;
     final long maxSent;
     volatile long received = 0;
@@ -268,11 +269,12 @@ public class StreamingBenchmark {
     int numProducers;
     boolean success = false;
     boolean hadoopConsumer = false;
+    int numDuplicates = 0;
 
     Consumer(ClientConfig config, long maxSent, Date startTime,
         int numProducers, boolean hadoopConsumer) throws IOException {
       this.maxSent = maxSent;
-      messageToProducerCount = new HashMap<Long, Integer>((int)maxSent);
+      messageToProducerCount = new TreeMap<Long, Integer>();
       this.numProducers = numProducers;
       consumer = MessageConsumerFactory.create(config, startTime);
       this.hadoopConsumer = hadoopConsumer;
@@ -289,6 +291,30 @@ public class StreamingBenchmark {
         return new String(Base64.decodeBase64(text.getBytes()));
       }
     }
+
+    private Long getFirstKey() {
+      Map.Entry<Long, Integer> first = messageToProducerCount.firstEntry();
+      if (first != null) {
+        return first.getKey();
+      }
+      return -1L;
+    }
+
+    private void purgeCounts() {
+      Set<Map.Entry<Long, Integer>> entrySet = messageToProducerCount.entrySet();
+      Iterator<Map.Entry<Long, Integer>> iter = entrySet.iterator();
+      while (iter.hasNext()) {
+        Map.Entry<Long, Integer> entry = iter.next();
+        long msgIndex = entry.getKey();
+        int pcount = entry.getValue();
+        if (pcount == numProducers && messageToProducerCount.size() > 1) {
+          iter.remove();
+        } else {
+          break;
+        }
+      }
+    }
+
     @Override
     public void run() {
       System.out.println("Consumer started!");
@@ -301,14 +327,19 @@ public class StreamingBenchmark {
           String[] ar = s.split(DELIMITER);
           Long seq = Long.parseLong(ar[0]);
           Integer pcount = messageToProducerCount.get(seq);
-          if (pcount == null) {
-            messageToProducerCount.put(seq, new Integer(1));
+          if (seq < getFirstKey()) {
+            numDuplicates++;
           } else {
-            pcount++;
-            messageToProducerCount.put(seq, pcount);
+            if (pcount == null) {
+              messageToProducerCount.put(seq, new Integer(1));
+            } else {
+              pcount++;
+              messageToProducerCount.put(seq, pcount);
+            }
+            long sentTime = Long.parseLong(ar[1]);
+            totalLatency += System.currentTimeMillis() - sentTime;
           }
-          long sentTime = Long.parseLong(ar[1]);
-          totalLatency += System.currentTimeMillis() - sentTime;
+          purgeCounts();
           if (received == maxSent * numProducers) {
             break;
           }
@@ -317,17 +348,31 @@ public class StreamingBenchmark {
           return;
         }
       }
-      if (messageToProducerCount.size() == maxSent) {
-        for (Integer pcount : messageToProducerCount.values()) {
-          if (pcount != numProducers) {
-            success = false;
-            break;
-          } else {
-            success = true;
+      purgeCounts();
+      if (numDuplicates != 0) {
+        success = false;
+      } else {
+        Set<Map.Entry<Long, Integer>> entrySet = 
+            messageToProducerCount.entrySet();
+        if (entrySet.size() != 1) {
+          success = false;
+        } else {
+          for (Map.Entry<Long, Integer> entry : entrySet) {
+            long msgIndex = entry.getKey();
+            int pcount = entry.getValue();
+            if (msgIndex == maxSent) {
+              if (pcount != numProducers) {
+                success = false;
+                break;
+              } else {
+                success = true;
+              }
+            } else {
+              success = false;
+              break;
+            }
           }
         }
-      } else {
-        success = false;
       }
       consumer.close();
       System.out.println("Consumer closed");
@@ -376,8 +421,8 @@ public class StreamingBenchmark {
     
     void constructConsumerString(StringBuffer sb) {
       sb.append(" Received:" + consumer.received);
-      sb.append(" UniqueReceived:");
-      sb.append(consumer.messageToProducerCount.size());
+      sb.append(" Duplicates:");
+      sb.append(consumer.numDuplicates);
       if (consumer.received != 0) {
         sb.append(" MeanLatency(ms):" 
             + (consumer.totalLatency / consumer.received));
