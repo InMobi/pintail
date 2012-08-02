@@ -186,7 +186,6 @@ public abstract class AbstractMessagingDatabusConsumer
     }
     readers.clear();
     buffer.clear();
-    buffer = new LinkedBlockingQueue<QueueEntry>(bufferSize);
   }
 
   @Override
