@@ -169,7 +169,7 @@ public abstract class AbstractMessagingDatabusConsumer
     LOG.info("Resetting to checkpoint:" + currentCheckpoint);
     // reset to last marked position, ignore start time
     startTime = null;
-    buffer.clear();
+    buffer = new LinkedBlockingQueue<QueueEntry>(bufferSize);
     start();
   }
 
