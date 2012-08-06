@@ -270,6 +270,7 @@ public class StreamingBenchmark {
     boolean success = false;
     boolean hadoopConsumer = false;
     int numDuplicates = 0;
+    long nextElementToPurge = 1;
 
     Consumer(ClientConfig config, long maxSent, Date startTime,
         int numProducers, boolean hadoopConsumer) throws IOException {
@@ -292,14 +293,6 @@ public class StreamingBenchmark {
       }
     }
 
-    private Long getFirstKey() {
-      Map.Entry<Long, Integer> first = messageToProducerCount.firstEntry();
-      if (first != null) {
-        return first.getKey();
-      }
-      return -1L;
-    }
-
     private void purgeCounts() {
       Set<Map.Entry<Long, Integer>> entrySet = messageToProducerCount.entrySet();
       Iterator<Map.Entry<Long, Integer>> iter = entrySet.iterator();
@@ -307,8 +300,10 @@ public class StreamingBenchmark {
         Map.Entry<Long, Integer> entry = iter.next();
         long msgIndex = entry.getKey();
         int pcount = entry.getValue();
-        if (pcount == numProducers && messageToProducerCount.size() > 1) {
+        if (msgIndex == nextElementToPurge && pcount == numProducers && 
+            messageToProducerCount.size() > 1) {
           iter.remove();
+          nextElementToPurge++;
         } else {
           break;
         }
@@ -327,7 +322,7 @@ public class StreamingBenchmark {
           String[] ar = s.split(DELIMITER);
           Long seq = Long.parseLong(ar[0]);
           Integer pcount = messageToProducerCount.get(seq);
-          if (seq < getFirstKey()) {
+          if (seq < nextElementToPurge) {
             numDuplicates++;
           } else {
             if (pcount == null) {
