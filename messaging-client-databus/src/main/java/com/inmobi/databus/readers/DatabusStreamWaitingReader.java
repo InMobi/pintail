@@ -62,6 +62,7 @@ public class DatabusStreamWaitingReader
         LOG.info("Hour directory " + hhDir + " does not exist");
         current.add(Calendar.HOUR_OF_DAY, 1);
         current.set(Calendar.MINUTE, 0);
+        breakListing = true;
       }
       if (breakListing) {
         break;
