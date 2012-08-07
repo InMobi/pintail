@@ -61,7 +61,7 @@ public class TestClusterReaderMultipleCollectors {
     MiniClusterUtil.shutdownDFSCluster();
   }
 
-  //@Test
+  @Test
   public void testReadFromStart() throws Exception {
     preader = new PartitionReader(partitionId, null, fs, buffer, streamDir,
         conf, TextInputFormat.class.getCanonicalName(),
@@ -75,24 +75,21 @@ public class TestClusterReaderMultipleCollectors {
         .getReader().getClass().getName(),
         DatabusStreamWaitingReader.class.getName());
     preader.start();
-    while (buffer.remainingCapacity() > 0) {
-      Thread.sleep(10);
-    }
-
+    // move file11 
     TestUtil.incrementCommitTime();
     Path movedPath1 = TestUtil.moveFileToStreams(fs, testStream, collectors[1],
         cluster, TestUtil.getCollectorDir(cluster, testStream, collectors[1]),
         files[1]);
+    
+    // read file00, file10
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles1[0])), 1, 0, 100, partitionId,
         buffer, true);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles2[0])), 1, 0, 50, partitionId,
         buffer, true);
-
-    while (buffer.remainingCapacity() > 0) {
-      Thread.sleep(10);
-    }
+    
+    // move file01, file12
     TestUtil.incrementCommitTime();
     Path movedPath2 = TestUtil.moveFileToStreams(fs, testStream, collectors[0],
         cluster, TestUtil.getCollectorDir(cluster, testStream, collectors[0]),
@@ -100,45 +97,48 @@ public class TestClusterReaderMultipleCollectors {
     Path movedPath3 = TestUtil.moveFileToStreams(fs, testStream, collectors[1],
         cluster, TestUtil.getCollectorDir(cluster, testStream, collectors[1]),
         files[2]);
+    
+    // read file10, file11
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles2[0])), 1, 50, 50, partitionId,
         buffer, true);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath1)), 2, 0, 100, partitionId,
         buffer, true);
-
-    while (buffer.remainingCapacity() > 0) {
-      Thread.sleep(10);
-    }
+    
+    // move file02
     TestUtil.incrementCommitTime();
     Path movedPath4 = TestUtil.moveFileToStreams(fs, testStream, collectors[0],
         cluster, TestUtil.getCollectorDir(cluster, testStream, collectors[0]),
         files[2]);
+    // read file10, file12
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath2)), 2, 0, 100, partitionId,
         buffer, true);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath3)), 3, 0, 50, partitionId,
         buffer, true);
-    while (buffer.remainingCapacity() > 0) {
-      Thread.sleep(10);
-    }
+    
+    // move file13
     TestUtil.incrementCommitTime();
     Path movedPath5 = TestUtil.moveFileToStreams(fs, testStream, collectors[1],
     cluster, TestUtil.getCollectorDir(cluster, testStream, collectors[1]),
     files[3]);
+    
+    //read file12, file02
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath3)), 3, 50, 50, partitionId,
     buffer, true);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath4)), 3, 0, 50, partitionId,
     buffer, true);
-    while (buffer.remainingCapacity() > 0) {
-      Thread.sleep(10);
-    }
+    
+    //move file03
     Path movedPath6 = TestUtil.moveFileToStreams(fs, testStream, collectors[0],
     cluster, TestUtil.getCollectorDir(cluster, testStream, collectors[0]),
     files[3]);
+    TestUtil.publishLastPathForStreamsDir(fs, cluster, testStream);
+    // read file02, file13, file03
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath4)), 3, 50, 50, partitionId,
         buffer, true);

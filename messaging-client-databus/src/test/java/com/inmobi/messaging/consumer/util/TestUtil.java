@@ -32,7 +32,7 @@ public class TestUtil {
   static final Log LOG = LogFactory.getLog(TestUtil.class);
 
   private static final String testStream = "testclient";
-  private static Date lastCommitTime;
+  private static Map<Cluster, Date> lastCommitTimes = new HashMap<Cluster, Date>();
 
   public static String[] files = new String[12];
   private static int increment = 1;
@@ -98,8 +98,8 @@ public class TestUtil {
     Date commitTime = getCommitDateForCollectorFile(collectorfileName);
     Path streamDir = DatabusUtil.getStreamDir(streamType,
         new Path(cluster.getRootDir()), streamName);
-    publishMissingPaths(fs, streamDir, lastCommitTime, commitTime);
-    lastCommitTime = commitTime;
+    publishMissingPaths(fs, streamDir, lastCommitTimes.get(cluster), commitTime);
+    lastCommitTimes.put(cluster, commitTime);
     Path streamMinDir = DatabusStreamReader.getMinuteDirPath(streamDir, commitTime);
     return new Path(streamMinDir, streamFileName);
   }
@@ -268,7 +268,8 @@ public class TestUtil {
         }
       }
       publishLastPath(fs, DatabusUtil.getStreamDir(StreamType.LOCAL,
-          new Path(cluster.getRootDir()), testStream), lastCommitTime);
+          new Path(cluster.getRootDir()), testStream),
+          lastCommitTimes.get(cluster));
     }
     
     if (numFilesToMoveToStreams > 0 && collectorFiles != null) {
@@ -281,7 +282,7 @@ public class TestUtil {
         }
       }
       publishLastPath(fs, DatabusUtil.getStreamDir(StreamType.MERGED,
-          new Path(cluster.getRootDir()), testStream), lastCommitTime);
+          new Path(cluster.getRootDir()), testStream), lastCommitTimes.get(cluster));
     }    
   }
 
@@ -309,6 +310,8 @@ public class TestUtil {
 
   static void publishMissingPaths(FileSystem fs, Path baseDir, 
       Date lastCommitTime, Date uptoCommit) throws IOException {
+    LOG.debug("publishMissingPaths lastCommitTime:" + lastCommitTime + 
+        " uptoCommit:" + uptoCommit);
     if (lastCommitTime != null) {
       Calendar cal = Calendar.getInstance();
       cal.setTime(lastCommitTime);
@@ -334,6 +337,13 @@ public class TestUtil {
       fs.mkdirs(minDir);
       LOG.info("Created minDir:" + minDir);
     }    
+  }
+
+  public static void publishLastPathForStreamsDir(FileSystem fs,
+      Cluster cluster, String streamName) throws IOException {
+    publishLastPath(fs, DatabusUtil.getStreamDir(StreamType.MERGED,
+        new Path(cluster.getRootDir()), streamName),
+        lastCommitTimes.get(cluster));
   }
 
   static Date getCommitDateForCollectorFile(String fileName)
