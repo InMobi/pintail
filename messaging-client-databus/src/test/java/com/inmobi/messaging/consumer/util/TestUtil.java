@@ -22,14 +22,17 @@ import com.inmobi.databus.files.StreamFile;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.readers.CollectorStreamReader;
+import com.inmobi.databus.readers.DatabusStreamReader;
 import com.inmobi.databus.readers.LocalStreamCollectorReader;
 import com.inmobi.databus.utils.FileUtil;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
+import com.inmobi.messaging.consumer.databus.StreamType;
 
 public class TestUtil {
   static final Log LOG = LogFactory.getLog(TestUtil.class);
 
   private static final String testStream = "testclient";
+  private static Date lastCommitTime;
 
   public static String[] files = new String[12];
   private static int increment = 1;
@@ -64,7 +67,7 @@ public class TestUtil {
       String collectorfileName)
           throws Exception {
     return moveCollectorFile(fs, streamName, collectorName, cluster,
-        collectorDir, collectorfileName, false);
+        collectorDir, collectorfileName, StreamType.LOCAL);
   }
 
   public static Path moveFileToStreams(FileSystem fs, String streamName,
@@ -72,36 +75,33 @@ public class TestUtil {
       String collectorfileName)
           throws Exception {
     return moveCollectorFile(fs, streamName, collectorName, cluster,
-        collectorDir, collectorfileName, true);
+        collectorDir, collectorfileName, StreamType.MERGED);
   }
 
   public static Path moveCollectorFile(FileSystem fs, String streamName,
       String collectorName, Cluster cluster, Path collectorDir,
-      String collectorfileName, boolean finalDir)
+      String collectorfileName, StreamType streamType)
           throws Exception {
-    Path targetFile = getTargetPath(streamName, collectorName, cluster,
-        collectorfileName, finalDir);
+    Path targetFile = getTargetPath(fs, streamName, collectorName, cluster,
+        collectorfileName, streamType);
     Path srcPath = copyCollectorFile(targetFile, cluster, collectorDir,
         collectorfileName);
     fs.delete(srcPath, true);
     return targetFile;
   }
 
-  private static Path getTargetPath(String streamName,
+  private static Path getTargetPath(FileSystem fs, String streamName,
       String collectorName, Cluster cluster, 
-      String collectorfileName, boolean finalDir) throws IOException {
+      String collectorfileName, StreamType streamType) throws IOException {
     String streamFileName = LocalStreamCollectorReader.getDatabusStreamFileName(
         collectorName, collectorfileName);
-    
-    Path streamDir;
-    if (finalDir) {
-      streamDir = TestUtil.getDateFinalDirForCollectorFile(cluster,
-        streamName, collectorfileName);
-    } else {
-      streamDir = TestUtil.getDateLocalDirForCollectorFile(cluster,
-          streamName, collectorfileName);
-    }
-    return new Path(streamDir, streamFileName);
+    Date commitTime = getCommitDateForCollectorFile(collectorfileName);
+    Path streamDir = DatabusUtil.getStreamDir(streamType,
+        new Path(cluster.getRootDir()), streamName);
+    publishMissingPaths(fs, streamDir, lastCommitTime, commitTime);
+    lastCommitTime = commitTime;
+    Path streamMinDir = DatabusStreamReader.getMinuteDirPath(streamDir, commitTime);
+    return new Path(streamMinDir, streamFileName);
   }
 
   private static Path copyCollectorFile(Path targetFile, Cluster cluster, 
@@ -116,8 +116,8 @@ public class TestUtil {
       String collectorName, Cluster cluster, Path collectorDir,
       String collectorfileName)
           throws Exception {
-    Path targetFile = getTargetPath(streamName, collectorName, cluster,
-        collectorfileName, false);
+    Path targetFile = getTargetPath(fs, streamName, collectorName, cluster,
+        collectorfileName, StreamType.LOCAL);
 
     copyCollectorFile(targetFile, cluster, collectorDir, collectorfileName);
     return targetFile;
@@ -127,8 +127,8 @@ public class TestUtil {
       String collectorName, Cluster cluster, Path collectorDir,
       String collectorfileName)
           throws Exception {
-    Path targetFile = getTargetPath(streamName, collectorName, cluster,
-        collectorfileName, true);
+    Path targetFile = getTargetPath(fs, streamName, collectorName, cluster,
+        collectorfileName, StreamType.MERGED);
 
     copyCollectorFile(targetFile, cluster, collectorDir, collectorfileName);
     return targetFile;
@@ -227,39 +227,9 @@ public class TestUtil {
     fs.delete(new Path(cluster.getLocalFinalDestDirRoot()), true);
     fs.delete(new Path(cluster.getFinalDestDirRoot()), true);
     fs.mkdirs(collectorDir);
-
-    // setup data dirs
-    if (collectorFiles != null) {
-      TestUtil.setUpCollectorDataFiles(fs, collectorDir, collectorFiles);
-    }
-
-    if (emptyFiles != null) {
-      TestUtil.setUpEmptyFiles(fs, collectorDir, emptyFiles);
-    }
-
-    if (numFilesToMoveToStreamLocal > 0 && collectorFiles != null) {
-      fs.delete(new Path(cluster.getLocalFinalDestDirRoot()), true);
-      for (int i = 0; i < numFilesToMoveToStreamLocal; i++) {
-        Path movedPath = TestUtil.moveFileToStreamLocal(fs,
-            testStream, pid.getCollector(),
-            cluster, collectorDir, collectorFiles[i]);
-        if (databusFiles != null) {
-          databusFiles[i] = movedPath;
-        }
-      }
-    }
     
-    if (numFilesToMoveToStreams > 0 && collectorFiles != null) {
-      fs.delete(new Path(cluster.getFinalDestDirRoot()), true);
-      for (int i = 0; i < numFilesToMoveToStreams; i++) {
-        Path movedPath = TestUtil.moveFileToStreams(fs,
-            testStream, pid.getCollector(),
-            cluster, collectorDir, collectorFiles[i]);
-        if (databusFiles != null) {
-          databusFiles[i] = movedPath;
-        }
-      }
-    }
+    setUpFiles(cluster, pid.getCollector(), collectorFiles, emptyFiles,
+        databusFiles, numFilesToMoveToStreamLocal, numFilesToMoveToStreams);
 
     return cluster;
   }
@@ -297,6 +267,8 @@ public class TestUtil {
           }
         }
       }
+      publishLastPath(fs, DatabusUtil.getStreamDir(StreamType.LOCAL,
+          new Path(cluster.getRootDir()), testStream), lastCommitTime);
     }
     
     if (numFilesToMoveToStreams > 0 && collectorFiles != null) {
@@ -308,6 +280,8 @@ public class TestUtil {
           databusFiles[i] = movedPath;
         }
       }
+      publishLastPath(fs, DatabusUtil.getStreamDir(StreamType.MERGED,
+          new Path(cluster.getRootDir()), testStream), lastCommitTime);
     }    
   }
 
@@ -333,6 +307,35 @@ public class TestUtil {
     fs.delete(new Path(cluster.getRootDir()), true);    
   }
 
+  static void publishMissingPaths(FileSystem fs, Path baseDir, 
+      Date lastCommitTime, Date uptoCommit) throws IOException {
+    if (lastCommitTime != null) {
+      Calendar cal = Calendar.getInstance();
+      cal.setTime(lastCommitTime);
+      cal.add(Calendar.MINUTE, 1);
+      while (cal.getTime().before(uptoCommit)) {
+        Path minDir = DatabusStreamReader.getMinuteDirPath(baseDir, cal.getTime()); 
+        fs.mkdirs(minDir);
+        LOG.info("Created minDir:" + minDir);
+        cal.add(Calendar.MINUTE, 1);
+      }
+    } else {
+      LOG.info("Nothing to publish");
+    }
+  }
+
+  static void publishLastPath(FileSystem fs, Path baseDir,
+      Date lastCommitTime) throws IOException {
+    if (lastCommitTime != null) {
+      Calendar cal = Calendar.getInstance();
+      cal.setTime(lastCommitTime);
+      cal.add(Calendar.MINUTE, 1);
+      Path minDir = DatabusStreamReader.getMinuteDirPath(baseDir, cal.getTime()); 
+      fs.mkdirs(minDir);
+      LOG.info("Created minDir:" + minDir);
+    }    
+  }
+
   static Date getCommitDateForCollectorFile(String fileName)
       throws IOException {
     Calendar cal = Calendar.getInstance();
@@ -340,27 +343,5 @@ public class TestUtil {
     cal.setTime(date);
     cal.add(Calendar.MINUTE, increment);
     return cal.getTime();
-  }
-
-  public static Path getDateLocalDirForCollectorFile(Cluster cluster,
-      String streamName, String fileName) throws IOException {
-    return TestUtil.getDateLocalDir(cluster, streamName,
-        getCommitDateForCollectorFile(fileName));
-  }
-
-  private static Path getDateFinalDirForCollectorFile(Cluster cluster,
-      String streamName, String fileName) throws IOException {
-    return TestUtil.getDateFinalDir(cluster, streamName, 
-        getCommitDateForCollectorFile(fileName));
-  }
-
-  public static Path getDateLocalDir(Cluster cluster, String streamName,
-      Date date) throws IOException {
-    return new Path(cluster.getLocalDestDir(streamName, date));
-  }
-
-  private static Path getDateFinalDir(Cluster cluster, String streamName,
-      Date date) throws IOException{
-    return new Path(cluster.getFinalDestDir(streamName, date.getTime()));
   }
 }

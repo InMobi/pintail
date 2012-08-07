@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 
 import org.apache.commons.logging.Log;
@@ -41,7 +40,7 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
   private RecordReader<Object, Object> recordReader;
   private InputFormat<Object, Object> input;
   private Configuration conf;
-  private Date buildTimestamp;
+  protected Date buildTimestamp;
   private Object msgKey;
   private Object msgValue;
   private ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -66,32 +65,10 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
     build();
   }
 
-  void buildListing(FileMap<T> fmap, PathFilter pathFilter)
-      throws IOException {
-    Calendar current = Calendar.getInstance();
-    Date now = current.getTime();
-    current.setTime(buildTimestamp);
-    while (current.getTime().before(now)) {
-      Path hhDir =  getHourDirPath(streamDir, current.getTime());
-      int hour = current.get(Calendar.HOUR_OF_DAY);
-      if (fs.exists(hhDir)) {
-        while (current.getTime().before(now) && 
-            hour  == current.get(Calendar.HOUR_OF_DAY)) {
-          Path dir = getMinuteDirPath(streamDir, current.getTime());
-          // Move the current minute to next minute
-          current.add(Calendar.MINUTE, 1);
-          doRecursiveListing(dir, pathFilter, fmap);
-        } 
-      } else {
-        // go to next hour
-        LOG.info("Hour directory " + hhDir + " does not exist");
-        current.add(Calendar.HOUR_OF_DAY, 1);
-        current.set(Calendar.MINUTE, 0);
-      }
-    }
-  }
+  protected abstract void buildListing(FileMap<T> fmap, PathFilter pathFilter)
+      throws IOException;
 
-  private void doRecursiveListing(Path dir, PathFilter pathFilter,
+  protected void doRecursiveListing(Path dir, PathFilter pathFilter,
       FileMap<T> fmap) throws IOException {
     FileStatus[] fileStatuses = fs.listStatus(dir, pathFilter);
     if (fileStatuses == null || fileStatuses.length == 0) {

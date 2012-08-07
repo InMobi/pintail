@@ -1,6 +1,7 @@
   package com.inmobi.databus.readers;
 
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.TreeMap;
 
@@ -29,6 +30,37 @@ public class DatabusStreamWaitingReader
           throws IOException {
     super(partitionId, fs, streamDir, inputFormatClass, conf, noNewFiles);
     this.waitTimeForCreate = waitTimeForCreate;
+  }
+
+  protected void buildListing(FileMap<HadoopStreamFile> fmap, PathFilter pathFilter)
+      throws IOException {
+    Calendar current = Calendar.getInstance();
+    Date now = current.getTime();
+    current.setTime(buildTimestamp);
+    while (current.getTime().before(now)) {
+      Path hhDir =  getHourDirPath(streamDir, current.getTime());
+      int hour = current.get(Calendar.HOUR_OF_DAY);
+      if (fs.exists(hhDir)) {
+        while (current.getTime().before(now) && 
+            hour  == current.get(Calendar.HOUR_OF_DAY)) {
+          Path dir = getMinuteDirPath(streamDir, current.getTime());
+          // Move the current minute to next minute
+          current.add(Calendar.MINUTE, 1);
+          Path nextMinDir = getMinuteDirPath(streamDir, current.getTime());
+          if (fs.exists(nextMinDir)) {
+            doRecursiveListing(dir, pathFilter, fmap);
+          } else {
+            LOG.info("Reached end of file listing. Not looking at the last" +
+                " minute directory:" + dir);
+          }
+        } 
+      } else {
+        // go to next hour
+        LOG.info("Hour directory " + hhDir + " does not exist");
+        current.add(Calendar.HOUR_OF_DAY, 1);
+        current.set(Calendar.MINUTE, 0);
+      }
+    }
   }
 
   @Override

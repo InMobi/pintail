@@ -61,7 +61,7 @@ public class TestClusterReaderMultipleCollectors {
     MiniClusterUtil.shutdownDFSCluster();
   }
 
-  @Test
+  //@Test
   public void testReadFromStart() throws Exception {
     preader = new PartitionReader(partitionId, null, fs, buffer, streamDir,
         conf, TextInputFormat.class.getCanonicalName(),

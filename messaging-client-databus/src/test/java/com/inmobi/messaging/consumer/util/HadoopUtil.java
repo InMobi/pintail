@@ -15,10 +15,12 @@ import org.apache.hadoop.fs.Path;
 
 import com.inmobi.databus.files.HadoopStreamFile;
 import com.inmobi.databus.readers.DatabusStreamWaitingReader;
+import com.inmobi.messaging.consumer.databus.StreamType;
 
 public class HadoopUtil {
   static final Log LOG = LogFactory.getLog(HadoopUtil.class);
 
+  private static Date lastCommitTime;
   private static int increment = 1;
   public static String[] files = new String[12];
   static Date startCommitTime;
@@ -51,7 +53,11 @@ public class HadoopUtil {
         MessageUtil.createMessageSequenceFile(file, fs, tmpDataDir, i, conf);
         i += 100;
         Path srcPath =  new Path(tmpDataDir, file);
-        Path targetDateDir = getTargetDateDir(file, streamDirPrefix);
+        Date commitTime = getCommitDateForFile(file);
+        TestUtil.publishMissingPaths(fs, streamDirPrefix, lastCommitTime,
+            commitTime);
+        lastCommitTime = commitTime;
+        Path targetDateDir = getTargetDateDir(streamDirPrefix, commitTime);
         List<Path> targetDirs = new ArrayList<Path>();
         if (suffixDirs != null) {
           for (String suffixDir : suffixDirs) {
@@ -73,6 +79,7 @@ public class HadoopUtil {
         }
         fs.delete(srcPath, true);
       }
+      TestUtil.publishLastPath(fs, streamDirPrefix, lastCommitTime);
     }
   }
 
@@ -120,10 +127,10 @@ public class HadoopUtil {
     setUpHadoopFiles(finalDir, conf, files, suffixDirs, finalFiles);
   }
 
-  private static Path getTargetDateDir(String fileName, 
-      Path streamDirPrefix) throws IOException {
+  private static Path getTargetDateDir(Path streamDirPrefix, Date commitTime)
+      throws IOException {
     Path dateDir = DatabusStreamWaitingReader.getMinuteDirPath(streamDirPrefix,
-        getCommitDateForFile(fileName));
+        commitTime);
     return dateDir;
   }
 
