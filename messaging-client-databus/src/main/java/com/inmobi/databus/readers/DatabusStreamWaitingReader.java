@@ -37,7 +37,6 @@ public class DatabusStreamWaitingReader
     Calendar current = Calendar.getInstance();
     Date now = current.getTime();
     current.setTime(buildTimestamp);
-    boolean breakListing = false;
     while (current.getTime().before(now)) {
       Path hhDir =  getHourDirPath(streamDir, current.getTime());
       int hour = current.get(Calendar.HOUR_OF_DAY);
@@ -53,18 +52,13 @@ public class DatabusStreamWaitingReader
           } else {
             LOG.info("Reached end of file listing. Not looking at the last" +
                 " minute directory:" + dir);
-            breakListing = true;
-            break;
           }
-        }
+        } 
       } else {
         // go to next hour
         LOG.info("Hour directory " + hhDir + " does not exist");
         current.add(Calendar.HOUR_OF_DAY, 1);
         current.set(Calendar.MINUTE, 0);
-      }
-      if (breakListing) {
-        break;
       }
     }
   }

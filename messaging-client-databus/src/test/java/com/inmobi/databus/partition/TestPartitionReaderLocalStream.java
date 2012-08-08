@@ -52,6 +52,11 @@ public class TestPartitionReaderLocalStream extends TestAbstractClusterReader {
   }
 
   @Test
+  public void testReadFromCheckpointWhichDoesNotExist() throws Exception {
+    super.testReadFromCheckpointWhichDoesNotExist();
+  }
+
+  @Test
   public void testReadFromStartTime() throws Exception {
     super.testReadFromStartTime();
   }
@@ -59,6 +64,11 @@ public class TestPartitionReaderLocalStream extends TestAbstractClusterReader {
   @Test
   public void testReadFromStartTimeWithinStream() throws Exception {
     super.testReadFromStartTimeWithinStream();
+  }
+
+  @Test
+  public void testReadFromStartTimeBeforeStream() throws Exception {
+    super.testReadFromStartTimeBeforeStream();
   }
 
   @Test
