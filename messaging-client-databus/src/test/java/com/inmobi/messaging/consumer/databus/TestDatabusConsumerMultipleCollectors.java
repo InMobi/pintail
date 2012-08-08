@@ -28,7 +28,7 @@ public class TestDatabusConsumerMultipleCollectors
         TestUtil.files[1], TestUtil.files[2], TestUtil.files[3]};
     super.setup(3);
   }
-/*
+
   @Test
   public void testMergeStream() throws Exception {
     ClientConfig config = loadConfig();
@@ -97,7 +97,7 @@ public class TestDatabusConsumerMultipleCollectors
         StreamType.LOCAL.name());
     assertMessages(config, 3, 2);
   }
-*/
+
   @Test
   public void testCollectorStream() throws Exception {
     ClientConfig config = loadConfig();
