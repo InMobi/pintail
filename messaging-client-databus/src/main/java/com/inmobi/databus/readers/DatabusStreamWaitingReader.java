@@ -1,4 +1,4 @@
-  package com.inmobi.databus.readers;
+package com.inmobi.databus.readers;
 
 import java.io.IOException;
 import java.util.Calendar;
@@ -37,6 +37,7 @@ public class DatabusStreamWaitingReader
     Calendar current = Calendar.getInstance();
     Date now = current.getTime();
     current.setTime(buildTimestamp);
+    boolean breakListing = false;
     while (current.getTime().before(now)) {
       Path hhDir =  getHourDirPath(streamDir, current.getTime());
       int hour = current.get(Calendar.HOUR_OF_DAY);
@@ -44,14 +45,18 @@ public class DatabusStreamWaitingReader
         while (current.getTime().before(now) && 
             hour  == current.get(Calendar.HOUR_OF_DAY)) {
           Path dir = getMinuteDirPath(streamDir, current.getTime());
-          // Move the current minute to next minute
           current.add(Calendar.MINUTE, 1);
-          Path nextMinDir = getMinuteDirPath(streamDir, current.getTime());
-          if (fs.exists(nextMinDir)) {
-            doRecursiveListing(dir, pathFilter, fmap);
-          } else {
-            LOG.info("Reached end of file listing. Not looking at the last" +
-                " minute directory:" + dir);
+          if (fs.exists(dir)) {
+            // Move the current minute to next minute
+            Path nextMinDir = getMinuteDirPath(streamDir, current.getTime());
+            if (fs.exists(nextMinDir)) {
+              doRecursiveListing(dir, pathFilter, fmap);
+            } else {
+              LOG.info("Reached end of file listing. Not looking at the last" +
+                  " minute directory:" + dir);
+              breakListing = true;
+              break;
+            }
           }
         } 
       } else {
@@ -59,6 +64,9 @@ public class DatabusStreamWaitingReader
         LOG.info("Hour directory " + hhDir + " does not exist");
         current.add(Calendar.HOUR_OF_DAY, 1);
         current.set(Calendar.MINUTE, 0);
+      }
+      if (breakListing) {
+        break;
       }
     }
   }
