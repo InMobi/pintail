@@ -86,7 +86,11 @@ public class PartitionId implements Writable {
   }
 
   public String toString() {
-    return cluster + "-" + collector;
+    if (collector != null) {
+      return cluster + "-" + collector;
+    } else {
+      return cluster;
+    }
   }
 
 }
