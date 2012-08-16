@@ -1,4 +1,4 @@
-package com.inmobi.messaging.publisher;
+package com.inmobi.messaging.stats;
 
 import java.util.Properties;
 
@@ -7,7 +7,7 @@ import com.inmobi.stats.StatsEmitterBase;
 public class MockStatsEmitter extends StatsEmitterBase {
   public boolean inited;
 
-  void reset() {
+  public void reset() {
     inited = false;
   }
   @Override

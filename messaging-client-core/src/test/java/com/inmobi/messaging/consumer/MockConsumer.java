@@ -1,7 +1,9 @@
 package com.inmobi.messaging.consumer;
 
 import java.io.IOException;
+import java.util.Map;
 
+import com.inmobi.instrumentation.MessagingClientMetrics;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 
@@ -16,7 +18,7 @@ public class MockConsumer extends AbstractMessageConsumer {
     initedConf = true;
   }
   @Override
-  public Message next() throws InterruptedException {
+  protected Message getNext() throws InterruptedException {
     if (block) {
       Thread.sleep(2000);
     }
@@ -29,18 +31,20 @@ public class MockConsumer extends AbstractMessageConsumer {
   }
 
   @Override
-  public void mark() throws IOException {
-    
-  }
-
-  @Override
-  public void reset() throws IOException {
-    
-  }
-
-  @Override
   public void close() {
     
+  }
+  @Override
+  protected MessagingClientMetrics getMetricsImpl() {
+    return new MessageConsumerMetricsBase(topicName, consumerName);
+  }
+
+  @Override
+  protected void doMark() throws IOException {
+  }
+
+  @Override
+  protected void doReset() throws IOException {
   }
 
 }

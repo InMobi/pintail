@@ -17,8 +17,13 @@ import org.apache.hadoop.mapred.TextInputFormat;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.partition.PartitionReader;
+import com.inmobi.instrumentation.MessagingClientMetrics;
 import com.inmobi.messaging.ClientConfig;
+import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.util.DatabusUtil;
+import com.inmobi.messaging.metrics.CollectorReaderMetrics;
+import com.inmobi.messaging.metrics.DatabusConsumerMetrics;
+import com.inmobi.messaging.metrics.PartitionReaderMetrics;
 
 /**
  * Consumes data from the configured databus stream topic. 
@@ -138,12 +143,15 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
           Date partitionTimestamp = getPartitionTimestamp(id,
               partitionsChkPoints.get(id), allowedStartTime);
           LOG.debug("Creating partition " + id);
+          PartitionReaderMetrics collectorMetrics = new CollectorReaderMetrics(
+              id.toString());
+          ((DatabusConsumerMetrics)getMetrics()).addPartitionReader(collectorMetrics);
           readers.put(id, new PartitionReader(id,
               partitionsChkPoints.get(id), conf, fs,
               new Path(streamDir, collector), 
               DatabusUtil.getStreamDir(StreamType.LOCAL, rootDirs[i], topicName),
               buffer, topicName, partitionTimestamp,
-              waitTimeForFlush, waitTimeForFileCreate, dataEncodingType));              
+              waitTimeForFlush, waitTimeForFileCreate, dataEncodingType));
         }
       } else {
         LOG.info("Creating partition reader for cluster");
@@ -154,6 +162,9 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
         Date partitionTimestamp = getPartitionTimestamp(id,
             partitionsChkPoints.get(id), allowedStartTime);
         LOG.debug("Creating partition " + id);
+        PartitionReaderMetrics clusterMetrics = new PartitionReaderMetrics(
+            id.toString());
+        ((DatabusConsumerMetrics)getMetrics()).addPartitionReader(clusterMetrics);
         readers.put(id, new PartitionReader(id,
             partitionsChkPoints.get(id), fs, buffer, streamDir, conf,
             TextInputFormat.class.getCanonicalName(), partitionTimestamp,
@@ -165,5 +176,4 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
   Path[] getRootDirs() {
     return rootDirs;
   }
-
 }

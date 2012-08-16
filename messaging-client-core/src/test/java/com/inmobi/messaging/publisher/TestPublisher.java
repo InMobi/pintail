@@ -9,6 +9,7 @@ import org.testng.annotations.Test;
 
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.stats.MockStatsEmitter;
 
 public class TestPublisher {
 
@@ -20,8 +21,8 @@ public class TestPublisher {
     AbstractMessagePublisher publisher =
         (AbstractMessagePublisher) MessagePublisherFactory.create(conf);
     doTest(publisher);
-    Assert.assertFalse(publisher.statEmissionEnabled());
-    Assert.assertNull((publisher.getStatsEmitter()));
+    Assert.assertFalse(publisher.getMetrics().statEmissionEnabled());
+    Assert.assertNull((publisher.getMetrics().getStatsEmitter()));
   }
 
   @Test
@@ -29,8 +30,9 @@ public class TestPublisher {
     AbstractMessagePublisher publisher =
         (AbstractMessagePublisher) MessagePublisherFactory.create();
     doTest(publisher);
-    Assert.assertTrue(publisher.statEmissionEnabled());
-    Assert.assertTrue(((MockStatsEmitter)publisher.getStatsEmitter()).inited);
+    Assert.assertTrue(publisher.getMetrics().statEmissionEnabled());
+    Assert.assertTrue((
+        (MockStatsEmitter)publisher.getMetrics().getStatsEmitter()).inited);
   }
 
   @Test
@@ -41,8 +43,9 @@ public class TestPublisher {
         (AbstractMessagePublisher) MessagePublisherFactory.create(
             url.getFile());
     doTest(publisher);
-    Assert.assertTrue(publisher.statEmissionEnabled());
-    Assert.assertTrue(((MockStatsEmitter)publisher.getStatsEmitter()).inited);
+    Assert.assertTrue(publisher.getMetrics().statEmissionEnabled());
+    Assert.assertTrue((
+        (MockStatsEmitter)publisher.getMetrics().getStatsEmitter()).inited);
   }
 
   @Test
@@ -52,8 +55,8 @@ public class TestPublisher {
       (AbstractMessagePublisher) MessagePublisherFactory.create(
           conf, MockPublisher.class.getName());
     doTest(publisher);
-    Assert.assertFalse(publisher.statEmissionEnabled());
-    Assert.assertNull((publisher.getStatsEmitter()));
+    Assert.assertFalse(publisher.getMetrics().statEmissionEnabled());
+    Assert.assertNull((publisher.getMetrics().getStatsEmitter()));
   }
 
 

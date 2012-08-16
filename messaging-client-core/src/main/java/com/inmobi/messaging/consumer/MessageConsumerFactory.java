@@ -19,6 +19,8 @@ public class MessageConsumerFactory {
       "com.inmobi.messaging.consumer.databus.DatabusConsumer";
   public static final String TOPIC_NAME_KEY = "topic.name";
   public static final String CONSUMER_NAME_KEY = "consumer.name";
+  public static final String EMITTER_CONF_FILE_KEY = 
+      "consumer.statemitter.filename";
 
   /**
    * Creates concrete class extending {@link AbstractMessageConsumer} given by

@@ -7,12 +7,10 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.inmobi.instrumentation.MessagingClientStats;
 import com.inmobi.instrumentation.TimingAccumulator;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
-import com.inmobi.stats.EmitterRegistry;
-import com.inmobi.stats.StatsEmitter;
-import com.inmobi.stats.StatsExposer;
 
 /**
  * Abstract class implementing {@link MessagePublisher} interface.
@@ -25,11 +23,11 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
 
   private static final Logger LOG = LoggerFactory
       .getLogger(AbstractMessagePublisher.class);
-  private final TimingAccumulator stats = new TimingAccumulator();
-  private StatsEmitter emitter;
-  private boolean statEnabled = false;
-  private StatsExposer statExposer;
+  private TimingAccumulator stats = new TimingAccumulator();
+  private MessagingClientStats statsEmitter = new MessagingClientStats();
+  public static final String CONTEXT_NAME = "messaging_type";
   public static final String HEADER_TOPIC = "topic";
+  public static final String STATS_TYPE = "application";
 
   @Override
   public void publish(String topicName, Message m) {
@@ -42,16 +40,12 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
 
   protected abstract void publish(Map<String, String> headers, Message m);
 
+  MessagingClientStats getMetrics() {
+    return statsEmitter;
+  }
+
   public TimingAccumulator getStats() {
     return stats;
-  }
-
-  protected boolean statEmissionEnabled() {
-    return statEnabled;
-  }
-
-  StatsEmitter getStatsEmitter() {
-    return emitter;
   }
 
   protected void init(ClientConfig config) throws IOException {
@@ -63,31 +57,9 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
             + MessagePublisherFactory.EMITTER_CONF_FILE_KEY + " is not set in the config.");
         return;
       }
-      emitter = EmitterRegistry.lookup(emitterConfig);
       final Map<String, String> contexts = new HashMap<String, String>();
-      contexts.put("messaging_type", "application");
-      statExposer = new StatsExposer() {
-
-        @Override
-        public Map<String, Number> getStats() {
-          HashMap<String, Number> hash = new HashMap<String, Number>();
-          hash.put("cumulativeNanoseconds", stats.getCumulativeNanoseconds());
-          hash.put("invocationCount", stats.getInvocationCount());
-          hash.put("successCount", stats.getSuccessCount());
-          hash.put("unhandledExceptionCount",
-              stats.getUnhandledExceptionCount());
-          hash.put("gracefulTerminates", stats.getGracefulTerminates());
-          hash.put("inFlight", stats.getInFlight());
-          return hash;
-        }
-
-        @Override
-        public Map<String, String> getContexts() {
-          return contexts;
-        }
-      };
-      emitter.add(statExposer);
-      statEnabled = true;
+      contexts.put(CONTEXT_NAME, STATS_TYPE);
+      statsEmitter.init(emitterConfig, stats.getHashMap(), contexts);
     } catch (Exception e) {
       throw new IOException("Couldn't find or initialize the configured stats" +
       		" emitter", e);
@@ -96,8 +68,6 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
 
   @Override
   public void close() {
-    if (emitter != null) {
-      emitter.remove(statExposer);
-    }
+    statsEmitter.close();
   }
 }

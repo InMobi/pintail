@@ -1,5 +1,7 @@
 package com.inmobi.instrumentation;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -157,5 +159,17 @@ public class TimingAccumulator {
             getCumulativeNanoseconds(), getInvocationCount(), getSuccessCount(),
             getUnhandledExceptionCount(),getGracefulTerminates(),
             getInFlight());
+    }
+    
+    public Map<String, Number> getHashMap() {
+      HashMap<String, Number> hash = new HashMap<String, Number>();
+      hash.put("cumulativeNanoseconds", getCumulativeNanoseconds());
+      hash.put("invocationCount", getInvocationCount());
+      hash.put("successCount", getSuccessCount());
+      hash.put("unhandledExceptionCount",
+          getUnhandledExceptionCount());
+      hash.put("gracefulTerminates", getGracefulTerminates());
+      hash.put("inFlight", getInFlight());
+      return hash;
     }
 }

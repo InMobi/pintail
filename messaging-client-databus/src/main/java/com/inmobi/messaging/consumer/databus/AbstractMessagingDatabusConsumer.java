@@ -17,9 +17,11 @@ import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.partition.PartitionReader;
 import com.inmobi.databus.utils.SecureLoginUtil;
+import com.inmobi.instrumentation.MessagingClientMetrics;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.AbstractMessageConsumer;
+import com.inmobi.messaging.metrics.DatabusConsumerMetrics;
 
 public abstract class AbstractMessagingDatabusConsumer 
     extends AbstractMessageConsumer 
@@ -119,7 +121,7 @@ public abstract class AbstractMessagingDatabusConsumer
   }
 
   @Override
-  public synchronized Message next() throws InterruptedException {
+  protected Message getNext() throws InterruptedException {
     QueueEntry entry;
     entry = buffer.take();
     currentCheckpoint.set(entry.getPartitionId(), entry.getPartitionChkpoint());
@@ -160,7 +162,7 @@ public abstract class AbstractMessagingDatabusConsumer
   }
 
   @Override
-  public synchronized void reset() throws IOException {
+  protected void doReset() throws IOException {
     // restart the service, consumer will start streaming from the last saved
     // checkpoint
     close();
@@ -174,7 +176,7 @@ public abstract class AbstractMessagingDatabusConsumer
   }
 
   @Override
-  public synchronized void mark() throws IOException {
+  protected void doMark() throws IOException {
     checkpointProvider.checkpoint(getChkpointKey(),
         currentCheckpoint.toBytes());
     LOG.info("Committed checkpoint:" + currentCheckpoint);
@@ -194,4 +196,8 @@ public abstract class AbstractMessagingDatabusConsumer
     return true;
   }
 
+  @Override
+  protected MessagingClientMetrics getMetricsImpl() {
+    return new DatabusConsumerMetrics(topicName, consumerName);
+  }
 }
