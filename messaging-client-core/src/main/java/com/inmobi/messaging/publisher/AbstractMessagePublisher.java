@@ -7,10 +7,11 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.inmobi.instrumentation.MessagingClientStats;
+import com.inmobi.instrumentation.MessagingClientStatBuilder;
 import com.inmobi.instrumentation.TimingAccumulator;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
+import com.inmobi.stats.StatsExposer;
 
 /**
  * Abstract class implementing {@link MessagePublisher} interface.
@@ -24,7 +25,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
   private static final Logger LOG = LoggerFactory
       .getLogger(AbstractMessagePublisher.class);
   private TimingAccumulator stats = new TimingAccumulator();
-  private MessagingClientStats statsEmitter = new MessagingClientStats();
+  private MessagingClientStatBuilder statsEmitter = new MessagingClientStatBuilder();
   public static final String CONTEXT_NAME = "messaging_type";
   public static final String HEADER_TOPIC = "topic";
   public static final String STATS_TYPE = "application";
@@ -40,7 +41,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
 
   protected abstract void publish(Map<String, String> headers, Message m);
 
-  MessagingClientStats getMetrics() {
+  MessagingClientStatBuilder getMetrics() {
     return statsEmitter;
   }
 
@@ -59,7 +60,17 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
       }
       final Map<String, String> contexts = new HashMap<String, String>();
       contexts.put(CONTEXT_NAME, STATS_TYPE);
-      statsEmitter.init(emitterConfig, stats.getHashMap(), contexts);
+      statsEmitter.init(emitterConfig);
+      statsEmitter.add(new StatsExposer() {
+        @Override
+        public Map<String, Number> getStats() {
+          return stats.getMap();
+        }
+        @Override
+        public Map<String, String> getContexts() {
+          return contexts;
+        }
+      });
     } catch (Exception e) {
       throw new IOException("Couldn't find or initialize the configured stats" +
       		" emitter", e);

@@ -3,8 +3,8 @@ package com.inmobi.messaging.consumer;
 import java.io.IOException;
 import java.util.Date;
 
-import com.inmobi.instrumentation.MessagingClientMetrics;
-import com.inmobi.instrumentation.MessagingClientStats;
+import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
+import com.inmobi.instrumentation.MessagingClientStatBuilder;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 
@@ -33,8 +33,9 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
   protected String topicName;
   protected String consumerName;
   protected Date startTime;
-  private MessageConsumerMetricsBase metrics;
-  private MessagingClientStats statsEmitter = new MessagingClientStats();
+  private BaseMessageConsumerStatsExposer metrics;
+  private MessagingClientStatBuilder statsEmitter = 
+      new MessagingClientStatBuilder();
 
   /**
    * Initialize the consumer with passed configuration object
@@ -46,7 +47,7 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
     this.config = config;
   }
 
-  protected abstract MessagingClientMetrics getMetricsImpl();
+  protected abstract AbstractMessagingClientStatsExposer getMetricsImpl();
 
   protected abstract void doMark() throws IOException;
 
@@ -94,12 +95,11 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
         startTime.after(new Date(System.currentTimeMillis()))) {
       throw new IllegalArgumentException("Future start time is not accepted");
     }
-    metrics = (MessageConsumerMetricsBase) getMetricsImpl();
+    metrics = (BaseMessageConsumerStatsExposer) getMetricsImpl();
     String emitterConfig = config
         .getString(MessageConsumerFactory.EMITTER_CONF_FILE_KEY);
     if (emitterConfig != null) {
-      statsEmitter.init(emitterConfig, metrics.getStatsMap(),
-          metrics.getContexts());
+      statsEmitter.init(emitterConfig);
     }
     init(config);
   }
@@ -145,7 +145,7 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
    * 
    * @return MessageConsumerMetrics object
    */
-  public MessagingClientMetrics getMetrics() {
+  public AbstractMessagingClientStatsExposer getMetrics() {
     return metrics;
   }
 
@@ -154,7 +154,7 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
    * 
    * @return MessagingClientStats object
    */
-  MessagingClientStats getStats() {
+  MessagingClientStatBuilder getStats() {
     return statsEmitter;
   }
 

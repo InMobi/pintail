@@ -3,9 +3,9 @@ package com.inmobi.messaging.metrics;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.inmobi.instrumentation.MessagingClientMetrics;
+import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
 
-public class PartitionReaderMetrics extends MessagingClientMetrics {
+public class PartitionReaderStatsExposer extends AbstractMessagingClientStatsExposer {
   private final static String MESSAGES_READ_FROM_SOURCE = 
       "messagesReadFromSource";
   private final static String MESSAGES_ADDED_TO_BUFFER = 
@@ -22,7 +22,7 @@ public class PartitionReaderMetrics extends MessagingClientMetrics {
   private final String pid;
   protected final String pidContextStr;
 
-  public PartitionReaderMetrics(String pid) {
+  public PartitionReaderStatsExposer(String pid) {
     this.pid = pid;
     this.pidContextStr = this.pid + CONTEXT_SEPERATOR;
   }

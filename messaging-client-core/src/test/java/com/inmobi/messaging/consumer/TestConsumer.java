@@ -142,15 +142,15 @@ public class TestConsumer {
       Assert.assertFalse(consumer.getStats().statEmissionEnabled());
       Assert.assertNull((consumer.getStats().getStatsEmitter()));
     }
-    Assert.assertEquals(((MessageConsumerMetricsBase)consumer.getMetrics())
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)consumer.getMetrics())
         .getNumMessagesConsumed(), 1);
-    Assert.assertEquals(((MessageConsumerMetricsBase)consumer.getMetrics())
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)consumer.getMetrics())
         .getContexts().size(), 2);
-    Assert.assertEquals(((MessageConsumerMetricsBase)consumer.getMetrics())
-        .getContexts().get(MessageConsumerMetricsBase.TOPIC_CONTEXT),
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)consumer.getMetrics())
+        .getContexts().get(BaseMessageConsumerStatsExposer.TOPIC_CONTEXT),
         consumer.getTopicName());
-    Assert.assertEquals(((MessageConsumerMetricsBase)consumer.getMetrics())
-        .getContexts().get(MessageConsumerMetricsBase.CONSUMER_CONTEXT),
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)consumer.getMetrics())
+        .getContexts().get(BaseMessageConsumerStatsExposer.CONSUMER_CONTEXT),
         consumer.getConsumerName());
   }  
 }

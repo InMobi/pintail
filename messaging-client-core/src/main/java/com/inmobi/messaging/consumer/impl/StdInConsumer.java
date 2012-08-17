@@ -4,13 +4,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import com.inmobi.instrumentation.MessagingClientMetrics;
+import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.AbstractMessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
-import com.inmobi.messaging.consumer.MessageConsumerMetricsBase;
+import com.inmobi.messaging.consumer.BaseMessageConsumerStatsExposer;
 
 /**
  * Stdin consumer reads messages from stdin.
@@ -85,7 +85,7 @@ public class StdInConsumer extends AbstractMessageConsumer {
   }
 
   @Override
-  protected MessagingClientMetrics getMetricsImpl() {
-    return new MessageConsumerMetricsBase(topicName, consumerName);
+  protected AbstractMessagingClientStatsExposer getMetricsImpl() {
+    return new BaseMessageConsumerStatsExposer(topicName, consumerName);
   }
 }

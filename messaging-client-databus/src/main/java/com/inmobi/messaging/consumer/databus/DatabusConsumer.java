@@ -17,13 +17,13 @@ import org.apache.hadoop.mapred.TextInputFormat;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.partition.PartitionReader;
-import com.inmobi.instrumentation.MessagingClientMetrics;
+import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.util.DatabusUtil;
-import com.inmobi.messaging.metrics.CollectorReaderMetrics;
-import com.inmobi.messaging.metrics.DatabusConsumerMetrics;
-import com.inmobi.messaging.metrics.PartitionReaderMetrics;
+import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
+import com.inmobi.messaging.metrics.DatabusConsumerStatsExposer;
+import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
 /**
  * Consumes data from the configured databus stream topic. 
@@ -143,9 +143,9 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
           Date partitionTimestamp = getPartitionTimestamp(id,
               partitionsChkPoints.get(id), allowedStartTime);
           LOG.debug("Creating partition " + id);
-          PartitionReaderMetrics collectorMetrics = new CollectorReaderMetrics(
+          PartitionReaderStatsExposer collectorMetrics = new CollectorReaderStatsExposer(
               id.toString());
-          ((DatabusConsumerMetrics)getMetrics()).addPartitionReader(collectorMetrics);
+          ((DatabusConsumerStatsExposer)getMetrics()).addPartitionReader(collectorMetrics);
           readers.put(id, new PartitionReader(id,
               partitionsChkPoints.get(id), conf, fs,
               new Path(streamDir, collector), 
@@ -162,9 +162,9 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
         Date partitionTimestamp = getPartitionTimestamp(id,
             partitionsChkPoints.get(id), allowedStartTime);
         LOG.debug("Creating partition " + id);
-        PartitionReaderMetrics clusterMetrics = new PartitionReaderMetrics(
+        PartitionReaderStatsExposer clusterMetrics = new PartitionReaderStatsExposer(
             id.toString());
-        ((DatabusConsumerMetrics)getMetrics()).addPartitionReader(clusterMetrics);
+        ((DatabusConsumerStatsExposer)getMetrics()).addPartitionReader(clusterMetrics);
         readers.put(id, new PartitionReader(id,
             partitionsChkPoints.get(id), fs, buffer, streamDir, conf,
             TextInputFormat.class.getCanonicalName(), partitionTimestamp,

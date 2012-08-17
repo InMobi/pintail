@@ -3,7 +3,7 @@ package com.inmobi.messaging.consumer;
 import java.io.IOException;
 import java.util.Map;
 
-import com.inmobi.instrumentation.MessagingClientMetrics;
+import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 
@@ -35,8 +35,8 @@ public class MockConsumer extends AbstractMessageConsumer {
     
   }
   @Override
-  protected MessagingClientMetrics getMetricsImpl() {
-    return new MessageConsumerMetricsBase(topicName, consumerName);
+  protected AbstractMessagingClientStatsExposer getMetricsImpl() {
+    return new BaseMessageConsumerStatsExposer(topicName, consumerName);
   }
 
   @Override

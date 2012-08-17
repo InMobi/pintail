@@ -17,11 +17,11 @@ import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.partition.PartitionReader;
 import com.inmobi.databus.utils.SecureLoginUtil;
-import com.inmobi.instrumentation.MessagingClientMetrics;
+import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.AbstractMessageConsumer;
-import com.inmobi.messaging.metrics.DatabusConsumerMetrics;
+import com.inmobi.messaging.metrics.DatabusConsumerStatsExposer;
 
 public abstract class AbstractMessagingDatabusConsumer 
     extends AbstractMessageConsumer 
@@ -197,7 +197,7 @@ public abstract class AbstractMessagingDatabusConsumer
   }
 
   @Override
-  protected MessagingClientMetrics getMetricsImpl() {
-    return new DatabusConsumerMetrics(topicName, consumerName);
+  protected AbstractMessagingClientStatsExposer getMetricsImpl() {
+    return new DatabusConsumerStatsExposer(topicName, consumerName);
   }
 }

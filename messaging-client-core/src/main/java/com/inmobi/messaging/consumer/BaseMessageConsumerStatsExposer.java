@@ -3,20 +3,22 @@ package com.inmobi.messaging.consumer;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.inmobi.instrumentation.MessagingClientMetrics;
+import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
 
 /**
  * Base metrics class for MessageConsumer.
  */
-public class MessageConsumerMetricsBase extends 
-    MessagingClientMetrics implements MessageConsumerMetricsConstants {
+public class BaseMessageConsumerStatsExposer extends 
+    AbstractMessagingClientStatsExposer implements 
+    MessageConsumerMetricsConstants {
   private final AtomicLong numMessagesConsumed = new AtomicLong(0);
   private final AtomicLong numMarkCalls = new AtomicLong(0);
   private final AtomicLong numResetCalls = new AtomicLong(0);
   private final String topicName;
   private final String consumerName;
 
-  public MessageConsumerMetricsBase(String topicName, String consumerName) {
+  public BaseMessageConsumerStatsExposer(String topicName, String consumerName)
+  {
     this.topicName = topicName;
     this.consumerName = consumerName;
   }

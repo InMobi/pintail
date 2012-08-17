@@ -3,19 +3,22 @@ package com.inmobi.instrumentation;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.inmobi.stats.StatsExposer;
+
 /**
  * Provides access to client metrics and associated contexts.
  * 
  * Provides ability for derived classes to add metrics and contexts. 
  */
-public abstract class MessagingClientMetrics {
+public abstract class AbstractMessagingClientStatsExposer implements 
+    StatsExposer {
 
   /**
    * Gets all the statistics associated with this metric object.
    * 
    * @return a Map of counter name to its value
    */
-  public Map<String, Number> getStatsMap() {
+  public Map<String, Number> getStats() {
     Map<String, Number> statsMap = new HashMap<String, Number>();
     addToStatsMap(statsMap);
     return statsMap;

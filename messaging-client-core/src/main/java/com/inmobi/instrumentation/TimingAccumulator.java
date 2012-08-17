@@ -161,7 +161,7 @@ public class TimingAccumulator {
             getInFlight());
     }
     
-    public Map<String, Number> getHashMap() {
+    public Map<String, Number> getMap() {
       HashMap<String, Number> hash = new HashMap<String, Number>();
       hash.put("cumulativeNanoseconds", getCumulativeNanoseconds());
       hash.put("invocationCount", getInvocationCount());

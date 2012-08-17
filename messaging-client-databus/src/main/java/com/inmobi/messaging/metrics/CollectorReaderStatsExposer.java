@@ -3,7 +3,7 @@ package com.inmobi.messaging.metrics;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class CollectorReaderMetrics extends PartitionReaderMetrics {
+public class CollectorReaderStatsExposer extends PartitionReaderStatsExposer {
 
   private static final String SWITCHES_FROM_COLLECTOR_TO_LOCAL = 
       "switchesFromCollectorToLocal";
@@ -16,7 +16,7 @@ public class CollectorReaderMetrics extends PartitionReaderMetrics {
   private final AtomicLong numSwitchesFromLocalToCollector = new AtomicLong(0);
   private final AtomicLong numWaitTimeUnitsInSameFile = new AtomicLong(0);
 
-  public CollectorReaderMetrics(String pid) {
+  public CollectorReaderStatsExposer(String pid) {
     super(pid);
   }
 
