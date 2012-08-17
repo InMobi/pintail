@@ -21,6 +21,7 @@ import com.inmobi.messaging.consumer.databus.StreamType;
 import com.inmobi.messaging.consumer.util.DatabusUtil;
 import com.inmobi.messaging.consumer.util.MiniClusterUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
+import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
 public class TestClusterReaderMultipleCollectors {
 
@@ -63,10 +64,12 @@ public class TestClusterReaderMultipleCollectors {
 
   @Test
   public void testReadFromStart() throws Exception {
+    PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
+        testStream, "c1", partitionId.toString());
     preader = new PartitionReader(partitionId, null, fs, buffer, streamDir,
         conf, TextInputFormat.class.getCanonicalName(),
         CollectorStreamReader.getDateFromCollectorFile(files[0]), 1000, true,
-        DataEncodingType.BASE64, false);
+        DataEncodingType.BASE64, prMetrics, false);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -150,13 +153,18 @@ public class TestClusterReaderMultipleCollectors {
     buffer, true);
     Assert.assertTrue(buffer.isEmpty());
     preader.close();
-    
+    Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 800);
+    Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 800);
+    Assert.assertTrue(prMetrics.getWaitTimeUnitsNewFile() > 0);
+
+    prMetrics = new PartitionReaderStatsExposer(
+        testStream, "c1", partitionId.toString());
     preader = new PartitionReader(partitionId,  new PartitionCheckpoint(
         DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath5)), 50), fs, buffer, streamDir,
         conf, TextInputFormat.class.getCanonicalName(),
         null, 1000, true,
-        DataEncodingType.BASE64, false);
+        DataEncodingType.BASE64, prMetrics, false);
 
     preader.start();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
@@ -167,7 +175,7 @@ public class TestClusterReaderMultipleCollectors {
     buffer, true);
     Assert.assertTrue(buffer.isEmpty());
     preader.close();
-
+    Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 150);
+    Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 150);
   }
-
 }

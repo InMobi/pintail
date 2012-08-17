@@ -16,31 +16,29 @@ public class CollectorReaderStatsExposer extends PartitionReaderStatsExposer {
   private final AtomicLong numSwitchesFromLocalToCollector = new AtomicLong(0);
   private final AtomicLong numWaitTimeUnitsInSameFile = new AtomicLong(0);
 
-  public CollectorReaderStatsExposer(String pid) {
-    super(pid);
+  public CollectorReaderStatsExposer(String topicName, String consumerName,
+      String pid) {
+    super(topicName, consumerName, pid);
   }
 
-  public void addSwitchesFromCollectorToLocal() {
+  public void incrementSwitchesFromCollectorToLocal() {
     numSwitchesFromCollectorToLocal.incrementAndGet();
   }
 
-  public void addSwitchesFromLocalToCollector() {
+  public void incrementSwitchesFromLocalToCollector() {
     numSwitchesFromLocalToCollector.incrementAndGet();
   }
 
-  public void addWaitTimeUnitsInSameFile() {
+  public void incrementWaitTimeUnitsInSameFile() {
     numWaitTimeUnitsInSameFile.incrementAndGet();
   }
 
   @Override
   protected void addToStatsMap(Map<String, Number> map) {
     super.addToStatsMap(map);
-    map.put(pidContextStr + SWITCHES_FROM_COLLECTOR_TO_LOCAL,
-        getSwitchesFromCollectorToLocal());
-    map.put(pidContextStr + SWITCHES_FROM_LOCAL_TO_COLLECTOR,
-        getSwitchesFromLocalToCollector());
-    map.put(pidContextStr + WAIT_TIME_UNITS_IN_SAME_FILE,
-        getWaitTimeInSameFile());
+    map.put(SWITCHES_FROM_COLLECTOR_TO_LOCAL, getSwitchesFromCollectorToLocal());
+    map.put(SWITCHES_FROM_LOCAL_TO_COLLECTOR, getSwitchesFromLocalToCollector());
+    map.put(WAIT_TIME_UNITS_IN_SAME_FILE, getWaitTimeInSameFile());
   }
 
   public long getSwitchesFromCollectorToLocal() {

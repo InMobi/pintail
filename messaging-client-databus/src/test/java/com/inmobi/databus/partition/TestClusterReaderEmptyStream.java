@@ -22,6 +22,7 @@ import com.inmobi.messaging.consumer.databus.DataEncodingType;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
 import com.inmobi.messaging.consumer.util.HadoopUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
+import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
 public class TestClusterReaderEmptyStream {
 
@@ -55,12 +56,14 @@ public class TestClusterReaderEmptyStream {
 
   @Test
   public void testInitialize() throws Exception {
-
+    PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
+        testStream, "c1", clusterId.toString());
     // Read from start time 
     preader = new PartitionReader(clusterId, null, fs, buffer,
-        streamDir, conf, inputFormatClass, CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[0]), 
+        streamDir, conf, inputFormatClass,
+        CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[0]), 
         1000,
-        false, DataEncodingType.BASE64, true);
+        false, DataEncodingType.BASE64, prMetrics, true);
     preader.init();
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -75,7 +78,7 @@ public class TestClusterReaderEmptyStream {
             CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[0])),
             "dummyfile", 0L), 20), fs, buffer,
         streamDir, conf, inputFormatClass, null, 
-        1000, false, DataEncodingType.BASE64, true);
+        1000, false, DataEncodingType.BASE64, prMetrics, true);
     preader.init();
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -89,9 +92,10 @@ public class TestClusterReaderEmptyStream {
         new HadoopStreamFile(DatabusStreamWaitingReader.getMinuteDirPath(streamDir,
             CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[0])),
             "dummyfile", 0L), 20), fs, buffer,
-        streamDir, conf, inputFormatClass, CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[0]), 
+        streamDir, conf, inputFormatClass,
+        CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[0]), 
         1000,
-        false, DataEncodingType.BASE64, true);
+        false, DataEncodingType.BASE64, prMetrics, true);
     preader.init();
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),

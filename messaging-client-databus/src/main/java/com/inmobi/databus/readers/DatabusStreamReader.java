@@ -30,6 +30,7 @@ import com.inmobi.databus.files.FileMap;
 import com.inmobi.databus.files.StreamFile;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
+import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
 public abstract class DatabusStreamReader<T extends StreamFile> extends 
     StreamReader<T> {
@@ -47,9 +48,10 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
 
   protected DatabusStreamReader(PartitionId partitionId, FileSystem fs,
       Path streamDir, String inputFormatClass,
-      Configuration conf, boolean noNewFiles)
+      Configuration conf, long waitTimeForFileCreate,
+      PartitionReaderStatsExposer metrics, boolean noNewFiles)
           throws IOException {
-    super(partitionId, fs, streamDir, noNewFiles);
+    super(partitionId, fs, streamDir, waitTimeForFileCreate, metrics, noNewFiles);
     this.conf = conf;
     try {
       input = (InputFormat<Object, Object>) ReflectionUtils.newInstance(

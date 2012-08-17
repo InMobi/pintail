@@ -16,6 +16,7 @@ import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.consumer.util.MessageUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
+import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 
 public class TestLocalStreamCollectorReader {
   private static final String testStream = "testclient";
@@ -49,10 +50,13 @@ public class TestLocalStreamCollectorReader {
 
   @Test
   public void testInitialize() throws Exception {
+    CollectorReaderStatsExposer metrics = new 
+        CollectorReaderStatsExposer(testStream, "c1", partitionId.toString());
     // Read from start
     lreader = new LocalStreamCollectorReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
-        DatabusStreamReader.getStreamsLocalDir(cluster, testStream), conf);
+        DatabusStreamReader.getStreamsLocalDir(cluster, testStream), conf, 0L,
+        metrics);
     lreader.build(CollectorStreamReader.getDateFromCollectorFile(files[0]));
 
     lreader.initFromStart();
@@ -126,24 +130,35 @@ public class TestLocalStreamCollectorReader {
 
   @Test
   public void testReadFromStart() throws Exception {
+    CollectorReaderStatsExposer metrics = new 
+        CollectorReaderStatsExposer(testStream, "c1", partitionId.toString());
     lreader = new LocalStreamCollectorReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
-        DatabusStreamReader.getStreamsLocalDir(cluster, testStream), conf);
+        DatabusStreamReader.getStreamsLocalDir(cluster, testStream), conf,
+        0L, metrics);
     lreader.build(CollectorStreamReader.getDateFromCollectorFile(files[0]));
     lreader.initFromStart();
     Assert.assertNotNull(lreader.getCurrentFile());
     lreader.openStream();
     readFile(0, 0);
+    Assert.assertEquals(metrics.getMessagesReadFromSource(), 100);
     readFile(1, 0);
+    Assert.assertEquals(metrics.getMessagesReadFromSource(), 200);
     readFile(2, 0);
     lreader.close();
+    Assert.assertEquals(metrics.getHandledExceptions(), 0);
+    Assert.assertEquals(metrics.getMessagesReadFromSource(), 300);
+    Assert.assertEquals(metrics.getWaitTimeUnitsNewFile(), 0);
   }
 
   @Test
   public void testReadFromCheckpoint() throws Exception {
+    CollectorReaderStatsExposer metrics = new 
+        CollectorReaderStatsExposer(testStream, "c1", partitionId.toString());
     lreader = new LocalStreamCollectorReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
-        DatabusStreamReader.getStreamsLocalDir(cluster, testStream), conf);
+        DatabusStreamReader.getStreamsLocalDir(cluster, testStream), conf, 0L,
+        metrics);
     PartitionCheckpoint pcp = new PartitionCheckpoint(
         LocalStreamCollectorReader.getDatabusStreamFile(collectorName,
             files[1]), 20);
@@ -153,23 +168,34 @@ public class TestLocalStreamCollectorReader {
     Assert.assertNotNull(lreader.getCurrentFile());
     lreader.openStream();
     readFile(1, 20);
+    Assert.assertEquals(metrics.getMessagesReadFromSource(), 80);
     readFile(2, 0);
     lreader.close();
+    Assert.assertEquals(metrics.getHandledExceptions(), 0);
+    Assert.assertEquals(metrics.getMessagesReadFromSource(), 180);
+    Assert.assertEquals(metrics.getWaitTimeUnitsNewFile(), 0);
   }
 
   @Test
   public void testReadFromTimeStamp() throws Exception {
+    CollectorReaderStatsExposer metrics = new 
+        CollectorReaderStatsExposer(testStream, "c1", partitionId.toString());
     lreader = new LocalStreamCollectorReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
-        DatabusStreamReader.getStreamsLocalDir(cluster, testStream), conf);
+        DatabusStreamReader.getStreamsLocalDir(cluster, testStream), conf, 0L,
+        metrics);
     lreader.build(CollectorStreamReader.getDateFromCollectorFile(files[1]));
     lreader.initializeCurrentFile(
         CollectorStreamReader.getDateFromCollectorFile(files[1]));
     Assert.assertNotNull(lreader.getCurrentFile());
     lreader.openStream();
     readFile(1, 0);
+    Assert.assertEquals(metrics.getMessagesReadFromSource(), 100);
     readFile(2, 0);
     lreader.close();
+    Assert.assertEquals(metrics.getHandledExceptions(), 0);
+    Assert.assertEquals(metrics.getMessagesReadFromSource(), 200);
+    Assert.assertEquals(metrics.getWaitTimeUnitsNewFile(), 0);
   }
 
 }

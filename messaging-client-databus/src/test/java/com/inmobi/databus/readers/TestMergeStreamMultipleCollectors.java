@@ -14,6 +14,7 @@ import org.testng.annotations.Test;
 import com.inmobi.databus.Cluster;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.consumer.util.TestUtil;
+import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
 public class TestMergeStreamMultipleCollectors {
 
@@ -49,10 +50,13 @@ public class TestMergeStreamMultipleCollectors {
 
   @Test
   public void testReadFromStart() throws Exception {
+    PartitionReaderStatsExposer metrics = new PartitionReaderStatsExposer(
+        testStream, "c1", partitionId.toString());
     reader = new DatabusStreamWaitingReader(partitionId,
-        FileSystem.get(cluster.getHadoopConf()), DatabusStreamReader.getStreamsDir(cluster, testStream),
+        FileSystem.get(cluster.getHadoopConf()),
+        DatabusStreamReader.getStreamsDir(cluster, testStream),
         TextInputFormat.class.getCanonicalName(),
-        conf, 1000, false);
+        conf, 1000, metrics, false);
     reader.build(CollectorStreamReader.getDateFromCollectorFile(files[0]));
     reader.initFromStart();
     Assert.assertNotNull(reader.getCurrentFile());
@@ -70,5 +74,7 @@ public class TestMergeStreamMultipleCollectors {
     TestAbstractDatabusWaitingReader.readFile(reader, 2, 0, databusFiles2[2],
         encoded);
     reader.close();
+    Assert.assertEquals(metrics.getHandledExceptions(), 0);
+    Assert.assertEquals(metrics.getMessagesReadFromSource(), 600);
   }
 }

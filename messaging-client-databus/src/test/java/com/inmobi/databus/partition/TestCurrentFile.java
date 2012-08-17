@@ -24,6 +24,7 @@ import com.inmobi.messaging.consumer.util.DatabusUtil;
 import com.inmobi.messaging.consumer.util.MessageUtil;
 import com.inmobi.messaging.consumer.util.MiniClusterUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
+import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 
 public class TestCurrentFile {
   private static final String testStream = "testclient";
@@ -78,10 +79,12 @@ public class TestCurrentFile {
 
   @Test
   public void testReadFromCurrentScribeFile() throws Exception {
+    CollectorReaderStatsExposer prMetrics = new CollectorReaderStatsExposer(
+        testStream, "c1", partitionId.toString());
     preader = new PartitionReader(partitionId, null, conf, fs,
         collectorDir, streamsLocalDir, buffer, testStream,
         CollectorStreamReader.getDateFromCollectorFile(currentScribeFile), 1000,
-        1000, DataEncodingType.BASE64);
+        1000, DataEncodingType.BASE64, prMetrics);
     preader.start();
     Assert.assertTrue(buffer.isEmpty());
     FSDataOutputStream out = fs.create(
@@ -115,6 +118,11 @@ public class TestCurrentFile {
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.close();
+    Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 100);
+    Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 100);
+    Assert.assertTrue(prMetrics.getWaitTimeInSameFile() > 0);
+    Assert.assertEquals(prMetrics.getSwitchesFromCollectorToLocal(), 0);
+    Assert.assertEquals(prMetrics.getSwitchesFromLocalToCollector(), 0);
   }
 
 }

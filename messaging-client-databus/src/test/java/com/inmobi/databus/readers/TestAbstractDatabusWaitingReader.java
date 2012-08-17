@@ -1,7 +1,6 @@
 package com.inmobi.databus.readers;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Calendar;
 
 import org.apache.commons.codec.binary.Base64;
@@ -15,6 +14,7 @@ import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.consumer.util.HadoopUtil;
 import com.inmobi.messaging.consumer.util.MessageUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
+import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
 public abstract class TestAbstractDatabusWaitingReader {
   protected static final String testStream = "testclient";
@@ -38,10 +38,12 @@ public abstract class TestAbstractDatabusWaitingReader {
   abstract Path getStreamsDir();
 
   public void testInitialize() throws Exception {
+    PartitionReaderStatsExposer metrics = new PartitionReaderStatsExposer(
+        testStream, "c1", partitionId.toString());
     // Read from start
     lreader = new DatabusStreamWaitingReader(partitionId,
         fs, streamDir,
-        inputFormatClass, conf, 1000, false);
+        inputFormatClass, conf, 1000, metrics, false);
     Calendar cal = Calendar.getInstance();
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         finalFiles[0].getParent()));
@@ -122,23 +124,32 @@ public abstract class TestAbstractDatabusWaitingReader {
 
 
   public void testReadFromStart() throws Exception {
+    PartitionReaderStatsExposer metrics = new PartitionReaderStatsExposer(
+        testStream, "c1", partitionId.toString());
     lreader = new DatabusStreamWaitingReader(partitionId,
         fs, getStreamsDir(),
-        inputFormatClass, conf , 1000, false);
+        inputFormatClass, conf , 1000, metrics, false);
     lreader.build(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         finalFiles[0].getParent()));
     lreader.initFromStart();
     Assert.assertNotNull(lreader.getCurrentFile());
     lreader.openStream();
     readFile(lreader, 0, 0, finalFiles[0], encoded);
+    Assert.assertEquals(metrics.getMessagesReadFromSource(), 100);
     readFile(lreader, 1, 0, finalFiles[1], encoded);
+    Assert.assertEquals(metrics.getMessagesReadFromSource(), 200);
     readFile(lreader, 2, 0, finalFiles[2], encoded);
     lreader.close();
+    Assert.assertEquals(metrics.getHandledExceptions(), 0);
+    Assert.assertEquals(metrics.getMessagesReadFromSource(), 300);
+    Assert.assertEquals(metrics.getWaitTimeUnitsNewFile(), 0);
   }
 
   public void testReadFromCheckpoint() throws Exception {
+    PartitionReaderStatsExposer metrics = new PartitionReaderStatsExposer(
+        testStream, "c1", partitionId.toString());
     lreader = new DatabusStreamWaitingReader(partitionId,
-        fs, getStreamsDir(), inputFormatClass, conf, 1000, false);
+        fs, getStreamsDir(), inputFormatClass, conf, 1000, metrics, false);
     PartitionCheckpoint pcp = new PartitionCheckpoint(
         DatabusStreamWaitingReader.getHadoopStreamFile(
             fs.getFileStatus( finalFiles[1])), 20);
@@ -147,13 +158,19 @@ public abstract class TestAbstractDatabusWaitingReader {
     Assert.assertNotNull(lreader.getCurrentFile());
     lreader.openStream();
     readFile(lreader, 1, 20, finalFiles[1], encoded);
+    Assert.assertEquals(metrics.getMessagesReadFromSource(), 80);
     readFile(lreader, 2, 0, finalFiles[2], encoded);
     lreader.close();
+    Assert.assertEquals(metrics.getHandledExceptions(), 0);
+    Assert.assertEquals(metrics.getMessagesReadFromSource(), 180);
+    Assert.assertEquals(metrics.getWaitTimeUnitsNewFile(), 0);
   }
 
   public void testReadFromTimeStamp() throws Exception {
+    PartitionReaderStatsExposer metrics = new PartitionReaderStatsExposer(
+        testStream, "c1", partitionId.toString());
     lreader = new DatabusStreamWaitingReader(partitionId,
-        fs, getStreamsDir(), inputFormatClass, conf, 1000, false);
+        fs, getStreamsDir(), inputFormatClass, conf, 1000, metrics, false);
     lreader.build(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         finalFiles[1].getParent()));
     lreader.initializeCurrentFile(
@@ -162,8 +179,12 @@ public abstract class TestAbstractDatabusWaitingReader {
     Assert.assertNotNull(lreader.getCurrentFile());
     lreader.openStream();
     readFile(lreader, 1, 0, finalFiles[1], encoded);
+    Assert.assertEquals(metrics.getMessagesReadFromSource(), 100);
     readFile(lreader, 2, 0, finalFiles[2], encoded);
     lreader.close();
+    Assert.assertEquals(metrics.getHandledExceptions(), 0);
+    Assert.assertEquals(metrics.getMessagesReadFromSource(), 200);
+    Assert.assertEquals(metrics.getWaitTimeUnitsNewFile(), 0);
   }
 
 }

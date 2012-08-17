@@ -76,12 +76,12 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
       Date partitionTimestamp = getPartitionTimestamp(id,
           partitionsChkPoints.get(id), allowedStartTime);
       PartitionReaderStatsExposer clusterMetrics = new 
-          PartitionReaderStatsExposer(id.toString());
+          PartitionReaderStatsExposer(topicName, consumerName, id.toString());
       addStatsExposer(clusterMetrics);
       PartitionReader reader = new PartitionReader(id,
           partitionsChkPoints.get(id), fileSystems[i], buffer, rootDirs[i],
           conf, inputFormatClassName, partitionTimestamp,
-          waitTimeForFileCreate, false, dataEncodingType);    
+          waitTimeForFileCreate, false, dataEncodingType, clusterMetrics);    
       LOG.debug("Created partition " + id);
       readers.put(id, reader);
     }

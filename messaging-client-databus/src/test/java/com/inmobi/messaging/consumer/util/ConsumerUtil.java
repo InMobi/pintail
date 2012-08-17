@@ -7,6 +7,7 @@ import org.testng.Assert;
 
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.consumer.BaseMessageConsumerStatsExposer;
 import com.inmobi.messaging.consumer.databus.AbstractMessagingDatabusConsumer;
 import com.inmobi.messaging.consumer.databus.Checkpoint;
 import com.inmobi.messaging.consumer.databus.DatabusConsumer;
@@ -82,6 +83,13 @@ public class ConsumerUtil {
       Assert.assertEquals(markedcounter1[i], numDataFiles * numMessagesPerFile);
     }
     consumer.close();
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMarkCalls(), 1);
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumResetCalls(), 1);
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMessagesConsumed(),
+        (totalMessages + totalMessages/2));
     
     // test checkpoint and consumer crash
     consumer = createConsumer(hadoop);
@@ -103,7 +111,13 @@ public class ConsumerUtil {
       Assert.assertEquals(markedcounter2[i], numDataFiles * numMessagesPerFile);
     }
     consumer.close();
-    
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMarkCalls(), 0);
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumResetCalls(), 0);
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMessagesConsumed(),
+        (totalMessages/2));
   }
 
   private static AbstractMessagingDatabusConsumer createConsumer(boolean hadoop) {
@@ -171,6 +185,12 @@ public class ConsumerUtil {
     }
 
     consumer.close();
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMarkCalls(), 2);
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumResetCalls(), 2);
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMessagesConsumed(), 230);
 
     // test checkpoint and consumer crash
     consumer = createConsumer(hadoop);
@@ -185,6 +205,12 @@ public class ConsumerUtil {
     consumer.mark();
 
     consumer.close();
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMarkCalls(), 1);
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumResetCalls(), 0);
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMessagesConsumed(), 60);
   }
 
   public static void testMarkAndReset(ClientConfig config, String streamName,
@@ -235,6 +261,12 @@ public class ConsumerUtil {
     }
 
     consumer.close();
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMarkCalls(), 2);
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumResetCalls(), 2);
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMessagesConsumed(), 330);
 
     // test checkpoint and consumer crash
     consumer = createConsumer(hadoop);
@@ -249,6 +281,12 @@ public class ConsumerUtil {
     consumer.mark();
 
     consumer.close();
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMarkCalls(), 1);
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumResetCalls(), 0);
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMessagesConsumed(), 160);
 
   }
 

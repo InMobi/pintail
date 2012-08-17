@@ -19,6 +19,7 @@ import com.inmobi.databus.files.CollectorFile;
 import com.inmobi.databus.files.DatabusStreamFile;
 import com.inmobi.databus.files.FileMap;
 import com.inmobi.databus.partition.PartitionId;
+import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 
 public class CollectorStreamReader extends StreamReader<CollectorFile> {
 
@@ -31,15 +32,17 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   protected BufferedReader reader;
   protected final String streamName;
   private boolean moveToNext = false;
+  private CollectorReaderStatsExposer collectorMetrics;
 
   public CollectorStreamReader(PartitionId partitionId,
       FileSystem fs, String streamName, Path streamDir,
       long waitTimeForFlush,
-      long waitTimeForCreate, boolean noNewFiles) throws IOException {
-    super(partitionId, fs, streamDir, noNewFiles);
+      long waitTimeForCreate, CollectorReaderStatsExposer metrics,
+      boolean noNewFiles) throws IOException {
+    super(partitionId, fs, streamDir, waitTimeForCreate, metrics, noNewFiles);
     this.streamName = streamName;
     this.waitTimeForFlush = waitTimeForFlush;
-    this.waitTimeForCreate = waitTimeForCreate;
+    this.collectorMetrics = (CollectorReaderStatsExposer)(this.metrics);
     LOG.info("Collector reader initialized with partitionId:" + partitionId +
         " streamDir:" + streamDir + 
         " waitTimeForFlush:" + waitTimeForFlush +
@@ -200,7 +203,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
         } else {
           LOG.info("Reading from same file before moving to next");
           // open the same file
-          waitForFlushAndReOpen();
+          reOpen();
           moveToNext = true;
         }
       }
@@ -209,12 +212,17 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     return line;
   }
 
+  private void reOpen() throws IOException {
+    openCurrentFile(false);    
+  }
+
   private void waitForFlushAndReOpen() 
       throws IOException, InterruptedException {
     if (!closed) {
       LOG.info("Waiting for flush");
       Thread.sleep(waitTimeForFlush);
-      openCurrentFile(false);
+      collectorMetrics.incrementWaitTimeUnitsInSameFile();
+      reOpen();
     }
   }
 
@@ -242,7 +250,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
       throws IOException, InterruptedException {
     while (!closed && !setNextHigher(fileName)) {
       LOG.info("Waiting for next file creation");
-      Thread.sleep(waitTimeForCreate);
+      waitForFileCreate();
       build();
     }
   }

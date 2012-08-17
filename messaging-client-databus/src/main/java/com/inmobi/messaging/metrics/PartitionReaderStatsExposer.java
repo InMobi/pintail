@@ -4,59 +4,57 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
+import com.inmobi.messaging.consumer.AbstractMessageConsumerStatsExposer;
 
-public class PartitionReaderStatsExposer extends AbstractMessagingClientStatsExposer {
-  private final static String MESSAGES_READ_FROM_SOURCE = 
-      "messagesReadFromSource";
-  private final static String MESSAGES_ADDED_TO_BUFFER = 
-      "messagesAddedToBuffer";
-  private final static String HANDLED_EXCEPTIONS = "handledExceptions";
-  private final static String WAIT_TIME_UNITS_NEW_DATA = "waitTimeUnitsNewData";
-  private final static String CONTEXT_SEPERATOR = "-";
+public class PartitionReaderStatsExposer extends 
+    AbstractMessageConsumerStatsExposer {
+  public final static String MESSAGES_READ_FROM_SOURCE = "messagesReadFromSource";
+  public final static String MESSAGES_ADDED_TO_BUFFER = "messagesAddedToBuffer";
+  public final static String HANDLED_EXCEPTIONS = "handledExceptions";
+  public final static String WAIT_TIME_UNITS_NEW_FILE = "waitTimeUnitsNewFile";
+  public final static String PARTITION_CONTEXT = "PartitionId";
 
   private final AtomicLong numMessagesReadFromSource = new AtomicLong(0);
   private final AtomicLong numMessagesAddedToBuffer = new AtomicLong(0);
   private final AtomicLong numHandledExceptions = new AtomicLong(0);
-  private final AtomicLong numWaitTimeUnitsNewData = new AtomicLong(0);
+  private final AtomicLong numWaitTimeUnitsNewFile = new AtomicLong(0);
 
   private final String pid;
-  protected final String pidContextStr;
 
-  public PartitionReaderStatsExposer(String pid) {
+  public PartitionReaderStatsExposer(String topicName, String consumerName,
+      String pid) {
+    super(topicName, consumerName);
     this.pid = pid;
-    this.pidContextStr = this.pid + CONTEXT_SEPERATOR;
   }
 
-  public void addMessagesReadFromSource() {
+  public void incrementMessagesReadFromSource() {
     numMessagesReadFromSource.incrementAndGet();
   }
 
-  public void addMessagesAddedToBuffer() {
+  public void incrementMessagesAddedToBuffer() {
     numMessagesAddedToBuffer.incrementAndGet();
   }
 
-  public void addHandledExceptions() {
+  public void incrementHandledExceptions() {
     numHandledExceptions.incrementAndGet();
   }
 
-  public void addWaitTimeUnitsNewData() {
-    numWaitTimeUnitsNewData.incrementAndGet();
+  public void incrementWaitTimeUnitsNewFile() {
+    numWaitTimeUnitsNewFile.incrementAndGet();
   }
 
   @Override
   protected void addToStatsMap(Map<String, Number> map) {
-    map.put(pidContextStr + MESSAGES_READ_FROM_SOURCE,
-        getMessagesReadFromSource());
-    map.put(pidContextStr + MESSAGES_ADDED_TO_BUFFER,
-        getMessagesAddedToBuffer());
-    map.put(pidContextStr + HANDLED_EXCEPTIONS,
-        getHandledExceptions());
-    map.put(pidContextStr + WAIT_TIME_UNITS_NEW_DATA,
-        getWaitTimeUnitsNewData());
+    map.put(MESSAGES_READ_FROM_SOURCE, getMessagesReadFromSource());
+    map.put(MESSAGES_ADDED_TO_BUFFER, getMessagesAddedToBuffer());
+    map.put(HANDLED_EXCEPTIONS, getHandledExceptions());
+    map.put(WAIT_TIME_UNITS_NEW_FILE, getWaitTimeUnitsNewFile());
   }
 
   @Override
-  protected void addToContextsMap(Map<String, String> map) {    
+  protected void addToContextsMap(Map<String, String> map) {
+    super.addToContextsMap(map);
+    map.put(PARTITION_CONTEXT, pid);
   }
 
   public long getMessagesReadFromSource() {
@@ -71,7 +69,7 @@ public class PartitionReaderStatsExposer extends AbstractMessagingClientStatsExp
     return numHandledExceptions.get();
   }
 
-  public long getWaitTimeUnitsNewData() {
-    return numWaitTimeUnitsNewData.get();
+  public long getWaitTimeUnitsNewFile() {
+    return numWaitTimeUnitsNewFile.get();
   }
 }

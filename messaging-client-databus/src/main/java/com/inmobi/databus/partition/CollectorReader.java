@@ -15,6 +15,7 @@ import org.apache.hadoop.io.Text;
 import com.inmobi.databus.files.DatabusStreamFile;
 import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.databus.readers.LocalStreamCollectorReader;
+import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 
 public class CollectorReader extends AbstractPartitionStreamReader {
 
@@ -26,6 +27,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   private Date startTime;
   private LocalStreamCollectorReader lReader;
   private CollectorStreamReader cReader;
+  private final CollectorReaderStatsExposer metrics;
 
   CollectorReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, FileSystem fs,
@@ -33,16 +35,19 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       Path collectorDir, Path streamsLocalDir,
       Configuration conf,
       Date startTime, long waitTimeForFlush,
-      long waitTimeForFileCreate, boolean noNewFiles)
+      long waitTimeForFileCreate, CollectorReaderStatsExposer metrics,
+      boolean noNewFiles)
           throws IOException {
     this.partitionId = partitionId;
     this.startTime = startTime;
     this.streamName = streamName;
     this.partitionCheckpoint = partitionCheckpoint;
+    this.metrics = metrics;
     lReader = new LocalStreamCollectorReader(partitionId,  fs, streamName,
-        streamsLocalDir, conf);
+        streamsLocalDir, conf, waitTimeForFileCreate, metrics);
     cReader = new CollectorStreamReader(partitionId, fs, streamName,
-        collectorDir, waitTimeForFlush, waitTimeForFileCreate, noNewFiles);
+        collectorDir, waitTimeForFlush, waitTimeForFileCreate, metrics,
+        noNewFiles);
   }
 
   private void initializeCurrentFileFromTimeStamp(Date timestamp)
@@ -137,6 +142,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
                 streamName,
                 reader.getCurrentFile().getName()));
         reader = cReader;
+        metrics.incrementSwitchesFromLocalToCollector();
       } else { // reader should be cReader
         assert (reader == cReader);
         cReader.closeStream();
@@ -154,6 +160,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
         } else {
           LOG.info("Switching to local stream as the file got moved");
           reader = lReader;
+          metrics.incrementSwitchesFromCollectorToLocal();
         }
       }
     } else {

@@ -21,6 +21,7 @@ import com.inmobi.messaging.consumer.databus.QueueEntry;
 import com.inmobi.messaging.consumer.databus.StreamType;
 import com.inmobi.messaging.consumer.util.DatabusUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
+import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 
 public class TestPartitionReaderMovingFilesFromLocalStream {
   private static final String testStream = "testclient";
@@ -64,10 +65,12 @@ public class TestPartitionReaderMovingFilesFromLocalStream {
 
   @Test
   public void testLocalStreamFileMoved() throws Exception {
+    CollectorReaderStatsExposer prMetrics = new CollectorReaderStatsExposer(
+        testStream, "c1", partitionId.toString());
     preader = new PartitionReader(partitionId, null, conf, fs,
         collectorDir, streamsLocalDir, buffer,
         testStream, CollectorStreamReader.getDateFromCollectorFile(files[0]),
-        1000, 1000, DataEncodingType.BASE64);
+        1000, 1000, DataEncodingType.BASE64, prMetrics);
 
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
@@ -138,5 +141,12 @@ public class TestPartitionReaderMovingFilesFromLocalStream {
         CollectorStreamReader.class.getName());
     Assert.assertTrue(buffer.isEmpty());
     preader.close();
+    Assert.assertEquals(prMetrics.getHandledExceptions(), 0);
+    Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 700);
+    Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 700);
+    Assert.assertEquals(prMetrics.getWaitTimeUnitsNewFile(), 0);
+    Assert.assertEquals(prMetrics.getWaitTimeInSameFile(), 0);
+    Assert.assertEquals(prMetrics.getSwitchesFromCollectorToLocal(), 0);
+    Assert.assertEquals(prMetrics.getSwitchesFromLocalToCollector(), 1);
   }
 }

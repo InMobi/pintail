@@ -14,6 +14,7 @@ import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 import com.inmobi.messaging.consumer.databus.DataEncodingType;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
 import com.inmobi.messaging.consumer.util.TestUtil;
+import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
 public abstract class TestAbstractWaitingClusterReader {
 
@@ -47,11 +48,13 @@ public abstract class TestAbstractWaitingClusterReader {
   }
 
   public void testReadFromStart() throws Exception {
+    PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
+        testStream, "c1", partitionId.toString());
     preader = new PartitionReader(partitionId, null, fs, buffer,
         streamDir, conf, inputFormatClass,
         DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
             databusFiles[0]),
-        1000, isDatabusData(), dataEncoding, false);
+        1000, isDatabusData(), dataEncoding, prMetrics, false);
 
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
@@ -102,5 +105,8 @@ public abstract class TestAbstractWaitingClusterReader {
         buffer, dataEncoding.equals(DataEncodingType.BASE64));
     Assert.assertTrue(buffer.isEmpty());    
     preader.close();
+    Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 500);
+    Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 500);
+    Assert.assertTrue(prMetrics.getWaitTimeUnitsNewFile() > 0);
   }
 }

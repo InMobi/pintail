@@ -16,6 +16,8 @@ import com.inmobi.databus.files.StreamFile;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.databus.DataEncodingType;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
+import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
+import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
 public class PartitionReader {
 
@@ -29,17 +31,19 @@ public class PartitionReader {
   private volatile boolean stopped;
   private boolean inited = false;
   private final DataEncodingType dataEncoding;
+  private final PartitionReaderStatsExposer prMetrics;
 
   public PartitionReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, Configuration conf,
       FileSystem fs, Path collectorDataDir,
       Path streamsLocalDir, BlockingQueue<QueueEntry> buffer, String streamName,
       Date startTime, long waitTimeForFlush,
-      long waitTimeForFileCreate, DataEncodingType dataEncoding)
+      long waitTimeForFileCreate, DataEncodingType dataEncoding,
+      PartitionReaderStatsExposer prMetrics)
           throws IOException {
     this(partitionId, partitionCheckpoint, conf, fs, collectorDataDir,
         streamsLocalDir, buffer, streamName, startTime,
-        waitTimeForFlush, waitTimeForFileCreate, dataEncoding, false);
+        waitTimeForFlush, waitTimeForFileCreate, dataEncoding, prMetrics, false);
   }
 
   public PartitionReader(PartitionId partitionId,
@@ -47,11 +51,11 @@ public class PartitionReader {
       BlockingQueue<QueueEntry> buffer, Path streamDir,
       Configuration conf, String inputFormatClass,
       Date startTime, long waitTimeForFileCreate, boolean isDatabusData,
-      DataEncodingType dataEncoding)
+      DataEncodingType dataEncoding, PartitionReaderStatsExposer prMetrics)
           throws IOException {
     this(partitionId, partitionCheckpoint, fs, buffer, streamDir,
         conf, inputFormatClass, startTime, waitTimeForFileCreate, isDatabusData,
-        dataEncoding, false);
+        dataEncoding, prMetrics, false);
   }
 
   PartitionReader(PartitionId partitionId,
@@ -61,12 +65,15 @@ public class PartitionReader {
       Path streamLocalDir, 
       BlockingQueue<QueueEntry> buffer, String streamName, Date startTime,
       long waitTimeForFlush, long waitTimeForFileCreate,
-      DataEncodingType dataEncoding, boolean noNewFiles)
+      DataEncodingType dataEncoding, PartitionReaderStatsExposer prMetrics,
+      boolean noNewFiles)
           throws IOException {
-    this(partitionId, partitionCheckpoint, buffer, startTime, dataEncoding);
+    this(partitionId, partitionCheckpoint, buffer, startTime, dataEncoding,
+        prMetrics);
     reader = new CollectorReader(partitionId, partitionCheckpoint, fs,
         streamName, collectorDataDir, streamLocalDir, conf,
-        startTime, waitTimeForFlush, waitTimeForFileCreate, noNewFiles);
+        startTime, waitTimeForFlush, waitTimeForFileCreate,
+        ((CollectorReaderStatsExposer)prMetrics), noNewFiles);
     // initialize cluster and its directories
     LOG.info("Partition reader initialized with partitionId:" + partitionId +
         " checkPoint:" + partitionCheckpoint +  
@@ -79,12 +86,14 @@ public class PartitionReader {
       BlockingQueue<QueueEntry> buffer, Path streamDir,
       Configuration conf, String inputFormatClass,
       Date startTime, long waitTimeForFileCreate, boolean isDatabusData,
-      DataEncodingType dataEncoding, boolean noNewFiles)
+      DataEncodingType dataEncoding, PartitionReaderStatsExposer prMetrics,
+      boolean noNewFiles)
           throws IOException {
-    this(partitionId, partitionCheckpoint, buffer, startTime, dataEncoding);
+    this(partitionId, partitionCheckpoint, buffer, startTime, dataEncoding,
+        prMetrics);
     reader = new ClusterReader(partitionId, partitionCheckpoint,
         fs, streamDir, conf, inputFormatClass, startTime,
-        waitTimeForFileCreate, isDatabusData, noNewFiles);
+        waitTimeForFileCreate, isDatabusData, prMetrics, noNewFiles);
     // initialize cluster and its directories
     LOG.info("Partition reader initialized with partitionId:" + partitionId +
         " checkPoint:" + partitionCheckpoint +  
@@ -95,7 +104,8 @@ public class PartitionReader {
   private PartitionReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint,
       BlockingQueue<QueueEntry> buffer, Date startTime,
-      DataEncodingType dataEncoding)
+      DataEncodingType dataEncoding,
+      PartitionReaderStatsExposer prMetrics)
           throws IOException {
     if (startTime == null && partitionCheckpoint == null) {
       String msg = "StartTime and checkpoint both" +
@@ -106,6 +116,7 @@ public class PartitionReader {
     this.partitionId = partitionId;
     this.buffer = buffer;
     this.dataEncoding = dataEncoding;
+    this.prMetrics = prMetrics;
   }
 
   public synchronized void start() {
@@ -124,6 +135,7 @@ public class PartitionReader {
               return;
           } catch (Throwable e) {
             LOG.warn("Error in run", e);
+            prMetrics.incrementHandledExceptions();
           }
           long finishTime = System.currentTimeMillis();
           LOG.debug("Execution took ms : " + (finishTime - startTime));
@@ -193,6 +205,7 @@ public class PartitionReader {
               ByteBuffer.wrap(data)), partitionId,
               new PartitionCheckpoint(reader.getCurrentFile(),
                   reader.getCurrentLineNum())));
+          prMetrics.incrementMessagesAddedToBuffer();
         } else {
           LOG.info("No stream to read");
           return;
@@ -200,11 +213,13 @@ public class PartitionReader {
       }
     } catch (Throwable e) {
       LOG.warn("Error while reading stream", e);
+      prMetrics.incrementHandledExceptions();
     } finally {
       try {
         reader.closeStream();
       } catch (Exception e) {
         LOG.warn("Error while closing stream", e);
+        prMetrics.incrementHandledExceptions();
       }
     }
   }

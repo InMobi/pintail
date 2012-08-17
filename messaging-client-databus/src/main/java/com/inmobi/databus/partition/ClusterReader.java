@@ -13,6 +13,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 
 import com.inmobi.databus.readers.DatabusStreamWaitingReader;
+import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
 public class ClusterReader extends AbstractPartitionStreamReader {
 
@@ -27,7 +28,7 @@ public class ClusterReader extends AbstractPartitionStreamReader {
       PartitionCheckpoint partitionCheckpoint, FileSystem fs,
       Path streamDir, Configuration conf, String inputFormatClass,
       Date startTime, long waitTimeForFileCreate, boolean isDatabusData,
-      boolean noNewFiles)
+      PartitionReaderStatsExposer metrics, boolean noNewFiles)
           throws IOException {
     this.startTime = startTime;
     this.streamDir = streamDir;
@@ -35,7 +36,7 @@ public class ClusterReader extends AbstractPartitionStreamReader {
     this.isDatabusData = isDatabusData;
 
     reader = new DatabusStreamWaitingReader(partitionId, fs, streamDir,
-        inputFormatClass, conf, waitTimeForFileCreate, noNewFiles);
+        inputFormatClass, conf, waitTimeForFileCreate, metrics, noNewFiles);
   }
 
   public void initializeCurrentFile() throws IOException, InterruptedException {

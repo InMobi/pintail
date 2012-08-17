@@ -15,6 +15,7 @@ import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.consumer.util.MessageUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
+import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 
 public class TestCollectorStreamReader {
   private static final String testStream = "testclient";
@@ -50,11 +51,13 @@ public class TestCollectorStreamReader {
 
   @Test
   public void testInitialize() throws Exception {
+    CollectorReaderStatsExposer metrics = new 
+        CollectorReaderStatsExposer(testStream, "c1", partitionId.toString());
     // Read from start
     cReader = new CollectorStreamReader(partitionId, FileSystem.get(
         cluster.getHadoopConf()), testStream,
         CollectorStreamReader.getCollectorDir(cluster, testStream, collectorName),
-        10, 10, true);
+        10, 10, metrics, true);
     cReader.build();
     cReader.initFromStart();
     Assert.assertEquals(cReader.getCurrentFile(), new Path(collectorDir,
@@ -138,48 +141,70 @@ public class TestCollectorStreamReader {
 
   @Test
   public void testReadFromStart() throws Exception {
+    CollectorReaderStatsExposer metrics = new 
+        CollectorReaderStatsExposer(testStream, "c1", partitionId.toString());
     cReader = new CollectorStreamReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
         CollectorStreamReader.getCollectorDir(cluster, testStream, collectorName),
-        10, 10, true);
+        10, 10, metrics, true);
     cReader.build();
     cReader.initFromStart();
     cReader.openStream();
     readFile(0, 0);
+    Assert.assertEquals(metrics.getMessagesReadFromSource(), 100);
     readFile(1, 0);
+    Assert.assertEquals(metrics.getMessagesReadFromSource(), 200);
     readFile(2, 0);
     cReader.close();
+    Assert.assertEquals(metrics.getHandledExceptions(), 0);
+    Assert.assertEquals(metrics.getMessagesReadFromSource(), 300);
+    Assert.assertEquals(metrics.getWaitTimeInSameFile(), 0);
+    Assert.assertEquals(metrics.getWaitTimeUnitsNewFile(), 0);
   }
 
   @Test
   public void testReadFromCheckpoint() throws Exception {
+    CollectorReaderStatsExposer metrics = new 
+        CollectorReaderStatsExposer(testStream, "c1", partitionId.toString());
     cReader = new CollectorStreamReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
         CollectorStreamReader.getCollectorDir(cluster, testStream, collectorName),
-        10, 10, true);
+        10, 10, metrics, true);
     cReader.build();
     cReader.initializeCurrentFile(new PartitionCheckpoint(
         CollectorStreamReader.getCollectorFile(files[1]), 20));
     cReader.openStream();
 
     readFile(1, 20);
+    Assert.assertEquals(metrics.getMessagesReadFromSource(), 80);
     readFile(2, 0);
     cReader.close();
+    Assert.assertEquals(metrics.getHandledExceptions(), 0);
+    Assert.assertEquals(metrics.getMessagesReadFromSource(), 180);
+    Assert.assertEquals(metrics.getWaitTimeInSameFile(), 0);
+    Assert.assertEquals(metrics.getWaitTimeUnitsNewFile(), 0);
   }
 
   @Test
   public void testReadFromTimeStamp() throws Exception {
+    CollectorReaderStatsExposer metrics = new 
+        CollectorReaderStatsExposer(testStream, "c1", partitionId.toString());
     cReader = new CollectorStreamReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
         CollectorStreamReader.getCollectorDir(cluster, testStream, collectorName),
-        10, 10, true);
+        10, 10, metrics, true);
     cReader.build();
     cReader.initializeCurrentFile(
         CollectorStreamReader.getDateFromCollectorFile(files[1]));
     cReader.openStream();
     readFile(1, 0);
+    Assert.assertEquals(metrics.getMessagesReadFromSource(), 100);
     readFile(2, 0);
     cReader.close();
+    Assert.assertEquals(metrics.getHandledExceptions(), 0);
+    Assert.assertEquals(metrics.getMessagesReadFromSource(), 200);
+    Assert.assertEquals(metrics.getWaitTimeInSameFile(), 0);
+    Assert.assertEquals(metrics.getWaitTimeUnitsNewFile(), 0);
   }
 
 }

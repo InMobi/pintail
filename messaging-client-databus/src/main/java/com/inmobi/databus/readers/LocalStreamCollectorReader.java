@@ -19,6 +19,7 @@ import com.inmobi.databus.files.DatabusStreamFile;
 import com.inmobi.databus.files.FileMap;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
+import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 
 public class LocalStreamCollectorReader extends 
     DatabusStreamReader<DatabusStreamFile> {
@@ -31,10 +32,12 @@ public class LocalStreamCollectorReader extends
   private final String collector;
   
   public LocalStreamCollectorReader(PartitionId partitionId, 
-      FileSystem fs, String streamName, Path streamDir, Configuration conf)
+      FileSystem fs, String streamName, Path streamDir, Configuration conf,
+      long waitTimeForFileCreate, CollectorReaderStatsExposer metrics)
           throws IOException {
     super(partitionId, fs, streamDir,
-        TextInputFormat.class.getCanonicalName(), conf, false);
+        TextInputFormat.class.getCanonicalName(), conf, waitTimeForFileCreate,
+        metrics, false);
     this.streamName = streamName;
     this.collector = partitionId.getCollector();
   }

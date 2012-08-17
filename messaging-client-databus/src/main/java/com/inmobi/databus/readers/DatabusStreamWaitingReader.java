@@ -17,6 +17,7 @@ import com.inmobi.databus.files.FileMap;
 import com.inmobi.databus.files.HadoopStreamFile;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
+import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
 public class DatabusStreamWaitingReader 
      extends DatabusStreamReader<HadoopStreamFile> {
@@ -26,13 +27,15 @@ public class DatabusStreamWaitingReader
 
   public DatabusStreamWaitingReader(PartitionId partitionId, FileSystem fs,
       Path streamDir,  String inputFormatClass, Configuration conf,
-      long waitTimeForCreate, boolean noNewFiles)
+      long waitTimeForFileCreate, PartitionReaderStatsExposer metrics,
+      boolean noNewFiles)
           throws IOException {
-    super(partitionId, fs, streamDir, inputFormatClass, conf, noNewFiles);
-    this.waitTimeForCreate = waitTimeForCreate;
+    super(partitionId, fs, streamDir, inputFormatClass, conf,
+        waitTimeForFileCreate, metrics, noNewFiles);
   }
 
-  protected void buildListing(FileMap<HadoopStreamFile> fmap, PathFilter pathFilter)
+  protected void buildListing(FileMap<HadoopStreamFile> fmap,
+      PathFilter pathFilter)
       throws IOException {
     Calendar current = Calendar.getInstance();
     Date now = current.getTime();
@@ -96,7 +99,7 @@ public class DatabusStreamWaitingReader
       throws IOException, InterruptedException {
     while (!closed && !setNextHigherAndOpen(file)) {
       LOG.info("Waiting for next file creation");
-      Thread.sleep(waitTimeForCreate);
+      waitForFileCreate();
       build();
     }
   }

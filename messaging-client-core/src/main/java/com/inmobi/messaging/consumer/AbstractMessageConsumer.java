@@ -58,21 +58,21 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
 
   public synchronized Message next() throws InterruptedException {
     Message msg = getNext();
-    metrics.addMessagesConsumed();
+    metrics.incrementMessagesConsumed();
     return msg;
   }
 
   public synchronized void mark() throws IOException {
     if (isMarkSupported()) {
       doMark();
-      metrics.addMarkCalls();
+      metrics.incrementMarkCalls();
     }
   }
 
   public synchronized void reset() throws IOException {
     if (isMarkSupported()) {
       doReset();
-      metrics.addResetCalls();
+      metrics.incrementResetCalls();
     }
   }
 

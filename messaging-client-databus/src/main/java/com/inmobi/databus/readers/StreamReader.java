@@ -13,6 +13,7 @@ import com.inmobi.databus.files.FileMap;
 import com.inmobi.databus.files.StreamFile;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
+import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
 public abstract class StreamReader<T extends StreamFile> {
 
@@ -26,16 +27,20 @@ public abstract class StreamReader<T extends StreamFile> {
   protected FileSystem fs;
   protected volatile boolean closed = false;
   protected boolean noNewFiles = false; // this is purely for tests
-  protected long waitTimeForCreate;
+  private long waitTimeForCreate;
   protected Path streamDir;
+  protected final PartitionReaderStatsExposer metrics;
   private FileMap<T> fileMap;
 
   protected StreamReader(PartitionId partitionId, FileSystem fs, 
-      Path streamDir, boolean noNewFiles)
+      Path streamDir, long waitTimeForCreate,
+      PartitionReaderStatsExposer metrics, boolean noNewFiles)
           throws IOException {
     this.partitionId = partitionId;
     this.fs = fs;
     this.streamDir = streamDir;
+    this.waitTimeForCreate = waitTimeForCreate;
+    this.metrics = metrics;
     this.noNewFiles = noNewFiles;
     this.fileMap = createFileMap();
   }
@@ -205,6 +210,7 @@ public abstract class StreamReader<T extends StreamFile> {
     byte[] line = readRawLine();
     if (line != null) {
       currentLineNum++;
+      metrics.incrementMessagesReadFromSource();
     }
     return line;
   }
@@ -285,11 +291,16 @@ public abstract class StreamReader<T extends StreamFile> {
     }
   }
 
+  protected void waitForFileCreate() throws InterruptedException {
+    Thread.sleep(waitTimeForCreate);
+    metrics.incrementWaitTimeUnitsNewFile();
+  }
+
   private void waitForNextFileCreation() throws IOException,
       InterruptedException {
     while (!closed && !initFromStart()) {
       LOG.info("Waiting for next file creation");
-      Thread.sleep(waitTimeForCreate);
+      waitForFileCreate();
       build();
     }
   }
@@ -298,7 +309,7 @@ public abstract class StreamReader<T extends StreamFile> {
       InterruptedException {
     while (!closed && !initializeCurrentFile(timestamp)) {
       LOG.info("Waiting for next file creation");
-      Thread.sleep(waitTimeForCreate);
+      waitForFileCreate();
       build();
     }
   }

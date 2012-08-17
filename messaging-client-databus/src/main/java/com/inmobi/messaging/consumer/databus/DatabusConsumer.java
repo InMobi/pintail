@@ -143,14 +143,16 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
               partitionsChkPoints.get(id), allowedStartTime);
           LOG.debug("Creating partition " + id);
           PartitionReaderStatsExposer collectorMetrics = new 
-              CollectorReaderStatsExposer(id.toString());
+              CollectorReaderStatsExposer(topicName, consumerName,
+                  id.toString());
           addStatsExposer(collectorMetrics);
           readers.put(id, new PartitionReader(id,
               partitionsChkPoints.get(id), conf, fs,
               new Path(streamDir, collector), 
               DatabusUtil.getStreamDir(StreamType.LOCAL, rootDirs[i], topicName),
               buffer, topicName, partitionTimestamp,
-              waitTimeForFlush, waitTimeForFileCreate, dataEncodingType));
+              waitTimeForFlush, waitTimeForFileCreate, dataEncodingType,
+              collectorMetrics));
         }
       } else {
         LOG.info("Creating partition reader for cluster");
@@ -162,12 +164,13 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
             partitionsChkPoints.get(id), allowedStartTime);
         LOG.debug("Creating partition " + id);
         PartitionReaderStatsExposer clusterMetrics = 
-            new PartitionReaderStatsExposer(id.toString());
+            new PartitionReaderStatsExposer(topicName, consumerName,
+                id.toString());
         addStatsExposer(clusterMetrics);
         readers.put(id, new PartitionReader(id,
             partitionsChkPoints.get(id), fs, buffer, streamDir, conf,
             TextInputFormat.class.getCanonicalName(), partitionTimestamp,
-            waitTimeForFileCreate, true, dataEncodingType));              
+            waitTimeForFileCreate, true, dataEncodingType, clusterMetrics));              
       }
     }
   }
