@@ -22,7 +22,6 @@ import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.util.DatabusUtil;
 import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
-import com.inmobi.messaging.metrics.DatabusConsumerStatsExposer;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
 /**
@@ -143,9 +142,9 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
           Date partitionTimestamp = getPartitionTimestamp(id,
               partitionsChkPoints.get(id), allowedStartTime);
           LOG.debug("Creating partition " + id);
-          PartitionReaderStatsExposer collectorMetrics = new CollectorReaderStatsExposer(
-              id.toString());
-          ((DatabusConsumerStatsExposer)getMetrics()).addPartitionReader(collectorMetrics);
+          PartitionReaderStatsExposer collectorMetrics = new 
+              CollectorReaderStatsExposer(id.toString());
+          addStatsExposer(collectorMetrics);
           readers.put(id, new PartitionReader(id,
               partitionsChkPoints.get(id), conf, fs,
               new Path(streamDir, collector), 
@@ -162,9 +161,9 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
         Date partitionTimestamp = getPartitionTimestamp(id,
             partitionsChkPoints.get(id), allowedStartTime);
         LOG.debug("Creating partition " + id);
-        PartitionReaderStatsExposer clusterMetrics = new PartitionReaderStatsExposer(
-            id.toString());
-        ((DatabusConsumerStatsExposer)getMetrics()).addPartitionReader(clusterMetrics);
+        PartitionReaderStatsExposer clusterMetrics = 
+            new PartitionReaderStatsExposer(id.toString());
+        addStatsExposer(clusterMetrics);
         readers.put(id, new PartitionReader(id,
             partitionsChkPoints.get(id), fs, buffer, streamDir, conf,
             TextInputFormat.class.getCanonicalName(), partitionTimestamp,

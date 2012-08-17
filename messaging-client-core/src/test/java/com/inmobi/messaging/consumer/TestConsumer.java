@@ -135,12 +135,12 @@ public class TestConsumer {
     Assert.assertEquals(new String(msg.getData().array()), MockConsumer.mockMsg);
     
     if (statsEnabled) {
-      Assert.assertTrue(consumer.getStats().statEmissionEnabled());
+      Assert.assertTrue(consumer.getStatsBuilder().statEmissionEnabled());
       Assert.assertTrue((
-          (MockStatsEmitter)consumer.getStats().getStatsEmitter()).inited);
+          (MockStatsEmitter)consumer.getStatsBuilder().getStatsEmitter()).inited);
     } else {
-      Assert.assertFalse(consumer.getStats().statEmissionEnabled());
-      Assert.assertNull((consumer.getStats().getStatsEmitter()));
+      Assert.assertFalse(consumer.getStatsBuilder().statEmissionEnabled());
+      Assert.assertNull((consumer.getStatsBuilder().getStatsEmitter()));
     }
     Assert.assertEquals(((BaseMessageConsumerStatsExposer)consumer.getMetrics())
         .getNumMessagesConsumed(), 1);

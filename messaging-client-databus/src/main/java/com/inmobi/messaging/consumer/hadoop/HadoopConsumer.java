@@ -13,7 +13,6 @@ import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.partition.PartitionReader;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.consumer.databus.AbstractMessagingDatabusConsumer;
-import com.inmobi.messaging.metrics.DatabusConsumerStatsExposer;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
 public class HadoopConsumer extends AbstractMessagingDatabusConsumer 
@@ -76,9 +75,9 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
           (retentionInHours * ONE_HOUR_IN_MILLIS));
       Date partitionTimestamp = getPartitionTimestamp(id,
           partitionsChkPoints.get(id), allowedStartTime);
-      PartitionReaderStatsExposer clusterMetrics = new PartitionReaderStatsExposer(
-          id.toString());
-      ((DatabusConsumerStatsExposer)getMetrics()).addPartitionReader(clusterMetrics);
+      PartitionReaderStatsExposer clusterMetrics = new 
+          PartitionReaderStatsExposer(id.toString());
+      addStatsExposer(clusterMetrics);
       PartitionReader reader = new PartitionReader(id,
           partitionsChkPoints.get(id), fileSystems[i], buffer, rootDirs[i],
           conf, inputFormatClassName, partitionTimestamp,

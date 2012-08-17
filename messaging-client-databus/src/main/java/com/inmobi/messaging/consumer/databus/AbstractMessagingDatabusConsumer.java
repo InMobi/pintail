@@ -21,7 +21,7 @@ import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.AbstractMessageConsumer;
-import com.inmobi.messaging.metrics.DatabusConsumerStatsExposer;
+import com.inmobi.messaging.consumer.BaseMessageConsumerStatsExposer;
 
 public abstract class AbstractMessagingDatabusConsumer 
     extends AbstractMessageConsumer 
@@ -198,6 +198,6 @@ public abstract class AbstractMessagingDatabusConsumer
 
   @Override
   protected AbstractMessagingClientStatsExposer getMetricsImpl() {
-    return new DatabusConsumerStatsExposer(topicName, consumerName);
+    return new BaseMessageConsumerStatsExposer(topicName, consumerName);
   }
 }
