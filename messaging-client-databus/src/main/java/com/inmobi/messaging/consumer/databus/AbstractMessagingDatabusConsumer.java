@@ -186,6 +186,7 @@ public abstract class AbstractMessagingDatabusConsumer
   public synchronized void close() {
     for (PartitionReader reader : readers.values()) {
       reader.close();
+      removeStatsExposer(reader.getStatsExposer());
     }
     readers.clear();
     buffer.clear();

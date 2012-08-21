@@ -7,7 +7,6 @@ import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
 import com.inmobi.instrumentation.MessagingClientStatBuilder;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
-import com.inmobi.stats.StatsExposer;
 
 /**
  * Abstract class implementing {@link MessageConsumer} interface.
@@ -156,10 +155,20 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
    *  
    * @param statsExposer
    */
-  protected void addStatsExposer(StatsExposer statsExposer) {
+  protected void addStatsExposer(
+      AbstractMessageConsumerStatsExposer statsExposer) {
     statsEmitter.add(statsExposer);
   }
 
+  /**
+   * Remove statsExposer from the emitter.
+   * 
+   * @param statsExposer
+   */
+  protected void removeStatsExposer(
+      AbstractMessageConsumerStatsExposer statsExposer) {
+    statsEmitter.remove(statsExposer);
+  }
   /**
    * Get the client stats object
    * 

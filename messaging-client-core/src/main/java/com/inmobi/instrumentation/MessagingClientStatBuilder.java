@@ -58,4 +58,10 @@ public class MessagingClientStatBuilder {
       emitter.removeAll();
     }
   }
+
+  public void remove(StatsExposer statsExposer) {
+    if (statEnabled) {
+      emitter.remove(statsExposer);
+    }
+  }
 }

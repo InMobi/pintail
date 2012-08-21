@@ -224,4 +224,7 @@ public class PartitionReader {
     }
   }
 
+  public PartitionReaderStatsExposer getStatsExposer() {
+    return prMetrics;
+  }
 }
