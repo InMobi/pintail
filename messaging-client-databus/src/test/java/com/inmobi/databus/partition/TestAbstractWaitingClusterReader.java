@@ -40,7 +40,8 @@ public abstract class TestAbstractWaitingClusterReader {
   Path streamDir;
   Configuration conf;
 
-  abstract void setupFiles(String[] files, Path[] newDatabusFiles) throws Exception;
+  abstract void setupFiles(String[] files, Path[] newDatabusFiles) throws
+      Exception;
   abstract boolean isDatabusData();
   
   public void cleanup() throws IOException {
@@ -108,5 +109,6 @@ public abstract class TestAbstractWaitingClusterReader {
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 500);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 500);
     Assert.assertTrue(prMetrics.getWaitTimeUnitsNewFile() > 0);
+    Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
   }
 }

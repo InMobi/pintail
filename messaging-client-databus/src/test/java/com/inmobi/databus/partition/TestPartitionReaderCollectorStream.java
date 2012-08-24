@@ -323,6 +323,7 @@ public class TestPartitionReaderCollectorStream {
     Assert.assertEquals(prMetrics.getWaitTimeInSameFile(), 0);
     Assert.assertEquals(prMetrics.getSwitchesFromCollectorToLocal(), 0);
     Assert.assertEquals(prMetrics.getSwitchesFromLocalToCollector(), 0);
+    Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
   }
 
   @Test
@@ -359,6 +360,7 @@ public class TestPartitionReaderCollectorStream {
     Assert.assertEquals(prMetrics.getWaitTimeInSameFile(), 0);
     Assert.assertEquals(prMetrics.getSwitchesFromCollectorToLocal(), 0);
     Assert.assertEquals(prMetrics.getSwitchesFromLocalToCollector(), 0);
+    Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
   }
 
   @Test
@@ -397,6 +399,7 @@ public class TestPartitionReaderCollectorStream {
     Assert.assertEquals(prMetrics.getWaitTimeInSameFile(), 0);
     Assert.assertEquals(prMetrics.getSwitchesFromCollectorToLocal(), 0);
     Assert.assertEquals(prMetrics.getSwitchesFromLocalToCollector(), 0);
+    Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
   }
 
   @Test
@@ -470,6 +473,7 @@ public class TestPartitionReaderCollectorStream {
     Assert.assertEquals(prMetrics.getWaitTimeInSameFile(), 0);
     Assert.assertEquals(prMetrics.getSwitchesFromCollectorToLocal(), 0);
     Assert.assertEquals(prMetrics.getSwitchesFromLocalToCollector(), 0);
+    Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
   }
 
   @Test
@@ -507,6 +511,7 @@ public class TestPartitionReaderCollectorStream {
     Assert.assertEquals(prMetrics.getWaitTimeInSameFile(), 0);
     Assert.assertEquals(prMetrics.getSwitchesFromCollectorToLocal(), 0);
     Assert.assertEquals(prMetrics.getSwitchesFromLocalToCollector(), 0);
+    Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
   }
 
   @Test
@@ -546,6 +551,7 @@ public class TestPartitionReaderCollectorStream {
     Assert.assertEquals(prMetrics.getWaitTimeInSameFile(), 0);
     Assert.assertEquals(prMetrics.getSwitchesFromCollectorToLocal(), 0);
     Assert.assertEquals(prMetrics.getSwitchesFromLocalToCollector(), 0);
+    Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
   }
 
   @Test
@@ -572,5 +578,6 @@ public class TestPartitionReaderCollectorStream {
     Assert.assertEquals(prMetrics.getWaitTimeInSameFile(), 0);
     Assert.assertEquals(prMetrics.getSwitchesFromCollectorToLocal(), 0);
     Assert.assertEquals(prMetrics.getSwitchesFromLocalToCollector(), 0);
+    Assert.assertEquals(prMetrics.getCumulativeNanosForFetchMessage(), 0);
   }
 }

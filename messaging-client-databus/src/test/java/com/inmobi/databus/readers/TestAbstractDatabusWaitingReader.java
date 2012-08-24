@@ -143,6 +143,7 @@ public abstract class TestAbstractDatabusWaitingReader {
     Assert.assertEquals(metrics.getHandledExceptions(), 0);
     Assert.assertEquals(metrics.getMessagesReadFromSource(), 300);
     Assert.assertEquals(metrics.getWaitTimeUnitsNewFile(), 0);
+    Assert.assertTrue(metrics.getCumulativeNanosForFetchMessage() > 0);
   }
 
   public void testReadFromCheckpoint() throws Exception {
@@ -164,6 +165,7 @@ public abstract class TestAbstractDatabusWaitingReader {
     Assert.assertEquals(metrics.getHandledExceptions(), 0);
     Assert.assertEquals(metrics.getMessagesReadFromSource(), 180);
     Assert.assertEquals(metrics.getWaitTimeUnitsNewFile(), 0);
+    Assert.assertTrue(metrics.getCumulativeNanosForFetchMessage() > 0);
   }
 
   public void testReadFromTimeStamp() throws Exception {
@@ -185,6 +187,7 @@ public abstract class TestAbstractDatabusWaitingReader {
     Assert.assertEquals(metrics.getHandledExceptions(), 0);
     Assert.assertEquals(metrics.getMessagesReadFromSource(), 200);
     Assert.assertEquals(metrics.getWaitTimeUnitsNewFile(), 0);
+    Assert.assertTrue(metrics.getCumulativeNanosForFetchMessage() > 0);
   }
 
 }

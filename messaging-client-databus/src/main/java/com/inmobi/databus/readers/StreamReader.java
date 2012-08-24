@@ -207,10 +207,13 @@ public abstract class StreamReader<T extends StreamFile> {
    * @throws IOException
    */
   protected byte[] readNextLine() throws IOException {
+    long start = System.nanoTime();
     byte[] line = readRawLine();
     if (line != null) {
+      long end = System.nanoTime();
       currentLineNum++;
       metrics.incrementMessagesReadFromSource();
+      metrics.addCumulativeNanosFetchMessage(end - start);
     }
     return line;
   }

@@ -3,22 +3,24 @@ package com.inmobi.messaging.metrics;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
 import com.inmobi.messaging.consumer.AbstractMessageConsumerStatsExposer;
 
 public class PartitionReaderStatsExposer extends 
     AbstractMessageConsumerStatsExposer {
-  public final static String MESSAGES_READ_FROM_SOURCE = "messagesReadFromSource";
+  public final static String MESSAGES_READ_FROM_SOURCE = 
+      "messagesReadFromSource";
   public final static String MESSAGES_ADDED_TO_BUFFER = "messagesAddedToBuffer";
   public final static String HANDLED_EXCEPTIONS = "handledExceptions";
   public final static String WAIT_TIME_UNITS_NEW_FILE = "waitTimeUnitsNewFile";
   public final static String PARTITION_CONTEXT = "PartitionId";
+  public final static String CUMULATIVE_NANOS_FETCH_MESSAGE = 
+      "cumulativeNanosForFecthMessage";
 
   private final AtomicLong numMessagesReadFromSource = new AtomicLong(0);
   private final AtomicLong numMessagesAddedToBuffer = new AtomicLong(0);
   private final AtomicLong numHandledExceptions = new AtomicLong(0);
   private final AtomicLong numWaitTimeUnitsNewFile = new AtomicLong(0);
-
+  private final AtomicLong cumulativeNanosForFecthMessage = new AtomicLong(0);
   private final String pid;
 
   public PartitionReaderStatsExposer(String topicName, String consumerName,
@@ -43,12 +45,17 @@ public class PartitionReaderStatsExposer extends
     numWaitTimeUnitsNewFile.incrementAndGet();
   }
 
+  public void addCumulativeNanosFetchMessage(long nanos) {
+    cumulativeNanosForFecthMessage.addAndGet(nanos);
+  }
+
   @Override
   protected void addToStatsMap(Map<String, Number> map) {
     map.put(MESSAGES_READ_FROM_SOURCE, getMessagesReadFromSource());
     map.put(MESSAGES_ADDED_TO_BUFFER, getMessagesAddedToBuffer());
     map.put(HANDLED_EXCEPTIONS, getHandledExceptions());
     map.put(WAIT_TIME_UNITS_NEW_FILE, getWaitTimeUnitsNewFile());
+    map.put(CUMULATIVE_NANOS_FETCH_MESSAGE, getCumulativeNanosForFetchMessage());
   }
 
   @Override
@@ -71,5 +78,9 @@ public class PartitionReaderStatsExposer extends
 
   public long getWaitTimeUnitsNewFile() {
     return numWaitTimeUnitsNewFile.get();
+  }
+
+  public long getCumulativeNanosForFetchMessage() {
+    return cumulativeNanosForFecthMessage.get();
   }
 }

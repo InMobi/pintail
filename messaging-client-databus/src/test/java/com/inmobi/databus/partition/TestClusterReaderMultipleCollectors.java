@@ -177,5 +177,6 @@ public class TestClusterReaderMultipleCollectors {
     preader.close();
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 150);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 150);
+    Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
   }
 }

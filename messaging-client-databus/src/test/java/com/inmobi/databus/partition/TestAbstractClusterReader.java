@@ -216,6 +216,7 @@ public abstract class TestAbstractClusterReader {
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 300);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 300);
     Assert.assertEquals(prMetrics.getWaitTimeUnitsNewFile(), 0);
+    Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
   }
 
   public void testReadFromCheckpoint() throws Exception {
@@ -251,6 +252,7 @@ public abstract class TestAbstractClusterReader {
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 180);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 180);
     Assert.assertEquals(prMetrics.getWaitTimeUnitsNewFile(), 0);
+    Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
   }
 
   public void testReadFromCheckpointWhichDoesNotExist() throws Exception {
@@ -289,6 +291,7 @@ public abstract class TestAbstractClusterReader {
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 300);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 300);
     Assert.assertEquals(prMetrics.getWaitTimeUnitsNewFile(), 0);
+    Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
   }
 
   public void testReadFromStartTime() throws Exception {
@@ -327,6 +330,7 @@ public abstract class TestAbstractClusterReader {
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 200);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 200);
     Assert.assertEquals(prMetrics.getWaitTimeUnitsNewFile(), 0);
+    Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
   }
 
   public void testReadFromStartTimeWithinStream() throws Exception {
@@ -366,6 +370,7 @@ public abstract class TestAbstractClusterReader {
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 200);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 200);
     Assert.assertEquals(prMetrics.getWaitTimeUnitsNewFile(), 0);
+    Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
   }
 
   public void testReadFromStartTimeBeforeStream() throws Exception {
@@ -408,6 +413,7 @@ public abstract class TestAbstractClusterReader {
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 300);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 300);
     Assert.assertEquals(prMetrics.getWaitTimeUnitsNewFile(), 0);
+    Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
   }
 
   public void testReadFromStartTimeAfterStream() throws Exception {
@@ -433,5 +439,6 @@ public abstract class TestAbstractClusterReader {
     Assert.assertEquals(prMetrics.getHandledExceptions(), 0);
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 0);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 0);
+    Assert.assertEquals(prMetrics.getCumulativeNanosForFetchMessage(), 0);
   }
 }
