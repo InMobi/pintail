@@ -25,10 +25,12 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
   private static final Logger LOG = LoggerFactory
       .getLogger(AbstractMessagePublisher.class);
   private TimingAccumulator stats = new TimingAccumulator();
-  private MessagingClientStatBuilder statsEmitter = new MessagingClientStatBuilder();
+  private MessagingClientStatBuilder statsEmitter = new 
+      MessagingClientStatBuilder();
   public static final String CONTEXT_NAME = "messaging_type";
   public static final String HEADER_TOPIC = "topic";
   public static final String STATS_TYPE = "application";
+  private PublisherStatsExposer statsExposer;
 
   @Override
   public void publish(String topicName, Message m) {
@@ -55,30 +57,37 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
           .getString(MessagePublisherFactory.EMITTER_CONF_FILE_KEY);
       if (emitterConfig == null) {
         LOG.warn("Stat emitter is disabled as config "
-            + MessagePublisherFactory.EMITTER_CONF_FILE_KEY + " is not set in the config.");
+            + MessagePublisherFactory.EMITTER_CONF_FILE_KEY + " is not set in" +
+            		" the config.");
         return;
       }
-      final Map<String, String> contexts = new HashMap<String, String>();
-      contexts.put(CONTEXT_NAME, STATS_TYPE);
+      statsExposer = new PublisherStatsExposer();
       statsEmitter.init(emitterConfig);
-      statsEmitter.add(new StatsExposer() {
-        @Override
-        public Map<String, Number> getStats() {
-          return stats.getMap();
-        }
-        @Override
-        public Map<String, String> getContexts() {
-          return contexts;
-        }
-      });
+      statsEmitter.add(statsExposer);
     } catch (Exception e) {
       throw new IOException("Couldn't find or initialize the configured stats" +
       		" emitter", e);
     }
   }
 
+  private class PublisherStatsExposer implements StatsExposer {
+    final Map<String, String> contexts = new HashMap<String, String>();
+    PublisherStatsExposer() {
+      contexts.put(CONTEXT_NAME, STATS_TYPE);
+    }
+    
+    @Override
+    public Map<String, Number> getStats() {
+      return stats.getMap();
+    }
+    @Override
+    public Map<String, String> getContexts() {
+      return contexts;
+    }    
+  }
+
   @Override
   public void close() {
-    statsEmitter.close();
+    statsEmitter.remove(statsExposer);
   }
 }

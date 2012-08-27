@@ -190,6 +190,7 @@ public abstract class AbstractMessagingDatabusConsumer
     }
     readers.clear();
     buffer.clear();
+    super.close();
   }
 
   @Override

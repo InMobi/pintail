@@ -178,4 +178,8 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
     return statsEmitter;
   }
 
+  @Override
+  public void close() {
+    statsEmitter.remove(metrics);
+  }
 }

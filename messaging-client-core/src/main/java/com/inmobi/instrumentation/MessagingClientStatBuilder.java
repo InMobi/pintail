@@ -50,15 +50,6 @@ public class MessagingClientStatBuilder {
     }
   }
 
-  /**
-   * Removes all statsExposers from the emitter
-   */
-  public void close() {
-    if (emitter != null) {
-      emitter.removeAll();
-    }
-  }
-
   public void remove(StatsExposer statsExposer) {
     if (statEnabled) {
       emitter.remove(statsExposer);
