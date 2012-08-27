@@ -108,11 +108,11 @@ public class DatabusStreamWaitingReader
   public byte[] readLine() throws IOException, InterruptedException {
     byte[] line = readNextLine();
     while (line == null) { // reached end of file
+      LOG.info("Read " + getCurrentFile() + " with lines:" + currentLineNum);
       if (closed) {
         LOG.info("Stream closed");
         break;
       }
-      LOG.info("Read " + getCurrentFile() + " with lines:" + currentLineNum);
       if (!nextFile()) { // reached end of file list
         LOG.info("could not find next file. Rebuilding");
         build(getDateFromStreamDir(streamDir, 
