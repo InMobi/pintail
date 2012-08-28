@@ -175,6 +175,15 @@ public class PartitionReader {
         LOG.warn("Error closing current stream", e);
       }
     }
+    if (thread != null) {
+      thread.interrupt();
+      try {
+        thread.join();
+      } catch (InterruptedException ie) {
+        LOG.warn("thread join interrupted " + thread.getName(), ie);
+        return;
+      }
+    }
   }
 
   StreamFile getCurrentFile() {
