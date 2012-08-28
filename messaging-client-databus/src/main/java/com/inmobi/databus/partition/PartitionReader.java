@@ -220,6 +220,8 @@ public class PartitionReader {
           return;
         }
       }
+    } catch (InterruptedException ie) {
+      LOG.info("Reader interrupted reading stream", ie);
     } catch (Throwable e) {
       LOG.warn("Error while reading stream", e);
       prMetrics.incrementHandledExceptions();
