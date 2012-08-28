@@ -171,11 +171,11 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   public byte[] readLine() throws IOException, InterruptedException {
     byte[] line = readNextLine();
     while (line == null) { // reached end of file?
+      LOG.info("Read " + getCurrentFile() + " with lines:" + currentLineNum);
       if (closed) {
         LOG.info("Stream closed");
         break;
       }
-      LOG.info("Read " + getCurrentFile() + " with lines:" + currentLineNum);
       build(); // rebuild file list
       if (!hasNextFile()) { //there is no next file
         if (noNewFiles) {
