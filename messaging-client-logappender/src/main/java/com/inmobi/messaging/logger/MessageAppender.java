@@ -13,8 +13,7 @@ import com.inmobi.messaging.Message;
 import com.inmobi.messaging.publisher.MessagePublisher;
 import com.inmobi.messaging.publisher.MessagePublisherFactory;
 
-/*
- * Setting of fixed topic is deprecated.
+/**
  * Only com.inmobi.messaging.Message is valid object type in 
  * LoggingEvent.getMessage(). byte[], String and TBase types are deprecated.
  */
@@ -34,15 +33,10 @@ public class MessageAppender extends AppenderSkeleton {
     this.conffile = conffile;
   }
 
-  @Deprecated
   public String getTopic() {
     return topic;
   }
 
-  /*
-   * Setting of fixed topic is deprecated
-   */
-  @Deprecated
   public void setTopic(String topic) {
     this.topic = topic;
   }
@@ -68,20 +62,18 @@ public class MessageAppender extends AppenderSkeleton {
     }
 
     //deprecated support only if fixed topic is set
-    else if (topic != null) {
-      if (o instanceof byte[]) {
-        msg = new Message(ByteBuffer.wrap((byte[]) o));
-      } else if (o instanceof String) {
-        msg = new Message(ByteBuffer.wrap(((String) o).getBytes()));
-      } else if (o instanceof TBase) {
-        TBase thriftOb = (TBase) o;
-        try {
-          msg = new Message( 
-              ByteBuffer.wrap(serializer.serialize(thriftOb)));
-        } catch (TException e) {
-          System.out.println("Could not serialize thrift object");
-          e.printStackTrace();
-        }
+    if (o instanceof byte[]) {
+      msg = new Message(ByteBuffer.wrap((byte[]) o));
+    } else if (o instanceof String) {
+      msg = new Message(ByteBuffer.wrap(((String) o).getBytes()));
+    } else if (o instanceof TBase) {
+      TBase thriftOb = (TBase) o;
+      try {
+        msg = new Message( 
+            ByteBuffer.wrap(serializer.serialize(thriftOb)));
+      } catch (TException e) {
+        System.out.println("Could not serialize thrift object");
+        e.printStackTrace();
       }
     }
     
