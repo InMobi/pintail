@@ -39,10 +39,11 @@ public class TestTimeouts {
 
       int timeoutSeconds = 2;
       mb = TestServerStarter.createPublisher(port, timeoutSeconds);
-      TimingAccumulator inspector = mb.getStats();
 
-      long error = inspector.getUnhandledExceptionCount();
-      mb.publish("ch", new Message("mmmm".getBytes()));
+      String topic = "ch";
+      long error = 0;
+      mb.publish(topic, new Message("mmmm".getBytes()));
+      TimingAccumulator inspector = mb.getStats(topic);
 
       Thread.sleep((timeoutSeconds + 1) * 1000);
       assertEquals(inspector.getInFlight(), 0,

@@ -61,21 +61,30 @@ public class TestPublisher {
 
 
   private void doTest(AbstractMessagePublisher publisher) {
-    Message msg = new Message( ByteBuffer.wrap(new byte[5]));
-    long invocation = publisher.getStats().getInvocationCount();
-    long success = publisher.getStats().getSuccessCount();
-    long unhandledException = publisher.getStats().getUnhandledExceptionCount();
-    publisher.publish("test", msg);
-    Assert.assertEquals(publisher.getStats().getInvocationCount(), 
-        invocation + 1, "invocation count");
-    Assert.assertEquals(publisher.getStats().getSuccessCount(), 
-        success + 1, "success count");
-    Assert.assertEquals(publisher.getStats().getUnhandledExceptionCount(), 
-        unhandledException, "unhandledexception count");
+    String topic1 = "test1";
+    String topic2 = "test2";
+    doTest(topic1, publisher);
+    doTest(topic2, publisher);
     publisher.close();
-    Assert.assertEquals(MockPublisher.msg, msg);
-    MockPublisher.reset();
   }
 
+  private void doTest(String topic, AbstractMessagePublisher publisher) {
+    Message msg = new Message( ByteBuffer.wrap(new byte[5]));
+    Assert.assertNull(publisher.getStats(topic));
+    publisher.publish(topic, msg);
+    Assert.assertEquals(publisher.getStats(topic).getInvocationCount(),
+        1, "invocation count");
+    Assert.assertEquals(publisher.getStats(topic).getSuccessCount(),
+        1, "success count");
+    Assert.assertEquals(publisher.getStats(topic).getUnhandledExceptionCount(),
+        0, "unhandledexception count");
+    Assert.assertEquals(MockPublisher.msg, msg);
+    MockPublisher.reset();
+    Assert.assertEquals(publisher.getStatsExposer(topic).getContexts().get(
+        TopicStatsExposer.STATS_TYPE_CONTEXT_NAME),
+        TopicStatsExposer.STATS_TYPE);
+    Assert.assertEquals(publisher.getStatsExposer(topic).getContexts().get(
+        TopicStatsExposer.TOPIC_CONTEXT_NAME), topic);
+  }
   
 }

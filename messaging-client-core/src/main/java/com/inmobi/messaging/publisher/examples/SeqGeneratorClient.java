@@ -28,22 +28,22 @@ public class SeqGeneratorClient {
       publisher.publish(topic, msg);
       Thread.sleep(1);
     }
-    waitToComplete(publisher);
+    waitToComplete(publisher, topic);
     Thread.sleep(5000);
     publisher.close();
-    long invocation = publisher.getStats().getInvocationCount();
+    long invocation = publisher.getStats(topic).getInvocationCount();
     System.out.println("Total invocations: " + invocation);
-    System.out.println("Total success: " + 
-        publisher.getStats().getSuccessCount());
-    System.out.println("Total unhandledExceptions: " + 
-        publisher.getStats().getUnhandledExceptionCount());
+    System.out.println("Total success: " +
+        publisher.getStats(topic).getSuccessCount());
+    System.out.println("Total unhandledExceptions: " +
+        publisher.getStats(topic).getUnhandledExceptionCount());
   }
 
-  private static void waitToComplete(AbstractMessagePublisher publisher)
-      throws InterruptedException {
+  private static void waitToComplete(AbstractMessagePublisher publisher,
+      String topic) throws InterruptedException {
     int i = 0;
-    while (publisher.getStats().getInFlight() != 0 && i++ < 10) {
-      System.out.println("Inflight: "+ publisher.getStats().getInFlight());
+    while (publisher.getStats(topic).getInFlight() != 0 && i++ < 10) {
+      System.out.println("Inflight: "+ publisher.getStats(topic).getInFlight());
       Thread.sleep(100);
     }
   }

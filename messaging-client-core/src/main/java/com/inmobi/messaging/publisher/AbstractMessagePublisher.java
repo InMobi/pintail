@@ -24,21 +24,36 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
 
   private static final Logger LOG = LoggerFactory
       .getLogger(AbstractMessagePublisher.class);
-  private TimingAccumulator stats = new TimingAccumulator();
+  private Map<String, TopicStatsExposer> statsExposers = new HashMap<String,
+      TopicStatsExposer>();
   private MessagingClientStatBuilder statsEmitter = new 
       MessagingClientStatBuilder();
-  public static final String CONTEXT_NAME = "messaging_type";
   public static final String HEADER_TOPIC = "topic";
-  public static final String STATS_TYPE = "application";
-  private PublisherStatsExposer statsExposer;
 
   @Override
   public void publish(String topicName, Message m) {
-    getStats().accumulateInvocation();
+    if (getStats(topicName) == null) {
+      try {
+        initTopic(topicName, new TimingAccumulator());
+      } catch (IOException e) {
+        LOG.error("Could not initialize topic. Dropping the message" + m, e);
+        return;
+      }
+    }
+
+    getStats(topicName).accumulateInvocation();
     // TODO: generate headers
     Map<String, String> headers = new HashMap<String, String>();
     headers.put(HEADER_TOPIC, topicName);
     publish(headers, m);
+  }
+
+  protected void initTopic(String topic, TimingAccumulator stats)
+      throws IOException {
+    TopicStatsExposer statsExposer = new TopicStatsExposer(topic,
+        stats);
+    statsEmitter.add(statsExposer);
+    statsExposers.put(topic, statsExposer);
   }
 
   protected abstract void publish(Map<String, String> headers, Message m);
@@ -47,8 +62,16 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     return statsEmitter;
   }
 
-  public TimingAccumulator getStats() {
-    return stats;
+  public TimingAccumulator getStats(String topic) {
+    if (statsExposers.get(topic) != null) {
+      return statsExposers.get(topic).getTimingAccumulator();
+    } else {
+      return null;
+    }
+  }
+
+  TopicStatsExposer getStatsExposer(String topic) {
+    return statsExposers.get(topic);
   }
 
   protected void init(ClientConfig config) throws IOException {
@@ -61,33 +84,17 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
             		" the config.");
         return;
       }
-      statsExposer = new PublisherStatsExposer();
       statsEmitter.init(emitterConfig);
-      statsEmitter.add(statsExposer);
     } catch (Exception e) {
       throw new IOException("Couldn't find or initialize the configured stats" +
       		" emitter", e);
     }
   }
 
-  private class PublisherStatsExposer implements StatsExposer {
-    final Map<String, String> contexts = new HashMap<String, String>();
-    PublisherStatsExposer() {
-      contexts.put(CONTEXT_NAME, STATS_TYPE);
-    }
-    
-    @Override
-    public Map<String, Number> getStats() {
-      return stats.getMap();
-    }
-    @Override
-    public Map<String, String> getContexts() {
-      return contexts;
-    }    
-  }
-
   @Override
   public void close() {
-    statsEmitter.remove(statsExposer);
+    for (StatsExposer statsExposer : statsExposers.values()) {
+      statsEmitter.remove(statsExposer);
+    }
   }
 }

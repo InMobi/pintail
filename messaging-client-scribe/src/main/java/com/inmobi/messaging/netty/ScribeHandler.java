@@ -15,7 +15,7 @@ import org.jboss.netty.util.TimerTask;
 
 import com.inmobi.instrumentation.TimingAccumulator;
 import com.inmobi.instrumentation.TimingAccumulator.Outcome;
-import com.inmobi.messaging.netty.ScribeMessagePublisher.ChannelSetter;
+import com.inmobi.messaging.netty.ScribeMessagePublisher.ScribeTopicPublisher.ChannelSetter;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

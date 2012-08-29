@@ -2,7 +2,6 @@ package com.inmobi.messaging;
 
 import static org.testng.Assert.assertEquals;
 
-import org.apache.thrift.TException;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -36,17 +35,27 @@ public class TestSimple {
     runTest();
   }
 
-  private void runTest() throws Exception {
-    publisher = TestServerStarter.createPublisher();
-    TimingAccumulator inspector = publisher.getStats();
-    long success = inspector.getSuccessCount();
-    publisher.publish("ch", new Message("mmmm".getBytes()));
-    
+  private void sendMessages() throws Exception {
+    String topic1 = "test1";
+    String topic2 = "test2";
+    publisher.publish(topic1, new Message("msg1".getBytes()));
+    publisher.publish(topic2, new Message("msg2".getBytes()));
+    TimingAccumulator inspector1 = publisher.getStats(topic1);
+    TimingAccumulator inspector2 = publisher.getStats(topic1);
     // Wait for all operations to complete
-    while (inspector.getInFlight() != 0) {
+    while (inspector1.getInFlight() != 0) {
       Thread.sleep(100);
     }
-    assertEquals(inspector.getSuccessCount(), success + 1);
-    publisher.close();   
+    while (inspector2.getInFlight() != 0) {
+      Thread.sleep(100);
+    }
+    assertEquals(inspector1.getSuccessCount(), 1);
+    assertEquals(inspector2.getSuccessCount(), 1);
+  }
+
+  private void runTest() throws Exception {
+    publisher = TestServerStarter.createPublisher();
+    sendMessages();
+    publisher.close();
   }
 }

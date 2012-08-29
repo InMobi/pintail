@@ -20,6 +20,7 @@ public class TestFlumePublisher {
 
   private RpcClient mockRpcClient;
   private FlumeMessagePublisher publisher;
+  private String topic = "test";
 
   @BeforeMethod
   public void init() throws IOException {
@@ -32,17 +33,17 @@ public class TestFlumePublisher {
   @Test
   public void testSuccess() throws Exception {
     Message msg = new Message("msg".getBytes());
-    publisher.publish("test", msg);
+    publisher.publish(topic, msg);
 
     // Wait for all operations to complete
     waitToComplete();
     verify(mockRpcClient, times(1)).appendBatch(Mockito.anyList());
-    Assert.assertEquals(publisher.getStats().getInvocationCount(), 1,
+    Assert.assertEquals(publisher.getStats(topic).getInvocationCount(), 1,
         "invocation count");
-    Assert.assertEquals(publisher.getStats().getSuccessCount(), 1,
+    Assert.assertEquals(publisher.getStats(topic).getSuccessCount(), 1,
         "success count");
-    Assert.assertEquals(publisher.getStats().getUnhandledExceptionCount(), 0,
-        "unhandled exception count");
+    Assert.assertEquals(publisher.getStats(topic).getUnhandledExceptionCount(),
+        0, "unhandled exception count");
 
     publisher.close();
     verify(mockRpcClient, times(1)).close();
@@ -58,11 +59,11 @@ public class TestFlumePublisher {
     // Wait for all operations to complete
     waitToComplete();
     verify(mockRpcClient, times(1)).appendBatch(Mockito.anyList());
-    Assert.assertEquals(publisher.getStats().getInvocationCount(), 1,
+    Assert.assertEquals(publisher.getStats(topic).getInvocationCount(), 1,
         "invocation count");
-    Assert.assertEquals(publisher.getStats().getSuccessCount(), 0,
+    Assert.assertEquals(publisher.getStats(topic).getSuccessCount(), 0,
         "success count");
-    Assert.assertEquals(publisher.getStats().getUnhandledExceptionCount(), 1,
+    Assert.assertEquals(publisher.getStats(topic).getUnhandledExceptionCount(), 1,
         "unhandled exception count");
 
     publisher.close();
@@ -71,7 +72,7 @@ public class TestFlumePublisher {
 
   private void waitToComplete() throws InterruptedException {
     int i = 0;
-    while (publisher.getStats().getInFlight() != 0 && i++ < 10) {
+    while (publisher.getStats(topic).getInFlight() != 0 && i++ < 10) {
       Thread.sleep(100);
     }
   }

@@ -54,13 +54,14 @@ public class FlumeMessagePublisher extends AbstractMessagePublisher {
   @Override
   protected void publish(Map<String, String> headers, Message m) {
     // headers.put("streamName", "rr");
+    String topic = headers.get(HEADER_TOPIC);
     Event event = EventBuilder.withBody(m.getData().array(), headers);
     synchronized (queue) {
       if (!queue.offer(event)) {
         // queue is full
         // dropping the message
         LOG.warn("Queue is full. dropping the message");
-        getStats().accumulateOutcomeWithDelta(Outcome.UNHANDLED_FAILURE, 0);
+        getStats(topic).accumulateOutcomeWithDelta(Outcome.UNHANDLED_FAILURE, 0);
       } else {
         queue.notify();
       }
@@ -108,13 +109,14 @@ public class FlumeMessagePublisher extends AbstractMessagePublisher {
               LOG.info("rpcclient is Active: " + rpcClient.isActive());
               rpcClient.appendBatch(batch);
               for (int i = 0; i < batch.size(); i++) {
-                getStats().accumulateOutcomeWithDelta(Outcome.SUCCESS, 0);
+                getStats(batch.get(i).getHeaders().get(HEADER_TOPIC)).
+                  accumulateOutcomeWithDelta(Outcome.SUCCESS, 0);
               }
             } catch (Exception e) {
               // TODO handle this
               for (int i = 0; i < batch.size(); i++) {
-                getStats().accumulateOutcomeWithDelta(
-                    Outcome.UNHANDLED_FAILURE, 0);
+                getStats(batch.get(i).getHeaders().get(HEADER_TOPIC)).
+                  accumulateOutcomeWithDelta(Outcome.UNHANDLED_FAILURE, 0);
               }
               LOG.warn("Could not send batch of size " + batch.size(), e);
             }

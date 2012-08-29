@@ -14,6 +14,7 @@ public class MockPublisher extends AbstractMessagePublisher {
   @Override
   protected void publish(Map<String, String> headers, Message m) {
     msg = m;
-    getStats().accumulateOutcomeWithDelta(Outcome.SUCCESS, 0);
+    getStats(headers.get(HEADER_TOPIC)).accumulateOutcomeWithDelta(
+        Outcome.SUCCESS, 0);
   }
 }

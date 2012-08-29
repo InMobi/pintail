@@ -235,7 +235,7 @@ public class StreamingBenchmark {
         }
       }
       // wait for complete
-      while (publisher.getStats().getInFlight() > 0) {
+      while (publisher.getStats(topic).getInFlight() > 0) {
         try {
           Thread.sleep(100);
         } catch (InterruptedException e) {
@@ -253,7 +253,7 @@ public class StreamingBenchmark {
 
       publisher.close();
       System.out.println("Producer closed");
-      if (publisher.getStats().getSuccessCount() == maxSent) {
+      if (publisher.getStats(topic).getSuccessCount() == maxSent) {
         exitcode = 0;
       }
     }
@@ -405,13 +405,14 @@ public class StreamingBenchmark {
     }
     
     void constructProducerString(StringBuffer sb) {
-      sb.append(" Invocations:" + producer.publisher.getStats().
+      sb.append(" Invocations:" + producer.publisher.getStats(producer.topic).
           getInvocationCount());
-      sb.append(" Inflight:" + producer.publisher.getStats().getInFlight());
-      sb.append(" SentSuccess:" + producer.publisher.getStats().
+      sb.append(" Inflight:" + producer.publisher.getStats(producer.topic)
+          .getInFlight());
+      sb.append(" SentSuccess:" + producer.publisher.getStats(producer.topic).
           getSuccessCount());
-      sb.append(" UnhandledExceptions:" + producer.publisher.getStats().
-          getUnhandledExceptionCount());      
+      sb.append(" UnhandledExceptions:" + producer.publisher.getStats(
+          producer.topic).getUnhandledExceptionCount());
     }
     
     void constructConsumerString(StringBuffer sb) {
