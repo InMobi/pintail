@@ -300,13 +300,19 @@ public class StreamingBenchmark {
         Map.Entry<Long, Integer> entry = iter.next();
         long msgIndex = entry.getKey();
         int pcount = entry.getValue();
-        if (msgIndex == nextElementToPurge && pcount == numProducers && 
-            messageToProducerCount.size() > 1) {
-          iter.remove();
-          nextElementToPurge++;
-        } else {
-          break;
-        }
+        if (messageToProducerCount.size() > 1) {
+          if (msgIndex == nextElementToPurge) {
+            if (pcount >= numProducers) {
+              iter.remove();
+              nextElementToPurge++;
+              if (pcount > numProducers) {
+                numDuplicates += (pcount - numProducers);
+              }
+              continue;
+            } 
+          }
+        } 
+        break;
       }
     }
 
@@ -344,6 +350,11 @@ public class StreamingBenchmark {
         }
       }
       purgeCounts();
+      for (int pcount : messageToProducerCount.values()) {
+        if (pcount > numProducers) {
+          numDuplicates += (pcount - numProducers);
+        }
+      }
       if (numDuplicates != 0) {
         success = false;
       } else {
