@@ -37,7 +37,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
         initTopic(topicName, new TimingAccumulator());
       } catch (IOException e) {
         LOG.error("Could not initialize topic. Dropping the message" + m, e);
-        return;
+        throw new IllegalArgumentException("Could not initialize topic", e);
       }
     }
 
