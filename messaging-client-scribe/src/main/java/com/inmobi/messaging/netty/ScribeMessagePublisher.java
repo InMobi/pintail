@@ -63,8 +63,13 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher {
     super.initTopic(topic, stats);
     if (scribeConnections.get(topic) == null) {
       ScribeTopicPublisher connection = new ScribeTopicPublisher();
-      connection.init(topic, host, port, backoffSeconds, timeoutSeconds,
-        maxConnectionRetries, stats);
+      try {
+        connection.init(topic, host, port, backoffSeconds, timeoutSeconds,
+          maxConnectionRetries, stats);
+      } catch (IOException ioe) {
+        connection.close();
+        throw ioe;
+      }
       scribeConnections.put(topic, connection);
     }
   }

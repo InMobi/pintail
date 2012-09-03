@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import com.inmobi.instrumentation.MessagingClientStatBuilder;
 import com.inmobi.instrumentation.TimingAccumulator;
+import com.inmobi.instrumentation.TimingAccumulator.Outcome;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.stats.StatsExposer;
@@ -33,15 +34,17 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
   @Override
   public void publish(String topicName, Message m) {
     if (getStats(topicName) == null) {
-      try {
-        initTopic(topicName, new TimingAccumulator());
-      } catch (IOException e) {
-        LOG.error("Could not initialize topic. Dropping the message" + m, e);
-        throw new IllegalArgumentException("Could not initialize topic", e);
-      }
+      TimingAccumulator stats = new TimingAccumulator();
+      initTopicStats(topicName, stats);
+    }
+    getStats(topicName).accumulateInvocation();
+    try {
+      initTopic(topicName, getStats(topicName));
+    } catch (IOException e) {
+      LOG.error("Could not initialize topic. Dropping the message" + m, e);
+      return;
     }
 
-    getStats(topicName).accumulateInvocation();
     // TODO: generate headers
     Map<String, String> headers = new HashMap<String, String>();
     headers.put(HEADER_TOPIC, topicName);
@@ -50,6 +53,16 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
 
   protected void initTopic(String topic, TimingAccumulator stats)
       throws IOException {
+  }
+
+  /**
+   * Initializes stats for the topic
+   * 
+   * @param topic
+   * @param stats
+   * @throws IOException
+   */
+  private void initTopicStats(String topic, TimingAccumulator stats) {
     TopicStatsExposer statsExposer = new TopicStatsExposer(topic,
         stats);
     statsEmitter.add(statsExposer);
