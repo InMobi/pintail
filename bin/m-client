@@ -29,6 +29,7 @@ CLIENT_SEQGEN_CLASS="com.inmobi.messaging.publisher.examples.SeqGeneratorClient"
 CLIENT_CONSOLECONSUMER_CLASS="com.inmobi.messaging.consumer.examples.ConsoleClient"
 CLIENT_BENCHMARK_CLASS="com.inmobi.messaging.consumer.examples.StreamingBenchmark"
 CLIENT_COUNTER_CLASS="com.inmobi.messaging.consumer.examples.CounterClient"
+CLIENT_MULTITOPIC_SEQGEN_CLASS="com.inmobi.messaging.publisher.examples.MultiTopicSeqGenerator"
 
 ################################
 # functions
@@ -67,6 +68,7 @@ Usage: $0 file <topic> <file> --conf <confdir>
           [-producer <topic-name> <no-of-msgs> <no-of-msgs-per-sec> [<timeoutSeconds>]]
           [-consumer <no-of-producers> <no-of-messages> [<timeoutSeconds> <hadoopconsumerflag> <timezone>]] --conf <confdir>
        $0 counter <minutes-to-read-from> --conf <confdir> 
+       $0 multitopicseqgen <topic1> <topic2> <maxSeq> --conf <confdir>
 
 EOF
 }
@@ -119,6 +121,9 @@ case "$mode" in
     ;;
   counter)
     opt_counter=1
+    ;;
+  multitopicseqgen)
+    opt_multitopicseqgen=1
     ;;
   *)
     error "Unknown or unspecified command '$mode'"
@@ -197,6 +202,8 @@ elif [ -n "$opt_benchmark" ] ; then
   run_client $CLIENT_BENCHMARK_CLASS $args
 elif [ -n "$opt_counter" ] ; then
   run_client $CLIENT_COUNTER_CLASS $args
+elif [ -n "$opt_multitopicseqgen" ] ; then
+  run_client $CLIENT_MULTITOPIC_SEQGEN_CLASS $args
 else
   error "This message should never appear" 1
 fi

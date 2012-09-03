@@ -23,11 +23,7 @@ public class SeqGeneratorClient {
         (AbstractMessagePublisher) MessagePublisherFactory.create();
     String topic = args[0];
     long maxSeq = Integer.parseInt(args[1]);
-    for (long seq = 1; seq <= maxSeq; seq++) {
-      Message msg = new Message(ByteBuffer.wrap(Long.toString(seq).getBytes()));
-      publisher.publish(topic, msg);
-      Thread.sleep(1);
-    }
+    publishMessages(publisher, topic, maxSeq);
     waitToComplete(publisher, topic);
     Thread.sleep(5000);
     publisher.close();
@@ -39,7 +35,16 @@ public class SeqGeneratorClient {
         publisher.getStats(topic).getUnhandledExceptionCount());
   }
 
-  private static void waitToComplete(AbstractMessagePublisher publisher,
+  static void publishMessages(AbstractMessagePublisher publisher, String topic,
+      long maxSeq) throws InterruptedException {
+    for (long seq = 1; seq <= maxSeq; seq++) {
+      Message msg = new Message(ByteBuffer.wrap(Long.toString(seq).getBytes()));
+      publisher.publish(topic, msg);
+      Thread.sleep(1);
+    }    
+  }
+
+  static void waitToComplete(AbstractMessagePublisher publisher,
       String topic) throws InterruptedException {
     int i = 0;
     while (publisher.getStats(topic).getInFlight() != 0 && i++ < 10) {
