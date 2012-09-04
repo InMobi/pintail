@@ -111,6 +111,11 @@
       <name>InMobi Internal Repository</name>
       <url>http://build.corp.inmobi.com/nexus/content/repositories/releases</url>
     </repository>
+    <repository>
+      <id>InMobiThirdPartyRepository</id>
+      <name>InMobi Internal Repository</name>
+      <url>http://build.corp.inmobi.com/nexus/content/repositories/thirdparty</url>
+    </repository>
   </repositories>
 
   <build>
