@@ -10,6 +10,7 @@ import org.testng.annotations.Test;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.stats.MockStatsEmitter;
+import com.inmobi.stats.emitter.EmitMondemand;
 
 public class TestPublisher {
 
@@ -59,6 +60,20 @@ public class TestPublisher {
     Assert.assertNull((publisher.getMetrics().getStatsEmitter()));
   }
 
+  @Test
+  public void testMondemand() throws IOException {
+    ClientConfig conf = new ClientConfig();
+    URL url = getClass().getClassLoader().getResource(
+        "mondemand-emitter.properties");
+    conf.set(MessagePublisherFactory.EMITTER_CONF_FILE_KEY, url.getFile());
+    AbstractMessagePublisher publisher = 
+      (AbstractMessagePublisher) MessagePublisherFactory.create(
+          conf, MockPublisher.class.getName());
+    doTest(publisher);
+    Assert.assertTrue(publisher.getMetrics().statEmissionEnabled());
+    Assert.assertTrue((
+        publisher.getMetrics().getStatsEmitter()) instanceof EmitMondemand);    
+  }
 
   private void doTest(AbstractMessagePublisher publisher) {
     String topic1 = "test1";

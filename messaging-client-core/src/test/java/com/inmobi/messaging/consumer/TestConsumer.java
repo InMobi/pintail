@@ -10,6 +10,7 @@ import org.testng.annotations.Test;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.stats.MockStatsEmitter;
+import com.inmobi.stats.emitter.EmitMondemand;
 
 public class TestConsumer {
   private Date now = new Date(System.currentTimeMillis());
@@ -23,14 +24,14 @@ public class TestConsumer {
     conf.set(MessageConsumerFactory.CONSUMER_NAME_KEY, "testconsumer");
     AbstractMessageConsumer consumer =
         (AbstractMessageConsumer) MessageConsumerFactory.create(conf);
-    doTest(consumer, null, false);
+    doTest(consumer, null, false, false);
   }
 
   @Test
   public void testLoadFromClasspath() throws Exception {
     AbstractMessageConsumer consumer =
         (AbstractMessageConsumer) MessageConsumerFactory.create();
-    doTest(consumer, null, true);
+    doTest(consumer, null, true, false);
   }
 
   @Test
@@ -40,7 +41,7 @@ public class TestConsumer {
     AbstractMessageConsumer consumer =
         (AbstractMessageConsumer) MessageConsumerFactory.create(
             url.getFile());
-    doTest(consumer, null, true);
+    doTest(consumer, null, true, false);
   }
 
   @Test
@@ -51,7 +52,7 @@ public class TestConsumer {
     AbstractMessageConsumer consumer = 
       (AbstractMessageConsumer) MessageConsumerFactory.create(
           conf, MockConsumer.class.getName());
-    doTest(consumer, null, false);
+    doTest(consumer, null, false, false);
   }
 
   @Test
@@ -60,7 +61,7 @@ public class TestConsumer {
       (AbstractMessageConsumer) MessageConsumerFactory.create(
           new ClientConfig(), MockConsumer.class.getName(), "test",
           "testconsumer");
-    doTest(consumer, null, false);
+    doTest(consumer, null, false, false);
   }
 
   @Test
@@ -72,14 +73,14 @@ public class TestConsumer {
     conf.set(MessageConsumerFactory.CONSUMER_NAME_KEY, "testconsumer");
     AbstractMessageConsumer consumer =
         (AbstractMessageConsumer) MessageConsumerFactory.create(conf, now);
-    doTest(consumer, now, false);
+    doTest(consumer, now, false, false);
   }
 
   @Test
   public void testLoadFromClasspathWithStartTime() throws Exception {
     AbstractMessageConsumer consumer =
         (AbstractMessageConsumer) MessageConsumerFactory.create(now);
-    doTest(consumer, now, true);
+    doTest(consumer, now, true, false);
   }
 
   @Test
@@ -89,7 +90,7 @@ public class TestConsumer {
     AbstractMessageConsumer consumer =
         (AbstractMessageConsumer) MessageConsumerFactory.create(
             url.getFile(), now);
-    doTest(consumer, now, true);
+    doTest(consumer, now, true, false);
   }
 
   @Test
@@ -100,7 +101,7 @@ public class TestConsumer {
     AbstractMessageConsumer consumer = 
       (AbstractMessageConsumer) MessageConsumerFactory.create(
           conf, MockConsumer.class.getName(), now);
-    doTest(consumer, now, false);
+    doTest(consumer, now, false, false);
   }
 
   @Test
@@ -109,7 +110,20 @@ public class TestConsumer {
       (AbstractMessageConsumer) MessageConsumerFactory.create(
           new ClientConfig(), MockConsumer.class.getName(), "test",
           "testconsumer", now);
-    doTest(consumer, now, false);
+    doTest(consumer, now, false, false);
+  }
+
+  @Test
+  public void testMondemand() throws Exception {
+    ClientConfig conf = new ClientConfig();
+    URL url = getClass().getClassLoader().getResource(
+        "mondemand-emitter.properties");
+    conf.set(MessageConsumerFactory.EMITTER_CONF_FILE_KEY, url.getFile());
+    AbstractMessageConsumer consumer = 
+        (AbstractMessageConsumer) MessageConsumerFactory.create(
+            conf, MockConsumer.class.getName(), "test",
+            "testconsumer", now);
+    doTest(consumer, now, true, true);
   }
 
   @Test
@@ -118,11 +132,11 @@ public class TestConsumer {
       (AbstractMessageConsumer) MessageConsumerFactory.create(
           new ClientConfig(), MockConsumer.class.getName(), "test",
           "testconsumer", now);
-    doTest(consumer, now, false);
+    doTest(consumer, now, false, false);
   }
 
   private void doTest(AbstractMessageConsumer consumer, Date startTime,
-      boolean statsEnabled) throws InterruptedException {
+      boolean statsEnabled, boolean isMondemand) throws InterruptedException {
     Assert.assertTrue(consumer instanceof MockConsumer);
     Assert.assertFalse(consumer.isMarkSupported());
     Assert.assertTrue(((MockConsumer)consumer).initedConf);
@@ -136,8 +150,13 @@ public class TestConsumer {
     
     if (statsEnabled) {
       Assert.assertTrue(consumer.getStatsBuilder().statEmissionEnabled());
-      Assert.assertTrue((
-          (MockStatsEmitter)consumer.getStatsBuilder().getStatsEmitter()).inited);
+      if (isMondemand) {
+        Assert.assertTrue((consumer.getStatsBuilder().getStatsEmitter())
+            instanceof EmitMondemand);     
+      } else {
+        Assert.assertTrue(((MockStatsEmitter)consumer.getStatsBuilder()
+            .getStatsEmitter()).inited);
+      }
     } else {
       Assert.assertFalse(consumer.getStatsBuilder().statEmissionEnabled());
       Assert.assertNull((consumer.getStatsBuilder().getStatsEmitter()));
