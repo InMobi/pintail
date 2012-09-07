@@ -33,6 +33,12 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
 
   @Override
   public void publish(String topicName, Message m) {
+    if (topicName == null) {
+      throw new IllegalArgumentException("Cannot publish to null topic");
+    }
+    if (m == null) {
+      throw new IllegalArgumentException("Cannot publish null message");
+    }
     if (getStats(topicName) == null) {
       TimingAccumulator stats = new TimingAccumulator();
       initTopicStats(topicName, stats);

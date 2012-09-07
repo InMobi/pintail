@@ -84,7 +84,29 @@ public class TestPublisher {
   }
 
   private void doTest(String topic, AbstractMessagePublisher publisher) {
+    Throwable th = null;
+    String nullTopic = null;
+    // publish null message
+    try {
+      publisher.publish(topic, null);
+    } catch (Throwable t) {
+      th = t;
+    }
+    Assert.assertNotNull(th);
+    Assert.assertTrue(th instanceof IllegalArgumentException);
     Message msg = new Message( ByteBuffer.wrap(new byte[5]));
+
+    th = null;
+    // publish to null topic
+    try {
+      publisher.publish(nullTopic, msg);
+    } catch (Throwable t) {
+      th = t;
+    }
+    Assert.assertNotNull(th);
+    Assert.assertTrue(th instanceof IllegalArgumentException);
+    
+    // publish the message
     Assert.assertNull(publisher.getStats(topic));
     publisher.publish(topic, msg);
     Assert.assertEquals(publisher.getStats(topic).getInvocationCount(),
