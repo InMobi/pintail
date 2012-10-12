@@ -81,10 +81,10 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher {
   }
 
   public void close() {
-    super.close();
     for (ScribeTopicPublisher connection : scribeConnections.values()) {
       connection.close();
     }
+    super.close();
   }
 
 
