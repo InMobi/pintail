@@ -7,6 +7,7 @@ import org.testng.annotations.Test;
 
 import random.pkg.NtMultiServer;
 import random.pkg.ScribeAlwaysSuccess;
+import random.pkg.ScribeSlacker;
 
 import com.inmobi.instrumentation.TimingAccumulator;
 import com.inmobi.messaging.netty.ScribeMessagePublisher;
@@ -56,12 +57,12 @@ public class TestServerDown {
     NtMultiServer tserver = null;
     try {
       int port = 7918;
-      tserver = new NtMultiServer(new ScribeAlwaysSuccess(), port);
+      tserver = new NtMultiServer(new ScribeSlacker(), port);
       tserver.start();
 
       int timeoutSeconds = 6000;
       ScribeMessagePublisher mb = TestServerStarter.createPublisher(port,
-          timeoutSeconds, 1, true, false);
+          timeoutSeconds, 1, true, false, 100, 100, 10);
 
       String topic = "retry";
       //  publish the message and stop the server
