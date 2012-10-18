@@ -121,7 +121,7 @@ public class TestStreamingBenchmark {
     args.add(topic);
     args.add(Long.toString(numMessages));
     args.add("10000");
-    args.add("1");
+    args.add("5");
     args.add(Integer.toString(msgSize));
     MockPublisher.reset(); 
     exitcode = StreamingBenchmark.run(args.toArray(new String[0]));
