@@ -119,10 +119,6 @@ public class ScribeHandler extends SimpleChannelHandler {
   }
 
   void scheduleReconnect() {
-    LOG.info("Scheduling reconnect");
-    LOG.info("closed:" + closed + " connectionInited:" + connectionInited + 
-        " reconnectInprogress:" +
-        reconnectInprogress + " exceptionDuringConnect:" +exceptionDuringConnect);
     if (!closed && connectionInited) {
       if (!reconnectInprogress || exceptionDuringConnect) {
         /*
@@ -146,7 +142,7 @@ public class ScribeHandler extends SimpleChannelHandler {
                   try {
                     channelSetter.connect();
                   } catch (Exception e) {
-                    LOG.info("got exception during connect");
+                    LOG.warn("got exception during connect");
                     setExceptionDuringConnect();
                     return;
                   }
@@ -218,7 +214,6 @@ public class ScribeHandler extends SimpleChannelHandler {
   }
 
   void prepareClose() {
-    LOG.info("Prepare close");
     closed = true;
   }
 }

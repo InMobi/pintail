@@ -9,8 +9,6 @@ import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 
-import com.inmobi.messaging.netty.ScribeMessagePublisher;
-
 import scribe.thrift.scribe;
 import scribe.thrift.scribe.Iface;
 import se.cgbystrom.netty.thrift.ThriftPipelineFactory;
@@ -60,7 +58,6 @@ public class NtMultiServer {
     y = bootstrap.bind(new InetSocketAddress(port));
 
     running = true;
-    ScribeMessagePublisher.LOG.info("started the server 1");
 
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
@@ -80,17 +77,14 @@ public class NtMultiServer {
   }
 
   public synchronized void stop() {
-    ScribeMessagePublisher.LOG.info("Stopping the server 1");
     if (!running || (y == null))
       return;
 
-    ScribeMessagePublisher.LOG.info("Stopping the server 2");
     running = false;
     y.close();
     y.unbind();
     workers.shutdownNow();
     boss.shutdownNow();
-    ScribeMessagePublisher.LOG.info("Stopped the server");
 
     // y.getFactory().releaseExternalResources();
   }

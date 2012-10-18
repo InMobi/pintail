@@ -139,6 +139,7 @@
             <test.build.data>${test.build.data}</test.build.data>
           </systemPropertyVariables>
           <forkedProcessTimeoutInSeconds>600</forkedProcessTimeoutInSeconds>
+          <redirectTestOutputToFile>true</redirectTestOutputToFile>
         </configuration>
       </plugin>
       

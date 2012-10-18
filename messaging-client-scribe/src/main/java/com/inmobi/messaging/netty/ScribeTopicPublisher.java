@@ -139,7 +139,6 @@ public class ScribeTopicPublisher {
         stats.accumulateOutcomeWithDelta(Outcome.LOST, 0);
         return;
       }
-      LOG.info("Adding message to be sent");
       toBeSent.add(m);
     }
   }
@@ -157,31 +156,29 @@ public class ScribeTopicPublisher {
   }
 
   void trySending() {
-    synchronized (toBeSent) {
-      while (toBeSent.peek() != null && send(toBeSent.peek())) {
-        toBeSent.remove();
+    if (isChannelConnected()) {
+      if (isChannelWritable()) {
+        synchronized (toBeSent) {
+          while (toBeSent.peek() != null && send(toBeSent.peek())) {
+            toBeSent.remove();
+          }
+        }
       }
+    } else {
+      suggestReconnect(); 
     }
   }
 
   private boolean send(Message m) {
-    if (isChannelConnected()) {
-      if (isChannelWritable()) {
-        synchronized (toBeAcked) {
-          if (toBeAcked.remainingCapacity() > 0) {
-            LOG.info("Adding to be acked");
-            toBeAcked.add(m.clone());
-            ScribeBites.publish(thisChannel, topic, m);
-            LOG.info("sent the message");
-            return true;
-          } else {
-            LOG.info("Could not send earlier messages successfully, not" +
-                " sending right now.");
-          }
-        }
-      } 
-    } else {
-      suggestReconnect();
+    synchronized (toBeAcked) {
+      if (toBeAcked.remainingCapacity() > 0) {
+        toBeAcked.add(m.clone());
+        ScribeBites.publish(thisChannel, topic, m);
+        return true;
+      } else {
+        LOG.info("Could not send earlier messages successfully, not" +
+            " sending right now.");
+      }
     }
     return false;
   }
@@ -209,7 +206,6 @@ public class ScribeTopicPublisher {
       LOG.info("Channel is not connected, not sending right now");
       return false;
     }
-    LOG.info("Channel is connected");
     return true;
   }
 
@@ -219,10 +215,9 @@ public class ScribeTopicPublisher {
       return false;
     }
     if (!thisChannel.isWritable()) {
-      LOG.warn("Channel is not writable, not sending right now");
+      LOG.info("Channel is not writable, not sending right now");
       return false;
     }
-    LOG.info("Channel is writable");
     return true;
   }
 
@@ -238,12 +233,10 @@ public class ScribeTopicPublisher {
       if (isSendQueueEmpty() && isAckQueueEmpty()) {
         break;
       }
-      LOG.info("toBeSent:" + toBeSent.size() + "toBeAcked:" + 
-          toBeAcked.size());
       if ((numDrainsOnClose != -1 && numRetries > numDrainsOnClose) || 
           !isChannelConnected()) {
         LOG.info("Dropping messages as channel is not connected or number of" +
-        		" retries exhausted");
+            " retries exhausted");
         emptyAckQueue();
         emptyMsgQueue();
       }
@@ -276,6 +269,9 @@ public class ScribeTopicPublisher {
       }
     } else {
       synchronized (toBeAcked) {
+        if (!toBeAcked.isEmpty()) {
+          LOG.warn("Emptying ack queue of size:" + toBeAcked.size());
+        }
         while (!toBeAcked.isEmpty()) {
           toBeAcked.remove();
           stats.accumulateOutcomeWithDelta(Outcome.GRACEFUL_FAILURE, 0);
@@ -286,6 +282,9 @@ public class ScribeTopicPublisher {
 
   synchronized void emptyMsgQueue() {
     synchronized (toBeSent) {
+      if (!toBeSent.isEmpty()) {
+        LOG.warn("Emptying message queue of size:" + toBeSent.size());
+      }
       while (!toBeSent.isEmpty()) {
         toBeSent.remove();
         stats.accumulateOutcomeWithDelta(Outcome.LOST, 0);
@@ -315,7 +314,6 @@ public class ScribeTopicPublisher {
 
   void ack(ResultCode success) {
     Message m;
-    LOG.info("Ack received:" + success);
     synchronized (toBeAcked) {
       m = toBeAcked.remove();
     }
@@ -327,7 +325,7 @@ public class ScribeTopicPublisher {
         addToSend(m);
         stats.accumulateOutcomeWithDelta(Outcome.RETRY, 0);
       } else {
-        LOG.info("Could not send the message successfully");
+        LOG.warn("Could not send the message successfully. Got TRY_LATER");
         stats.accumulateOutcomeWithDelta(Outcome.GRACEFUL_FAILURE, 0);
       }
     }
