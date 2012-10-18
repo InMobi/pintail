@@ -44,12 +44,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
       initTopicStats(topicName, stats);
     }
     getStats(topicName).accumulateInvocation();
-    try {
-      initTopic(topicName, getStats(topicName));
-    } catch (IOException e) {
-      LOG.error("Could not initialize topic. Dropping the message" + m, e);
-      return;
-    }
+    initTopic(topicName, getStats(topicName));
 
     // TODO: generate headers
     Map<String, String> headers = new HashMap<String, String>();
@@ -57,9 +52,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     publish(headers, m);
   }
 
-  protected void initTopic(String topic, TimingAccumulator stats)
-      throws IOException {
-  }
+  protected void initTopic(String topic, TimingAccumulator stats) {}
 
   /**
    * Initializes stats for the topic
@@ -112,6 +105,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
 
   @Override
   public void close() {
+    LOG.info("Closing the stat exposers");
     for (StatsExposer statsExposer : statsExposers.values()) {
       statsEmitter.remove(statsExposer);
     }

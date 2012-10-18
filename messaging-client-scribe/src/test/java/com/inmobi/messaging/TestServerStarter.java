@@ -38,8 +38,13 @@ public class TestServerStarter {
 
   public static ScribeMessagePublisher createPublisher(int port, 
       int timeout) throws Exception {
+    return createPublisher(port, timeout, 5);
+  }
+
+  public static ScribeMessagePublisher createPublisher(int port, 
+      int timeout, int backOff) throws Exception {
     ScribeMessagePublisher pub = new ScribeMessagePublisher();
-    pub.init("localhost", port, 5, timeout, 1);
+    pub.init("localhost", port, backOff, timeout, 1);
     return pub;
   }
 
