@@ -222,7 +222,7 @@ public class ScribeTopicPublisher {
   }
 
   private void suggestReconnect() {
-    //TODO : suggest reconnect
+    handler.scheduleReconnect();
   }
 
   private void drainAll()  {
