@@ -24,24 +24,22 @@ public class ScribeTopicPublisher {
 
   private final Timer timer = new HashedWheelTimer();
 
-  private static final int BUFFER_SIZE = 10000;
-  private static final int ACK_BUFFER_SIZE = 1000;
   private ClientBootstrap bootstrap;
   private volatile Channel thisChannel = null;
   private String topic;
   private String host;
   private int port;
   private TimingAccumulator stats;
-  private BlockingQueue<Message> toBeSent = new LinkedBlockingQueue<Message>(
-      BUFFER_SIZE);
-  private BlockingQueue<Message> toBeAcked = new LinkedBlockingQueue<Message>(
-      ACK_BUFFER_SIZE);
+  private BlockingQueue<Message> toBeSent;
+  private BlockingQueue<Message> toBeAcked;
   private long sleepInterval = 10;
   private boolean stopped = false;
   private Thread senderThread;
   private ScribeHandler handler;
   private boolean resendOnAckLost = false;
   private boolean reconnectionInProgress = false;
+  private boolean enabledRetries = true;
+  private int numDrainsOnClose = 10;
 
   /**
    * This is meant to be a way for async callbacks to set the channel on a
@@ -51,9 +49,6 @@ public class ScribeTopicPublisher {
    * wrapper object that knows to update our pointer
    */
   class ChannelSetter {
-    ChannelSetter(int maxConns) {
-    }
-
     public Channel getCurrentChannel() {
       return ScribeTopicPublisher.this.thisChannel;
     }
@@ -97,14 +92,24 @@ public class ScribeTopicPublisher {
   }
 
   public void init(String topic, String host, int port, int backoffSeconds,
-      int timeoutSeconds, int maxConnectionRetries, TimingAccumulator stats) {
+      int timeoutSeconds, TimingAccumulator stats, boolean enableRetries,
+      boolean resendOnAckLost, long sleepInterval, int msgQueueSize,
+      int ackQueueSize, int numDrainsOnClose) {
     this.topic = topic;
     this.stats = stats;
     this.host = host;
     this.port = port;
+    this.enabledRetries = enableRetries;
+    this.resendOnAckLost = resendOnAckLost;
+    this.sleepInterval = sleepInterval;
+
+    this.toBeSent = new LinkedBlockingQueue<Message>(msgQueueSize);
+    this.toBeAcked = new LinkedBlockingQueue<Message>(ackQueueSize);
+    this.numDrainsOnClose = numDrainsOnClose;
+
     bootstrap = new ClientBootstrap(NettyEventCore.getInstance().getFactory());
 
-    ChannelSetter chs = new ChannelSetter(maxConnectionRetries);
+    ChannelSetter chs = new ChannelSetter();
     handler = new ScribeHandler(stats, chs, backoffSeconds, timer, this);
     ChannelPipelineFactory cfactory = new ScribePipelineFactory(handler,
         timeoutSeconds, timer);
@@ -118,7 +123,7 @@ public class ScribeTopicPublisher {
     }
     handler.setInited();
     senderThread = new Thread(new AsyncSender());
-    senderThread.start();
+    senderThread.start();    
   }
 
   protected void publish(Message m) {
@@ -222,11 +227,12 @@ public class ScribeTopicPublisher {
   }
 
   private void suggestReconnect() {
-    //handler.scheduleReconnect();
+    //TODO : suggest reconnect
   }
 
   private void drainAll()  {
     LOG.info("Draining all the messages");
+    int numRetries = 0;
     while (true) {
       trySending();
       if (isSendQueueEmpty() && isAckQueueEmpty()) {
@@ -234,15 +240,14 @@ public class ScribeTopicPublisher {
       }
       LOG.info("toBeSent:" + toBeSent.size() + "toBeAcked:" + 
           toBeAcked.size());
-      if (!isChannelConnected()) {
-        LOG.info("Channel is connected during drain. Dropping messages");
-        synchronized (toBeSent) {
-          while (!toBeSent.isEmpty()) {
-            toBeSent.remove();
-            stats.accumulateOutcomeWithDelta(Outcome.LOST, 0);
-          }
-        }        
+      if ((numDrainsOnClose != -1 && numRetries > numDrainsOnClose) || 
+          !isChannelConnected()) {
+        LOG.info("Dropping messages as channel is not connected or number of" +
+        		" retries exhausted");
+        emptyAckQueue();
+        emptyMsgQueue();
       }
+      numRetries++;
       try {
         Thread.sleep(sleepInterval);
       } catch (InterruptedException e) {
@@ -254,14 +259,14 @@ public class ScribeTopicPublisher {
 
   void prepareReconnect() {
     reconnectionInProgress = true;
-    processAckQueue();
+    emptyAckQueue();
   }
 
   void doneReconnect() {
     reconnectionInProgress = false;
   }
 
-  synchronized void processAckQueue() {
+  synchronized void emptyAckQueue() {
     if (resendOnAckLost) {
       synchronized (toBeSent) {
         synchronized (toBeAcked) {
@@ -279,6 +284,15 @@ public class ScribeTopicPublisher {
     }
   }
 
+  synchronized void emptyMsgQueue() {
+    synchronized (toBeSent) {
+      while (!toBeSent.isEmpty()) {
+        toBeSent.remove();
+        stats.accumulateOutcomeWithDelta(Outcome.LOST, 0);
+      }
+    }
+  }
+
   public void close() {
     stopped = true;
     if (senderThread != null) {
@@ -286,14 +300,12 @@ public class ScribeTopicPublisher {
       try {
         senderThread.join();
       } catch (InterruptedException e) {
-        // TODO: handle this
-        e.printStackTrace();
+        LOG.info("join on sender Thread interrupted");
       }
     }
     drainAll();
     LOG.info("Closing the channel");
     handler.prepareClose();
-    //bootstrap.releaseExternalResources();
     if (thisChannel != null) {
       thisChannel.close().awaitUninterruptibly();
     }
@@ -310,9 +322,14 @@ public class ScribeTopicPublisher {
     if (success.getValue() == 0) {
       stats.accumulateOutcomeWithDelta(Outcome.SUCCESS, 0);
     } else {
-      LOG.info("Could not send the message successfully, resending");
-      addToSend(m);
-      stats.accumulateOutcomeWithDelta(Outcome.RETRY, 0);
+      if (enabledRetries) {
+        LOG.info("Could not send the message successfully, resending");
+        addToSend(m);
+        stats.accumulateOutcomeWithDelta(Outcome.RETRY, 0);
+      } else {
+        LOG.info("Could not send the message successfully");
+        stats.accumulateOutcomeWithDelta(Outcome.GRACEFUL_FAILURE, 0);
+      }
     }
   }
 

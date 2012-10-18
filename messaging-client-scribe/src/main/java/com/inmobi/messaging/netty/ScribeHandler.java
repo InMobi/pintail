@@ -39,10 +39,9 @@ public class ScribeHandler extends SimpleChannelHandler {
   private Timer timer;
   private boolean connectionInited = false;
   private volatile boolean reconnectInprogress = false;
+  private final Semaphore lock = new Semaphore(1);
   private final ScribeTopicPublisher thisPublisher;
   private boolean exceptionDuringConnect = false;
-  private final Semaphore lock = new Semaphore(1);
-  private Thread connectThread;
   private boolean closed = false;
 
   public ScribeHandler(TimingAccumulator stats, ChannelSetter channelSetter,
@@ -67,7 +66,6 @@ public class ScribeHandler extends SimpleChannelHandler {
     TMemoryInputTransport trans = new TMemoryInputTransport(buf.array());
     TBinaryProtocol proto = new TBinaryProtocol(trans);
     TMessage msg = proto.readMessageBegin();
-    LOG.info("Message type:" + msg.type);
     if (msg.type == TMessageType.EXCEPTION) {
       proto.readMessageEnd();
     }
@@ -127,11 +125,6 @@ public class ScribeHandler extends SimpleChannelHandler {
         reconnectInprogress + " exceptionDuringConnect:" +exceptionDuringConnect);
     if (!closed && connectionInited) {
       if (!reconnectInprogress || exceptionDuringConnect) {
-        prepareReconnect();
-        /*Thread connectThread = new Thread(new ConnectThread(false));
-        connectThread.setName("Connect Thread");
-        connectThread.start(); */
-        
         /*
          * Ensure you are the only one mucking with connections If you find someone
          * else is doing so, then you don't get a turn We trust this other person to
@@ -143,6 +136,7 @@ public class ScribeHandler extends SimpleChannelHandler {
           try {
             if ((currentTime - connectRequestTime) / 1000 > backoffSeconds
                 && !reconnectInprogress) {
+              prepareReconnect();
               reconnectInprogress = true;
               connectRequestTime = currentTime;
               timer.newTimeout(new TimerTask() {
@@ -177,64 +171,6 @@ public class ScribeHandler extends SimpleChannelHandler {
     }
   }
 
-  /**
-  class ConnectThread implements Runnable {
-    boolean connectNow = false;
-
-    ConnectThread(boolean connectNow) {
-      this.connectNow = connectNow;
-    }
-
-    @Override
-    public void run() {
-      while (true) {
-        //
-        // Ensure you are the only one mucking with connections If you find 
-        // someone else is doing so, then you don't get a turn We trust this
-        // other person to do the needful
-        //
-        if (lock.tryAcquire()) {
-          long currentTime = System.currentTimeMillis();
-          // Check how long it has been since we reconnected
-          try {
-            LOG.info("connectNow:" + connectNow + "reconnectInprogress:" 
-               + reconnectInprogress + "currentTime:" + currentTime +
-               "connectRequestTime:" + connectRequestTime +
-               "backoffSeconds:" + backoffSeconds);
-            if ((connectNow ||  // connect now or backoff
-                ((currentTime - connectRequestTime) / 1000 > backoffSeconds))
-                && !reconnectInprogress) {
-              reconnectInprogress = true;
-              connectRequestTime = currentTime;
-              LOG.info("Connecting now");
-              try {
-                channelSetter.connect();
-              } catch (Exception e) {
-                LOG.info("got exception during connect");
-                setExceptionDuringConnect();
-                return;
-              }
-              stats.accumulateReconnections();
-              reconnectInprogress = false;
-              thisPublisher.doneReconnect();
-              return;
-            } else {
-              LOG.info("connect request backing off");
-              try {
-                Thread.sleep(1000);
-              } catch (InterruptedException e) {
-                LOG.info("Connect thread interrupted, exiting");
-              }
-            }
-          } finally {
-            LOG.info("lock released");
-            lock.release();
-          }
-        }
-      }
-    }    
-  }
-**/
   public void channelDisconnected(ChannelHandlerContext ctx,
       ChannelStateEvent e) {
     if (channelSetter.getCurrentChannel() != null && 
@@ -284,8 +220,5 @@ public class ScribeHandler extends SimpleChannelHandler {
   void prepareClose() {
     LOG.info("Prepare close");
     closed = true;
-    if (connectThread != null) {
-      connectThread.interrupt();
-    }
   }
 }

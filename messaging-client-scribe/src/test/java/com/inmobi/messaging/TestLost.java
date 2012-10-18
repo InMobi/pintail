@@ -2,19 +2,19 @@ package com.inmobi.messaging;
 
 import static org.testng.Assert.assertEquals;
 
-import org.testng.Assert;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import random.pkg.NtMultiServer;
-import random.pkg.ScribeAlternateTryLater;
+import random.pkg.ScribeAlwaysSuccess;
 import random.pkg.ScribeAlwaysTryAgain;
+import random.pkg.ScribeSlacker;
 
 import com.inmobi.instrumentation.TimingAccumulator;
 import com.inmobi.messaging.netty.ScribeMessagePublisher;
 
-public class TestRetries {
+public class TestLost {
   private NtMultiServer server;
   private ScribeMessagePublisher mb;
 
@@ -30,100 +30,109 @@ public class TestRetries {
       mb.close();
   }
 
-  @Test
-  public void simpleSend() throws Exception {
+  @Test()
+  public void testMsgQueueSize() throws Exception {
     NtMultiServer tserver = null;
     try {
-      int port = 7901;
-      tserver = new NtMultiServer(new ScribeAlternateTryLater(), port);
-      tserver.start();
+      int port = 7945;
+      tserver = new NtMultiServer(new ScribeAlwaysSuccess(), port);
 
-      int timeoutSeconds = 10;
-      mb = TestServerStarter.createPublisher(port, timeoutSeconds);
-
-      String topic = "retry";
-      mb.publish(topic, new Message("mmmm".getBytes()));
-      mb.close();
-      TimingAccumulator inspector = mb.getStats(topic);
-      System.out.println("stats:" + inspector.toString());
-      assertEquals(inspector.getInFlight(), 0,
-          "ensure not considered midflight");
-      assertEquals(inspector.getRetryCount(), 1,
-          "Retry not incremented");
-      assertEquals(inspector.getSuccessCount(), 1,
-          "success not incremented");
-    } finally {
-      tserver.stop();
-    }
-  }
-
-  @Test
-  public void testEnableRetries() throws Exception {
-    testEnableRetries(true);
-    testEnableRetries(false);
-  }
-
-  public void testEnableRetries(boolean enableRetries) throws Exception {
-    NtMultiServer tserver = null;
-    try {
-      int port = 7902;
-      tserver = new NtMultiServer(new ScribeAlternateTryLater(), port);
-      tserver.start();
-
-      int timeoutSeconds = 10;
-      mb = TestServerStarter.createPublisher(port, timeoutSeconds, 1,
-          enableRetries, true);
+      int timeoutSeconds = 2;
+      // create publisher with msg queue size 1
+      mb = TestServerStarter.createPublisher(port, timeoutSeconds, 1, true,
+          true, 1, 10);
 
       String topic = "retry";
+      // publish two messages
       mb.publish(topic, new Message("mmmm".getBytes()));
-      mb.close();
+      mb.publish(topic, new Message("mmmm".getBytes()));
       TimingAccumulator inspector = mb.getStats(topic);
-      System.out.println("stats:" + inspector.toString());
-      assertEquals(inspector.getInFlight(), 0,
-          "ensure not considered midflight");
-      if (enableRetries) {
-      assertEquals(inspector.getRetryCount(), 1,
-          "Retry not incremented");
-      assertEquals(inspector.getSuccessCount(), 1,
-          "success not incremented");
-      } else {
-      assertEquals(inspector.getGracefulTerminates(), 1,
-          "Graceful terminates not incremented");
-      assertEquals(inspector.getSuccessCount(), 0,
-          "success incremented");
+      assertEquals(inspector.getLostCount(), 1,
+          "Lost not incremented");
+      tserver.start();
+      while (inspector.getInFlight() != 0) {
+        Thread.sleep(10);
       }
+      mb.close();
+      System.out.println("stats:" + inspector.toString());
+      assertEquals(inspector.getInFlight(), 0,
+          "ensure not considered midflight");
+      assertEquals(inspector.getLostCount(), 1,
+          "Lost not incremented");
+      assertEquals(inspector.getSuccessCount(), 1,
+          "success not incremented");
     } finally {
       tserver.stop();
     }
   }
 
-  @Test
-  public void testAlwaysTryAgain() throws Exception {
+  @Test()
+  public void testAckQueueSize() throws Exception {
     NtMultiServer tserver = null;
     try {
-      int port = 7903;
+      int port = 7946;
+      tserver = new NtMultiServer(new ScribeSlacker(), port);
+      tserver.start();
+
+      int timeoutSeconds = 2;
+      // create publisher with msgqueue size 1
+      mb = TestServerStarter.createPublisher(port, timeoutSeconds, 1, true,
+          true, 1, 1);
+
+      String topic = "retry";
+      // publish 3 messages
+      mb.publish(topic, new Message("mmmm".getBytes()));
+      mb.publish(topic, new Message("mmmm".getBytes()));
+      mb.publish(topic, new Message("mmmm".getBytes()));
+      TimingAccumulator inspector = mb.getStats(topic);
+      assertEquals(inspector.getLostCount(), 1,
+          "Lost not incremented");
+      while (inspector.getInFlight() != 0) {
+        Thread.sleep(10);
+      }
+      mb.close();
+      System.out.println("stats:" + inspector.toString());
+      assertEquals(inspector.getInFlight(), 0,
+          "ensure not considered midflight");
+      assertEquals(inspector.getLostCount(), 1,
+          "Lost not incremented");
+      assertEquals(inspector.getSuccessCount(), 2,
+          "success not incremented");
+    } finally {
+      tserver.stop();
+    }
+  }
+
+  @Test()
+  public void testMsgQueueSizeOnRetries() throws Exception {
+    NtMultiServer tserver = null;
+    try {
+      int port = 7947;
       tserver = new NtMultiServer(new ScribeAlwaysTryAgain(), port);
       tserver.start();
 
-      int timeoutSeconds = 10;
+      int timeoutSeconds = 2;
+      // create publisher with msgqueue size 1
       mb = TestServerStarter.createPublisher(port, timeoutSeconds, 1, true,
-          true, 100, 100, 10);
+          true, 1, 1, 10);
 
       String topic = "retry";
+      // publish 3 messages
       mb.publish(topic, new Message("mmmm".getBytes()));
-      mb.close();
+      mb.publish(topic, new Message("mmmm".getBytes()));
+      mb.publish(topic, new Message("mmmm".getBytes()));
       TimingAccumulator inspector = mb.getStats(topic);
+      assertEquals(inspector.getLostCount(), 1,
+          "Lost not incremented");
+      mb.close();
       System.out.println("stats:" + inspector.toString());
       assertEquals(inspector.getInFlight(), 0,
           "ensure not considered midflight");
-      Assert.assertTrue(inspector.getRetryCount() >= 10,
-          "Retry not incremented");
-      assertEquals(inspector.getLostCount(), 1,
+      assertEquals(inspector.getLostCount(), 3,
           "Lost not incremented");
-      assertEquals(inspector.getSuccessCount(), 0,
-          "success incremented");
     } finally {
       tserver.stop();
     }
   }
+
 }
