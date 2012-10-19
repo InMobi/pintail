@@ -192,16 +192,6 @@ public class ScribeHandler extends SimpleChannelHandler {
     }
   }
 
-  @Override
-  public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
-      throws Exception {
-    lock.acquire();
-    try {
-      channelSetter.setChannel(e.getChannel());
-    } finally {
-      lock.release();
-    }
-  }
   private void prepareReconnect() {
     exceptionDuringConnect = false;    
     thisPublisher.prepareReconnect();    

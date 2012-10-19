@@ -83,6 +83,7 @@ public class ScribeTopicPublisher {
           }
         } else {
           LOG.info("Connected to Scribe");
+          setChannel(channel);
           return channel;
         }
       } catch (Exception e) {
@@ -156,6 +157,9 @@ public class ScribeTopicPublisher {
   }
 
   void trySending() {
+    if (isSendQueueEmpty()) {
+      return;
+    }
     if (isChannelConnected()) {
       if (isChannelWritable()) {
         synchronized (toBeSent) {
@@ -233,8 +237,7 @@ public class ScribeTopicPublisher {
       if (isSendQueueEmpty() && isAckQueueEmpty()) {
         break;
       }
-      if ((numDrainsOnClose != -1 && numRetries > numDrainsOnClose) || 
-          !isChannelConnected()) {
+      if ((numDrainsOnClose != -1 && numRetries > numDrainsOnClose)) {
         LOG.info("Dropping messages as channel is not connected or number of" +
             " retries exhausted");
         emptyAckQueue();
@@ -330,5 +333,4 @@ public class ScribeTopicPublisher {
       }
     }
   }
-
 }

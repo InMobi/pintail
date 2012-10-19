@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import com.inmobi.instrumentation.MessagingClientStatBuilder;
 import com.inmobi.instrumentation.TimingAccumulator;
-import com.inmobi.instrumentation.TimingAccumulator.Outcome;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.stats.StatsExposer;

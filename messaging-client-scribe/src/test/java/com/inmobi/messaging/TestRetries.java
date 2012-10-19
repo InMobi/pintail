@@ -82,15 +82,15 @@ public class TestRetries {
       assertEquals(inspector.getInFlight(), 0,
           "ensure not considered midflight");
       if (enableRetries) {
-      assertEquals(inspector.getRetryCount(), 1,
-          "Retry not incremented");
-      assertEquals(inspector.getSuccessCount(), 1,
-          "success not incremented");
+        assertEquals(inspector.getRetryCount(), 1,
+            "Retry not incremented");
+        assertEquals(inspector.getSuccessCount(), 1,
+            "success not incremented");
       } else {
-      assertEquals(inspector.getGracefulTerminates(), 1,
-          "Graceful terminates not incremented");
-      assertEquals(inspector.getSuccessCount(), 0,
-          "success incremented");
+        assertEquals(inspector.getGracefulTerminates(), 1,
+            "Graceful terminates not incremented");
+        assertEquals(inspector.getSuccessCount(), 0,
+            "success incremented");
       }
     } finally {
       tserver.stop();
@@ -116,7 +116,7 @@ public class TestRetries {
       System.out.println("stats:" + inspector.toString());
       assertEquals(inspector.getInFlight(), 0,
           "ensure not considered midflight");
-      Assert.assertTrue(inspector.getRetryCount() >= 10,
+      Assert.assertTrue(inspector.getRetryCount() > 0,
           "Retry not incremented");
       assertEquals(inspector.getLostCount(), 1,
           "Lost not incremented");

@@ -102,12 +102,10 @@ public class ScribeSlacker implements Iface {
   public ResultCode Log(List<LogEntry> messages) throws TException {
     try {
       System.err.println("server is slacking");
-      Thread.sleep(3000);
+      Thread.sleep(5000);
     } catch (InterruptedException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      throw new TException(e);
     }
     return ResultCode.OK;
   }
-
 }

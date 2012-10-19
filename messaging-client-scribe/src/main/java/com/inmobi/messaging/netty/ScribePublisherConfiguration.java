@@ -2,10 +2,6 @@ package com.inmobi.messaging.netty;
 
 public interface ScribePublisherConfiguration {
 
-  public static final String maxConnectionRetriesConfig =
-      "scribe.maxconnectionretries";
-  public static final int DEFAULT_MAX_CONNECTION_RETRIES = 3;
-
   public static final String hostNameConfig = "scribe.host";
   public static final String DEFAULT_HOST = "localhost";
 
