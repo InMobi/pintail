@@ -3,8 +3,6 @@ package com.inmobi.messaging;
 import static org.testng.Assert.assertEquals;
 
 import org.testng.Assert;
-import org.testng.annotations.AfterTest;
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import random.pkg.NtMultiServer;
@@ -15,21 +13,6 @@ import com.inmobi.instrumentation.TimingAccumulator;
 import com.inmobi.messaging.netty.ScribeMessagePublisher;
 
 public class TestRetries {
-  private NtMultiServer server;
-  private ScribeMessagePublisher mb;
-
-  @BeforeTest
-  public void setUp() {
-    server = TestServerStarter.getServer();
-  }
-
-  @AfterTest
-  public void tearDown() {
-    server.stop();
-    if (mb != null)
-      mb.close();
-  }
-
   @Test
   public void simpleSend() throws Exception {
     NtMultiServer tserver = null;
@@ -39,7 +22,8 @@ public class TestRetries {
       tserver.start();
 
       int timeoutSeconds = 10;
-      mb = TestServerStarter.createPublisher(port, timeoutSeconds);
+      ScribeMessagePublisher mb = TestServerStarter.createPublisher(port,
+          timeoutSeconds);
 
       String topic = "retry";
       mb.publish(topic, new Message("mmmm".getBytes()));
@@ -60,20 +44,20 @@ public class TestRetries {
 
   @Test
   public void testEnableRetries() throws Exception {
-    testEnableRetries(true);
-    testEnableRetries(false);
+    testEnableRetries(true, 7902);
+    testEnableRetries(false, 7904);
   }
 
-  public void testEnableRetries(boolean enableRetries) throws Exception {
+  public void testEnableRetries(boolean enableRetries, int port)
+      throws Exception {
     NtMultiServer tserver = null;
     try {
-      int port = 7902;
       tserver = new NtMultiServer(new ScribeAlternateTryLater(), port);
       tserver.start();
 
       int timeoutSeconds = 10;
-      mb = TestServerStarter.createPublisher(port, timeoutSeconds, 1,
-          enableRetries, true);
+      ScribeMessagePublisher mb = TestServerStarter.createPublisher(port,
+          timeoutSeconds, 1, enableRetries, true);
 
       String topic = "retry";
       mb.publish(topic, new Message("mmmm".getBytes()));
@@ -110,8 +94,8 @@ public class TestRetries {
       tserver.start();
 
       int timeoutSeconds = 10;
-      mb = TestServerStarter.createPublisher(port, timeoutSeconds, 1, true,
-          true, 100, 100, 10);
+      ScribeMessagePublisher mb = TestServerStarter.createPublisher(port,
+          timeoutSeconds, 1, true, true, 100, 100, 10);
 
       String topic = "retry";
       mb.publish(topic, new Message("mmmm".getBytes()));
