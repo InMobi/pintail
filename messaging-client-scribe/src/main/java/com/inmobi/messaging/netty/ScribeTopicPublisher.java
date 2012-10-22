@@ -264,6 +264,8 @@ public class ScribeTopicPublisher {
 
   synchronized void emptyAckQueue() {
     if (resendOnAckLost) {
+      // make removing from ack queue and adding back to send queue atomic, by
+      // locking tobeSent queue first and then, toBeAcked queue.
       synchronized (toBeSent) {
         synchronized (toBeAcked) {
           toBeSent.addAll(toBeAcked);
@@ -316,25 +318,30 @@ public class ScribeTopicPublisher {
   }
 
   void ack(ResultCode success) {
-    Message m;
-    synchronized (toBeAcked) {
-      if (!toBeAcked.isEmpty()) {
-        m = toBeAcked.remove();
-      } else {
-        LOG.info("Dropping the ack, as ack queue is empty");
-        return;
-      }
-    }
-    if (success.getValue() == 0) {
-      stats.accumulateOutcomeWithDelta(Outcome.SUCCESS, 0);
-    } else {
-      if (enabledRetries) {
-        LOG.info("Could not send the message successfully, resending");
-        addToSend(m);
-        stats.accumulateOutcomeWithDelta(Outcome.RETRY, 0);
-      } else {
-        LOG.warn("Could not send the message successfully. Got TRY_LATER");
-        stats.accumulateOutcomeWithDelta(Outcome.GRACEFUL_FAILURE, 0);
+    Message m = null;
+    // make removing from ack queue and adding back to send queue atomic, by
+    // locking tobeSent queue first and then, toBeAcked queue.
+    synchronized (toBeSent) {
+      synchronized (toBeAcked) {
+        if (!toBeAcked.isEmpty()) {
+          m = toBeAcked.remove();
+        }
+        if (success.getValue() == 0) {
+          stats.accumulateOutcomeWithDelta(Outcome.SUCCESS, 0);
+        } else {
+          if (enabledRetries) {
+            LOG.info("Could not send the message successfully, resending");
+            if (m != null) {
+              addToSend(m);
+              stats.accumulateOutcomeWithDelta(Outcome.RETRY, 0);
+            } else {
+              LOG.info("Could not send, as acked messaged not found");
+            }
+          } else {
+            LOG.warn("Could not send the message successfully. Got TRY_LATER");
+            stats.accumulateOutcomeWithDelta(Outcome.GRACEFUL_FAILURE, 0);
+          }
+        }
       }
     }
   }
