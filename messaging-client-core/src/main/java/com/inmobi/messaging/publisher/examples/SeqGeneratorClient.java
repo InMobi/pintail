@@ -24,6 +24,7 @@ public class SeqGeneratorClient {
     String topic = args[0];
     long maxSeq = Integer.parseInt(args[1]);
     publishMessages(publisher, topic, maxSeq);
+    waitToComplete(publisher, topic);
     publisher.close();
     long invocation = publisher.getStats(topic).getInvocationCount();
     System.out.println("Total invocations: " + invocation);
@@ -40,5 +41,13 @@ public class SeqGeneratorClient {
       publisher.publish(topic, msg);
       Thread.sleep(1);
     }    
+  }
+
+  static void waitToComplete(AbstractMessagePublisher publisher,
+      String topic) throws InterruptedException {
+    while (publisher.getStats(topic).getInFlight() > 0) {
+      System.out.println("Inflight: "+ publisher.getStats(topic).getInFlight());
+      Thread.sleep(100);
+    }
   }
 }
