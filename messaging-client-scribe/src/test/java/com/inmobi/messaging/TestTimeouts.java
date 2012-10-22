@@ -48,6 +48,7 @@ public class TestTimeouts {
       mb.publish(topic, new Message("mmmm".getBytes()));
       Thread.sleep((timeoutSeconds + 1) * 1000);
       mb.close();
+      System.out.println("TestTimeouts.simpleSend stats:" + inspector);
       assertEquals(inspector.getInFlight(), 0,
           "ensure not considered midflight");
       assertEquals(inspector.getSuccessCount(), 2,
@@ -59,6 +60,7 @@ public class TestTimeouts {
     } finally {
       tserver.stop();
     }
+    System.out.println("TestTimeouts.simpleSend done");
   }
 
   @Test()
@@ -79,7 +81,7 @@ public class TestTimeouts {
 
       Thread.sleep((timeoutSeconds + 1) * 1000);
       mb.close();
-      System.out.println("stats:" + inspector.toString());
+      System.out.println("testSlackingServer.stats:" + inspector);
       assertEquals(inspector.getInFlight(), 0,
           "ensure not considered midflight");
       assertEquals(inspector.getSuccessCount(), 1,
@@ -91,5 +93,6 @@ public class TestTimeouts {
     } finally {
       tserver.stop();
     }
+    System.out.println("TestTimeouts.testSlackingServer done");
   }
 }

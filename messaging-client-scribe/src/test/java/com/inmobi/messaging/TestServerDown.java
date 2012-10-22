@@ -38,7 +38,7 @@ public class TestServerDown {
       mb.publish(topic, new Message("mmmm".getBytes()));
 
       mb.close();
-      System.out.println("stats:" + inspector.toString());
+      System.out.println("testServerDownAtStart stats:" + inspector);
       assertEquals(inspector.getInFlight(), 0,
           "ensure not considered midflight");
       assertEquals(inspector.getSuccessCount(), 2,
@@ -50,6 +50,7 @@ public class TestServerDown {
     } finally {
       tserver.stop();
     }
+    System.out.println("TestServerDown.testServerDownAtStart done");
   }
 
   @Test()
@@ -70,7 +71,7 @@ public class TestServerDown {
       tserver.stop();
       TimingAccumulator inspector = mb.getStats(topic);
       mb.close();
-      System.out.println("stats:" + inspector.toString());
+      System.out.println("testServerDownAckLost stats:" + inspector);
       assertEquals(inspector.getInFlight(), 0,
           "ensure not considered midflight");
       assertEquals(inspector.getSuccessCount(), 0,
@@ -80,6 +81,7 @@ public class TestServerDown {
     } finally {
       tserver.stop();
     }
+    System.out.println("TestServerDown.testServerDownAckLost done");
   }
 
   @Test()
@@ -109,7 +111,8 @@ public class TestServerDown {
       mb.publish(topic, new Message("mmmm".getBytes()));
       tserver.start();
 
-      System.out.println("stats:" + inspector.toString());
+      System.out.println("testServerGoingDownInTheMiddle stats:" + 
+          inspector.toString());
       while (inspector.getInFlight() != 0) {
         Thread.sleep(10);
       }
@@ -120,7 +123,7 @@ public class TestServerDown {
         Thread.sleep(10);
       }
       mb.close();
-      System.out.println("stats:" + inspector.toString());
+      System.out.println("testServerGoingDownInTheMiddle stats:" + inspector);
       assertEquals(inspector.getInFlight(), 0,
           "ensure not considered midflight");
       assertEquals(inspector.getSuccessCount(), 3,
@@ -142,6 +145,7 @@ public class TestServerDown {
     } finally {
       tserver.stop();
     }
+    System.out.println("TestServerDown.testServerGoingDownInTheMiddle done");
   }
 
   @Test()
@@ -160,7 +164,7 @@ public class TestServerDown {
       mb.publish(topic, new Message("mmmm".getBytes()));
       mb.close();
       TimingAccumulator inspector = mb.getStats(topic);
-      System.out.println("stats:" + inspector.toString());
+      System.out.println("testServerDownMsgLost stats:" + inspector);
       assertEquals(inspector.getInFlight(), 0,
           "ensure not considered midflight");
       assertEquals(inspector.getSuccessCount(), 0,
@@ -172,6 +176,7 @@ public class TestServerDown {
     } finally {
       tserver.stop();
     }
+    System.out.println("TestServerDown.testServerDownMsgLost done");
   }
 
 }

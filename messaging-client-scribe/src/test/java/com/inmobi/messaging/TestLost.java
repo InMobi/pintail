@@ -55,7 +55,7 @@ public class TestLost {
         Thread.sleep(10);
       }
       mb.close();
-      System.out.println("stats:" + inspector.toString());
+      System.out.println("TestLost.testMsgQueueSize :stats:" + inspector);
       assertEquals(inspector.getInFlight(), 0,
           "ensure not considered midflight");
       assertEquals(inspector.getLostCount(), 1,
@@ -65,6 +65,7 @@ public class TestLost {
     } finally {
       tserver.stop();
     }
+    System.out.println("TestLost.testMsgQueueSize done");
   }
 
   @Test()
@@ -92,7 +93,7 @@ public class TestLost {
         Thread.sleep(10);
       }
       mb.close();
-      System.out.println("stats:" + inspector.toString());
+      System.out.println("testAckQueueSize stats:" + inspector.toString());
       assertEquals(inspector.getInFlight(), 0,
           "ensure not considered midflight");
       assertEquals(inspector.getLostCount(), 1,
@@ -102,6 +103,7 @@ public class TestLost {
     } finally {
       tserver.stop();
     }
+    System.out.println("TestLost.testAckQueueSize done");
   }
 
   @Test()
@@ -126,7 +128,7 @@ public class TestLost {
       Assert.assertTrue(inspector.getLostCount() >= 1,
           "Wrong lost count");
       mb.close();
-      System.out.println("stats:" + inspector.toString());
+      System.out.println("testMsgQueueSizeOnRetries stats:" + inspector);
       assertEquals(inspector.getInFlight(), 0,
           "ensure not considered midflight");
       assertEquals(inspector.getLostCount(), 3,
@@ -134,5 +136,6 @@ public class TestLost {
     } finally {
       tserver.stop();
     }
+    System.out.println("TestLost.testMsgQueueSizeOnRetries done");
   }
 }

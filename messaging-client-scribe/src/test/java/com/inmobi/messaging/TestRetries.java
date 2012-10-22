@@ -45,7 +45,7 @@ public class TestRetries {
       mb.publish(topic, new Message("mmmm".getBytes()));
       mb.close();
       TimingAccumulator inspector = mb.getStats(topic);
-      System.out.println("stats:" + inspector.toString());
+      System.out.println("TestRetries.simpleSend stats:" + inspector);
       assertEquals(inspector.getInFlight(), 0,
           "ensure not considered midflight");
       assertEquals(inspector.getRetryCount(), 1,
@@ -55,6 +55,7 @@ public class TestRetries {
     } finally {
       tserver.stop();
     }
+    System.out.println("TestRetries.simpleSend done");
   }
 
   @Test
@@ -78,7 +79,8 @@ public class TestRetries {
       mb.publish(topic, new Message("mmmm".getBytes()));
       mb.close();
       TimingAccumulator inspector = mb.getStats(topic);
-      System.out.println("stats:" + inspector.toString());
+      System.out.println("testEnableRetries:" + enableRetries + " stats:" 
+          + inspector);
       assertEquals(inspector.getInFlight(), 0,
           "ensure not considered midflight");
       if (enableRetries) {
@@ -95,6 +97,8 @@ public class TestRetries {
     } finally {
       tserver.stop();
     }
+    System.out.println("TestRetries.testEnableRetries:" + enableRetries  +
+    		" done");
   }
 
   @Test
@@ -113,7 +117,7 @@ public class TestRetries {
       mb.publish(topic, new Message("mmmm".getBytes()));
       mb.close();
       TimingAccumulator inspector = mb.getStats(topic);
-      System.out.println("stats:" + inspector.toString());
+      System.out.println("testAlwaysTryAgain stats:" + inspector);
       assertEquals(inspector.getInFlight(), 0,
           "ensure not considered midflight");
       Assert.assertTrue(inspector.getRetryCount() > 0,
@@ -125,5 +129,6 @@ public class TestRetries {
     } finally {
       tserver.stop();
     }
+    System.out.println("TestRetries.testAlwaysTryAgain done");
   }
 }

@@ -33,6 +33,7 @@ public class TestSimple {
     runTest();
     //create the publisher again
     runTest();
+    System.out.println("TestSimple.simpleSend() done");
   }
 
   private void sendMessages() throws Exception {
