@@ -318,7 +318,12 @@ public class ScribeTopicPublisher {
   void ack(ResultCode success) {
     Message m;
     synchronized (toBeAcked) {
-      m = toBeAcked.remove();
+      if (!toBeAcked.isEmpty()) {
+        m = toBeAcked.remove();
+      } else {
+        LOG.info("Dropping the ack, as ack queue is empty");
+        return;
+      }
     }
     if (success.getValue() == 0) {
       stats.accumulateOutcomeWithDelta(Outcome.SUCCESS, 0);
