@@ -57,7 +57,7 @@ public class StreamingBenchmark {
       return printUsage();
     }
     long maxSent = -1;
-    int numMsgsPerSec = -1;
+    float numMsgsPerSec = -1;
     String timezone = null;
     String topic = null;
     int numProducers = 1;
@@ -76,7 +76,7 @@ public class StreamingBenchmark {
         }
         topic = args[1];
         maxSent = Long.parseLong(args[2]);
-        numMsgsPerSec = Integer.parseInt(args[3]);
+        numMsgsPerSec = Float.parseFloat(args[3]);
         runProducer = true;
         if (args.length > 4 && !args[4].equals("-consumer")) {
           producerTimeout = Integer.parseInt(args[4]);
@@ -185,7 +185,7 @@ public class StreamingBenchmark {
     return exitcode;
   }
 
-  static Producer createProducer(String topic, long maxSent, int numMsgsPerSec,
+  static Producer createProducer(String topic, long maxSent, float numMsgsPerSec,
       int msgSize) throws IOException {
     return new Producer(topic, maxSent, numMsgsPerSec, msgSize); 
   }
@@ -206,7 +206,7 @@ public class StreamingBenchmark {
     int exitcode = FAILED_CODE;
     byte[] fixedMsg;
 
-    Producer(String topic, long maxSent, int numMsgsPerSec, int msgSize)
+    Producer(String topic, long maxSent, float numMsgsPerSec, int msgSize)
         throws IOException {
       this.topic = topic;
       this.maxSent = maxSent;
@@ -215,13 +215,13 @@ public class StreamingBenchmark {
       }
       if (numMsgsPerSec > 1000) {
         this.sleepMillis = 1;
-        numMsgsPerSleepInterval= numMsgsPerSec/1000;        
+        numMsgsPerSleepInterval= (int)(numMsgsPerSec/1000);        
       } else {
         if (numMsgsPerSec <= 0) {
           throw new IllegalArgumentException("Invalid number of messages per" +
           		" second");
         }
-        this.sleepMillis = 1000/numMsgsPerSec;
+        this.sleepMillis = (int)(1000/numMsgsPerSec);
         numMsgsPerSleepInterval = 1;
       }
       fixedMsg = getMessageBytes(msgSize);
