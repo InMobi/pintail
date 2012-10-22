@@ -18,9 +18,6 @@ public class MultiTopicSeqGenerator {
     long maxSeq = Integer.parseInt(args[2]);
     SeqGeneratorClient.publishMessages(publisher, topic1, maxSeq);
     SeqGeneratorClient.publishMessages(publisher, topic2, maxSeq);
-    SeqGeneratorClient.waitToComplete(publisher, topic1);
-    SeqGeneratorClient.waitToComplete(publisher, topic2);
-    Thread.sleep(5000);
     publisher.close();
     System.out.println("Total topic1 invocations: " + 
        publisher.getStats(topic1).getInvocationCount());
@@ -35,5 +32,4 @@ public class MultiTopicSeqGenerator {
      System.out.println("Total topic2 unhandledExceptions: " +
          publisher.getStats(topic2).getUnhandledExceptionCount());
   }
-
 }

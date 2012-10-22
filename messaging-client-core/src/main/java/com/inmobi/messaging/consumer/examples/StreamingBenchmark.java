@@ -252,23 +252,6 @@ public class StreamingBenchmark {
           return;
         }
       }
-      // wait for complete
-      while (publisher.getStats(topic).getInFlight() > 0) {
-        try {
-          Thread.sleep(100);
-        } catch (InterruptedException e) {
-          e.printStackTrace();
-          return;
-        }
-      }
-
-      try {
-        Thread.sleep(1000);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-        return;
-      }
-
       publisher.close();
       System.out.println("Producer closed");
       if (publisher.getStats(topic).getSuccessCount() == maxSent) {

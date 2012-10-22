@@ -35,8 +35,6 @@ public class FileLoggerClient {
       Thread.sleep(1);
       line = in.readLine();
     }
-    waitToComplete(publisher, topic);
-    Thread.sleep(5000);
     publisher.close();
     long invocation = publisher.getStats(topic).getInvocationCount();
     System.out.println("Total invocations: " + invocation);
@@ -44,14 +42,5 @@ public class FileLoggerClient {
         .getSuccessCount());
     System.out.println("Total unhandledExceptions: " +
       publisher.getStats(topic).getUnhandledExceptionCount());
-  }
-
-  private static void waitToComplete(AbstractMessagePublisher publisher,
-      String topic) throws InterruptedException {
-    int i = 0;
-    while (publisher.getStats(topic).getInFlight() != 0 && i++ < 10) {
-      System.out.println("Inflight: "+ publisher.getStats(topic).getInFlight());
-      Thread.sleep(100);
-    }
   }
 }
