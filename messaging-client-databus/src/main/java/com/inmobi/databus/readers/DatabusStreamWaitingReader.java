@@ -1,8 +1,10 @@
 package com.inmobi.databus.readers;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.TreeMap;
 
 import org.apache.commons.logging.Log;
@@ -32,8 +34,12 @@ public class DatabusStreamWaitingReader
           throws IOException {
     super(partitionId, fs, streamDir, inputFormatClass, conf,
         waitTimeForFileCreate, metrics, noNewFiles);
+    for (int i = 0; i < 60; i++) {
+      partitionMinList.add(new Integer(i));
+    }
   }
 
+  List<Integer> partitionMinList = new ArrayList<Integer>();
   protected void buildListing(FileMap<HadoopStreamFile> fmap,
       PathFilter pathFilter)
       throws IOException {
@@ -48,12 +54,15 @@ public class DatabusStreamWaitingReader
         while (current.getTime().before(now) && 
             hour  == current.get(Calendar.HOUR_OF_DAY)) {
           Path dir = getMinuteDirPath(streamDir, current.getTime());
+          int min = current.get(Calendar.MINUTE);
           current.add(Calendar.MINUTE, 1);
           if (fs.exists(dir)) {
             // Move the current minute to next minute
             Path nextMinDir = getMinuteDirPath(streamDir, current.getTime());
             if (fs.exists(nextMinDir)) {
-              doRecursiveListing(dir, pathFilter, fmap);
+              if (partitionMinList.contains(new Integer(min))) {
+                doRecursiveListing(dir, pathFilter, fmap);
+              }
             } else {
               LOG.info("Reached end of file listing. Not looking at the last" +
                   " minute directory:" + dir);
