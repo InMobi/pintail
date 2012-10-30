@@ -41,6 +41,8 @@ public abstract class AbstractMessagingDatabusConsumer
   protected int bufferSize;
   protected DataEncodingType dataEncodingType;
   protected int retentionInHours;
+  protected int consumerNumber;
+  protected int totalConsumers;
 
   @Override
   protected void init(ClientConfig config) throws IOException {
@@ -78,6 +80,17 @@ public abstract class AbstractMessagingDatabusConsumer
       }
     }
 
+    // Read consumer id
+    String consumerIdStr = config.getString(consumerIdInGroupConfig,
+        DEFAULT_CONSUMER_ID);
+    String[] id = consumerIdStr.split("/");
+    try {
+      consumerNumber = Integer.parseInt(id[0]);
+      totalConsumers = Integer.parseInt(id[1]);
+    } catch (NumberFormatException nfe) {
+      throw new IllegalArgumentException("Invalid consumer group membership",
+          nfe);
+    }
     // Create checkpoint provider and initialize checkpoint
     String chkpointProviderClassName = config.getString(
         chkProviderConfig, DEFAULT_CHK_PROVIDER);
