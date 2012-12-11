@@ -154,7 +154,7 @@ public abstract class TestAbstractDatabusWaitingReader {
     PartitionCheckpoint pcp = new PartitionCheckpoint(
         DatabusStreamWaitingReader.getHadoopStreamFile(
             fs.getFileStatus( finalFiles[1])), 20);
-    lreader.build(DatabusStreamWaitingReader.getBuildTimestamp(streamDir, pcp));
+    lreader.build(DatabusStreamWaitingReader.getBuildTimestamp(pcp));
     lreader.initializeCurrentFile(pcp);
     Assert.assertNotNull(lreader.getCurrentFile());
     lreader.openStream();

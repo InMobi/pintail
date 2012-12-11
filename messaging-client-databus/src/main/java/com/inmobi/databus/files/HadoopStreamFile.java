@@ -4,7 +4,13 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 
@@ -14,7 +20,11 @@ public class HadoopStreamFile implements StreamFile {
   private Path parent;
   //file creation time
   private Long timeStamp;
+  private String checkpointPath;
+  private Date partitionTimeStamp;
 
+  private static final Log LOG = LogFactory.getLog(HadoopStreamFile.class);
+  
   /**
    * Used only during serialization
    */
@@ -25,8 +35,43 @@ public class HadoopStreamFile implements StreamFile {
     this.fileName = fileName;
     this.parent = parent;
     this.timeStamp = timeStamp;
+    constructCheckpointPath();
   }
 
+  static String minDirFormatStr = "yyyy" + File.separator + "MM" +
+      File.separator + "dd" + File.separator + "HH" + File.separator +"mm";
+  
+  public void constructCheckpointPath(){
+    String parentDir = parent.toString();
+    String str[] = parentDir.split("[0-9]{4}.[0-9]{2}.[0-9]{2}.[0-9]{2}.[0-9]{2}");
+    checkpointPath = parentDir.substring(str[0].length());
+  }
+  
+  private void constructPartitionTimeStamp() {
+    String dateStr;
+    String parentDir = parent.toString();
+    String str[] = parentDir.split("[0-9]{4}.[0-9]{2}.[0-9]{2}.[0-9]{2}.[0-9]{2}");
+    String strs1 = parentDir.substring(str[0].length());
+    if(str.length >1){
+      dateStr = strs1.substring(0, strs1.length()-str[1].length());      
+    }
+    else
+      dateStr = strs1;
+    try {
+      partitionTimeStamp = minDirFormat.get().parse(dateStr);
+    } catch (ParseException e) {
+      LOG.warn("Could not get date for the streamFile", e);
+    }
+  }
+
+  static final ThreadLocal<DateFormat> minDirFormat = 
+      new ThreadLocal<DateFormat>() {
+    @Override
+    protected SimpleDateFormat initialValue() {
+      return new SimpleDateFormat(minDirFormatStr);
+    }    
+  };
+  
   public static HadoopStreamFile create(FileStatus status) {
     return new HadoopStreamFile(status.getPath().getParent(),
         status.getPath().getName(),  status.getModificationTime());
@@ -76,14 +121,17 @@ public class HadoopStreamFile implements StreamFile {
   }
 
   public String toString() {
-    return parent + File.separator + fileName;
+    constructCheckpointPath();
+    return checkpointPath + File.separator + fileName;
   }
 
   @Override
   public int compareTo(Object o) {
     HadoopStreamFile other = (HadoopStreamFile)o;
-    int pComp = parent.compareTo(other.parent);
-    if ( pComp== 0) {
+    constructCheckpointPath();
+    other.constructCheckpointPath();
+    int cComp = checkpointPath.compareTo(other.checkpointPath);
+    if ( cComp== 0) {
       if (timeStamp != null && other.timeStamp != null) {
         int tComp = timeStamp.compareTo(other.timeStamp);
         if ( tComp == 0) {
@@ -95,7 +143,7 @@ public class HadoopStreamFile implements StreamFile {
         }
       }
     }
-    return pComp;
+    return cComp;
   }
 
   @Override
@@ -123,5 +171,17 @@ public class HadoopStreamFile implements StreamFile {
 
   public String getFileName() {
     return fileName;
+  }
+  
+  public String getCheckpointPath() {
+    return checkpointPath;
+  }
+  
+  public Date getPartitionTimeStamp() {
+    constructPartitionTimeStamp();
+    if (partitionTimeStamp != null)
+      return partitionTimeStamp;
+    else
+      return new Date(timeStamp);
   }
 }
