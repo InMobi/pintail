@@ -85,7 +85,7 @@ public class TestClusterReaderMultipleCollectors {
         testStream, "c1", partitionId.toString(), consumerNumber);
     preader = new PartitionReader(partitionId, partitionCheckpointList, fs, 
     		buffer, streamDir, conf, TextInputFormat.class.getCanonicalName(),
-        CollectorStreamReader.getDateFromCollectorFile(files[0]), 1000, true,
+        CollectorStreamReader.getDateFromCollectorFile(files[0]), 10, true,
         DataEncodingType.BASE64, prMetrics, false, partitionMinList);            
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
@@ -169,6 +169,8 @@ public class TestClusterReaderMultipleCollectors {
         fs.getFileStatus(movedPath6)), 4, 0, 100, partitionId,
     buffer, true);
     Assert.assertTrue(buffer.isEmpty());
+    //XXX Reader sholud close after listing
+    Thread.sleep(3000);
     preader.close();
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 800);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 800);
