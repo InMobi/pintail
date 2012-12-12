@@ -52,6 +52,7 @@ public abstract class StreamReader<T extends StreamFile> {
   
   public boolean prepareMoveToNext(FileStatus currentFile, FileStatus nextFile)
   		throws IOException {
+    this.currentFile = nextFile;
   	return true;
   }
 
@@ -245,7 +246,6 @@ public abstract class StreamReader<T extends StreamFile> {
   	FileStatus nextFile = fileMap.getNext();
     if (nextFile != null) {
     	boolean next = prepareMoveToNext(currentFile, nextFile);
-      currentFile = nextFile;
       openCurrentFile(next);
     }
   }
@@ -342,5 +342,9 @@ public abstract class StreamReader<T extends StreamFile> {
   
   protected FileStatus getFirstFileInStream() {
   	return fileMap.getFirstFile();
+  }
+
+  protected FileStatus getFileMapValue(StreamFile streamFile) {
+    return fileMap.getValue(streamFile);
   }
 }
