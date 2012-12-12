@@ -197,39 +197,58 @@ public class CheckpointUtil implements DatabusConsumerConfig {
   	}
   	return chkProvider;
   }
-
   
+  public static void run(String args[]) throws Exception {
+  	if (args.length > 0) {
+  		String confFile = args[0];
+  		ClientConfig config;
+  		CheckpointProvider checkpointProvider;
+  		Set<Integer> idList = new TreeSet<Integer>();
+  		config = ClientConfig.load(confFile);
+  		String className = config.getString("consumer.className");
+  		String chkpointProviderClassName = config.getString(
+  				chkProviderConfig, DEFAULT_CHK_PROVIDER);
+  		String databusCheckpointDir = config.getString(checkpointDirConfig, 
+  				DEFAULT_CHECKPOINT_DIR);
+  		checkpointProvider = createCheckpointProvider(
+  				chkpointProviderClassName, databusCheckpointDir);
+
+  		for (int i = 0; i < 60; i++) {
+  			idList.add(i);
+  		}
+  		String topicName = config.getString("topic.name", null);
+  		String consumerName = config.getString("consumer.name", null);
+  		String type = config.getString(databusStreamType, DEFAULT_STREAM_TYPE);
+  		String [] databusRootDir = (config.getString(databusRootDirsConfig, 
+  				"hadoop.consumer.rootDirs")).split(",");
+  		StreamType streamType = StreamType.valueOf(type);
+  		String superKey = consumerName + "_" + topicName;
+  		CheckpointList checkpointList = new CheckpointList(idList);
+  		Path streamDir = null;
+  		for (String databusRootDirPath : databusRootDir) {
+  			if (className.compareTo(
+  					"com.inmobi.messaging.consumer.databus.DatabusConsumer") == 0) {
+  				streamDir = DatabusUtil.getStreamDir(streamType, 
+  						new Path(databusRootDirPath), topicName);
+  			} else if (className.compareTo(
+  						"com.inmobi.messaging.consumer.hadoop.HadoopConsumer") == 0) {
+  				streamDir = new Path(databusRootDirPath);
+  			} else {
+  				System.out.println("mention consumer class name in the conf file");
+  				System.exit(1);
+  			}
+  			CheckpointUtil.prepareCheckpointList(superKey, checkpointProvider, idList,
+  					streamDir, checkpointList);
+  		}
+  		checkpointList.write(checkpointProvider, superKey);
+  		checkpointList.read(checkpointProvider, superKey);
+  	} else {
+  		System.exit(1);
+  	}
+  }
+
   public static void main(String [] args) throws Exception {
-  	String confFile = args[0];
-  	ClientConfig config;
-  	CheckpointProvider checkpointProvider;
-  	Set<Integer> idList = new TreeSet<Integer>();
-  	config = ClientConfig.load(confFile);
-  	String chkpointProviderClassName = config.getString(
-        chkProviderConfig, DEFAULT_CHK_PROVIDER);
-    String databusCheckpointDir = config.getString(checkpointDirConfig, 
-        DEFAULT_CHECKPOINT_DIR);
-    checkpointProvider = createCheckpointProvider(
-        chkpointProviderClassName, databusCheckpointDir);
-    
-    for (int i = 0; i < 60; i++) {
-    	idList.add(i);
-    }
-    String topicName = config.getString("topic.name", null);
-    String consumerName = config.getString("consumer.name", null);
-    String type = config.getString(databusStreamType, DEFAULT_STREAM_TYPE);
-    String [] databusRootDir = (config.getString(databusRootDirsConfig)).split(",");
-    StreamType streamType = StreamType.valueOf(type);
-    String superKey = consumerName + "_" + topicName;
-    CheckpointList checkpointList = new CheckpointList(idList);
-    for (String databusRootDirPath : databusRootDir) {
-    	Path streamDir = DatabusUtil.getStreamDir(streamType, 
-    			new Path(databusRootDirPath), topicName);
-    	CheckpointUtil.prepareCheckpointList(superKey, checkpointProvider, idList,
-    			streamDir, checkpointList);
-    }
-    checkpointList.write(checkpointProvider, superKey);
-    checkpointList.read(checkpointProvider, superKey);
+  	run(args);
   }
 }
 
