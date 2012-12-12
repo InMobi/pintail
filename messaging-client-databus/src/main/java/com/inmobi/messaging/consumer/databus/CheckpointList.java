@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import com.inmobi.databus.partition.ConsumerPartitionCheckPoint;
 import org.mortbay.log.Log;
 
 import com.inmobi.databus.CheckpointProvider;
@@ -37,18 +38,17 @@ public class CheckpointList implements ConsumerCheckpoint {
   }
 
   public void set(PartitionId pid, MessageCheckpoint msgCkp) {
-    PartitionCheckpointList pckList = (PartitionCheckpointList) msgCkp;
-    for (Map.Entry<Integer, PartitionCheckpoint> entry : pckList.
-        getCheckpoints().entrySet()) {
-      Checkpoint cp = chkpoints.get(entry.getKey());
-      if (cp == null) {
-        Map<PartitionId, PartitionCheckpoint> partitionsChkPoints = 
-            new HashMap<PartitionId, PartitionCheckpoint>();
-        cp = new Checkpoint(partitionsChkPoints);
-      }
-      cp.set(pid, entry.getValue());
-      chkpoints.put(entry.getKey(), cp);
+    ConsumerPartitionCheckPoint checkPoint = (ConsumerPartitionCheckPoint) msgCkp;
+    Checkpoint cp = chkpoints.get(checkPoint.getMinId());
+    HashMap<PartitionId,PartitionCheckpoint> map = null;
+    if(cp == null) {
+      map = new HashMap<PartitionId, PartitionCheckpoint>();
+      map.put(pid,new PartitionCheckpoint(checkPoint.getStreamFile(), checkPoint.getLineNum()));
+      cp = new Checkpoint(map);
+    }  else  {
+      cp.set(pid,new PartitionCheckpoint(checkPoint.getStreamFile(), checkPoint.getLineNum()));
     }
+    chkpoints.put(checkPoint.getMinId(),cp);
   }
 
   public String toString() {

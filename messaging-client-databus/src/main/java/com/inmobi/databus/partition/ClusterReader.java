@@ -130,9 +130,10 @@ public class ClusterReader extends AbstractPartitionStreamReader {
   public MessageCheckpoint getMessageCheckpoint() {
   	if (reader instanceof DatabusStreamWaitingReader) {
 	    DatabusStreamWaitingReader dataWaitingReader = (DatabusStreamWaitingReader) reader;
-	    PartitionCheckpointList pChkLst = new PartitionCheckpointList(
-	    		dataWaitingReader.getPartitionCheckpointList().getCheckpoints());
-	    return pChkLst;
+	    ConsumerPartitionCheckPoint consumerPartitionCheckPoint =
+        new ConsumerPartitionCheckPoint(dataWaitingReader.getCurrentStreamFile(),
+          dataWaitingReader.getCurrentLineNum(),dataWaitingReader.currentMin);
+	    return consumerPartitionCheckPoint;
     } else {
     	return null;
     }

@@ -61,46 +61,63 @@ public class DatabusStreamWaitingReader
   	return false;
   }
   
-  public PartitionCheckpointList getPartitionCheckpointList() {
-  	TreeMap<Integer, PartitionCheckpoint> chckMp = new TreeMap<Integer,
-  			PartitionCheckpoint>();
-  	Map<Integer, PartitionCheckpoint> orginalMap = partitionCheckpointList.
-  			getCheckpoints();
-  	for(Map.Entry<Integer, PartitionCheckpoint> entry: orginalMap.entrySet()) {
-  		chckMp.put(entry.getKey(), new PartitionCheckpoint(entry.getValue().
-  				getStreamFile(), entry.getValue().getLineNum()));
-  	}
-  	return new PartitionCheckpointList(chckMp);
-  }
-  
   
   @Override
   public boolean initFromNextCheckPoint() throws IOException {
   	initCurrentFile();
   	currentFile = getFirstFileInStream();
-  	Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
+  	Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
   			currentFile.getPath().getParent());
   	int currentMinute = date.getMinutes();
   	PartitionCheckpoint partitioncheckpoint = partitionCheckpointList.
   			getCheckpoints().get(currentMinute);
+
   	if (partitioncheckpoint != null) {
-  		if (currentFile.getPath().getName().compareTo(
+      if (currentFile.getPath().getName().compareTo(
     			partitioncheckpoint.getFileName()) != 0) {
-    		currentFile = fs.getFileStatus(new Path(partitioncheckpoint.getFileName()));
-    		setIteratorToFile(currentFile);
+        Path path = new Path(partitioncheckpoint.getFileName());
+        if(fs.exists(path)) {
+          currentFile = fs.getFileStatus(path);
+          currentLineNum = partitioncheckpoint.getLineNum();
+        }
     	}
-  		currentLineNum = partitioncheckpoint.getLineNum();
   	}
   	if (currentFile != null) {
-  		LOG.debug("CurrentFile:" + getCurrentFile() + " currentLineNum:" + 
+  		LOG.debug("CurrentFile:" + getCurrentFile() + " currentLineNum:" +
   				currentLineNum);
   		setIterator();
-  	}
+    }
   	return currentFile != null;
 
   }
 
-	protected void buildListing(FileMap<HadoopStreamFile> fmap,
+  /*
+  The algorithm for initalization is as follows:
+  Initalize the current file without looknig at check point.
+  Then try looking for the Checkpointed file in stream map, if the file is found, set iterator to that file. Or else
+  initalize from next check point.
+   */
+  @Override
+  public boolean initializeCurrentFile(PartitionCheckpoint checkpoint) throws IOException {
+    //XXX if partition checkpoint list is not set, follow the normal initialization.
+    if(partitionCheckpointList == null) {
+      return super.initializeCurrentFile(checkpoint);
+    }
+    initCurrentFile();
+    this.checkpoint = checkpoint;
+    currentFile = getFileMapValue(checkpoint.getStreamFile());
+    if (currentFile != null) {
+      currentLineNum = checkpoint.getLineNum();
+      LOG.debug("CurrentFile:" + getCurrentFile() + " currentLineNum:" +
+        currentLineNum);
+      setIterator();
+      return true;
+    } else {
+      return initFromNextCheckPoint();
+    }
+  }
+
+  protected void buildListing(FileMap<HadoopStreamFile> fmap,
       PathFilter pathFilter)
       throws IOException {
     Calendar current = Calendar.getInstance();
@@ -155,27 +172,26 @@ public class DatabusStreamWaitingReader
 
   	date = getDateFromStreamDir(streamDir, nextFile.getPath().getParent());
   	now.setTime(date);
-
-  	if (currentMin != now.get(Calendar.MINUTE)) {
+    this.currentFile = nextFile;
+    if (currentMin != now.get(Calendar.MINUTE)) {
   		partitionCheckpointList.set(currentMin, 
   				new PartitionCheckpoint(getCurrentStreamFile(), -1));
   		currentMin = now.get(Calendar.MINUTE);
   		PartitionCheckpoint partitionCheckpoint = partitionCheckpointList.
   				getCheckpoints().get(currentMin);
-  		if (partitionCheckpoint != null && partitionCheckpoint.getLineNum() != -1) {                                               
-  			currentFile = nextFile;      
-  			//set iterator to checkpoointed file if there is a checkpoint
-  			if((partitionCheckpoint.getStreamFile()).compareTo(
-  					getStreamFile(currentFile)) != 0) {
+  		if (partitionCheckpoint != null && partitionCheckpoint.getLineNum() != -1) {
+        currentFile = nextFile;
+        //set iterator to checkpoointed file if there is a checkpoint
+  			if(currentFile.getPath().getName().compareTo(partitionCheckpoint.getFileName()) !=0) {
   				currentFile = fs.getFileStatus(new Path(partitionCheckpoint.
   						getFileName()));
-  				setIteratorToFile(currentFile);                                                                     
+  				setIteratorToFile(currentFile);
   			}
   			currentLineNum = partitionCheckpoint.getLineNum();
-  			nextFile = currentFile;
+  			this.currentFile = currentFile;
   			return false;
   		}
-  	} 
+  	}
   	return true;
   }  
 
