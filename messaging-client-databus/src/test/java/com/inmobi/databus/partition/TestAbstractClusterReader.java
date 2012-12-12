@@ -640,7 +640,7 @@ public abstract class TestAbstractClusterReader {
 
   	preader.execute();
   	TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
-  			fs.getFileStatus(databusFiles[1])), 1, 20, 80, partitionId,
+  			fs.getFileStatus(databusFiles[0])), 1, 20, 80, partitionId,
   			buffer, dataEncoding.equals(DataEncodingType.BASE64));
   	TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
   			fs.getFileStatus(databusFiles[1])), 2, 0, 100, partitionId,

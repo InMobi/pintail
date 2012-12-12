@@ -61,7 +61,6 @@ public class DatabusStreamWaitingReader
   	return false;
   }
   
-  
   @Override
   public boolean initFromNextCheckPoint() throws IOException {
   	initCurrentFile();
@@ -98,7 +97,8 @@ public class DatabusStreamWaitingReader
   initalize from next check point.
    */
   @Override
-  public boolean initializeCurrentFile(PartitionCheckpoint checkpoint) throws IOException {
+  public boolean initializeCurrentFile(PartitionCheckpoint checkpoint) 
+  		throws IOException {
     //XXX if partition checkpoint list is not set, follow the normal initialization.
     if(partitionCheckpointList == null) {
       return super.initializeCurrentFile(checkpoint);
@@ -182,7 +182,8 @@ public class DatabusStreamWaitingReader
   		if (partitionCheckpoint != null && partitionCheckpoint.getLineNum() != -1) {
         currentFile = nextFile;
         //set iterator to checkpoointed file if there is a checkpoint
-  			if(currentFile.getPath().getName().compareTo(partitionCheckpoint.getFileName()) !=0) {
+  			if(currentFile.getPath().getName().compareTo(partitionCheckpoint.
+  					getFileName()) !=0) {
   				currentFile = fs.getFileStatus(new Path(partitionCheckpoint.
   						getFileName()));
   				setIteratorToFile(currentFile);
@@ -254,6 +255,7 @@ public class DatabusStreamWaitingReader
         // read line from next file
         LOG.info("Reading from next file " + getCurrentFile());
       }
+      currentMin = getDateFromStreamDir(streamDir, getCurrentFile()).getMinutes();
       line = readNextLine();
     }
     if (partitionMinList.contains(currentMin)) {
