@@ -205,7 +205,7 @@ public class CheckpointUtil implements DatabusConsumerConfig {
   		CheckpointProvider checkpointProvider;
   		Set<Integer> idList = new TreeSet<Integer>();
   		config = ClientConfig.load(confFile);
-  		String className = config.getString("consumer.className");
+  		String className = config.getString("consumer.classname");
   		String chkpointProviderClassName = config.getString(
   				chkProviderConfig, DEFAULT_CHK_PROVIDER);
   		String databusCheckpointDir = config.getString(checkpointDirConfig, 
@@ -219,8 +219,17 @@ public class CheckpointUtil implements DatabusConsumerConfig {
   		String topicName = config.getString("topic.name", null);
   		String consumerName = config.getString("consumer.name", null);
   		String type = config.getString(databusStreamType, DEFAULT_STREAM_TYPE);
-  		String [] databusRootDir = (config.getString(databusRootDirsConfig, 
-  				"hadoop.consumer.rootDirs")).split(",");
+  		String [] databusRootDir = null;
+  		if (className.compareTo(
+  				"com.inmobi.messaging.consumer.databus.DatabusConsumer") == 0) {
+  			databusRootDir = (config.getString(databusRootDirsConfig)).split(",");
+  		} else if (className.compareTo(
+					"com.inmobi.messaging.consumer.hadoop.HadoopConsumer") == 0) {
+  			databusRootDir = (config.getString("hadoop.consumer.rootdirs")).split(",");
+  		} else {
+				System.out.println("mention consumer class name in the conf file");
+				System.exit(1);
+			}
   		StreamType streamType = StreamType.valueOf(type);
   		String superKey = consumerName + "_" + topicName;
   		CheckpointList checkpointList = new CheckpointList(idList);
@@ -230,13 +239,9 @@ public class CheckpointUtil implements DatabusConsumerConfig {
   					"com.inmobi.messaging.consumer.databus.DatabusConsumer") == 0) {
   				streamDir = DatabusUtil.getStreamDir(streamType, 
   						new Path(databusRootDirPath), topicName);
-  			} else if (className.compareTo(
-  						"com.inmobi.messaging.consumer.hadoop.HadoopConsumer") == 0) {
-  				streamDir = new Path(databusRootDirPath);
   			} else {
-  				System.out.println("mention consumer class name in the conf file");
-  				System.exit(1);
-  			}
+  				streamDir = new Path(databusRootDirPath);
+  			} 
   			CheckpointUtil.prepareCheckpointList(superKey, checkpointProvider, idList,
   					streamDir, checkpointList);
   		}
