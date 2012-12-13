@@ -36,6 +36,21 @@ public class CheckpointList implements ConsumerCheckpoint {
   public  Map<Integer, Checkpoint> getCheckpoints() {
     return chkpoints;
   }
+  
+  public void setForCheckpointUtil(PartitionId pid, MessageCheckpoint msgCkp) {
+  	PartitionCheckpointList pckList = (PartitionCheckpointList) msgCkp;
+    for (Map.Entry<Integer, PartitionCheckpoint> entry : pckList.
+        getCheckpoints().entrySet()) {
+      Checkpoint cp = chkpoints.get(entry.getKey());
+      if (cp == null) {
+        Map<PartitionId, PartitionCheckpoint> partitionsChkPoints = 
+            new HashMap<PartitionId, PartitionCheckpoint>();
+        cp = new Checkpoint(partitionsChkPoints);
+      }
+      cp.set(pid, entry.getValue());
+      chkpoints.put(entry.getKey(), cp);
+    }
+  }
 
   public void set(PartitionId pid, MessageCheckpoint msgCkp) {
     ConsumerPartitionCheckPoint checkPoint = (ConsumerPartitionCheckPoint) msgCkp;
