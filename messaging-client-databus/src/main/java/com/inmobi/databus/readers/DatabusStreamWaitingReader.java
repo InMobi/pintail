@@ -255,8 +255,10 @@ public class DatabusStreamWaitingReader
         // read line from next file
         LOG.info("Reading from next file " + getCurrentFile());
       }
-      currentMin = getDateFromStreamDir(streamDir, getCurrentFile()).getMinutes();
       line = readNextLine();
+      if (line != null) {
+      	currentMin = getDateFromStreamDir(streamDir, getCurrentFile()).getMinutes();
+      }
     }
     if (partitionMinList.contains(currentMin)) {
     	partitionCheckpointList.set(currentMin, new PartitionCheckpoint(                              
