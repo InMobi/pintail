@@ -64,6 +64,18 @@ public class CheckpointList implements ConsumerCheckpoint {
       cp.set(pid,new PartitionCheckpoint(checkPoint.getStreamFile(), checkPoint.getLineNum()));
     }
     chkpoints.put(checkPoint.getMinId(),cp);
+    //If the EOF is reached for previous file, update its checkpoint to point -1
+    if(checkPoint.isEofPrevFile()) {
+      Checkpoint prevCp = chkpoints.get(checkPoint.getPrevMinId());
+      //If we don't have checkpoint for previous minute which should never happen, we ignore the setting of checkpoint
+      if(prevCp != null) {
+        Map<PartitionId,PartitionCheckpoint> prevPartitionCheckPoint = prevCp.getPartitionsCheckpoint();
+        PartitionCheckpoint pCkP = prevPartitionCheckPoint.get(pid);
+        PartitionCheckpoint newPCkp = new PartitionCheckpoint(pCkP.getStreamFile(),-1);
+        prevPartitionCheckPoint.put(pid,newPCkp);
+        chkpoints.put(checkPoint.getPrevMinId(),new Checkpoint(prevPartitionCheckPoint));
+      }
+    }
   }
 
   public String toString() {
