@@ -43,9 +43,9 @@ public class TestDatabusConsumerWithFailover extends
     config2.set(DatabusConsumerConfig.databusRootDirsConfig,
         rootDirs[1].toString());
     config1.set(DatabusConsumerConfig.checkpointDirConfig,
-        "/tmp/test/databustest5/checkpoint1");
+        "/tmp/failover/databustest5/checkpoint1");
     config2.set(DatabusConsumerConfig.checkpointDirConfig,
-        "/tmp/test/databustest5/checkpoint1");
+        "/tmp/failover/databustest5/checkpoint1");
     config1.set(DatabusConsumerConfig.databusStreamType,
         StreamType.LOCAL.name());
     config2.set(DatabusConsumerConfig.databusStreamType,
@@ -61,9 +61,9 @@ public class TestDatabusConsumerWithFailover extends
     config2.set(DatabusConsumerConfig.databusRootDirsConfig,
         rootDirs[1].toString());
     config1.set(DatabusConsumerConfig.checkpointDirConfig,
-        "/tmp/test/databustest6/checkpoint1");
+        "/tmp/failover/databustest6/checkpoint1");
     config2.set(DatabusConsumerConfig.checkpointDirConfig,
-        "/tmp/test/databustest6/checkpoint1");
+        "/tmp/failover/databustest6/checkpoint1");
     config1.set(DatabusConsumerConfig.databusStreamType,
         StreamType.MERGED.name());
     config2.set(DatabusConsumerConfig.databusStreamType,

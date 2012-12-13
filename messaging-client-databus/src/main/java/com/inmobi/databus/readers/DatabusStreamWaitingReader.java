@@ -181,7 +181,7 @@ public class DatabusStreamWaitingReader
       return getDateFromStreamDir(streamDir,
           ((HadoopStreamFile)partitionCheckpoint.getStreamFile()).getParent());
     } catch (Exception e) {
-      throw new IllegalArgumentException("Invalid checkpoint:" +
+      throw new IllegalArgumentException("Invalid checkpoint:" + 
           partitionCheckpoint.getStreamFile(), e);
     }
   }
