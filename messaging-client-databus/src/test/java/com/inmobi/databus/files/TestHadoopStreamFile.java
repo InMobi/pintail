@@ -14,8 +14,8 @@ public class TestHadoopStreamFile {
   @Test
   public void testHadoopStreamFile() throws IOException {
     FileSystem fs = FileSystem.getLocal(new Configuration());
-    Path p1 = new Path("/tmp/test/1");
-    Path p2 = new Path("/tmp/test/2");
+    Path p1 = new Path("/tmp/test/2012/12/12/12/11");
+    Path p2 = new Path("/tmp/test/2012/12/12/12/12");
     Long t1 = 1L;
     Long t2 = 2L;
     String f1 = "f1";
@@ -26,7 +26,7 @@ public class TestHadoopStreamFile {
     HadoopStreamFile h12 = new HadoopStreamFile(p1, f2, t2);
     HadoopStreamFile h21 = new HadoopStreamFile(p2, f1, t1);
     HadoopStreamFile h22 = new HadoopStreamFile(p2, f2, t2);
-    
+
     Assert.assertTrue(hp1.equals(h11));
     Assert.assertTrue(hp1.equals(h12));
     Assert.assertTrue(hp2.equals(h21));
@@ -41,9 +41,9 @@ public class TestHadoopStreamFile {
     Path pf11 = new Path(p1, f1);
     fs.create(pf11);
     FileStatus fs11 = fs.getFileStatus(pf11);
-    Assert.assertEquals(HadoopStreamFile.create(fs11).toString(),
-        fs.makeQualified(new Path(h11.toString())).toString());
-    
+    Assert.assertEquals(HadoopStreamFile.create(fs11).toString(), new Path(
+        "2012/12/12/12/11/f1").toString());
+
     fs.delete(p1, true);
   }
 

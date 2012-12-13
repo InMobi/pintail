@@ -59,7 +59,7 @@ public abstract class TestAbstractClusterReader {
         ClusterReader.class.getName());
     preader.init();
     Assert.assertEquals(preader.getCurrentFile().toString(),
-        databusFiles[0].toString());
+        getDateStringFromPath(databusFiles[0].toString()));
 
     // Read from checkpoint with local stream file name
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
@@ -69,7 +69,7 @@ public abstract class TestAbstractClusterReader {
         isDatabusData(), dataEncoding, prMetrics);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile().toString(),
-        databusFiles[1].toString());
+        getDateStringFromPath(databusFiles[1].toString()));
 
     // Read from checkpoint with local stream file name which does not exist
     // and is before the stream
@@ -79,7 +79,7 @@ public abstract class TestAbstractClusterReader {
         isDatabusData(), dataEncoding, prMetrics);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile().toString(),
-        databusFiles[0].toString());
+        getDateStringFromPath(databusFiles[0].toString()));
 
     //Read from startTime in local stream directory, with no checkpoint
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
@@ -90,7 +90,7 @@ public abstract class TestAbstractClusterReader {
         isDatabusData(), dataEncoding, prMetrics);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile().toString(),
-        databusFiles[1].toString());
+        getDateStringFromPath(databusFiles[1].toString()));
 
     //Read from startTime in local stream directory, with checkpoint
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
@@ -100,7 +100,7 @@ public abstract class TestAbstractClusterReader {
             isDatabusData(), dataEncoding, prMetrics);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile().toString(),
-        databusFiles[1].toString());
+        getDateStringFromPath(databusFiles[1].toString()));
 
     //Read from startTime in local stream directory, with no timestamp file,
     // with no checkpoint
@@ -112,7 +112,7 @@ public abstract class TestAbstractClusterReader {
         isDatabusData(), dataEncoding, prMetrics);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile().toString(),
-        databusFiles[1].toString());
+        getDateStringFromPath(databusFiles[1].toString()));
 
     //Read from startTime in local stream directory, with no timestamp file,
     //with checkpoint
@@ -123,7 +123,7 @@ public abstract class TestAbstractClusterReader {
             isDatabusData(), dataEncoding, prMetrics);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile().toString(),
-        databusFiles[1].toString());
+        getDateStringFromPath(databusFiles[1].toString()));
 
     //Read from startTime beyond the stream
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
@@ -134,7 +134,7 @@ public abstract class TestAbstractClusterReader {
         isDatabusData(), dataEncoding, prMetrics);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile().toString(),
-        databusFiles[0].toString());
+        getDateStringFromPath(databusFiles[0].toString()));
 
     //Read from startTime beyond the stream, with checkpoint
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
@@ -144,7 +144,7 @@ public abstract class TestAbstractClusterReader {
             isDatabusData(), dataEncoding, prMetrics);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile().toString(),
-        databusFiles[0].toString());
+        getDateStringFromPath(databusFiles[0].toString()));
 
     //Read from startTime after the stream
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
@@ -440,5 +440,10 @@ public abstract class TestAbstractClusterReader {
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 0);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 0);
     Assert.assertEquals(prMetrics.getCumulativeNanosForFetchMessage(), 0);
+  }
+  
+  public String getDateStringFromPath(String path) {
+    String str[] = path.split("[0-9]{4}.[0-9]{2}.[0-9]{2}.[0-9]{2}.[0-9]{2}");
+    return path.substring(str[0].length());
   }
 }
