@@ -4,13 +4,8 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.File;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 
@@ -21,8 +16,6 @@ public class HadoopStreamFile implements StreamFile {
   //file creation time
   private Long timeStamp;
   private String checkpointPath;
-
-  private static final Log LOG = LogFactory.getLog(HadoopStreamFile.class);
   
   /**
    * Used only during serialization
