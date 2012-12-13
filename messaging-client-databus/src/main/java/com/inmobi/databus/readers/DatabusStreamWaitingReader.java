@@ -31,6 +31,8 @@ public class DatabusStreamWaitingReader
 	public int currentMin;
   public Set<Integer> partitionMinList;
   public PartitionCheckpointList partitionCheckpointList;
+  private boolean movedToNext;
+  private int prevMin;
 
   public DatabusStreamWaitingReader(PartitionId partitionId, FileSystem fs,
       Path streamDir,  String inputFormatClass, Configuration conf,
@@ -88,33 +90,6 @@ public class DatabusStreamWaitingReader
     }
   	return currentFile != null;
 
-  }
-
-  /*
-  The algorithm for initalization is as follows:
-  Initalize the current file without looknig at check point.
-  Then try looking for the Checkpointed file in stream map, if the file is found, set iterator to that file. Or else
-  initalize from next check point.
-   */
-  @Override
-  public boolean initializeCurrentFile(PartitionCheckpoint checkpoint) 
-  		throws IOException {
-    //XXX if partition checkpoint list is not set, follow the normal initialization.
-    if(partitionCheckpointList == null) {
-      return super.initializeCurrentFile(checkpoint);
-    }
-    initCurrentFile();
-    this.checkpoint = checkpoint;
-    currentFile = getFileMapValue(checkpoint.getStreamFile());
-    if (currentFile != null) {
-      currentLineNum = checkpoint.getLineNum();
-      LOG.debug("CurrentFile:" + getCurrentFile() + " currentLineNum:" +
-        currentLineNum);
-      setIterator();
-      return true;
-    } else {
-      return initFromNextCheckPoint();
-    }
   }
 
   protected void buildListing(FileMap<HadoopStreamFile> fmap,
@@ -176,6 +151,9 @@ public class DatabusStreamWaitingReader
     if (currentMin != now.get(Calendar.MINUTE)) {
   		partitionCheckpointList.set(currentMin, 
   				new PartitionCheckpoint(getCurrentStreamFile(), -1));
+      //We are moving to next file, set the flags so that Message checkpoints can be populated.
+      movedToNext = true;
+      prevMin=currentMin;
   		currentMin = now.get(Calendar.MINUTE);
   		PartitionCheckpoint partitionCheckpoint = partitionCheckpointList.
   				getCheckpoints().get(currentMin);
@@ -316,5 +294,22 @@ public class DatabusStreamWaitingReader
 
   public static HadoopStreamFile getHadoopStreamFile(FileStatus status) {
     return HadoopStreamFile.create(status);
+  }
+
+  public void resetMoveToNextFlags() {
+    movedToNext = false;
+    prevMin = -1;
+  }
+
+  public boolean isMovedToNext() {
+    return movedToNext;
+  }
+
+  public int getPrevMin() {
+    return this.prevMin;
+  }
+
+  public int getCurrentMin() {
+    return this.currentMin;
   }
 }
