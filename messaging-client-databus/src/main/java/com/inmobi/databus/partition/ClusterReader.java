@@ -130,9 +130,17 @@ public class ClusterReader extends AbstractPartitionStreamReader {
   public MessageCheckpoint getMessageCheckpoint() {
   	if (reader instanceof DatabusStreamWaitingReader) {
 	    DatabusStreamWaitingReader dataWaitingReader = (DatabusStreamWaitingReader) reader;
+      boolean movedToNext = dataWaitingReader.isMovedToNext();
 	    ConsumerPartitionCheckPoint consumerPartitionCheckPoint =
         new ConsumerPartitionCheckPoint(dataWaitingReader.getCurrentStreamFile(),
-          dataWaitingReader.getCurrentLineNum(),dataWaitingReader.currentMin);
+          dataWaitingReader.getCurrentLineNum(),dataWaitingReader.getCurrentMin());
+      //Check after getting message checkpoint, if Partition Reader has moved to next file. If yes, then set the
+      //flags in the checkpoint and reset reader flags.
+      if(movedToNext) {
+        consumerPartitionCheckPoint.setEofPrevFile(movedToNext);
+        consumerPartitionCheckPoint.setPrevMinId(dataWaitingReader.getPrevMin());
+        dataWaitingReader.resetMoveToNextFlags();
+      }
 	    return consumerPartitionCheckPoint;
     } else {
     	return null;

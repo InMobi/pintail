@@ -3,11 +3,12 @@ package com.inmobi.databus.partition;
 import com.inmobi.databus.files.StreamFile;
 
 import java.io.DataInput;
-import java.io.DataOutput;
 import java.io.IOException;
 
 public class ConsumerPartitionCheckPoint extends PartitionCheckpoint {
   private Integer minId;
+  private boolean eofPrevFile;
+  private Integer prevMinId;
 
   public ConsumerPartitionCheckPoint(StreamFile streamFile, long lineNum, Integer minId) {
     this(streamFile, lineNum);
@@ -20,20 +21,10 @@ public class ConsumerPartitionCheckPoint extends PartitionCheckpoint {
 
   public ConsumerPartitionCheckPoint(DataInput in) throws IOException {
     super(in);
-    this.minId = in.readInt();
+    //This method is stub for as we are extending the Parent, since this class is not serialized we don't need to
+    //worry about constructor being called.
   }
 
-  @Override
-  public void readFields(DataInput in) throws IOException {
-    super.readFields(in);
-    this.minId = in.readInt();
-  }
-
-  @Override
-  public void write(DataOutput out) throws IOException {
-    super.write(out);
-    out.writeInt(minId);
-  }
 
   @Override
   public String toString() {
@@ -72,5 +63,21 @@ public class ConsumerPartitionCheckPoint extends PartitionCheckpoint {
 
   public Integer getMinId() {
     return this.minId;
+  }
+
+  public boolean isEofPrevFile() {
+    return eofPrevFile;
+  }
+
+  public void setEofPrevFile(boolean eofPrevFile) {
+    this.eofPrevFile = eofPrevFile;
+  }
+
+  public Integer getPrevMinId() {
+    return prevMinId;
+  }
+
+  public void setPrevMinId(Integer prevMinId) {
+    this.prevMinId = prevMinId;
   }
 }
