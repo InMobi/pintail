@@ -175,13 +175,14 @@ public class DatabusStreamWaitingReader
     };
   }
 
-  public static Date getBuildTimestamp(PartitionCheckpoint partitionCheckpoint) {
+  public static Date getBuildTimestamp(Path streamDir,
+      PartitionCheckpoint partitionCheckpoint) {
     try {
-      return ((HadoopStreamFile) partitionCheckpoint.getStreamFile())
-          .getPartitionTimeStamp();
+      return getDateFromStreamDir(streamDir,
+          ((HadoopStreamFile)partitionCheckpoint.getStreamFile()).getParent());
     } catch (Exception e) {
-      throw new IllegalArgumentException("Invalid checkpoint:"
-          + partitionCheckpoint.getStreamFile(), e);
+      throw new IllegalArgumentException("Invalid checkpoint:" +
+          partitionCheckpoint.getStreamFile(), e);
     }
   }
 

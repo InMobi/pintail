@@ -48,8 +48,9 @@ public class ClusterReader extends AbstractPartitionStreamReader {
         reader.startFromTimestmp(startTime);
       }
     } else if (partitionCheckpoint != null) {
-      ((DatabusStreamWaitingReader) reader).build(DatabusStreamWaitingReader
-          .getBuildTimestamp(partitionCheckpoint));
+      ((DatabusStreamWaitingReader)reader).build(
+          DatabusStreamWaitingReader.getBuildTimestamp(streamDir,
+          partitionCheckpoint));
       if (!reader.isEmpty()) {
         if (!reader.initializeCurrentFile(partitionCheckpoint)) {
           throw new IllegalArgumentException("Checkpoint file does not exist");

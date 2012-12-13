@@ -21,7 +21,6 @@ public class HadoopStreamFile implements StreamFile {
   //file creation time
   private Long timeStamp;
   private String checkpointPath;
-  private Date partitionTimeStamp;
 
   private static final Log LOG = LogFactory.getLog(HadoopStreamFile.class);
   
@@ -46,31 +45,6 @@ public class HadoopStreamFile implements StreamFile {
     String str[] = parentDir.split("[0-9]{4}.[0-9]{2}.[0-9]{2}.[0-9]{2}.[0-9]{2}");
     checkpointPath = parentDir.substring(str[0].length());
   }
-  
-  private void constructPartitionTimeStamp() {
-    String dateStr;
-    String parentDir = parent.toString();
-    String str[] = parentDir.split("[0-9]{4}.[0-9]{2}.[0-9]{2}.[0-9]{2}.[0-9]{2}");
-    String strs1 = parentDir.substring(str[0].length());
-    if(str.length >1){
-      dateStr = strs1.substring(0, strs1.length()-str[1].length());      
-    }
-    else
-      dateStr = strs1;
-    try {
-      partitionTimeStamp = minDirFormat.get().parse(dateStr);
-    } catch (ParseException e) {
-      LOG.warn("Could not get date for the streamFile", e);
-    }
-  }
-
-  static final ThreadLocal<DateFormat> minDirFormat = 
-      new ThreadLocal<DateFormat>() {
-    @Override
-    protected SimpleDateFormat initialValue() {
-      return new SimpleDateFormat(minDirFormatStr);
-    }    
-  };
   
   public static HadoopStreamFile create(FileStatus status) {
     return new HadoopStreamFile(status.getPath().getParent(),
@@ -121,15 +95,12 @@ public class HadoopStreamFile implements StreamFile {
   }
 
   public String toString() {
-    constructCheckpointPath();
     return checkpointPath + File.separator + fileName;
   }
 
   @Override
   public int compareTo(Object o) {
     HadoopStreamFile other = (HadoopStreamFile)o;
-    constructCheckpointPath();
-    other.constructCheckpointPath();
     int cComp = checkpointPath.compareTo(other.checkpointPath);
     if ( cComp== 0) {
       if (timeStamp != null && other.timeStamp != null) {
@@ -159,6 +130,7 @@ public class HadoopStreamFile implements StreamFile {
     this.parent = new Path(strPath);
     this.fileName = in.readUTF();
     this.timeStamp = in.readLong();
+    constructCheckpointPath();
   }
 
   public Path getParent() {
@@ -175,13 +147,5 @@ public class HadoopStreamFile implements StreamFile {
   
   public String getCheckpointPath() {
     return checkpointPath;
-  }
-  
-  public Date getPartitionTimeStamp() {
-    constructPartitionTimeStamp();
-    if (partitionTimeStamp != null)
-      return partitionTimeStamp;
-    else
-      return new Date(timeStamp);
   }
 }
