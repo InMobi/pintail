@@ -116,7 +116,7 @@ public class CheckpointUtil implements DatabusConsumerConfig {
     			chkHrCal.add(Calendar.MINUTE, 1);
     		}
     		thisChkpoint.put(checkpointMin, entry.getValue());
-    		checkpointList.set(entry.getKey(), new PartitionCheckpointList(
+    		checkpointList.setForCheckpointUtil(entry.getKey(), new PartitionCheckpointList(
     				thisChkpoint));
     	}
     }
@@ -218,7 +218,7 @@ public class CheckpointUtil implements DatabusConsumerConfig {
   		}
   		String topicName = config.getString("topic.name", null);
   		String consumerName = config.getString("consumer.name", null);
-  		String type = config.getString(databusStreamType, DEFAULT_STREAM_TYPE);
+  		String type = config.getString(databusStreamType, "LOCAL");
   		String [] databusRootDir = null;
   		if (className.compareTo(
   				"com.inmobi.messaging.consumer.databus.DatabusConsumer") == 0) {
@@ -245,6 +245,7 @@ public class CheckpointUtil implements DatabusConsumerConfig {
   			CheckpointUtil.prepareCheckpointList(superKey, checkpointProvider, idList,
   					streamDir, checkpointList);
   		}
+  		LOG.info(" XXX " + checkpointList);
   		checkpointList.write(checkpointProvider, superKey);
   		checkpointList.read(checkpointProvider, superKey);
   	} else {
