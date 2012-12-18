@@ -63,11 +63,8 @@ public class CheckpointUtil implements DatabusConsumerConfig {
       partitionCheckpoints.entrySet()) {
     	Path tmpPathFile = new Path(entry.getValue().getStreamFile().toString()).
     			getParent();
-    	//to get streamDir path  form streamDirPath/YYYY/MM/DD/HH/MN)
-    	for (int i = 0; i < 5; i++) {
-    		tmpPathFile = tmpPathFile.getParent();
-    	}
-    	if ((streamDir).compareTo(tmpPathFile) == 0) {
+    	
+    	if ((tmpPathFile.toString()).contains(streamDir.toString())) {
     		Map<Integer, PartitionCheckpoint> thisChkpoint =
     				new TreeMap<Integer, PartitionCheckpoint>();
     		Calendar chkCal = Calendar.getInstance();
@@ -115,6 +112,7 @@ public class CheckpointUtil implements DatabusConsumerConfig {
     			}
     			chkHrCal.add(Calendar.MINUTE, 1);
     		}
+    		
     		thisChkpoint.put(checkpointMin, entry.getValue());
     		checkpointList.setForCheckpointUtil(entry.getKey(), new PartitionCheckpointList(
     				thisChkpoint));
@@ -199,7 +197,6 @@ public class CheckpointUtil implements DatabusConsumerConfig {
   }
   
   public static void run(String args[]) throws Exception {
-  	if (args.length > 0) {
   		String confFile = args[0];
   		ClientConfig config;
   		CheckpointProvider checkpointProvider;
@@ -245,16 +242,18 @@ public class CheckpointUtil implements DatabusConsumerConfig {
   			CheckpointUtil.prepareCheckpointList(superKey, checkpointProvider, idList,
   					streamDir, checkpointList);
   		}
-  		LOG.info(" XXX " + checkpointList);
   		checkpointList.write(checkpointProvider, superKey);
-  		checkpointList.read(checkpointProvider, superKey);
-  	} else {
-  		System.exit(1);
-  	}
+  		checkpointList.read(checkpointProvider, superKey); 
   }
 
   public static void main(String [] args) throws Exception {
-  	run(args);
+  	if (args.length == 1) {
+  		run(args);
+  	} else {
+  		System.out.println("incorrect number of arguments. provide one argument : " +
+  				"path to configuration file ");
+  		System.exit(1);
+  	}
   }
 }
 

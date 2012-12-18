@@ -98,7 +98,7 @@ public abstract class AbstractMessagingDatabusConsumer
       		}
       	}
       } else {
-      	LOG.info("Invalid consumer group membership");
+      	throw new IllegalArgumentException("Invalid consumer group membership");
       }
     } catch (NumberFormatException nfe) {
       throw new IllegalArgumentException("Invalid consumer group membership",

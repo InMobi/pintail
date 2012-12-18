@@ -93,7 +93,7 @@ public class PartitionReader {
       boolean noNewFiles, Set<Integer> partitionMinList)
           throws IOException {
     this(partitionId, partitionCheckpointList, buffer, startTime, dataEncoding,
-        prMetrics, partitionMinList);
+        prMetrics);
     reader = new ClusterReader(partitionId, partitionCheckpointList,
         fs, streamDir, conf, inputFormatClass, startTime,
         waitTimeForFileCreate, isDatabusData, prMetrics, noNewFiles, 
@@ -106,12 +106,12 @@ public class PartitionReader {
   }
 
   private PartitionReader(PartitionId partitionId,
-      PartitionCheckpoint partitionCheckpoint,
+      MessageCheckpoint msgCheckpoint,
       BlockingQueue<QueueEntry> buffer, Date startTime,
       DataEncodingType dataEncoding,
       PartitionReaderStatsExposer prMetrics)
           throws IOException {
-    if (startTime == null && partitionCheckpoint == null) {
+    if (startTime == null && msgCheckpoint == null) {
       String msg = "StartTime and checkpoint both" +
           " cannot be null in PartitionReader";
       LOG.warn(msg);
@@ -121,24 +121,6 @@ public class PartitionReader {
     this.buffer = buffer;
     this.dataEncoding = dataEncoding;
     this.prMetrics = prMetrics;
-  }
-  
-  private PartitionReader(PartitionId partitionId,
-      PartitionCheckpointList partitionCheckpointList,
-      BlockingQueue<QueueEntry> buffer, Date startTime,
-      DataEncodingType dataEncoding,
-      PartitionReaderStatsExposer prMetrics, Set<Integer> partitionMinList)
-          throws IOException {
-  	if (startTime == null && partitionCheckpointList == null) {
-  		String msg = "StartTime and checkpoint both" +
-  				" cannot be null in PartitionReader";
-  		LOG.warn(msg);
-  		throw new IllegalArgumentException(msg);
-  	}
-  	this.partitionId = partitionId;
-  	this.buffer = buffer;
-  	this.dataEncoding = dataEncoding;
-  	this.prMetrics = prMetrics;
   }
 
   public synchronized void start() {
