@@ -157,9 +157,13 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
       throws IOException {
     LOG.debug("finding next higher for " + getCurrentFile());
     FileStatus nextHigherFile  = getHigherValue(currentFile);
+    boolean next = true;
+    if (nextHigherFile != null) {
+    	next = prepareMoveToNext(currentFile, nextHigherFile);
+    }
     boolean ret = setIteratorToFile(nextHigherFile);
     if (ret) {
-      openCurrentFile(true);
+      openCurrentFile(next);
     }
     return ret;
   }

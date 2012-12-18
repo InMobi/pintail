@@ -26,6 +26,7 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
   private FileSystem[] fileSystems;
   private Configuration conf;
   private String inputFormatClassName;
+  public static String clusterNamePrefix = "hadoopcluster";
 
   protected void initializeConfig(ClientConfig config) throws IOException {
     String hadoopConfFileName = config.getString(hadoopConfigFileKey);
@@ -47,12 +48,11 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
     rootDirs = new Path[rootDirStrs.length];
     clusterNames = new String[rootDirStrs.length];
     fileSystems = new FileSystem[rootDirStrs.length];
-    String clusterName = "hadoopcluster";
     for (int i = 0; i < rootDirStrs.length; i++) {
       LOG.debug("Looking at rootDirStr:" + rootDirStrs[i]);
       rootDirs[i] = new Path(rootDirStrs[i]);
       fileSystems[i] = rootDirs[i].getFileSystem(conf);
-      clusterNames[i] = clusterName + i;
+      clusterNames[i] = clusterNamePrefix + i;
     }
 
     inputFormatClassName = config.getString(inputFormatClassNameConfig,

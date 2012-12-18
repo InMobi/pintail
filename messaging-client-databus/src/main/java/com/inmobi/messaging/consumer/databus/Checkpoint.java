@@ -9,6 +9,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.hadoop.io.Writable;
 
@@ -28,6 +29,9 @@ public class Checkpoint implements Writable, ConsumerCheckpoint {
   private Map<PartitionId, PartitionCheckpoint> partitionsChkPoint =
       new HashMap<PartitionId, PartitionCheckpoint>();
 
+  public Checkpoint() {
+  	
+  }
   public Checkpoint(byte[] bytes) throws IOException {
     readFields(new DataInputStream(new ByteArrayInputStream(bytes)));
   }
@@ -99,7 +103,7 @@ public class Checkpoint implements Writable, ConsumerCheckpoint {
       }
     }
   }
-
+  
   @Override
   public int hashCode() {
     final int prime = 31;

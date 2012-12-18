@@ -58,10 +58,12 @@ public class CheckpointList implements ConsumerCheckpoint {
     HashMap<PartitionId,PartitionCheckpoint> map = null;
     if(cp == null) {
       map = new HashMap<PartitionId, PartitionCheckpoint>();
-      map.put(pid,new PartitionCheckpoint(checkPoint.getStreamFile(), checkPoint.getLineNum()));
+      map.put(pid,new PartitionCheckpoint(checkPoint.getStreamFile(), 
+      		checkPoint.getLineNum()));
       cp = new Checkpoint(map);
     }  else  {
-      cp.set(pid,new PartitionCheckpoint(checkPoint.getStreamFile(), checkPoint.getLineNum()));
+      cp.set(pid,new PartitionCheckpoint(checkPoint.getStreamFile(), 
+      		checkPoint.getLineNum()));
     }
     chkpoints.put(checkPoint.getMinId(),cp);
     //If the EOF is reached for previous file, update its checkpoint to point -1
@@ -69,7 +71,8 @@ public class CheckpointList implements ConsumerCheckpoint {
       Checkpoint prevCp = chkpoints.get(checkPoint.getPrevMinId());
       //If we don't have checkpoint for previous minute which should never happen, we ignore the setting of checkpoint
       if(prevCp != null) {
-        Map<PartitionId,PartitionCheckpoint> prevPartitionCheckPoint = prevCp.getPartitionsCheckpoint();
+        Map<PartitionId,PartitionCheckpoint> prevPartitionCheckPoint = 
+        		prevCp.getPartitionsCheckpoint();
         PartitionCheckpoint pCkP = prevPartitionCheckPoint.get(pid);
         PartitionCheckpoint newPCkp = new PartitionCheckpoint(pCkP.getStreamFile(),-1);
         prevPartitionCheckPoint.put(pid,newPCkp);
@@ -129,11 +132,8 @@ public class CheckpointList implements ConsumerCheckpoint {
       if (chkpointData != null) {
         checkpoint = new Checkpoint(chkpointData);
       } else {
-        Map<PartitionId, PartitionCheckpoint> partitionsChkPoints = 
-            new HashMap<PartitionId, PartitionCheckpoint>();
-        checkpoint = new Checkpoint(partitionsChkPoints);
+        checkpoint = new Checkpoint();
       }
-      Log.info("id" + id + "checkpoint" + checkpoint);
       thisChkpoint.put(id, checkpoint);
     }
     setCheckpoint(thisChkpoint);

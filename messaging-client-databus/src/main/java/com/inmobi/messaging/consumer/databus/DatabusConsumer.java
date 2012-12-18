@@ -69,7 +69,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
   private Path[] rootDirs;
   private StreamType streamType;
   private Configuration conf = new Configuration();
-  private static String clusterNamePrefix = "databusCluster";
+  public static String clusterNamePrefix = "databusCluster";
 
   protected void initializeConfig(ClientConfig config) throws IOException {
   	String type = config.getString(databusStreamType, DEFAULT_STREAM_TYPE);
@@ -186,11 +186,8 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
   
   @Override
   protected void createCheckpoint() {
-  	// TODO Auto-generated method stub
-  	Map<PartitionId, PartitionCheckpoint> partitionCheckpoint = new 
-  			HashMap<PartitionId, PartitionCheckpoint>();
   	if (streamType.equals(StreamType.COLLECTOR)) {
-  		currentCheckpoint = new Checkpoint(partitionCheckpoint);
+  		currentCheckpoint = new Checkpoint();
   	} else {
   		currentCheckpoint = new CheckpointList(partitionMinList);
   	}
