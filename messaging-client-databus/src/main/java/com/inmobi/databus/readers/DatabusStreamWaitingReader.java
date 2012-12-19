@@ -78,13 +78,16 @@ public class DatabusStreamWaitingReader
     currentFile = getFirstFileInStream();
     Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         currentFile.getPath().getParent());
-    int currentMinute = date.getMinutes();
+    Calendar current = Calendar.getInstance();
+    current.setTime(date);
+    int currentMinute =current.get(Calendar.MINUTE);
     PartitionCheckpoint partitioncheckpoint = partitionCheckpointList.
         getCheckpoints().get(currentMinute);
 
     if (partitioncheckpoint != null) {
       Path checkpointedFileName =new Path(streamDir, 
           partitioncheckpoint.getFileName());
+      LOG.info("XXXX " + currentFile + " " + checkpointedFileName);
       if (currentFile.getPath().compareTo(checkpointedFileName) != 0) {
         if(fs.exists(checkpointedFileName)) {
           currentFile = fs.getFileStatus(checkpointedFileName);
