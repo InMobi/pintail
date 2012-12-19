@@ -4,6 +4,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
@@ -14,7 +15,8 @@ public class HadoopStreamFile implements StreamFile {
   private Path parent;
   //file creation time
   private Long timeStamp;
-
+  private String checkpointPath;
+  
   /**
    * Used only during serialization
    */
@@ -25,8 +27,18 @@ public class HadoopStreamFile implements StreamFile {
     this.fileName = fileName;
     this.parent = parent;
     this.timeStamp = timeStamp;
+    constructCheckpointPath();
   }
 
+  static String minDirFormatStr = "yyyy" + File.separator + "MM" +
+      File.separator + "dd" + File.separator + "HH" + File.separator +"mm";
+  
+  public void constructCheckpointPath(){
+    String parentDir = parent.toString();
+    String str[] = parentDir.split("[0-9]{4}.[0-9]{2}.[0-9]{2}.[0-9]{2}.[0-9]{2}");
+    checkpointPath = parentDir.substring(str[0].length());
+  }
+  
   public static HadoopStreamFile create(FileStatus status) {
     return new HadoopStreamFile(status.getPath().getParent(),
         status.getPath().getName(),  status.getModificationTime());
@@ -76,14 +88,14 @@ public class HadoopStreamFile implements StreamFile {
   }
 
   public String toString() {
-    return parent + File.separator + fileName;
+    return checkpointPath + File.separator + fileName;
   }
 
   @Override
   public int compareTo(Object o) {
     HadoopStreamFile other = (HadoopStreamFile)o;
-    int pComp = parent.compareTo(other.parent);
-    if ( pComp== 0) {
+    int cComp = checkpointPath.compareTo(other.checkpointPath);
+    if ( cComp== 0) {
       if (timeStamp != null && other.timeStamp != null) {
         int tComp = timeStamp.compareTo(other.timeStamp);
         if ( tComp == 0) {
@@ -95,7 +107,7 @@ public class HadoopStreamFile implements StreamFile {
         }
       }
     }
-    return pComp;
+    return cComp;
   }
 
   @Override
@@ -111,6 +123,7 @@ public class HadoopStreamFile implements StreamFile {
     this.parent = new Path(strPath);
     this.fileName = in.readUTF();
     this.timeStamp = in.readLong();
+    constructCheckpointPath();
   }
 
   public Path getParent() {
@@ -123,5 +136,9 @@ public class HadoopStreamFile implements StreamFile {
 
   public String getFileName() {
     return fileName;
+  }
+  
+  public String getCheckpointPath() {
+    return checkpointPath;
   }
 }
