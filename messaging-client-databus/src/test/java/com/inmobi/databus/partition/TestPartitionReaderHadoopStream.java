@@ -99,6 +99,20 @@ public class TestPartitionReaderHadoopStream extends TestAbstractClusterReader {
   	super.testReadFromCheckpointSomeMinutes();
   }  
   
+  @Test
+  public void testReadFromMultipleCompleteCheckpoints() throws Exception {
+    super.testReadFromMultipleCompleteCheckpoints();
+  }
+  
+  @Test
+  public void testReadFromSingleCompleteCheckpoint() throws Exception {
+    super.testReadFromSingleCompleteCheckpoint();
+  }
+  
+  public void testReadFromTwoCompleteCheckpoint() throws Exception {
+    
+  }
+  
   @Override
   Path getStreamsDir() {
     return streamDir;

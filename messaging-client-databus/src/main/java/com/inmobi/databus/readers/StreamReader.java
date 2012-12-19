@@ -243,9 +243,9 @@ public abstract class StreamReader<T extends StreamFile> {
   }
 
   protected void setNextFile() throws IOException {
-  	FileStatus nextFile = fileMap.getNext();
+    FileStatus nextFile = fileMap.getNext();
     if (nextFile != null) {
-    	boolean next = prepareMoveToNext(currentFile, nextFile);
+      boolean next = prepareMoveToNext(currentFile, nextFile);
       openCurrentFile(next);
     }
   }
