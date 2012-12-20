@@ -72,11 +72,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
   public static String clusterNamePrefix = "databusCluster";
 
   protected void initializeConfig(ClientConfig config) throws IOException {
-<<<<<<< HEAD
     String type = config.getString(databusStreamType, DEFAULT_STREAM_TYPE);
-=======
-  	String type = config.getString(databusStreamType, DEFAULT_STREAM_TYPE);
->>>>>>> 2c0da5c9521b40c69a3cea585c52eea45b12e956
     streamType = StreamType.valueOf(type);
     super.initializeConfig(config);
     waitTimeForFlush = config.getLong(waitTimeForFlushConfig,
@@ -123,11 +119,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
   }
 
   protected void createPartitionReaders() throws IOException {
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> 2c0da5c9521b40c69a3cea585c52eea45b12e956
     // calculate the allowed start time
     long currentMillis = System.currentTimeMillis();
     Date allowedStartTime = new Date(currentMillis - 
@@ -140,13 +132,8 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
           topicName);
       String clusterName = clusterNamePrefix + i;
       if (streamType.equals(StreamType.COLLECTOR)) {
-<<<<<<< HEAD
         Map<PartitionId, PartitionCheckpoint> partitionsChkPoints = 
             ((Checkpoint)currentCheckpoint).getPartitionsCheckpoint();
-=======
-      	Map<PartitionId, PartitionCheckpoint> partitionsChkPoints = 
-      			 ((Checkpoint)currentCheckpoint).getPartitionsCheckpoint();
->>>>>>> 2c0da5c9521b40c69a3cea585c52eea45b12e956
         LOG.info("Creating partition readers for all the collectors");
         for (String collector : getCollectors(fs, streamDir)) {
           PartitionId id = new PartitionId(clusterName, collector);
@@ -171,19 +158,11 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
         LOG.info("Creating partition reader for cluster");
         PartitionId id = new PartitionId(clusterName, null);
         Map<Integer, PartitionCheckpoint> listofPartitionCheckpoints = new 
-<<<<<<< HEAD
             TreeMap<Integer, PartitionCheckpoint>();
         PartitionCheckpointList partitionCheckpointList = new 
             PartitionCheckpointList(listofPartitionCheckpoints);
         ((CheckpointList)currentCheckpoint).preaprePartitionCheckPointList(id, 
             partitionCheckpointList);
-=======
-        		TreeMap<Integer, PartitionCheckpoint>();
-        PartitionCheckpointList partitionCheckpointList = new 
-        		PartitionCheckpointList(listofPartitionCheckpoints);
-        ((CheckpointList)currentCheckpoint).preaprePartitionCheckPointList(id, 
-        		partitionCheckpointList);
->>>>>>> 2c0da5c9521b40c69a3cea585c52eea45b12e956
         Date partitionTimestamp = getPartitionTimestamp(id,
             partitionCheckpointList, allowedStartTime);
         LOG.debug("Creating partition " + id);
@@ -203,7 +182,6 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
   Path[] getRootDirs() {
     return rootDirs;
   }
-<<<<<<< HEAD
 
   @Override
   protected void createCheckpoint() {
@@ -212,18 +190,5 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
     } else {
       currentCheckpoint = new CheckpointList(partitionMinList);
     }
-=======
-  
-  @Override
-  protected void createCheckpoint() {
-  	// TODO Auto-generated method stub
-  	Map<PartitionId, PartitionCheckpoint> partitionCheckpoint = new 
-  			HashMap<PartitionId, PartitionCheckpoint>();
-  	if (streamType.equals(StreamType.COLLECTOR)) {
-  		currentCheckpoint = new Checkpoint(partitionCheckpoint);
-  	} else {
-  		currentCheckpoint = new CheckpointList(partitionMinList);
-  	}
->>>>>>> 2c0da5c9521b40c69a3cea585c52eea45b12e956
   }
 }

@@ -282,7 +282,6 @@ public class ConsumerUtil {
     }
 
     consumer.reset();
-
     for (i = 20; i < 140; i++) {
       Message msg = consumer.next();
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),

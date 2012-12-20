@@ -1,10 +1,7 @@
 package com.inmobi.databus.partition;
 
 import java.util.Map;
-<<<<<<< HEAD
 import java.util.Set;
-=======
->>>>>>> 2c0da5c9521b40c69a3cea585c52eea45b12e956
 import java.util.TreeMap;
 
 import com.inmobi.databus.partition.PartitionCheckpoint;
@@ -35,7 +32,6 @@ public class PartitionCheckpointList implements MessageCheckpoint {
   public void set(int segmentId, PartitionCheckpoint pck) {
     pChkpoints.put(segmentId, pck);
   }
-<<<<<<< HEAD
   
   public boolean isNULL(Set<Integer> partitionMinList) {
   	Map<Integer, PartitionCheckpoint>listOfPartitionCheckpoints = 
@@ -47,8 +43,6 @@ public class PartitionCheckpointList implements MessageCheckpoint {
 		}
 		return true;
   }
-=======
->>>>>>> 2c0da5c9521b40c69a3cea585c52eea45b12e956
 
   public String toString() {
     StringBuffer buf = new StringBuffer();

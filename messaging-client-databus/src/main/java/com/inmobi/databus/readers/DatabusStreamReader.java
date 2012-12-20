@@ -159,7 +159,7 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
     FileStatus nextHigherFile  = getHigherValue(currentFile);
     boolean next = true;
     if (nextHigherFile != null) {
-    	next = prepareMoveToNext(currentFile, nextHigherFile);
+      next = prepareMoveToNext(currentFile, nextHigherFile);
     }
     boolean ret = setIteratorToFile(nextHigherFile);
     if (ret) {
@@ -173,6 +173,16 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
     int startIndex = streamDir.toString().length() + 1;
     String dirString = pathStr.substring(startIndex,
         startIndex + minDirFormatStr.length());
+    try {
+      return minDirFormat.get().parse(dirString);
+    } catch (ParseException e) {
+      LOG.warn("Could not get date from directory passed", e);
+    }
+    return null;
+  }
+  
+  public static Date getDateFromCheckpointPath(String checkpointPath) {
+    String dirString = checkpointPath.substring(0, minDirFormatStr.length());
     try {
       return minDirFormat.get().parse(dirString);
     } catch (ParseException e) {

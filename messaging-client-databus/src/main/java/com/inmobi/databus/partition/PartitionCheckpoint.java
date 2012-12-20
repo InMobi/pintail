@@ -36,7 +36,7 @@ public class PartitionCheckpoint implements Writable, MessageCheckpoint {
   }
   
   public boolean isNULL(Set<Integer> partitionMinList) {
-  	return true;
+  	return false;
   }
 
   @Override

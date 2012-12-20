@@ -93,6 +93,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   private void initializeCurrentFileFromCheckpoint() 
       throws IOException, InterruptedException {
     String fileName = partitionCheckpoint.getFileName();
+    LOG.info("EEEEEEE "+ fileName);
     if (cReader.isCollectorFile(fileName)) {
       if (cReader.initializeCurrentFile(partitionCheckpoint)) {
         reader = cReader;
@@ -113,9 +114,11 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       cReader.build();
 
       if (startTime != null) {
+        LOG.info("CCCCCCC started from start  time");
         lReader.build(startTime);
         initializeCurrentFileFromTimeStamp(startTime);
       } else if (partitionCheckpoint != null) {
+        LOG.info("CCCCC entered in to pck");
           lReader.build(LocalStreamCollectorReader.getBuildTimestamp(
             streamName, partitionId.getCollector(), partitionCheckpoint));
         initializeCurrentFileFromCheckpoint();

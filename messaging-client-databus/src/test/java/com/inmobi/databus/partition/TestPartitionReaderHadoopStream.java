@@ -109,8 +109,9 @@ public class TestPartitionReaderHadoopStream extends TestAbstractClusterReader {
     super.testReadFromSingleCompleteCheckpoint();
   }
   
+  @Test
   public void testReadFromTwoCompleteCheckpoint() throws Exception {
-    
+    super.testReadFromTwoCompleteCheckpoint();
   }
   
   @Override

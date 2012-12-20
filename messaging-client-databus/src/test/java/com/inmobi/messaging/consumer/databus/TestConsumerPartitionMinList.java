@@ -25,7 +25,7 @@ public class TestConsumerPartitionMinList {
 	@BeforeTest
 	public void setup() throws Exception {
 		ClientConfig config = ClientConfig.loadFromClasspath(
-        "messaging-consumer-conf4.properties");
+        "messaging-consumer-conf16.properties");
 		
 		expectedPartitionMinList = new TreeSet<Integer>();
 		testConsumer = new DatabusConsumer();

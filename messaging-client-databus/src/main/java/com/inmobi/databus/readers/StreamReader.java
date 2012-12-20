@@ -236,8 +236,8 @@ public abstract class StreamReader<T extends StreamFile> {
 
   protected boolean nextFile() throws IOException {
     if (hasNextFile()) {
-    	setNextFile();
-    	return true;
+      setNextFile();
+      return true;
     }
     return false;
   }

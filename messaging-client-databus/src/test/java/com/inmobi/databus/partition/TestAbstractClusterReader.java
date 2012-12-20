@@ -75,7 +75,7 @@ public abstract class TestAbstractClusterReader {
         ClusterReader.class.getName());
     preader.init();
     Assert.assertEquals(preader.getCurrentFile().toString(),
-        databusFiles[0].toString());
+        getDateStringFromPath(databusFiles[0].toString()));
 
     // Read from checkpoint with local stream file name
     prepareCheckpoint(DatabusStreamWaitingReader.getHadoopStreamFile(
@@ -86,7 +86,7 @@ public abstract class TestAbstractClusterReader {
         isDatabusData(), dataEncoding, prMetrics, partitionMinList); 
     preader.init();
     Assert.assertEquals(preader.getCurrentFile().toString(),
-        databusFiles[1].toString());
+        getDateStringFromPath(databusFiles[1].toString()));
 
     // Read from checkpoint with local stream file name which does not exist
     // and is before the stream
@@ -98,7 +98,7 @@ public abstract class TestAbstractClusterReader {
         isDatabusData(), dataEncoding, prMetrics, partitionMinList); 
     preader.init();
     Assert.assertEquals(preader.getCurrentFile().toString(),
-        databusFiles[0].toString());
+        getDateStringFromPath(databusFiles[0].toString()));
 
     //Read from startTime in local stream directory, with no checkpoint
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
@@ -109,7 +109,7 @@ public abstract class TestAbstractClusterReader {
         isDatabusData(), dataEncoding, prMetrics, partitionMinList);              
     preader.init();
     Assert.assertEquals(preader.getCurrentFile().toString(),
-        databusFiles[1].toString());
+        getDateStringFromPath(databusFiles[1].toString()));
 
     //Read from startTime in local stream directory, with checkpoint
     prepareCheckpoint(DatabusStreamWaitingReader.getHadoopStreamFile(
@@ -120,7 +120,7 @@ public abstract class TestAbstractClusterReader {
             isDatabusData(), dataEncoding, prMetrics, partitionMinList);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile().toString(),
-        databusFiles[1].toString());
+        getDateStringFromPath(databusFiles[1].toString()));
 
     //Read from startTime in local stream directory, with no timestamp file,
     // with no checkpoint
@@ -132,7 +132,7 @@ public abstract class TestAbstractClusterReader {
         isDatabusData(), dataEncoding, prMetrics, partitionMinList);              
     preader.init();
     Assert.assertEquals(preader.getCurrentFile().toString(),
-        databusFiles[1].toString());
+        getDateStringFromPath(databusFiles[1].toString()));
 
     //Read from startTime in local stream directory, with no timestamp file,
     //with checkpoint
@@ -144,7 +144,7 @@ public abstract class TestAbstractClusterReader {
             isDatabusData(), dataEncoding, prMetrics, partitionMinList);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile().toString(),
-        databusFiles[1].toString());
+        getDateStringFromPath(databusFiles[1].toString()));
 
     //Read from startTime beyond the stream
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
@@ -155,7 +155,7 @@ public abstract class TestAbstractClusterReader {
         isDatabusData(), dataEncoding, prMetrics, partitionMinList);              
     preader.init();
     Assert.assertEquals(preader.getCurrentFile().toString(),
-        databusFiles[0].toString());
+        getDateStringFromPath(databusFiles[0].toString()));
 
     //Read from startTime beyond the stream, with checkpoint
     prepareCheckpoint(DatabusStreamWaitingReader.getHadoopStreamFile(
@@ -166,7 +166,7 @@ public abstract class TestAbstractClusterReader {
             isDatabusData(), dataEncoding, prMetrics, partitionMinList);     
     preader.init();
     Assert.assertEquals(preader.getCurrentFile().toString(),
-        databusFiles[0].toString());
+        getDateStringFromPath(databusFiles[0].toString()));
 
     //Read from startTime after the stream
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
@@ -531,7 +531,7 @@ public abstract class TestAbstractClusterReader {
         isDatabusData(), dataEncoding, prMetrics, true, partitionMinList);             
     preader.init();
     Assert.assertEquals(preader.getCurrentFile().toString(),
-        databusFiles[0].toString());
+        getDateStringFromPath(databusFiles[0].toString()));
   	
     preader.execute();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
@@ -581,7 +581,7 @@ public abstract class TestAbstractClusterReader {
         isDatabusData(), dataEncoding, prMetrics,true, partitionMinList);             
     preader.init();
     Assert.assertEquals(preader.getCurrentFile().toString(),
-        databusFiles[0].toString());
+        getDateStringFromPath(databusFiles[0].toString()));
   	
     preader.execute();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
@@ -642,7 +642,7 @@ public abstract class TestAbstractClusterReader {
   			isDatabusData(), dataEncoding, prMetrics, true, partitionMinList);             
   	preader.init();
   	Assert.assertEquals(preader.getCurrentFile().toString(),
-  			databusFiles[0].toString());
+  	    getDateStringFromPath(databusFiles[0].toString()));
 
   	preader.execute();
   	TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
@@ -696,9 +696,7 @@ public abstract class TestAbstractClusterReader {
         streamDir, conf, inputFormatClass, null, 1000,
         isDatabusData(), dataEncoding, prMetrics,true, partitionMinList);             
     preader.init();
-    Assert.assertEquals(preader.getCurrentFile().toString(),
-        databusFiles[0].toString());
-    
+
     preader.execute();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[0])), 1, 0, 0, partitionId,
@@ -717,11 +715,9 @@ public abstract class TestAbstractClusterReader {
     Assert.assertEquals(((ClusterReader)preader.getReader())
         .getReader().getClass().getName(),
         DatabusStreamWaitingReader.class.getName());
-    Assert.assertEquals(prMetrics.getHandledExceptions(), 0);
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 0);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 0);
     Assert.assertEquals(prMetrics.getWaitTimeUnitsNewFile(), 0);
-    Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0); 
   }
   
   public void testReadFromSingleCompleteCheckpoint() throws Exception {
@@ -732,7 +728,7 @@ public abstract class TestAbstractClusterReader {
 
     for (int i =0; i < 3; i++) {
       Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
-          databusFiles[i].getParent()) ; 
+          databusFiles[i].getParent()); 
       Log.info("date is " + date);
       Calendar current = Calendar.getInstance();
       current.setTime(date);
@@ -759,7 +755,7 @@ public abstract class TestAbstractClusterReader {
         isDatabusData(), dataEncoding, prMetrics,true, partitionMinList);             
     preader.init();
     Assert.assertEquals(preader.getCurrentFile().toString(),
-        databusFiles[0].toString());
+        getDateStringFromPath(databusFiles[1].toString()));
     preader.execute();
     
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
@@ -813,7 +809,7 @@ public abstract class TestAbstractClusterReader {
         isDatabusData(), dataEncoding, prMetrics,true, partitionMinList);             
     preader.init();
     Assert.assertEquals(preader.getCurrentFile().toString(),
-        databusFiles[2].toString());
+        getDateStringFromPath(databusFiles[2].toString()));
     preader.execute();
     
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
@@ -848,5 +844,10 @@ public abstract class TestAbstractClusterReader {
     for (int i =0; i < 60; i++) {
     	partitionMinList.add(i);
     }
+  }
+  
+  public String getDateStringFromPath(String path) {
+    String str[] = path.split("[0-9]{4}.[0-9]{2}.[0-9]{2}.[0-9]{2}.[0-9]{2}");
+    return path.substring(str[0].length());
   }
 }

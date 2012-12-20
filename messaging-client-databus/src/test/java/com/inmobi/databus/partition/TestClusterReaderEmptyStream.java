@@ -127,8 +127,7 @@ public class TestClusterReaderEmptyStream {
   public void prepareCheckpointList(StreamFile streamFile, int lineNum, 
 		  PartitionCheckpointList partitionCheckpointList) {
   	partitionCheckpointList = new PartitionCheckpointList(chkPoints);
-  	Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
-  			new Path(streamFile.toString()));
+  	Date date = DatabusStreamWaitingReader.getDateFromCheckpointPath(streamFile.toString());
   	partitionCheckpointList.set(date.getMinutes(), new PartitionCheckpoint(
   			streamFile, lineNum));
   }

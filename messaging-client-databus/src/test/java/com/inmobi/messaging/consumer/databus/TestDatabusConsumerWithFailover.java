@@ -1,6 +1,8 @@
 package com.inmobi.messaging.consumer.databus;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.testng.Assert;
 import org.testng.annotations.AfterTest;
@@ -98,8 +100,20 @@ public class TestDatabusConsumerWithFailover extends
       }
     }
     consumer.mark();
-    Checkpoint lastCheckpoint = new Checkpoint(consumer.getCurrentCheckpoint()
-        .toBytes());
+    ConsumerCheckpoint temp = consumer.getCurrentCheckpoint();
+    Checkpoint lastCheckpoint = null;
+    //
+    Map<Integer, Checkpoint> checkpointMap = new TreeMap<Integer, Checkpoint>();
+    if(temp instanceof CheckpointList) {
+      //Do a deep copy of the Tree Map, as the entry sets in original map can change
+      for(Map.Entry<Integer,Checkpoint> entry: ((CheckpointList) temp).
+          getCheckpoints().entrySet()) {
+        checkpointMap.put(entry.getKey(), new Checkpoint(entry.getValue().toBytes()));
+      }
+    } else {
+      lastCheckpoint = new Checkpoint(
+          ((Checkpoint)consumer.getCurrentCheckpoint()).toBytes());
+    }
 
     for (int i = 0; i < numCounters; i++) {
       markedcounter1[i] = counter[i];
@@ -117,7 +131,12 @@ public class TestDatabusConsumerWithFailover extends
     // restart consumer with different rootDir
     consumer = new DatabusConsumer();
     consumer.init(streamName, consumerName, null, config2);
-    Assert.assertEquals(consumer.getCurrentCheckpoint(), lastCheckpoint);
+    if(temp instanceof CheckpointList) {
+      Assert.assertEquals(((CheckpointList)consumer.getCurrentCheckpoint()).
+          getCheckpoints(), checkpointMap);
+    } else {
+      Assert.assertEquals(consumer.getCurrentCheckpoint(), lastCheckpoint);
+    }
     for (int i = 0; i < totalMessages / 2; i++) {
       Message msg = consumer.next();
       String msgStr = new String(msg.getData().array());

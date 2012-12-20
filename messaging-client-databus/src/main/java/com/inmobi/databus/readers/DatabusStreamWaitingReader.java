@@ -34,7 +34,6 @@ public class DatabusStreamWaitingReader
   protected PartitionCheckpointList partitionCheckpointList;
   private boolean movedToNext;
   private int prevMin;
-  protected Map<Integer, Boolean> readStatusOfMinutes;
 
   public DatabusStreamWaitingReader(PartitionId partitionId, FileSystem fs,
       Path streamDir,  String inputFormatClass, Configuration conf,
@@ -46,10 +45,11 @@ public class DatabusStreamWaitingReader
         waitTimeForFileCreate, metrics, noNewFiles);
     this.partitionCheckpointList = partitionCheckpointList;
     this.partitionMinList = partitionMinList; 
-    readStatusOfMinutes = new HashMap<Integer, Boolean>();
+  /*  readStatusOfMinutes = new HashMap<Integer, Boolean>();
     for (Integer minuteId : partitionMinList) {
       readStatusOfMinutes.put(minuteId, false);
     }
+    */
   }
 
   public boolean isRead(Date currentTimeStamp, int minute) {
@@ -58,8 +58,8 @@ public class DatabusStreamWaitingReader
         getCheckpoints() != null)) {
       partitionCheckpoint = partitionCheckpointList.getCheckpoints().get(minute);
       if (partitionCheckpoint != null) {
-        Date checkpointedTimestamp = getDateFromStreamDir(streamDir, 
-            new Path(partitionCheckpoint.getFileName()));
+        Date checkpointedTimestamp = getDateFromCheckpointPath(
+            partitionCheckpoint.getFileName());
         if (currentTimeStamp.before(checkpointedTimestamp)) {  
           return true;
         } else if (currentTimeStamp.equals(checkpointedTimestamp)) {
@@ -87,13 +87,13 @@ public class DatabusStreamWaitingReader
     if (partitioncheckpoint != null) {
       Path checkpointedFileName =new Path(streamDir, 
           partitioncheckpoint.getFileName());
-      LOG.info("XXXX " + currentFile + " " + checkpointedFileName);
-      if (currentFile.getPath().compareTo(checkpointedFileName) != 0) {
+      LOG.info("XXXX " + currentFile.getPath() + " " + checkpointedFileName);
+      if (!(currentFile.getPath()).equals(checkpointedFileName)) {
         if(fs.exists(checkpointedFileName)) {
           currentFile = fs.getFileStatus(checkpointedFileName);
-          currentLineNum = partitioncheckpoint.getLineNum();
         }
-      }
+      } 
+      currentLineNum = partitioncheckpoint.getLineNum();
     }
     if (currentFile != null) {
       LOG.debug("CurrentFile:" + getCurrentFile() + " currentLineNum:" +
@@ -128,13 +128,13 @@ public class DatabusStreamWaitingReader
                 if (!isRead(currenTimestamp, min)) {                                         
                   doRecursiveListing(dir, pathFilter, fmap);
                 }
+              } else {
+                LOG.info("Reached end of file listing. Not looking at the last" +
+                    " minute directory:" + dir);
+                breakListing = true;
+                break;
               }
-            } else {
-              LOG.info("Reached end of file listing. Not looking at the last" +
-                  " minute directory:" + dir);
-              breakListing = true;
-              break;
-            }
+            } 
           }
         } 
       } else {
@@ -146,6 +146,14 @@ public class DatabusStreamWaitingReader
       if (breakListing) {
         break;
       }
+    }
+    // 
+    if (getFirstFileInStream() != null) {
+      Calendar cal = Calendar.getInstance();
+      Date currentDate = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
+          getFirstFileInStream().getPath().getParent());
+      cal.setTime(currentDate);
+      currentMin = cal.get(Calendar.MINUTE);
     }
   }
 
@@ -163,30 +171,33 @@ public class DatabusStreamWaitingReader
     if (currentMin != now.get(Calendar.MINUTE)) {
       partitionCheckpointList.set(currentMin, 
           new PartitionCheckpoint(getCurrentStreamFile(), -1));
-      readStatusOfMinutes.put(currentMin, true);
+    //  readStatusOfMinutes.put(currentMin, true);
       //We are moving to next file, set the flags so that Message checkpoints can be populated.
       movedToNext = true;
       prevMin=currentMin;
       currentMin = now.get(Calendar.MINUTE);
-      if (readStatusOfMinutes.get(currentMin)) {
+    /*  if (readStatusOfMinutes.get(currentMin)) {
         this.currentFile = nextFile;
         return true;
-      }
+      } */
       PartitionCheckpoint partitionCheckpoint = partitionCheckpointList.
           getCheckpoints().get(currentMin);
       if (partitionCheckpoint != null && partitionCheckpoint.getLineNum() != -1) {
-        currentFile = nextFile;
-        Path checkPointedFileName = new Path(streamDir, 
-            partitionCheckpoint.getFileName());
-        //set iterator to checkpoointed file if there is a checkpoint
-        if(currentFile.getPath().compareTo(checkPointedFileName) !=0) {
-          currentFile = fs.getFileStatus(new Path(partitionCheckpoint.
-              getFileName()));
-          setIteratorToFile(currentFile);
-        }
-        currentLineNum = partitionCheckpoint.getLineNum();
-        this.currentFile = currentFile;
-        return false;
+        Date checkpointedTimeStamp = getDateFromCheckpointPath(partitionCheckpoint.getFileName()); 
+       // if (checkpointedTimeStamp.equals(now.getTime())) {
+          currentFile = nextFile;
+          Path checkPointedFileName = new Path(streamDir, 
+              partitionCheckpoint.getFileName());
+          //set iterator to checkpoointed file if there is a checkpoint
+          if(!currentFile.getPath().equals(checkPointedFileName)) {
+            currentFile = fs.getFileStatus(checkPointedFileName);
+            setIteratorToFile(currentFile);
+            
+          }
+          currentLineNum = partitionCheckpoint.getLineNum();
+          this.currentFile = currentFile;
+          return false;
+        //}
       }
     }
     this.currentFile = nextFile;
@@ -299,8 +310,7 @@ public class DatabusStreamWaitingReader
   public static Date getBuildTimestamp(Path streamDir,
       PartitionCheckpoint partitionCheckpoint) {
     try {
-      return getDateFromStreamDir(streamDir,
-          ((HadoopStreamFile)partitionCheckpoint.getStreamFile()).getParent());
+      return getDateFromCheckpointPath(partitionCheckpoint.getFileName());
     } catch (Exception e) {
       throw new IllegalArgumentException("Invalid checkpoint:" + 
           partitionCheckpoint.getStreamFile(), e);

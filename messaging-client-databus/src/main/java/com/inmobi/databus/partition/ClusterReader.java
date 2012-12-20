@@ -30,11 +30,7 @@ public class ClusterReader extends AbstractPartitionStreamReader {
   private final boolean isDatabusData;
 
   ClusterReader(PartitionId partitionId,
-<<<<<<< HEAD
       PartitionCheckpointList partitionCheckpointList, FileSystem fs,
-=======
-  		PartitionCheckpointList partitionCheckpointList, FileSystem fs,
->>>>>>> 2c0da5c9521b40c69a3cea585c52eea45b12e956
       Path streamDir, Configuration conf, String inputFormatClass,
       Date startTime, long waitTimeForFileCreate, boolean isDatabusData,
       PartitionReaderStatsExposer metrics, boolean noNewFiles,
@@ -55,41 +51,6 @@ public class ClusterReader extends AbstractPartitionStreamReader {
   +   *  So that reader starts build listing from this partition checkpoint  time stamp).
   +   */
   public PartitionCheckpoint findLeastPartitionCheckPointTime(
-  	PartitionCheckpointList partitionCheckpointList) {
-  	PartitionCheckpoint partitioncheckpoint = null;
-
-  	Map<Integer, PartitionCheckpoint> listOfCheckpoints = 
-  			partitionCheckpointList.getCheckpoints();
-
-  	if (listOfCheckpoints != null) {
-  		Collection<PartitionCheckpoint> listofPartitionCheckpoints = 
-  				listOfCheckpoints.values();
-  		Iterator<PartitionCheckpoint> it = listofPartitionCheckpoints.iterator();
-  		Date timeStamp = null;
-  		if (it.hasNext()) {
-  			partitioncheckpoint = it.next();
-  			timeStamp = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
-  					new Path(partitioncheckpoint.getFileName()));
-  		}
-  		while (it.hasNext()) {
-  			PartitionCheckpoint tmpPartitionCheckpoint = it.next();
-  			Date  date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
-  					new Path(tmpPartitionCheckpoint.getFileName()));
-  			if (timeStamp.compareTo(date) > 0) {
-  				partitioncheckpoint = tmpPartitionCheckpoint;
-  				timeStamp = date;
-  			}
-  		} 
-  	}
-  	return partitioncheckpoint;
-  }
-
-
-  /*
-  +   *  this method is used to find the partition checkpoint which has least time stamp.
-  +   *  So that reader starts build listing from this partition checkpoint  time stamp).
-  +   */
-  public PartitionCheckpoint findLeastPartitionCheckPointTime(
       PartitionCheckpointList partitionCheckpointList) {
     PartitionCheckpoint partitioncheckpoint = null;
     Map<Integer, PartitionCheckpoint> listOfCheckpoints = 
@@ -102,13 +63,13 @@ public class ClusterReader extends AbstractPartitionStreamReader {
       Date timeStamp = null;
       if (it.hasNext()) {
         partitioncheckpoint = it.next();
-        timeStamp = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
-            new Path(partitioncheckpoint.getFileName()));
+        timeStamp = DatabusStreamWaitingReader.getDateFromCheckpointPath(
+            partitioncheckpoint.getFileName());
       }
       while (it.hasNext()) {
         PartitionCheckpoint tmpPartitionCheckpoint = it.next();
-        Date  date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
-            new Path(tmpPartitionCheckpoint.getFileName()));
+        Date  date = DatabusStreamWaitingReader.getDateFromCheckpointPath(
+            partitioncheckpoint.getFileName());
         if (timeStamp.compareTo(date) > 0) {
           partitioncheckpoint = tmpPartitionCheckpoint;
           timeStamp = date;
@@ -123,11 +84,7 @@ public class ClusterReader extends AbstractPartitionStreamReader {
     LOG.info("Initializing partition reader's current file");
     PartitionCheckpoint partitionCheckpoint = null;
     if (partitionCheckpointList != null) {
-<<<<<<< HEAD
       partitionCheckpoint = findLeastPartitionCheckPointTime(partitionCheckpointList);
-=======
-    	partitionCheckpoint = findLeastPartitionCheckPointTime(partitionCheckpointList);
->>>>>>> 2c0da5c9521b40c69a3cea585c52eea45b12e956
     } 
 
     if (startTime != null) {
@@ -141,21 +98,18 @@ public class ClusterReader extends AbstractPartitionStreamReader {
           DatabusStreamWaitingReader.getBuildTimestamp(streamDir,
               partitionCheckpoint));
       if (!reader.isEmpty()) {
-<<<<<<< HEAD
         if (partitionCheckpoint.getLineNum() == -1) {
           reader.initFromNextCheckPoint(); 
         }
         else if (!reader.initializeCurrentFile(partitionCheckpoint)) {
           throw new IllegalArgumentException("Checkpoint file does not exist");
         }
-=======
       	if (partitionCheckpoint.getLineNum() == -1) {
       		reader.initFromNextCheckPoint(); 
       	}
       	else if (!reader.initializeCurrentFile(partitionCheckpoint)) {
       		throw new IllegalArgumentException("Checkpoint file does not exist");
       	}
->>>>>>> 2c0da5c9521b40c69a3cea585c52eea45b12e956
       } else {
         reader.startFromBegining();
       }
@@ -176,7 +130,6 @@ public class ClusterReader extends AbstractPartitionStreamReader {
     } 
     return line;
   }
-<<<<<<< HEAD
 
   @Override
   public MessageCheckpoint getMessageCheckpoint() {
@@ -193,23 +146,5 @@ public class ClusterReader extends AbstractPartitionStreamReader {
       dataWaitingReader.resetMoveToNextFlags();
     }
     return consumerPartitionCheckPoint;
-=======
-  
-  @Override
-  public MessageCheckpoint getMessageCheckpoint() {
-  	DatabusStreamWaitingReader dataWaitingReader = (DatabusStreamWaitingReader) reader;
-  	boolean movedToNext = dataWaitingReader.isMovedToNext();
-  	ConsumerPartitionCheckPoint consumerPartitionCheckPoint =
-  			new ConsumerPartitionCheckPoint(dataWaitingReader.getCurrentStreamFile(),
-  					dataWaitingReader.getCurrentLineNum(),dataWaitingReader.getCurrentMin());
-  	//Check after getting message checkpoint, if Partition Reader has moved to next file. If yes, then set the
-  	//flags in the checkpoint and reset reader flags.
-  	if(movedToNext) {
-  		consumerPartitionCheckPoint.setEofPrevFile(movedToNext);
-  		consumerPartitionCheckPoint.setPrevMinId(dataWaitingReader.getPrevMin());
-  		dataWaitingReader.resetMoveToNextFlags();
-  	}
-  	return consumerPartitionCheckPoint;
->>>>>>> 2c0da5c9521b40c69a3cea585c52eea45b12e956
   }
 }
