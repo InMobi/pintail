@@ -141,7 +141,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
             partitionsChkPoints.put(id, null);
           }
           Date partitionTimestamp = getPartitionTimestamp(id,
-          		partitionsChkPoints.get(id), allowedStartTime);
+              partitionsChkPoints.get(id), allowedStartTime);
           LOG.debug("Creating partition " + id);
           PartitionReaderStatsExposer collectorMetrics = new 
               CollectorReaderStatsExposer(topicName, consumerName,

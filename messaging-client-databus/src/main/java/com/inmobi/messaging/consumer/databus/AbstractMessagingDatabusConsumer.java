@@ -27,205 +27,205 @@ import com.inmobi.messaging.consumer.AbstractMessageConsumer;
 import com.inmobi.messaging.metrics.DatabusConsumerStatsExposer;
 
 public abstract class AbstractMessagingDatabusConsumer 
-    extends AbstractMessageConsumer 
-    implements MessagingConsumerConfig {
-	protected static final Log LOG = LogFactory.getLog(
-			AbstractMessagingDatabusConsumer.class);
-	protected static final long ONE_HOUR_IN_MILLIS = 1 * 60 * 60 * 1000;
+extends AbstractMessageConsumer 
+implements MessagingConsumerConfig {
+  protected static final Log LOG = LogFactory.getLog(
+      AbstractMessagingDatabusConsumer.class);
+  protected static final long ONE_HOUR_IN_MILLIS = 1 * 60 * 60 * 1000;
 
-	protected BlockingQueue<QueueEntry> buffer;
+  protected BlockingQueue<QueueEntry> buffer;
 
-	protected final Map<PartitionId, PartitionReader> readers = 
-			new HashMap<PartitionId, PartitionReader>();
+  protected final Map<PartitionId, PartitionReader> readers = 
+      new HashMap<PartitionId, PartitionReader>();
 
-	protected CheckpointProvider checkpointProvider;
-	protected ConsumerCheckpoint currentCheckpoint;
-	protected long waitTimeForFileCreate;
-	protected int bufferSize;
-	protected DataEncodingType dataEncodingType;
-	protected int retentionInHours;
-	protected int consumerNumber;
-	protected int totalConsumers;
-	protected Set<Integer> partitionMinList;
-	
-	@Override
-	protected void init(ClientConfig config) throws IOException {
-	  initializeConfig(config);
-	  start();
-	}
+  protected CheckpointProvider checkpointProvider;
+  protected ConsumerCheckpoint currentCheckpoint;
+  protected long waitTimeForFileCreate;
+  protected int bufferSize;
+  protected DataEncodingType dataEncodingType;
+  protected int retentionInHours;
+  protected int consumerNumber;
+  protected int totalConsumers;
+  protected Set<Integer> partitionMinList;
 
-	public static CheckpointProvider createCheckpointProvider(
-		String checkpointProviderClassName, String chkpointDir) {
-		CheckpointProvider chkProvider = null;
-		try {
-			Class<?> clazz = Class.forName(checkpointProviderClassName);
-			Constructor<?> constructor = clazz.getConstructor(String.class);
-			chkProvider = (CheckpointProvider) constructor.newInstance(new Object[]
-					{chkpointDir});
-		} catch (Exception e) {
-			throw new IllegalArgumentException("Could not create checkpoint provider "
-					+ checkpointProviderClassName, e);
-		}
-		return chkProvider;
-	}
+  @Override
+  protected void init(ClientConfig config) throws IOException {
+    initializeConfig(config);
+    start();
+  }
 
-	protected void initializeConfig(ClientConfig config) throws IOException {
-	  super.init(config);
-	  // verify authentication
-	  if (UserGroupInformation.isSecurityEnabled()) {
-	    String principal = config.getString(consumerPrincipal);
-	    String keytab = config.getString(consumerKeytab);
-	    if (principal != null && keytab != null) {
-	      SecureLoginUtil.login(consumerPrincipal, principal,
-	          consumerKeytab, keytab);
-	    } else {
-	      LOG.info("There is no principal or key tab file passed. Using the" +
-	          " commandline authentication.");
-	    }
-	  }
+  public static CheckpointProvider createCheckpointProvider(
+      String checkpointProviderClassName, String chkpointDir) {
+    CheckpointProvider chkProvider = null;
+    try {
+      Class<?> clazz = Class.forName(checkpointProviderClassName);
+      Constructor<?> constructor = clazz.getConstructor(String.class);
+      chkProvider = (CheckpointProvider) constructor.newInstance(new Object[]
+          {chkpointDir});
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Could not create checkpoint provider "
+          + checkpointProviderClassName, e);
+    }
+    return chkProvider;
+  }
 
-	  // Read consumer id
-	  String consumerIdStr = config.getString(consumerIdInGroupConfig,
-	      DEFAULT_CONSUMER_ID);
-	  String[] id = consumerIdStr.split("/");
-	  try {
-	    consumerNumber = Integer.parseInt(id[0]);
-	    totalConsumers = Integer.parseInt(id[1]);
-	    partitionMinList = new HashSet<Integer>();
-	    if (consumerNumber > 0 && totalConsumers > 0) {
-	      for (int i = 0; i < 60; i++) {
-	        if ((i % totalConsumers) == (consumerNumber - 1)) {
-	          partitionMinList.add(i);
-	        }
-	      }
-	    } else {
-	      throw new IllegalArgumentException("Invalid consumer group membership");
-	    }
-	  } catch (NumberFormatException nfe) {
-	    throw new IllegalArgumentException("Invalid consumer group membership",
-	        nfe);
-	  }
-		// Create checkpoint provider and initialize checkpoint
-		String chkpointProviderClassName = config.getString(
-				chkProviderConfig, DEFAULT_CHK_PROVIDER);
-		String databusCheckpointDir = config.getString(checkpointDirConfig, 
-				DEFAULT_CHECKPOINT_DIR);
-		this.checkpointProvider = createCheckpointProvider(
-				chkpointProviderClassName, databusCheckpointDir);
+  protected void initializeConfig(ClientConfig config) throws IOException {
+    super.init(config);
+    // verify authentication
+    if (UserGroupInformation.isSecurityEnabled()) {
+      String principal = config.getString(consumerPrincipal);
+      String keytab = config.getString(consumerKeytab);
+      if (principal != null && keytab != null) {
+        SecureLoginUtil.login(consumerPrincipal, principal,
+            consumerKeytab, keytab);
+      } else {
+        LOG.info("There is no principal or key tab file passed. Using the" +
+            " commandline authentication.");
+      }
+    }
 
-		createCheckpoint();
-		currentCheckpoint.read(checkpointProvider, getChkpointKey());
+    // Read consumer id
+    String consumerIdStr = config.getString(consumerIdInGroupConfig,
+        DEFAULT_CONSUMER_ID);
+    String[] id = consumerIdStr.split("/");
+    try {
+      consumerNumber = Integer.parseInt(id[0]);
+      totalConsumers = Integer.parseInt(id[1]);
+      partitionMinList = new HashSet<Integer>();
+      if (consumerNumber > 0 && totalConsumers > 0) {
+        for (int i = 0; i < 60; i++) {
+          if ((i % totalConsumers) == (consumerNumber - 1)) {
+            partitionMinList.add(i);
+          }
+        }
+      } else {
+        throw new IllegalArgumentException("Invalid consumer group membership");
+      }
+    } catch (NumberFormatException nfe) {
+      throw new IllegalArgumentException("Invalid consumer group membership",
+          nfe);
+    }
+    // Create checkpoint provider and initialize checkpoint
+    String chkpointProviderClassName = config.getString(
+        chkProviderConfig, DEFAULT_CHK_PROVIDER);
+    String databusCheckpointDir = config.getString(checkpointDirConfig, 
+        DEFAULT_CHECKPOINT_DIR);
+    this.checkpointProvider = createCheckpointProvider(
+        chkpointProviderClassName, databusCheckpointDir);
 
-		//create buffer
-		bufferSize = config.getInteger(queueSizeConfig, DEFAULT_QUEUE_SIZE);
-		buffer = new LinkedBlockingQueue<QueueEntry>(bufferSize);
+    createCheckpoint();
+    currentCheckpoint.read(checkpointProvider, getChkpointKey());
 
-		// initialize other common configuration
-		waitTimeForFileCreate = config.getLong(waitTimeForFileCreateConfig,
-				DEFAULT_WAIT_TIME_FOR_FILE_CREATE);
-		dataEncodingType = DataEncodingType.valueOf(
-				config.getString(dataEncodingConfg, DEFAULT_DATA_ENCODING));
+    //create buffer
+    bufferSize = config.getInteger(queueSizeConfig, DEFAULT_QUEUE_SIZE);
+    buffer = new LinkedBlockingQueue<QueueEntry>(bufferSize);
 
-		// get the retention period of the topic
-		retentionInHours = config.getInteger(retentionConfig,
-				DEFAULT_RETENTION_HOURS); 
+    // initialize other common configuration
+    waitTimeForFileCreate = config.getLong(waitTimeForFileCreateConfig,
+        DEFAULT_WAIT_TIME_FOR_FILE_CREATE);
+    dataEncodingType = DataEncodingType.valueOf(
+        config.getString(dataEncodingConfg, DEFAULT_DATA_ENCODING));
 
-		LOG.debug("Using data encoding type as " + dataEncodingType);
-	}
+    // get the retention period of the topic
+    retentionInHours = config.getInteger(retentionConfig,
+        DEFAULT_RETENTION_HOURS); 
 
-	public Map<PartitionId, PartitionReader> getPartitionReaders() {
-		return readers;
-	}
+    LOG.debug("Using data encoding type as " + dataEncodingType);
+  }
 
-	protected abstract void createCheckpoint();
+  public Map<PartitionId, PartitionReader> getPartitionReaders() {
+    return readers;
+  }
 
-	public Set<Integer> getPartitionMinList() {
-		return partitionMinList;
-	}
+  protected abstract void createCheckpoint();
 
-	public ConsumerCheckpoint getCurrentCheckpoint() {
-		return currentCheckpoint;
-	}
+  public Set<Integer> getPartitionMinList() {
+    return partitionMinList;
+  }
 
-	@Override
-	protected Message getNext() throws InterruptedException {
-		QueueEntry entry;
-		entry = buffer.take();
-		MessageCheckpoint msgchk = entry.getMessageChkpoint();
-		currentCheckpoint.set(entry.getPartitionId(), msgchk);
-		return entry.getMessage();
-	}
+  public ConsumerCheckpoint getCurrentCheckpoint() {
+    return currentCheckpoint;
+  }
 
-	protected synchronized void start() throws IOException {
-		createPartitionReaders();
-		for (PartitionReader reader : readers.values()) {
-			reader.start();
-		}
-	}
+  @Override
+  protected Message getNext() throws InterruptedException {
+    QueueEntry entry;
+    entry = buffer.take();
+    MessageCheckpoint msgchk = entry.getMessageChkpoint();
+    currentCheckpoint.set(entry.getPartitionId(), msgchk);
+    return entry.getMessage();
+  }
 
-	protected abstract void createPartitionReaders() throws IOException;
+  protected synchronized void start() throws IOException {
+    createPartitionReaders();
+    for (PartitionReader reader : readers.values()) {
+      reader.start();
+    }
+  }
 
-	protected Date getPartitionTimestamp(PartitionId id, MessageCheckpoint pck,
-	    Date allowedStartTime) {
-	  Date partitionTimestamp = startTime; 
-	  if (startTime == null && (pck == null || pck.isNULL(partitionMinList))) {
-	    LOG.info("There is no startTime passed and no checkpoint exists" +
-	        " for the partition: " + id + " starting from the start" +
-	        " of the stream.");
-	    partitionTimestamp = allowedStartTime;
-	  } else if (startTime != null && startTime.before(allowedStartTime)) {
-	    LOG.info("Start time passed is before the start of the stream," +
-	        " starting from the start of the stream.");
-	    partitionTimestamp = allowedStartTime;
-	  } else {
-	    LOG.info("Creating partition with timestamp: " + partitionTimestamp
-	        + " checkpoint:" + pck);
-	  }
-	  return partitionTimestamp;
-	}
+  protected abstract void createPartitionReaders() throws IOException;
 
-	protected String getChkpointKey() {
-	  return consumerName + "_" + topicName;
-	}
+  protected Date getPartitionTimestamp(PartitionId id, MessageCheckpoint pck,
+      Date allowedStartTime) {
+    Date partitionTimestamp = startTime; 
+    if (startTime == null && (pck == null || pck.isNULL(partitionMinList))) {
+      LOG.info("There is no startTime passed and no checkpoint exists" +
+          " for the partition: " + id + " starting from the start" +
+          " of the stream.");
+      partitionTimestamp = allowedStartTime;
+    } else if (startTime != null && startTime.before(allowedStartTime)) {
+      LOG.info("Start time passed is before the start of the stream," +
+          " starting from the start of the stream.");
+      partitionTimestamp = allowedStartTime;
+    } else {
+      LOG.info("Creating partition with timestamp: " + partitionTimestamp
+          + " checkpoint:" + pck);
+    }
+    return partitionTimestamp;
+  }
 
-	@Override
-	protected void doReset() throws IOException {
-	  // restart the service, consumer will start streaming from the last saved
-	  // checkpoint
-	  close();
-	  currentCheckpoint.read(checkpointProvider, getChkpointKey());
-	  LOG.info("Resetting to checkpoint:" + currentCheckpoint);
-	  // reset to last marked position, ignore start time
-	  startTime = null;
-	  buffer = new LinkedBlockingQueue<QueueEntry>(bufferSize);
-	  start();
-	}
+  protected String getChkpointKey() {
+    return consumerName + "_" + topicName;
+  }
 
-	@Override
-	protected void doMark() throws IOException {
-	  currentCheckpoint.write(checkpointProvider, getChkpointKey());
-	  LOG.info("Committed checkpoint:" + currentCheckpoint);
-	}
+  @Override
+  protected void doReset() throws IOException {
+    // restart the service, consumer will start streaming from the last saved
+    // checkpoint
+    close();
+    currentCheckpoint.read(checkpointProvider, getChkpointKey());
+    LOG.info("Resetting to checkpoint:" + currentCheckpoint);
+    // reset to last marked position, ignore start time
+    startTime = null;
+    buffer = new LinkedBlockingQueue<QueueEntry>(bufferSize);
+    start();
+  }
 
-	@Override
-	public synchronized void close() {
-	  for (PartitionReader reader : readers.values()) {
-	    reader.close();
-	    removeStatsExposer(reader.getStatsExposer());
-	  }
-	  readers.clear();
-	  buffer.clear();
-	  super.close();
-	}
+  @Override
+  protected void doMark() throws IOException {
+    currentCheckpoint.write(checkpointProvider, getChkpointKey());
+    LOG.info("Committed checkpoint:" + currentCheckpoint);
+  }
 
-	@Override
-	public boolean isMarkSupported() {
-	  return true;
-	}
+  @Override
+  public synchronized void close() {
+    for (PartitionReader reader : readers.values()) {
+      reader.close();
+      removeStatsExposer(reader.getStatsExposer());
+    }
+    readers.clear();
+    buffer.clear();
+    super.close();
+  }
 
-	@Override
-	protected AbstractMessagingClientStatsExposer getMetricsImpl() {
-		return new DatabusConsumerStatsExposer(topicName, consumerName,
-				consumerNumber);
-	}
+  @Override
+  public boolean isMarkSupported() {
+    return true;
+  }
+
+  @Override
+  protected AbstractMessagingClientStatsExposer getMetricsImpl() {
+    return new DatabusConsumerStatsExposer(topicName, consumerName,
+        consumerNumber);
+  }
 }

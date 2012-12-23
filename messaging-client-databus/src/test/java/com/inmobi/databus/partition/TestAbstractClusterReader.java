@@ -57,12 +57,12 @@ public abstract class TestAbstractClusterReader {
   abstract boolean isDatabusData();
 
   public void testInitialize() throws Exception {
-  	initializeMinList();
+    initializeMinList();
     Map<Integer, PartitionCheckpoint> chkpoints = new TreeMap<Integer, 
-  			PartitionCheckpoint>();
-  	partitionCheckpointList = new PartitionCheckpointList(chkpoints);
-    
-  	PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
+        PartitionCheckpoint>();
+    partitionCheckpointList = new PartitionCheckpointList(chkpoints);
+
+    PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
         testStream, "c1", partitionId.toString(), consumerNumber);
     Calendar cal = Calendar.getInstance();
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
@@ -91,8 +91,8 @@ public abstract class TestAbstractClusterReader {
     // Read from checkpoint with local stream file name which does not exist
     // and is before the stream
     prepareCheckpoint(HadoopUtil.getOlderFile(streamDir, fs, databusFiles[0]), 
-    		20, databusFiles[1], partitionCheckpointList);
-  
+        20, databusFiles[1], partitionCheckpointList);
+
     preader = new PartitionReader(partitionId, partitionCheckpointList,
         fs, buffer, streamDir, conf, inputFormatClass, null, 1000,
         isDatabusData(), dataEncoding, prMetrics, partitionMinList); 
@@ -116,8 +116,8 @@ public abstract class TestAbstractClusterReader {
         fs.getFileStatus(databusFiles[1])), 20, databusFiles[1], 
         partitionCheckpointList);
     preader = new PartitionReader(partitionId, partitionCheckpointList,fs, buffer,
-            streamDir, conf, inputFormatClass, cal.getTime(), 1000,
-            isDatabusData(), dataEncoding, prMetrics, partitionMinList);
+        streamDir, conf, inputFormatClass, cal.getTime(), 1000,
+        isDatabusData(), dataEncoding, prMetrics, partitionMinList);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile().toString(),
         getDateStringFromPath(databusFiles[1].toString()));
@@ -140,8 +140,8 @@ public abstract class TestAbstractClusterReader {
         fs.getFileStatus(databusFiles[1])), 20, databusFiles[1], 
         partitionCheckpointList);
     preader = new PartitionReader(partitionId,partitionCheckpointList, fs, buffer,
-            streamDir, conf, inputFormatClass, cal.getTime(), 1000,
-            isDatabusData(), dataEncoding, prMetrics, partitionMinList);
+        streamDir, conf, inputFormatClass, cal.getTime(), 1000,
+        isDatabusData(), dataEncoding, prMetrics, partitionMinList);
     preader.init();
     Assert.assertEquals(preader.getCurrentFile().toString(),
         getDateStringFromPath(databusFiles[1].toString()));
@@ -162,8 +162,8 @@ public abstract class TestAbstractClusterReader {
         fs.getFileStatus(databusFiles[1])), 20, databusFiles[1], 
         partitionCheckpointList);
     preader = new PartitionReader(partitionId, partitionCheckpointList, fs, buffer,
-            streamDir, conf, inputFormatClass, cal.getTime(), 1000,
-            isDatabusData(), dataEncoding, prMetrics, partitionMinList);     
+        streamDir, conf, inputFormatClass, cal.getTime(), 1000,
+        isDatabusData(), dataEncoding, prMetrics, partitionMinList);     
     preader.init();
     Assert.assertEquals(preader.getCurrentFile().toString(),
         getDateStringFromPath(databusFiles[0].toString()));
@@ -190,8 +190,8 @@ public abstract class TestAbstractClusterReader {
         fs.getFileStatus(databusFiles[1])), 20, databusFiles[1], 
         partitionCheckpointList);
     preader = new PartitionReader(partitionId, partitionCheckpointList, fs, buffer,
-            streamDir, conf, inputFormatClass, cal.getTime(), 1000,
-            isDatabusData(), dataEncoding, prMetrics, true, partitionMinList); 
+        streamDir, conf, inputFormatClass, cal.getTime(), 1000,
+        isDatabusData(), dataEncoding, prMetrics, true, partitionMinList); 
     preader.init();
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -203,17 +203,17 @@ public abstract class TestAbstractClusterReader {
   }
 
   public void testReadFromStart() throws Exception {
-  	initializeMinList();
+    initializeMinList();
     Map<Integer, PartitionCheckpoint> chkpoints = new TreeMap<Integer, 
-  			PartitionCheckpoint>();
-  	partitionCheckpointList = new PartitionCheckpointList(chkpoints); 
+        PartitionCheckpoint>();
+    partitionCheckpointList = new PartitionCheckpointList(chkpoints); 
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
         testStream, "c1", partitionId.toString(), consumerNumber);
     preader = new PartitionReader(partitionId, partitionCheckpointList, fs, 
-    		buffer, streamDir, conf, inputFormatClass,
+        buffer, streamDir, conf, inputFormatClass,
         DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
-                databusFiles[0].getParent()),
-        1000, isDatabusData(), dataEncoding, prMetrics, true, partitionMinList);        
+            databusFiles[0].getParent()),
+            1000, isDatabusData(), dataEncoding, prMetrics, true, partitionMinList);        
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -246,19 +246,19 @@ public abstract class TestAbstractClusterReader {
   }
 
   public void testReadFromCheckpoint() throws Exception {
-  	initializeMinList();
+    initializeMinList();
     Map<Integer, PartitionCheckpoint> chkpoints = new TreeMap<Integer, 
-  			PartitionCheckpoint>();
-  	partitionCheckpointList = new PartitionCheckpointList(chkpoints);
+        PartitionCheckpoint>();
+    partitionCheckpointList = new PartitionCheckpointList(chkpoints);
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
         testStream, "c1", partitionId.toString(), consumerNumber);
     prepareCheckpoint(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[1])), 20, databusFiles[1], 
         partitionCheckpointList);
-   
+
     preader = new PartitionReader(partitionId, partitionCheckpointList, fs, buffer,
-            streamDir, conf, inputFormatClass, null, 1000,
-            isDatabusData(), dataEncoding, prMetrics, true, partitionMinList);
+        streamDir, conf, inputFormatClass, null, 1000,
+        isDatabusData(), dataEncoding, prMetrics, true, partitionMinList);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -288,14 +288,14 @@ public abstract class TestAbstractClusterReader {
   }
 
   public void testReadFromCheckpointWhichDoesNotExist() throws Exception {
-  	initializeMinList();
+    initializeMinList();
     Map<Integer, PartitionCheckpoint> chkpoints = new TreeMap<Integer, 
-  			PartitionCheckpoint>();
-  	partitionCheckpointList = new PartitionCheckpointList(chkpoints);
+        PartitionCheckpoint>();
+    partitionCheckpointList = new PartitionCheckpointList(chkpoints);
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
         testStream, "c1", partitionId.toString(), consumerNumber);
     prepareCheckpoint(HadoopUtil.getOlderFile(streamDir, fs, databusFiles[0]), 
-    		20, databusFiles[0], partitionCheckpointList);
+        20, databusFiles[0], partitionCheckpointList);
 
     preader = new PartitionReader(partitionId, partitionCheckpointList, fs, buffer,
         streamDir, conf, inputFormatClass, null, 1000,
@@ -332,10 +332,10 @@ public abstract class TestAbstractClusterReader {
   }
 
   public void testReadFromStartTime() throws Exception {
-  	initializeMinList();
+    initializeMinList();
     Map<Integer, PartitionCheckpoint> chkpoints = new TreeMap<Integer, 
-  			PartitionCheckpoint>();
-  	partitionCheckpointList = new PartitionCheckpointList(chkpoints);
+        PartitionCheckpoint>();
+    partitionCheckpointList = new PartitionCheckpointList(chkpoints);
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
         testStream, "c1", partitionId.toString(), consumerNumber);
     prepareCheckpoint(DatabusStreamWaitingReader.getHadoopStreamFile(
@@ -343,9 +343,9 @@ public abstract class TestAbstractClusterReader {
         partitionCheckpointList);
 
     preader = new PartitionReader(partitionId, partitionCheckpointList, fs, 
-    				buffer, streamDir, conf, inputFormatClass,
-            DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
-                databusFiles[1].getParent()),
+        buffer, streamDir, conf, inputFormatClass,
+        DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
+            databusFiles[1].getParent()),
             1000,
             isDatabusData(), dataEncoding, prMetrics, true, partitionMinList);   
     preader.init();
@@ -377,10 +377,10 @@ public abstract class TestAbstractClusterReader {
   }
 
   public void testReadFromStartTimeWithinStream() throws Exception {
-  	initializeMinList();
+    initializeMinList();
     Map<Integer, PartitionCheckpoint> chkpoints = new TreeMap<Integer, 
-  			PartitionCheckpoint>();
-  	partitionCheckpointList = new PartitionCheckpointList(chkpoints);
+        PartitionCheckpoint>();
+    partitionCheckpointList = new PartitionCheckpointList(chkpoints);
     Calendar cal = Calendar.getInstance();
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         databusFiles[0].getParent()));
@@ -392,8 +392,8 @@ public abstract class TestAbstractClusterReader {
         partitionCheckpointList);
 
     preader = new PartitionReader(partitionId, partitionCheckpointList, fs, buffer,
-            streamDir, conf, inputFormatClass, cal.getTime(), 1000,
-            isDatabusData(), dataEncoding, prMetrics, true, partitionMinList); 
+        streamDir, conf, inputFormatClass, cal.getTime(), 1000,
+        isDatabusData(), dataEncoding, prMetrics, true, partitionMinList); 
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -419,14 +419,14 @@ public abstract class TestAbstractClusterReader {
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 200);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 200);
     Assert.assertEquals(prMetrics.getWaitTimeUnitsNewFile(), 0);
-    Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0); 
+    Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
   }
 
   public void testReadFromStartTimeBeforeStream() throws Exception {
-  	initializeMinList();
+    initializeMinList();
     Map<Integer, PartitionCheckpoint> chkpoints = new TreeMap<Integer, 
-  			PartitionCheckpoint>();
-  	partitionCheckpointList = new PartitionCheckpointList(chkpoints); 
+        PartitionCheckpoint>();
+    partitionCheckpointList = new PartitionCheckpointList(chkpoints); 
     Calendar cal = Calendar.getInstance();
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         databusFiles[0].getParent()));
@@ -438,8 +438,8 @@ public abstract class TestAbstractClusterReader {
         partitionCheckpointList);
 
     preader = new PartitionReader(partitionId, partitionCheckpointList,  fs, buffer,
-            streamDir, conf, inputFormatClass, cal.getTime(), 1000,
-            isDatabusData(), dataEncoding, prMetrics, true, partitionMinList);  
+        streamDir, conf, inputFormatClass, cal.getTime(), 1000,
+        isDatabusData(), dataEncoding, prMetrics, true, partitionMinList);  
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -452,7 +452,7 @@ public abstract class TestAbstractClusterReader {
         fs.getFileStatus(databusFiles[0])), 1, 0, 100, partitionId,
         buffer, dataEncoding.equals(DataEncodingType.BASE64));
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
-        fs.getFileStatus(databusFiles[1])), 2, 20, 80, partitionId,
+        fs.getFileStatus(databusFiles[1])), 2, 00, 100, partitionId,                  
         buffer, dataEncoding.equals(DataEncodingType.BASE64));
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 0, 100, partitionId,
@@ -465,17 +465,17 @@ public abstract class TestAbstractClusterReader {
         .getReader().getClass().getName(),
         DatabusStreamWaitingReader.class.getName());
     Assert.assertEquals(prMetrics.getHandledExceptions(), 0);
-    Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 280);
-    Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 280);
+    Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 300);               
+    Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 300);                
     Assert.assertEquals(prMetrics.getWaitTimeUnitsNewFile(), 0);
     Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0); 
   }
 
   public void testReadFromStartTimeAfterStream() throws Exception {
-  	initializeMinList();
+    initializeMinList();
     Map<Integer, PartitionCheckpoint> chkpoints = new TreeMap<Integer, 
-  			PartitionCheckpoint>();
-  	partitionCheckpointList = new PartitionCheckpointList(chkpoints); 
+        PartitionCheckpoint>();
+    partitionCheckpointList = new PartitionCheckpointList(chkpoints); 
     Calendar cal = Calendar.getInstance();
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         databusFiles[2].getParent()));
@@ -486,8 +486,8 @@ public abstract class TestAbstractClusterReader {
         fs.getFileStatus(databusFiles[1])), 20, databusFiles[1], 
         partitionCheckpointList);
     preader = new PartitionReader(partitionId, partitionCheckpointList,  fs, buffer,
-            streamDir, conf, inputFormatClass, cal.getTime(), 1000,
-            isDatabusData(), dataEncoding, prMetrics, true, partitionMinList);        
+        streamDir, conf, inputFormatClass, cal.getTime(), 1000,
+        isDatabusData(), dataEncoding, prMetrics, true, partitionMinList);        
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -501,43 +501,43 @@ public abstract class TestAbstractClusterReader {
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 0);
     Assert.assertEquals(prMetrics.getCumulativeNanosForFetchMessage(), 0);
   }
-  
+
   public void testReadFromCheckpointWithSingleMinute() throws Exception {
-  	partitionMinList = new TreeSet<Integer>();
-  	Map<Integer, PartitionCheckpoint> chkpoints = new 
-  			TreeMap<Integer, PartitionCheckpoint>();
-  	partitionCheckpointList = new PartitionCheckpointList(chkpoints);
-  	
-  	for (int i =0; i < 1; i++) {
-  		Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
-  				databusFiles[i].getParent()) ; 
-  		Log.info("date is " + date);
-  		Calendar current = Calendar.getInstance();
-  		current.setTime(date);
-  		partitionMinList.add(current.get(Calendar.MINUTE));
-  		partitionCheckpointList.set(current.get(Calendar.MINUTE), new PartitionCheckpoint(
-  				DatabusStreamWaitingReader.getHadoopStreamFile(fs.getFileStatus(
-  						databusFiles[i])), 20)); 
-  	}
-  	
-  	PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
+    partitionMinList = new TreeSet<Integer>();
+    Map<Integer, PartitionCheckpoint> chkpoints = new 
+        TreeMap<Integer, PartitionCheckpoint>();
+    partitionCheckpointList = new PartitionCheckpointList(chkpoints);
+
+    for (int i =0; i < 1; i++) {
+      Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
+          databusFiles[i].getParent()) ; 
+      Log.info("date is " + date);
+      Calendar current = Calendar.getInstance();
+      current.setTime(date);
+      partitionMinList.add(current.get(Calendar.MINUTE));
+      partitionCheckpointList.set(current.get(Calendar.MINUTE), new PartitionCheckpoint(
+          DatabusStreamWaitingReader.getHadoopStreamFile(fs.getFileStatus(
+              databusFiles[i])), 20)); 
+    }
+
+    PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
         testStream, "c1", partitionId.toString(), consumerNumber);
     Calendar cal = Calendar.getInstance();
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         databusFiles[0].getParent()));
-   
+
     preader = new PartitionReader(partitionId, partitionCheckpointList, fs, buffer,
         streamDir, conf, inputFormatClass, null, 1000,
         isDatabusData(), dataEncoding, prMetrics, true, partitionMinList);             
     preader.init();
     Assert.assertEquals(preader.getCurrentFile().toString(),
         getDateStringFromPath(databusFiles[0].toString()));
-  	
+
     preader.execute();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[0])), 1, 20, 80, partitionId,
         buffer, dataEncoding.equals(DataEncodingType.BASE64));
-    
+
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -551,43 +551,43 @@ public abstract class TestAbstractClusterReader {
     Assert.assertEquals(prMetrics.getWaitTimeUnitsNewFile(), 0);
     Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);  
   }
-  
+
   public void testReadFromCheckpointMultipleMinutes() throws Exception {
-  	partitionMinList = new TreeSet<Integer>();
-  	Map<Integer, PartitionCheckpoint> chkpoints = new 
-  			TreeMap<Integer, PartitionCheckpoint>();
-  	partitionCheckpointList = new PartitionCheckpointList(chkpoints);
-  	
-  	for (int i =0; i < 3; i++) {
-  		Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
-  				databusFiles[i].getParent()) ; 
-  		Log.info("date is " + date);
-  		Calendar current = Calendar.getInstance();
+    partitionMinList = new TreeSet<Integer>();
+    Map<Integer, PartitionCheckpoint> chkpoints = new 
+        TreeMap<Integer, PartitionCheckpoint>();
+    partitionCheckpointList = new PartitionCheckpointList(chkpoints);
+
+    for (int i =0; i < 3; i++) {
+      Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
+          databusFiles[i].getParent()) ; 
+      Log.info("date is " + date);
+      Calendar current = Calendar.getInstance();
       current.setTime(date);
       partitionMinList.add(current.get(Calendar.MINUTE));
       partitionCheckpointList.set(current.get(Calendar.MINUTE), new PartitionCheckpoint(
-  				DatabusStreamWaitingReader.getHadoopStreamFile(fs.getFileStatus(
-  						databusFiles[i])), 20)); 
-  	}
-  	
-  	PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
+          DatabusStreamWaitingReader.getHadoopStreamFile(fs.getFileStatus(
+              databusFiles[i])), 20)); 
+    }
+
+    PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
         testStream, "c1", partitionId.toString(), consumerNumber);
     Calendar cal = Calendar.getInstance();
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         databusFiles[0].getParent()));
- 
+
     preader = new PartitionReader(partitionId, partitionCheckpointList, fs, buffer,
         streamDir, conf, inputFormatClass, null, 1000,
         isDatabusData(), dataEncoding, prMetrics,true, partitionMinList);             
     preader.init();
     Assert.assertEquals(preader.getCurrentFile().toString(),
         getDateStringFromPath(databusFiles[0].toString()));
-  	
+
     preader.execute();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[0])), 1, 20, 80, partitionId,
         buffer, dataEncoding.equals(DataEncodingType.BASE64));
-    
+
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[1])), 2, 20, 80, partitionId,
         buffer, dataEncoding.equals(DataEncodingType.BASE64));
@@ -607,73 +607,73 @@ public abstract class TestAbstractClusterReader {
     Assert.assertEquals(prMetrics.getWaitTimeUnitsNewFile(), 0);
     Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0); 
   }
-  
+
   public void testReadFromCheckpointSomeMinutes()  throws Exception {
-  	partitionMinList = new TreeSet<Integer>();
-  	Map<Integer, PartitionCheckpoint> chkpoints = new 
-  			TreeMap<Integer, PartitionCheckpoint>();
-  	partitionCheckpointList = new PartitionCheckpointList(chkpoints);
-  	for (int i =0; i < 3; i++) {
-  		Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
-  				databusFiles[i].getParent()) ; 
-  		Log.info("date is " + date);
-  		Calendar current = Calendar.getInstance();
+    partitionMinList = new TreeSet<Integer>();
+    Map<Integer, PartitionCheckpoint> chkpoints = new 
+        TreeMap<Integer, PartitionCheckpoint>();
+    partitionCheckpointList = new PartitionCheckpointList(chkpoints);
+    for (int i =0; i < 3; i++) {
+      Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
+          databusFiles[i].getParent()) ; 
+      Log.info("date is " + date);
+      Calendar current = Calendar.getInstance();
       current.setTime(date);
       partitionMinList.add(current.get(Calendar.MINUTE));
-  		if (i != 1) {
-  			partitionCheckpointList.set(current.get(Calendar.MINUTE), new PartitionCheckpoint(
-  					DatabusStreamWaitingReader.getHadoopStreamFile(fs.getFileStatus(
-  							databusFiles[i])), 20)); 
-  		} else {
-  			partitionCheckpointList.set(current.get(Calendar.MINUTE), new PartitionCheckpoint(
-  					DatabusStreamWaitingReader.getHadoopStreamFile(fs.getFileStatus(
-  							databusFiles[i])), 00)); 
-  		}
-  	}
+      if (i != 1) {
+        partitionCheckpointList.set(current.get(Calendar.MINUTE), new PartitionCheckpoint(
+            DatabusStreamWaitingReader.getHadoopStreamFile(fs.getFileStatus(
+                databusFiles[i])), 20)); 
+      } else {
+        partitionCheckpointList.set(current.get(Calendar.MINUTE), new PartitionCheckpoint(
+            DatabusStreamWaitingReader.getHadoopStreamFile(fs.getFileStatus(
+                databusFiles[i])), 00)); 
+      }
+    }
 
-  	PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
-  			testStream, "c1", partitionId.toString(), consumerNumber);
-  	Calendar cal = Calendar.getInstance();
-  	cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
-  			databusFiles[0].getParent()));
+    PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
+        testStream, "c1", partitionId.toString(), consumerNumber);
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
+        databusFiles[0].getParent()));
 
-  	preader = new PartitionReader(partitionId, partitionCheckpointList, fs, buffer,
-  			streamDir, conf, inputFormatClass, null, 1000,
-  			isDatabusData(), dataEncoding, prMetrics, true, partitionMinList);             
-  	preader.init();
-  	Assert.assertEquals(preader.getCurrentFile().toString(),
-  	    getDateStringFromPath(databusFiles[0].toString()));
+    preader = new PartitionReader(partitionId, partitionCheckpointList, fs, buffer,
+        streamDir, conf, inputFormatClass, null, 1000,
+        isDatabusData(), dataEncoding, prMetrics, true, partitionMinList);             
+    preader.init();
+    Assert.assertEquals(preader.getCurrentFile().toString(),
+        getDateStringFromPath(databusFiles[0].toString()));
 
-  	preader.execute();
-  	TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
-  			fs.getFileStatus(databusFiles[0])), 1, 20, 80, partitionId,
-  			buffer, dataEncoding.equals(DataEncodingType.BASE64));
-  	TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
-  			fs.getFileStatus(databusFiles[1])), 2, 0, 100, partitionId,
-  			buffer, dataEncoding.equals(DataEncodingType.BASE64));
-  	TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
-  			fs.getFileStatus(databusFiles[2])), 3, 20, 80, partitionId,
-  			buffer, dataEncoding.equals(DataEncodingType.BASE64));
-  	Assert.assertTrue(buffer.isEmpty());
-  	Assert.assertNotNull(preader.getReader());
-  	Assert.assertEquals(preader.getReader().getClass().getName(),
-  			ClusterReader.class.getName());
-  	Assert.assertEquals(((ClusterReader)preader.getReader())
-  			.getReader().getClass().getName(),
-  			DatabusStreamWaitingReader.class.getName());
-  	Assert.assertEquals(prMetrics.getHandledExceptions(), 0);
-  	Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 260);
-  	Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 260);
-  	Assert.assertEquals(prMetrics.getWaitTimeUnitsNewFile(), 0);
-  	Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0); 
+    preader.execute();
+    TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
+        fs.getFileStatus(databusFiles[0])), 1, 20, 80, partitionId,
+        buffer, dataEncoding.equals(DataEncodingType.BASE64));
+    TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
+        fs.getFileStatus(databusFiles[1])), 2, 0, 100, partitionId,
+        buffer, dataEncoding.equals(DataEncodingType.BASE64));
+    TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
+        fs.getFileStatus(databusFiles[2])), 3, 20, 80, partitionId,
+        buffer, dataEncoding.equals(DataEncodingType.BASE64));
+    Assert.assertTrue(buffer.isEmpty());
+    Assert.assertNotNull(preader.getReader());
+    Assert.assertEquals(preader.getReader().getClass().getName(),
+        ClusterReader.class.getName());
+    Assert.assertEquals(((ClusterReader)preader.getReader())
+        .getReader().getClass().getName(),
+        DatabusStreamWaitingReader.class.getName());
+    Assert.assertEquals(prMetrics.getHandledExceptions(), 0);
+    Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 260);
+    Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 260);
+    Assert.assertEquals(prMetrics.getWaitTimeUnitsNewFile(), 0);
+    Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0); 
   }
-  
+
   public void testReadFromMultipleCompleteCheckpoints() throws Exception {
     partitionMinList = new TreeSet<Integer>();
     Map<Integer, PartitionCheckpoint> chkpoints = new 
         TreeMap<Integer, PartitionCheckpoint>();
     partitionCheckpointList = new PartitionCheckpointList(chkpoints);
-    
+
     for (int i =0; i < 3; i++) {
       Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
           databusFiles[i].getParent()) ; 
@@ -685,13 +685,13 @@ public abstract class TestAbstractClusterReader {
           DatabusStreamWaitingReader.getHadoopStreamFile(fs.getFileStatus(
               databusFiles[i])), -1)); 
     }
-    
+
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
         testStream, "c1", partitionId.toString(), consumerNumber);
     Calendar cal = Calendar.getInstance();
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         databusFiles[0].getParent()));
- 
+
     preader = new PartitionReader(partitionId, partitionCheckpointList, fs, buffer,
         streamDir, conf, inputFormatClass, null, 1000,
         isDatabusData(), dataEncoding, prMetrics,true, partitionMinList);             
@@ -701,7 +701,7 @@ public abstract class TestAbstractClusterReader {
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[0])), 1, 0, 0, partitionId,
         buffer, dataEncoding.equals(DataEncodingType.BASE64));
-    
+
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[1])), 2, 0, 0, partitionId,
         buffer, dataEncoding.equals(DataEncodingType.BASE64));
@@ -719,7 +719,7 @@ public abstract class TestAbstractClusterReader {
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 0);
     Assert.assertEquals(prMetrics.getWaitTimeUnitsNewFile(), 0);
   }
-  
+
   public void testReadFromSingleCompleteCheckpoint() throws Exception {
     partitionMinList = new TreeSet<Integer>();
     Map<Integer, PartitionCheckpoint> chkpoints = new 
@@ -749,7 +749,7 @@ public abstract class TestAbstractClusterReader {
     Calendar cal = Calendar.getInstance();
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         databusFiles[0].getParent()));
- 
+
     preader = new PartitionReader(partitionId, partitionCheckpointList, fs, buffer,
         streamDir, conf, inputFormatClass, null, 1000,
         isDatabusData(), dataEncoding, prMetrics,true, partitionMinList);             
@@ -757,7 +757,7 @@ public abstract class TestAbstractClusterReader {
     Assert.assertEquals(preader.getCurrentFile().toString(),
         getDateStringFromPath(databusFiles[1].toString()));
     preader.execute();
-    
+
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[1])), 2, 20, 80, partitionId,
         buffer, dataEncoding.equals(DataEncodingType.BASE64));
@@ -777,7 +777,7 @@ public abstract class TestAbstractClusterReader {
     Assert.assertEquals(prMetrics.getWaitTimeUnitsNewFile(), 0);
     Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0); 
   }
-  
+
   public void testReadFromTwoCompleteCheckpoint() throws Exception {
     partitionMinList = new TreeSet<Integer>();
     Map<Integer, PartitionCheckpoint> chkpoints = new 
@@ -803,7 +803,7 @@ public abstract class TestAbstractClusterReader {
     Calendar cal = Calendar.getInstance();
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         databusFiles[0].getParent()));
- 
+
     preader = new PartitionReader(partitionId, partitionCheckpointList, fs, buffer,
         streamDir, conf, inputFormatClass, null, 1000,
         isDatabusData(), dataEncoding, prMetrics,true, partitionMinList);             
@@ -811,7 +811,7 @@ public abstract class TestAbstractClusterReader {
     Assert.assertEquals(preader.getCurrentFile().toString(),
         getDateStringFromPath(databusFiles[2].toString()));
     preader.execute();
-    
+
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 0, 100, partitionId,
         buffer, dataEncoding.equals(DataEncodingType.BASE64));
@@ -828,24 +828,24 @@ public abstract class TestAbstractClusterReader {
     Assert.assertEquals(prMetrics.getWaitTimeUnitsNewFile(), 0);
     Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0); 
   }
-  
+
   public void prepareCheckpoint(StreamFile streamFile, int lineNum, 
-  		Path databusFile, PartitionCheckpointList partitionCheckpointList) {
-  	Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
-				databusFile.getParent());
-  	Calendar current = Calendar.getInstance();
-  	current.setTime(date);
-  	partitionCheckpointList.set(current.get(Calendar.MINUTE), new PartitionCheckpoint(
-  			streamFile, lineNum));
+      Path databusFile, PartitionCheckpointList partitionCheckpointList) {
+    Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
+        databusFile.getParent());
+    Calendar current = Calendar.getInstance();
+    current.setTime(date);
+    partitionCheckpointList.set(current.get(Calendar.MINUTE), new PartitionCheckpoint(
+        streamFile, lineNum));
   }
-  
+
   public void initializeMinList() {
-  	partitionMinList = new TreeSet<Integer>();
+    partitionMinList = new TreeSet<Integer>();
     for (int i =0; i < 60; i++) {
-    	partitionMinList.add(i);
+      partitionMinList.add(i);
     }
   }
-  
+
   public String getDateStringFromPath(String path) {
     String str[] = path.split("[0-9]{4}.[0-9]{2}.[0-9]{2}.[0-9]{2}.[0-9]{2}");
     return path.substring(str[0].length());

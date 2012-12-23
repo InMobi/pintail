@@ -19,7 +19,7 @@ import com.inmobi.databus.partition.PartitionId;
  * 
  */
 public class CheckpointList implements ConsumerCheckpoint {
-	
+
   // map of static id to its checkpoint
   private Map<Integer, Checkpoint> chkpoints =
       new TreeMap<Integer, Checkpoint>();
@@ -36,9 +36,9 @@ public class CheckpointList implements ConsumerCheckpoint {
   public  Map<Integer, Checkpoint> getCheckpoints() {
     return chkpoints;
   }
-  
+
   public void setForCheckpointUtil(PartitionId pid, MessageCheckpoint msgCkp) {
-  	PartitionCheckpointList pckList = (PartitionCheckpointList) msgCkp;
+    PartitionCheckpointList pckList = (PartitionCheckpointList) msgCkp;
     for (Map.Entry<Integer, PartitionCheckpoint> entry : pckList.
         getCheckpoints().entrySet()) {
       Checkpoint cp = chkpoints.get(entry.getKey());
@@ -58,10 +58,12 @@ public class CheckpointList implements ConsumerCheckpoint {
     HashMap<PartitionId,PartitionCheckpoint> map = null;
     if(cp == null) {
       map = new HashMap<PartitionId, PartitionCheckpoint>();
-      map.put(pid,new PartitionCheckpoint(checkPoint.getStreamFile(), checkPoint.getLineNum()));
+      map.put(pid,new PartitionCheckpoint(checkPoint.getStreamFile(), 
+          checkPoint.getLineNum()));
       cp = new Checkpoint(map);
     } else {
-      cp.set(pid,new PartitionCheckpoint(checkPoint.getStreamFile(), checkPoint.getLineNum()));
+      cp.set(pid,new PartitionCheckpoint(checkPoint.getStreamFile(), 
+          checkPoint.getLineNum()));
     }
     chkpoints.put(checkPoint.getMinId(),cp);
     //If the EOF is reached for previous file, update its checkpoint to point -1
@@ -69,11 +71,14 @@ public class CheckpointList implements ConsumerCheckpoint {
       Checkpoint prevCp = chkpoints.get(checkPoint.getPrevMinId());
       //If we don't have checkpoint for previous minute which should never happen, we ignore the setting of checkpoint
       if(prevCp != null) {
-        Map<PartitionId,PartitionCheckpoint> prevPartitionCheckPoint = prevCp.getPartitionsCheckpoint();
+        Map<PartitionId,PartitionCheckpoint> prevPartitionCheckPoint = prevCp.
+            getPartitionsCheckpoint();
         PartitionCheckpoint pCkP = prevPartitionCheckPoint.get(pid);
-          PartitionCheckpoint newPCkp = new PartitionCheckpoint(pCkP.getStreamFile(),-1);
-          prevPartitionCheckPoint.put(pid,newPCkp);
-          chkpoints.put(checkPoint.getPrevMinId(),new Checkpoint(prevPartitionCheckPoint));
+        PartitionCheckpoint newPCkp = new PartitionCheckpoint(
+            pCkP.getStreamFile(),-1);
+        prevPartitionCheckPoint.put(pid,newPCkp);
+        chkpoints.put(checkPoint.getPrevMinId(),new Checkpoint(
+            prevPartitionCheckPoint));
       }
     }
   }
@@ -98,29 +103,29 @@ public class CheckpointList implements ConsumerCheckpoint {
   }
 
   public void write(CheckpointProvider checkpointProvider, String superKey)
-  		throws IOException {
+      throws IOException {
     for (Map.Entry<Integer, Checkpoint> entry : chkpoints.entrySet()) {
       checkpointProvider.checkpoint(getChkpointKey(superKey, entry.getKey()),
           entry.getValue().toBytes());
     }
   }
-  
+
   public void preaprePartitionCheckPointList(PartitionId pid, 
-  	PartitionCheckpointList partitionCheckpointList) {
-  	PartitionCheckpoint partitionCheckpoint;
-  	if (!this.getCheckpoints().isEmpty()) {
-  		for (Map.Entry<Integer, Checkpoint> entry : this.getCheckpoints().entrySet()) {
-  			Checkpoint cp = entry.getValue();
-  			if (cp.getPartitionsCheckpoint().containsKey(pid)) {
-  				partitionCheckpoint = cp.getPartitionsCheckpoint().get(pid);  
-  				partitionCheckpointList.set(entry.getKey(), partitionCheckpoint);
-  			}
-  		} 
-  	}
+      PartitionCheckpointList partitionCheckpointList) {
+    PartitionCheckpoint partitionCheckpoint;
+    if (!this.getCheckpoints().isEmpty()) {
+      for (Map.Entry<Integer, Checkpoint> entry : this.getCheckpoints().entrySet()) {
+        Checkpoint cp = entry.getValue();
+        if (cp.getPartitionsCheckpoint().containsKey(pid)) {
+          partitionCheckpoint = cp.getPartitionsCheckpoint().get(pid);  
+          partitionCheckpointList.set(entry.getKey(), partitionCheckpoint);
+        }
+      } 
+    }
   }
 
   public void read(CheckpointProvider checkpointProvider, String superKey)
-  		throws IOException {
+      throws IOException {
     Map<Integer, Checkpoint> thisChkpoint = new TreeMap<Integer, Checkpoint>();
     for (Integer id : idList) {
       byte[] chkpointData = checkpointProvider.read(getChkpointKey(superKey, id));

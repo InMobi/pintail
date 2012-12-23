@@ -37,7 +37,7 @@ public class PartitionCheckpointList implements MessageCheckpoint {
   	Map<Integer, PartitionCheckpoint>listOfPartitionCheckpoints = 
 				((PartitionCheckpointList)this).getCheckpoints();
 		for (Integer minuteId : partitionMinList) {
-			if ( listOfPartitionCheckpoints.get(minuteId)!= null) {
+			if (listOfPartitionCheckpoints.get(minuteId) != null) {
 				return false;
 			}
 		}

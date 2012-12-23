@@ -16,14 +16,19 @@ import com.inmobi.messaging.consumer.MessageConsumerFactory;
 public class CounterClient {
 
   public static void main(String[] args) throws Exception {
-    if (args.length != 1) {
+    MessageConsumer consumer;
+    if (args.length == 0) {
+      System.out.println("start time is not provided. Starts from the last marked position");
+      consumer = MessageConsumerFactory.create();
+    } else if (args.length == 1) {
+      Calendar now = Calendar.getInstance();
+      Integer min = Integer.parseInt(args[0]);
+      now.add(Calendar.MINUTE, - (min.intValue()));
+      consumer = MessageConsumerFactory.create(now.getTime());
+    } else {
       System.out.println("Usage: counterclient <minutes-to-read-from> ");
       System.exit(-1);
     }
-    Calendar now = Calendar.getInstance();
-    Integer min = Integer.parseInt(args[0]);
-    now.add(Calendar.MINUTE, - (min.intValue()));
-    MessageConsumer consumer = MessageConsumerFactory.create(now.getTime());
     
     int msgCounter = 0;
     int markCounter = 0;
