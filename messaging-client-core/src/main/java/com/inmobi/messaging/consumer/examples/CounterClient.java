@@ -26,6 +26,7 @@ public class CounterClient {
       now.add(Calendar.MINUTE, - (min.intValue()));
       consumer = MessageConsumerFactory.create(now.getTime());
     } else {
+      consumer = null;
       System.out.println("Usage: counterclient <minutes-to-read-from> ");
       System.exit(-1);
     }

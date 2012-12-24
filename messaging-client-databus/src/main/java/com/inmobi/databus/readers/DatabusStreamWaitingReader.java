@@ -85,9 +85,13 @@ public class DatabusStreamWaitingReader
       if (!(currentFile.getPath()).equals(checkpointedFileName)) {
         if(fs.exists(checkpointedFileName)) {
           currentFile = fs.getFileStatus(checkpointedFileName);
+          currentLineNum = partitioncheckpoint.getLineNum();
+        } else {
+          currentLineNum = 0;
         }
-      } 
+      } else {
       currentLineNum = partitioncheckpoint.getLineNum();
+      }
     }
     if (currentFile != null) {
       LOG.debug("CurrentFile:" + getCurrentFile() + " currentLineNum:" +
