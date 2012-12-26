@@ -12,7 +12,7 @@ public interface MessagingConsumerConfig {
   public static final String chkProviderConfig = 
       "messaging.consumer.chkpoint.provider.classname";
   public static final String DEFAULT_CHK_PROVIDER = FSCheckpointProvider.class
-  .getName();
+      .getName();
 
   public static final String checkpointDirConfig = 
       "messaging.consumer.checkpoint.dir";
@@ -26,7 +26,7 @@ public interface MessagingConsumerConfig {
   public static final String waitTimeForFileCreateConfig = 
       "messaging.consumer.waittime.forfilecreate";
   public static final long DEFAULT_WAIT_TIME_FOR_FILE_CREATE = 1000; //1 second
-  
+
   public static final String dataEncodingConfg =
       "messaging.consumer.data.encoding.type";
   public static final String DEFAULT_DATA_ENCODING = DataEncodingType.NONE
@@ -36,14 +36,14 @@ public interface MessagingConsumerConfig {
       "messaging.consumer.inputformat.classname";
   public static final String DEFAULT_INPUT_FORMAT_CLASSNAME =
       TextInputFormat.class.getCanonicalName();
-  
+
   public static final String retentionConfig =
       "messaging.consumer.topic.retention.inhours";
   public static final int DEFAULT_RETENTION_HOURS = 24;
 
   public static final String hadoopConfigFileKey =
       "messaging.consumer.hadoop.conf";
-  
+
   /**
    * The consumer id is used in case of groups. The number associated with
    * consumer in the group, for eg. 2/5

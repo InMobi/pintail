@@ -3,7 +3,6 @@ package com.inmobi.databus.readers;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -29,9 +28,9 @@ public class DatabusStreamWaitingReader
   private static final Log LOG = LogFactory.getLog(
       DatabusStreamWaitingReader.class);
 
-  protected int currentMin;
-  protected Set<Integer> partitionMinList;
-  protected PartitionCheckpointList partitionCheckpointList;
+  private int currentMin;
+  private final Set<Integer> partitionMinList;
+  private PartitionCheckpointList partitionCheckpointList;
   private boolean movedToNext;
   private int prevMin;
 
@@ -45,6 +44,7 @@ public class DatabusStreamWaitingReader
         waitTimeForFileCreate, metrics, noNewFiles);
     this.partitionCheckpointList = partitionCheckpointList;
     this.partitionMinList = partitionMinList; 
+    currentMin = -1;
   }
 
   public boolean isRead(Date currentTimeStamp, int minute) {
@@ -67,7 +67,6 @@ public class DatabusStreamWaitingReader
     return false;
   }
 
-  @Override
   public boolean initFromNextCheckPoint() throws IOException {
     initCurrentFile();
     currentFile = getFirstFileInStream();
@@ -90,7 +89,7 @@ public class DatabusStreamWaitingReader
           currentLineNum = 0;
         }
       } else {
-      currentLineNum = partitioncheckpoint.getLineNum();
+        currentLineNum = partitioncheckpoint.getLineNum();
       }
     }
     if (currentFile != null) {
@@ -145,8 +144,8 @@ public class DatabusStreamWaitingReader
         break;
       }
     }
-    // 
-    if (getFirstFileInStream() != null) {
+
+    if (getFirstFileInStream() != null && (currentMin == -1)) {
       Calendar cal = Calendar.getInstance();
       Date currentDate = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
           getFirstFileInStream().getPath().getParent());
@@ -167,7 +166,8 @@ public class DatabusStreamWaitingReader
     now.setTime(date);
 
     if (currentMin != now.get(Calendar.MINUTE)) {
-      //We are moving to next file, set the flags so that Message checkpoints can be populated.
+      //We are moving to next file, set the flags so that Message checkpoints 
+      //can be populated.
       movedToNext = true;
       prevMin=currentMin;
       currentMin = now.get(Calendar.MINUTE);
@@ -179,25 +179,32 @@ public class DatabusStreamWaitingReader
             partitionCheckpoint.getFileName());
         //set iterator to checkpoointed file if there is a checkpoint
         if(!currentFile.getPath().equals(checkPointedFileName)) {
-          currentFile = fs.getFileStatus(checkPointedFileName);
+          if (fs.exists(checkPointedFileName)) {
+            currentFile = fs.getFileStatus(checkPointedFileName);
+            currentLineNum = partitionCheckpoint.getLineNum();
+          } else {
+            currentLineNum = 0;
+          }
           setIteratorToFile(currentFile);
+        } else {
+          currentLineNum = partitionCheckpoint.getLineNum();
         }
-        Map<Integer, PartitionCheckpoint> pckList = partitionCheckpointList.
-            getCheckpoints();
-        pckList.remove(prevMin);
-        partitionCheckpointList.setCheckpoint(pckList);
-        currentLineNum = partitionCheckpoint.getLineNum();
+        updatePartitionCheckpointList(prevMin);
         this.currentFile = currentFile;
         return false;
       }
-      Map<Integer, PartitionCheckpoint> pckList = partitionCheckpointList.
-          getCheckpoints();
-      pckList.remove(prevMin);
-      partitionCheckpointList.setCheckpoint(pckList);
+      updatePartitionCheckpointList(prevMin);
     }
     this.currentFile = nextFile;
     return true;
   }  
+
+  private void updatePartitionCheckpointList(int prevMin) {
+    Map<Integer, PartitionCheckpoint> pckList = partitionCheckpointList.
+        getCheckpoints();
+    pckList.remove(prevMin);
+    partitionCheckpointList.setCheckpoint(pckList);
+  }
 
   @Override
   protected HadoopStreamFile getStreamFile(Date timestamp) {

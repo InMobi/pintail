@@ -45,11 +45,6 @@ public abstract class StreamReader<T extends StreamFile> {
     this.fileMap = createFileMap();
   }
   
-  public boolean initFromNextCheckPoint() throws IOException {
-  	//The method is overridden in the DatabusStreamWaitingReader
-  	return true;
-  }
-  
   public boolean prepareMoveToNext(FileStatus currentFile, FileStatus nextFile)
   		throws IOException {
     this.currentFile = nextFile;

@@ -3,7 +3,6 @@ package com.inmobi.databus.partition;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.util.Set;
 
 import org.apache.hadoop.io.Writable;
 
@@ -35,7 +34,7 @@ public class PartitionCheckpoint implements Writable, MessageCheckpoint {
     return lineNum;
   }
   
-  public boolean isNULL(Set<Integer> partitionMinList) {
+  public boolean isNULL() {
   	return false;
   }
 

@@ -15,8 +15,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.security.UserGroupInformation;
 
 import com.inmobi.databus.CheckpointProvider;
-import com.inmobi.databus.partition.PartitionCheckpoint;
-import com.inmobi.databus.partition.PartitionCheckpointList;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.partition.PartitionReader;
 import com.inmobi.databus.utils.SecureLoginUtil;
@@ -27,8 +25,7 @@ import com.inmobi.messaging.consumer.AbstractMessageConsumer;
 import com.inmobi.messaging.metrics.DatabusConsumerStatsExposer;
 
 public abstract class AbstractMessagingDatabusConsumer 
-extends AbstractMessageConsumer 
-implements MessagingConsumerConfig {
+    extends AbstractMessageConsumer implements MessagingConsumerConfig {
   protected static final Log LOG = LogFactory.getLog(
       AbstractMessagingDatabusConsumer.class);
   protected static final long ONE_HOUR_IN_MILLIS = 1 * 60 * 60 * 1000;
@@ -168,7 +165,7 @@ implements MessagingConsumerConfig {
   protected Date getPartitionTimestamp(PartitionId id, MessageCheckpoint pck,
       Date allowedStartTime) {
     Date partitionTimestamp = startTime; 
-    if (startTime == null && (pck == null || pck.isNULL(partitionMinList))) {
+    if (startTime == null && (pck == null || pck.isNULL())) {
       LOG.info("There is no startTime passed and no checkpoint exists" +
           " for the partition: " + id + " starting from the start" +
           " of the stream.");
