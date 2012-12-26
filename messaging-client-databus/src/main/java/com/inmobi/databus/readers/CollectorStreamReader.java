@@ -112,9 +112,15 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     LOG.info("Opening file:" + getCurrentFile() + " NumLinesTobeSkipped when" +
         " opening:" + currentLineNum);
     if (fs.exists(getCurrentFile())) {
-      inStream = fs.open(getCurrentFile());
-      reader = new BufferedReader(new InputStreamReader(inStream));
-      skipOldData();
+      long fileLength = fs.getFileStatus(getCurrentFile()).getLen();
+      if(fileLength == 0 || currentOffset >= fileLength){
+        startFromNextHigherAndOpen(getCurrentFile().getName());
+      }
+      else{
+        inStream = fs.open(getCurrentFile());
+        reader = new BufferedReader(new InputStreamReader(inStream));
+        skipOldData();        
+      }
     } else {
       LOG.info("CurrentFile:" + getCurrentFile() + " does not exist");
     }
