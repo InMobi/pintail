@@ -112,15 +112,10 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     LOG.info("Opening file:" + getCurrentFile() + " NumLinesTobeSkipped when" +
         " opening:" + currentLineNum);
     if (fs.exists(getCurrentFile())) {
-      long fileLength = fs.getFileStatus(getCurrentFile()).getLen();
-      if(fileLength == 0 || currentOffset >= fileLength){
-        startFromNextHigherAndOpen(getCurrentFile().getName());
-      }
-      else{
-        inStream = fs.open(getCurrentFile());
-        reader = new BufferedReader(new InputStreamReader(inStream));
-        skipOldData();        
-      }
+
+      inStream = fs.open(getCurrentFile());
+      reader = new BufferedReader(new InputStreamReader(inStream));
+      skipOldData();
     } else {
       LOG.info("CurrentFile:" + getCurrentFile() + " does not exist");
     }
@@ -166,7 +161,13 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
       throws IOException {
     if (sameStream) {
       LOG.info("Seeking to offset:" + currentOffset);
-      inStream.seek(currentOffset);
+      try {
+        inStream.seek(currentOffset);
+      } catch (IOException e) {
+        skipLines(currentLineNum);
+        currentOffset = inStream.getPos();
+        LOG.debug("Ignoring the seek exception which can be encountered while seeking beyond EOF in S3");
+      }
     } else {
       skipLines(currentLineNum);
       sameStream = true;
