@@ -112,7 +112,7 @@ public abstract class AbstractMessagingDatabusConsumer
 
     createCheckpoint();
     currentCheckpoint.read(checkpointProvider, getChkpointKey());
-
+    
     //create buffer
     bufferSize = config.getInteger(queueSizeConfig, DEFAULT_QUEUE_SIZE);
     buffer = new LinkedBlockingQueue<QueueEntry>(bufferSize);

@@ -1,7 +1,6 @@
 package com.inmobi.messaging.consumer.util;
 
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -65,7 +64,8 @@ public class CheckpointUtil implements DatabusConsumerConfig {
       partitionCheckpoints.entrySet()) {
       PartitionId pid = entry.getKey();
       Path streamDir = streamDirs.get(pid);
-      HadoopStreamFile streamFile = (HadoopStreamFile)entry.getValue().getStreamFile();
+      HadoopStreamFile streamFile = (HadoopStreamFile)entry.getValue().
+          getStreamFile();
       Map<Integer, PartitionCheckpoint> thisChkpoint =
           new TreeMap<Integer, PartitionCheckpoint>();
       Calendar chkCal = Calendar.getInstance();
@@ -112,10 +112,9 @@ public class CheckpointUtil implements DatabusConsumerConfig {
         }
         chkHrCal.add(Calendar.MINUTE, 1);
       }
-
       thisChkpoint.put(checkpointMin, entry.getValue());
-      checkpointList.setForCheckpointUtil(entry.getKey(), new PartitionCheckpointList(
-          thisChkpoint));
+      checkpointList.setForCheckpointUtil(entry.getKey(), new 
+          PartitionCheckpointList(thisChkpoint));
     }
   }
 
@@ -198,13 +197,15 @@ public class CheckpointUtil implements DatabusConsumerConfig {
       idList.add(i);
     }
     String topicName = config.getString(MessageConsumerFactory.TOPIC_NAME_KEY);
-    String consumerName = config.getString(MessageConsumerFactory.CONSUMER_NAME_KEY);
+    String consumerName = config.getString(MessageConsumerFactory.
+        CONSUMER_NAME_KEY);
     String superKey = consumerName + "_" + topicName;
     String rootDirConfig;
     Map<PartitionId, Path> streamDirs = new HashMap<PartitionId, Path>();
     String[] rootDirs;
     if (config.getString(databusRootDirsConfig) != null) {
-      String type = config.getString(databusStreamType, StreamType.COLLECTOR.name());
+      String type = config.getString(databusStreamType, StreamType.COLLECTOR.
+          name());
       StreamType streamType = StreamType.valueOf(type);
       if (streamType.equals(StreamType.COLLECTOR)) {
         LOG.info("No migration required");
@@ -214,8 +215,10 @@ public class CheckpointUtil implements DatabusConsumerConfig {
       rootDirs = rootDirConfig.split(",");
       int i = 0;
       for (String rootDir : rootDirs) {
-        Path streamDir = DatabusUtil.getStreamDir(streamType, new Path(rootDir), topicName);
-        streamDirs.put(new PartitionId(DatabusConsumer.clusterNamePrefix + i, null), streamDir);
+        Path streamDir = DatabusUtil.getStreamDir(streamType, new Path(rootDir),
+            topicName);
+        streamDirs.put(new PartitionId(DatabusConsumer.clusterNamePrefix + i, 
+            null), streamDir);
       }
     } else if (config.getString(HadoopConsumerConfig.rootDirsConfig) != null) {
       rootDirConfig = config.getString(HadoopConsumerConfig.rootDirsConfig);
@@ -223,13 +226,15 @@ public class CheckpointUtil implements DatabusConsumerConfig {
       int i = 0;
       for (String rootDir : rootDirs) {
         Path streamDir = new Path(rootDir);
-        streamDirs.put(new PartitionId(HadoopConsumer.clusterNamePrefix + i, null), streamDir);
+        streamDirs.put(new PartitionId(HadoopConsumer.clusterNamePrefix + i, 
+            null), streamDir);
       }
     }
     CheckpointList checkpointList = new CheckpointList(idList);
     CheckpointUtil.prepareCheckpointList(superKey, checkpointProvider, idList,
         streamDirs, checkpointList);
     checkpointList.write(checkpointProvider, superKey);
+    LOG.info("migrated checkpoint " + checkpointList);
     checkpointList.read(checkpointProvider, superKey); 
   }
 
@@ -237,8 +242,8 @@ public class CheckpointUtil implements DatabusConsumerConfig {
     if (args.length == 1) {
       run(args);
     } else {
-      System.out.println("incorrect number of arguments. provide one argument : " +
-          "path to configuration file ");
+      System.out.println("incorrect number of arguments. provide one " +
+      		"argument : " + "path to configuration file ");
       System.exit(1);
     }
   }

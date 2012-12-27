@@ -165,38 +165,38 @@ public class DatabusStreamWaitingReader
     date = getDateFromStreamDir(streamDir, nextFile.getPath().getParent());
     now.setTime(date);
 
+    boolean readFromCheckpoint = false;
+    FileStatus fileToRead = nextFile;
     if (currentMin != now.get(Calendar.MINUTE)) {
       //We are moving to next file, set the flags so that Message checkpoints 
       //can be populated.
       movedToNext = true;
-      prevMin=currentMin;
+      prevMin = currentMin;
       currentMin = now.get(Calendar.MINUTE);
       PartitionCheckpoint partitionCheckpoint = partitionCheckpointList.
           getCheckpoints().get(currentMin);
-      if (partitionCheckpoint != null && partitionCheckpoint.getLineNum() != -1) {
-        currentFile = nextFile;
+      if (partitionCheckpoint != null && partitionCheckpoint.getLineNum() != -1)
+      {
         Path checkPointedFileName = new Path(streamDir, 
             partitionCheckpoint.getFileName());
         //set iterator to checkpoointed file if there is a checkpoint
-        if(!currentFile.getPath().equals(checkPointedFileName)) {
+        if(!fileToRead.getPath().equals(checkPointedFileName)) {
           if (fs.exists(checkPointedFileName)) {
-            currentFile = fs.getFileStatus(checkPointedFileName);
+            fileToRead = fs.getFileStatus(checkPointedFileName);
             currentLineNum = partitionCheckpoint.getLineNum();
           } else {
             currentLineNum = 0;
           }
-          setIteratorToFile(currentFile);
         } else {
           currentLineNum = partitionCheckpoint.getLineNum();
         }
-        updatePartitionCheckpointList(prevMin);
-        this.currentFile = currentFile;
-        return false;
+        readFromCheckpoint = true;
       }
       updatePartitionCheckpointList(prevMin);
     }
-    this.currentFile = nextFile;
-    return true;
+    this.currentFile = fileToRead;
+    setIterator();
+    return !readFromCheckpoint;
   }  
 
   private void updatePartitionCheckpointList(int prevMin) {
@@ -336,5 +336,6 @@ public class DatabusStreamWaitingReader
 
   public int getCurrentMin() {
     return this.currentMin;
+    
   }
 }

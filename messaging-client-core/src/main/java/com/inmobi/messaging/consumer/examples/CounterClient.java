@@ -18,10 +18,12 @@ public class CounterClient {
   static MessageConsumer consumer;
   static int msgCounter;
   static int markCounter;
+  static volatile boolean keepRunnig = true;
   public static void main(String[] args) throws Exception {
-
+    final Thread mainThread = Thread.currentThread();
     if (args.length == 0) {
-      System.out.println("start time is not provided. Starts from the last marked position");
+      System.out.println("start time is not provided. Starts from the last " +
+      		"marked position");
       consumer = MessageConsumerFactory.create();
     } else if (args.length == 1) {
       Calendar now = Calendar.getInstance();
@@ -37,25 +39,33 @@ public class CounterClient {
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
       public void run() {
+        keepRunnig = false;
         try {
-          consumer.mark();
-          consumer.close();
-          System.out.println("Counter value: " + msgCounter);
+          if (consumer != null) {
+            mainThread.interrupt();
+            consumer.mark();
+            consumer.close();
+            System.out.println("Counter value: " + msgCounter);
+          }
         } catch (IOException e) {
           e.printStackTrace();
         }
       }
     });
-    while (true) {
-      for (int i = 0; i < 1000; i++) {
-        consumer.next();
-        msgCounter++;
-      }
-      System.out.println("Counter:" + msgCounter);
-      markCounter++;
-      if (markCounter == 5) {
-        consumer.mark();
-        markCounter = 0;
+    while (keepRunnig) {
+      try {
+        for (int i = 0; i < 1000; i++) {
+          consumer.next();
+          msgCounter++;
+        }
+        System.out.println("Counter:" + msgCounter);
+        markCounter++;
+        if (markCounter == 5) {
+          consumer.mark();
+          markCounter = 0;
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
       }
     }
   }

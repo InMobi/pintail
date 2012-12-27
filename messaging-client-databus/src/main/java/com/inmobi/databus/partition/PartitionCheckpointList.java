@@ -31,14 +31,15 @@ public class PartitionCheckpointList implements MessageCheckpoint {
   public void set(int segmentId, PartitionCheckpoint pck) {
     pChkpoints.put(segmentId, pck);
   }
-
+  
+  @Override
   public boolean isNULL() {
-    Map<Integer, PartitionCheckpoint>listOfPartitionCheckpoints = 
-        ((PartitionCheckpointList)this).getCheckpoints();
-    for (Map.Entry<Integer, PartitionCheckpoint> entry : 
-      listOfPartitionCheckpoints.entrySet()) {
-      if (entry.getValue() != null) {
-        return false;
+    if (!pChkpoints.isEmpty()) {
+      for (Map.Entry<Integer, PartitionCheckpoint> entry : 
+        pChkpoints.entrySet()) {
+        if (entry.getValue() != null) {
+          return false;
+        }
       }
     }
     return true;

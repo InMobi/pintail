@@ -10,7 +10,8 @@ public class ConsumerPartitionCheckPoint extends PartitionCheckpoint {
   private boolean eofPrevFile;
   private Integer prevMinId;
 
-  public ConsumerPartitionCheckPoint(StreamFile streamFile, long lineNum, Integer minId) {
+  public ConsumerPartitionCheckPoint(StreamFile streamFile, long lineNum, 
+      Integer minId) {
     this(streamFile, lineNum);
     this.minId = minId;
   }
@@ -21,7 +22,8 @@ public class ConsumerPartitionCheckPoint extends PartitionCheckpoint {
 
   public ConsumerPartitionCheckPoint(DataInput in) throws IOException {
     super(in);
-    //This method is stub for as we are extending the Parent, since this class is not serialized we don't need to
+    //This method is stub for as we are extending the Parent, since this class 
+    //is not serialized we don't need to
     //worry about constructor being called.
   }
 

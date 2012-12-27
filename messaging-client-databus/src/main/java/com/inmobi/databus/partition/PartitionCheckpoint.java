@@ -34,6 +34,7 @@ public class PartitionCheckpoint implements Writable, MessageCheckpoint {
     return lineNum;
   }
   
+  @Override
   public boolean isNULL() {
   	return false;
   }

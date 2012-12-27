@@ -49,8 +49,8 @@ public class PartitionReader {
   }
 
   public PartitionReader(PartitionId partitionId,
-  		PartitionCheckpointList partitionCheckpointList, FileSystem fs,
-  		BlockingQueue<QueueEntry> buffer, Path streamDir,
+      PartitionCheckpointList partitionCheckpointList, FileSystem fs,
+      BlockingQueue<QueueEntry> buffer, Path streamDir,
       Configuration conf, String inputFormatClass,
       Date startTime, long waitTimeForFileCreate, boolean isDatabusData,
       DataEncodingType dataEncoding, PartitionReaderStatsExposer prMetrics,

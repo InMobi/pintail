@@ -58,7 +58,7 @@ public class ClusterReader extends AbstractPartitionStreamReader {
    *  So that reader starts build listing from this partition checkpoint  
    *  time stamp).
    */
-  public PartitionCheckpoint findLeastPartitionCheckPointTime(
+  public static PartitionCheckpoint findLeastPartitionCheckPointTime(
       PartitionCheckpointList partitionCheckpointList) {
     PartitionCheckpoint partitioncheckpoint = null;
     Map<Integer, PartitionCheckpoint> listOfCheckpoints = 
