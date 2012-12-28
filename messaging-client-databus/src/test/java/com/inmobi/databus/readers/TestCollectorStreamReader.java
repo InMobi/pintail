@@ -35,7 +35,7 @@ public class TestCollectorStreamReader {
 
   @BeforeTest
   public void setup() throws Exception {
-  	consumerNumber = 1;
+    consumerNumber = 1;
     // setup cluster
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
         testStream, partitionId, files, null, 0);
@@ -55,7 +55,7 @@ public class TestCollectorStreamReader {
   public void testInitialize() throws Exception {
     CollectorReaderStatsExposer metrics = new 
         CollectorReaderStatsExposer(testStream, "c1", partitionId.toString(),
-        		consumerNumber);
+            consumerNumber);
     // Read from start
     cReader = new CollectorStreamReader(partitionId, FileSystem.get(
         cluster.getHadoopConf()), testStream,
@@ -112,7 +112,7 @@ public class TestCollectorStreamReader {
     cReader.initializeCurrentFile(
         CollectorStreamReader.getDateFromCollectorFile(doesNotExist3));
     Assert.assertNull(cReader.getCurrentFile());
-    
+
     // startFromNextHigher with filename
     cReader.startFromNextHigher(files[1]);
     Assert.assertEquals(cReader.getCurrentFile(), new Path(collectorDir,
@@ -123,7 +123,7 @@ public class TestCollectorStreamReader {
         CollectorStreamReader.getDateFromCollectorFile(files[1]));
     Assert.assertEquals(cReader.getCurrentFile(), new Path(collectorDir,
         files[1]));
-    
+
     // startFromBegining 
     cReader.startFromBegining();
     Assert.assertEquals(cReader.getCurrentFile(), new Path(collectorDir,
@@ -146,7 +146,7 @@ public class TestCollectorStreamReader {
   public void testReadFromStart() throws Exception {
     CollectorReaderStatsExposer metrics = new 
         CollectorReaderStatsExposer(testStream, "c1", partitionId.toString(), 
-        		consumerNumber);
+            consumerNumber);
     cReader = new CollectorStreamReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
         CollectorStreamReader.getCollectorDir(cluster, testStream, collectorName),
@@ -170,7 +170,7 @@ public class TestCollectorStreamReader {
   public void testReadFromCheckpoint() throws Exception {
     CollectorReaderStatsExposer metrics = new 
         CollectorReaderStatsExposer(testStream, "c1", partitionId.toString(), 
-        		consumerNumber);
+            consumerNumber);
     cReader = new CollectorStreamReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
         CollectorStreamReader.getCollectorDir(cluster, testStream, collectorName),
@@ -194,7 +194,7 @@ public class TestCollectorStreamReader {
   public void testReadFromTimeStamp() throws Exception {
     CollectorReaderStatsExposer metrics = new 
         CollectorReaderStatsExposer(testStream, "c1", partitionId.toString(), 
-        		consumerNumber);
+            consumerNumber);
     cReader = new CollectorStreamReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
         CollectorStreamReader.getCollectorDir(cluster, testStream, collectorName),

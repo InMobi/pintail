@@ -46,9 +46,9 @@ public abstract class StreamReader<T extends StreamFile> {
   }
   
   public boolean prepareMoveToNext(FileStatus currentFile, FileStatus nextFile)
-  		throws IOException {
+      throws IOException {
     this.currentFile = nextFile;
-  	return true;
+    return true;
   }
 
   public void openStream() throws IOException {

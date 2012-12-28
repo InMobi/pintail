@@ -2,12 +2,14 @@ package com.inmobi.messaging.consumer.util;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.mortbay.log.Log;
 import org.testng.Assert;
 
+import com.inmobi.databus.partition.PartitionCheckpoint;
+import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.BaseMessageConsumerStatsExposer;
@@ -20,6 +22,35 @@ import com.inmobi.messaging.consumer.hadoop.HadoopConsumer;
 
 public class ConsumerUtil {
 
+  public static void createCheckpointList(ConsumerCheckpoint temp, 
+      Map<Integer, Checkpoint> checkpointMap, 
+      Map<PartitionId, PartitionCheckpoint> lastCheckpoint, 
+      AbstractMessagingDatabusConsumer consumer) throws Exception {
+    if(temp instanceof CheckpointList) {
+      //Do a deep copy of the Tree Map, as the entry sets in original map can 
+      //change
+      for(Map.Entry<Integer,Checkpoint> entry: ((CheckpointList) temp).
+          getCheckpoints().entrySet()) {
+        checkpointMap.put(entry.getKey(), new Checkpoint(entry.getValue().
+            toBytes()));
+      }
+    } else {
+      lastCheckpoint.putAll(((Checkpoint)temp).getPartitionsCheckpoint());
+    } 
+  }
+
+  public static void compareConsumerCheckpoints(ConsumerCheckpoint temp, 
+      Map<Integer, Checkpoint> checkpointMap, 
+      Map<PartitionId, PartitionCheckpoint> lastCheckpoint, 
+      AbstractMessagingDatabusConsumer consumer) {
+    if(temp instanceof CheckpointList) {
+      Assert.assertEquals(((CheckpointList)consumer.getCurrentCheckpoint()).
+          getCheckpoints(), checkpointMap);
+    } else {
+      Assert.assertEquals(((Checkpoint)consumer.getCurrentCheckpoint()).
+          getPartitionsCheckpoint(), lastCheckpoint);
+    }
+  }
   public static void assertMessages(ClientConfig config, String streamName,
       String consumerName, int numClusters, int numCollectors, int numDataFiles,
       int numMessagesPerFile, boolean hadoop)
@@ -50,20 +81,15 @@ public class ConsumerUtil {
     }
     consumer.mark();
     ConsumerCheckpoint temp = consumer.getCurrentCheckpoint();
-    Checkpoint lastCheckpoint = null;
-    //
-    Map<Integer, Checkpoint> checkpointMap = new TreeMap<Integer, Checkpoint>();
-    if(temp instanceof CheckpointList) {
-      //Do a deep copy of the Tree Map, as the entry sets in original map can change
-      for(Map.Entry<Integer,Checkpoint> entry: ((CheckpointList) temp).
-          getCheckpoints().entrySet()) {
-        checkpointMap.put(entry.getKey(), new Checkpoint(entry.getValue().toBytes()));
-      }
-    } else {
-      lastCheckpoint = new Checkpoint(
-          ((Checkpoint)consumer.getCurrentCheckpoint()).toBytes());
+    Map<PartitionId, PartitionCheckpoint> lastCheckpoint = new 
+        HashMap<PartitionId, PartitionCheckpoint>();
+    Map<Integer, Checkpoint> checkpointMap = new HashMap<Integer, Checkpoint>();
+    //create consumer checkpoint
+    try {
+      createCheckpointList(temp, checkpointMap, lastCheckpoint, consumer);
+    } catch (Exception e) {
+      e.printStackTrace();
     }
-
 
     for (int i = 0; i < numCounters; i++) {
       markedcounter1[i] = counter[i];
@@ -114,12 +140,8 @@ public class ConsumerUtil {
 
     consumer.init(streamName, consumerName, null, config);
 
-    if(temp instanceof CheckpointList) {
-      Assert.assertEquals(((CheckpointList)consumer.getCurrentCheckpoint()).
-          getCheckpoints(), checkpointMap);
-    } else {
-      Assert.assertEquals(consumer.getCurrentCheckpoint(), lastCheckpoint);
-    }
+    compareConsumerCheckpoints(temp, checkpointMap, lastCheckpoint, consumer);
+
     for (int i = 0; i < totalMessages/2; i++) {
       Message msg = consumer.next();
       String msgStr = getMessage(msg.getData().array(), hadoop);
@@ -152,7 +174,8 @@ public class ConsumerUtil {
     }
   }
 
-  private static String getMessage(byte[] array, boolean hadoop) throws IOException {
+  private static String getMessage(byte[] array, boolean hadoop) throws 
+  IOException {
     if (hadoop) {
       return MessageUtil.getTextMessage(array).toString();
     } else {
@@ -193,24 +216,12 @@ public class ConsumerUtil {
     }
 
     consumer.mark();
-
-    Checkpoint lastCheckpoint = null;
     ConsumerCheckpoint temp = consumer.getCurrentCheckpoint();
-    //
-    Map<Integer, Checkpoint> checkpointMap = new TreeMap<Integer, Checkpoint>();
-    if(temp instanceof CheckpointList) {
-      //Do a deep copy of the Tree Map, as the entry sets in original map can change
-      for(Map.Entry<Integer,Checkpoint> entry: ((CheckpointList) temp).
-          getCheckpoints().entrySet()) {
-        checkpointMap.put(entry.getKey(), new Checkpoint(entry.getValue().
-            toBytes()));
-      }
-    } 
-    else {
-      lastCheckpoint = new Checkpoint(
-          ((Checkpoint)consumer.getCurrentCheckpoint()).toBytes());
-    }
-
+    Map<PartitionId, PartitionCheckpoint> lastCheckpoint = new 
+        HashMap<PartitionId, PartitionCheckpoint>();
+    Map<Integer, Checkpoint> checkpointMap = new HashMap<Integer, Checkpoint>();
+    //create consumer checkpoint
+    createCheckpointList(temp, checkpointMap, lastCheckpoint, consumer);
 
     for (i = 240; i < 260; i++) {
       Message msg = consumer.next();
@@ -236,12 +247,7 @@ public class ConsumerUtil {
     // test checkpoint and consumer crash
     consumer = createConsumer(hadoop);
     consumer.init(streamName, consumerName, null, config);
-    if(temp instanceof CheckpointList) {
-      Assert.assertEquals(((CheckpointList)consumer.getCurrentCheckpoint()).
-          getCheckpoints(), checkpointMap);
-    } else {
-      Assert.assertEquals(consumer.getCurrentCheckpoint(), lastCheckpoint);
-    }
+    compareConsumerCheckpoints(temp, checkpointMap, lastCheckpoint, consumer);
     for (i = 240; i < 300; i++) {
       Message msg = consumer.next();
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
@@ -288,21 +294,14 @@ public class ConsumerUtil {
     }
 
     consumer.mark();
-    Checkpoint lastCheckpoint = null;
     ConsumerCheckpoint temp = consumer.getCurrentCheckpoint();
-    //
-    Map<Integer, Checkpoint> checkpointMap = new TreeMap<Integer, Checkpoint>();
-    if(temp instanceof CheckpointList) {
-      //Do a deep copy of the Tree Map, as the entry sets in original map can change
-      for(Map.Entry<Integer,Checkpoint> entry: ((CheckpointList) temp).
-          getCheckpoints().entrySet()) {
-        checkpointMap.put(entry.getKey(), new Checkpoint(entry.getValue().
-            toBytes()));
-      }
-    } else {
-      lastCheckpoint = new Checkpoint(
-          ((Checkpoint)consumer.getCurrentCheckpoint()).toBytes());
-    }
+    Map<PartitionId, PartitionCheckpoint> lastCheckpoint = new 
+        HashMap<PartitionId, PartitionCheckpoint>();
+    Map<Integer, Checkpoint> checkpointMap = new 
+        HashMap<Integer, Checkpoint>();
+    //create consumer checkpoint
+    createCheckpointList(temp, checkpointMap, lastCheckpoint, consumer);
+
     for (i = 140; i < 160; i++) {
       Message msg = consumer.next();
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
@@ -327,12 +326,7 @@ public class ConsumerUtil {
     // test checkpoint and consumer crash
     consumer = createConsumer(hadoop);
     consumer.init(streamName, consumerName, null, config);
-    if(temp instanceof CheckpointList) {
-      Assert.assertEquals(((CheckpointList)consumer.getCurrentCheckpoint()).
-          getCheckpoints(), checkpointMap);
-    } else {
-      Assert.assertEquals(consumer.getCurrentCheckpoint(), lastCheckpoint);
-    }
+    compareConsumerCheckpoints(temp, checkpointMap, lastCheckpoint, consumer);
     for (i = 140; i < 300; i++) {
       Message msg = consumer.next();
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
@@ -392,13 +386,12 @@ public class ConsumerUtil {
 
     for (i = 75; i < 80; i++) {
       consumer.next();
-
     }
 
     consumer.reset();
 
     for (i = 75; i < 80; i++) {
-      consumer.next(); 
+      consumer.next();
     }
     consumer.mark();
     Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
@@ -418,14 +411,9 @@ public class ConsumerUtil {
     ConsumerCheckpoint temp = consumer.getCurrentCheckpoint();
     //test checkpoint
     Map<Integer, Checkpoint> checkpointMap = new TreeMap<Integer, Checkpoint>();
-    if(temp instanceof CheckpointList) {
-      //Do a deep copy of the Tree Map, as the entry sets in original map can change
-      for(Map.Entry<Integer,Checkpoint> entry: ((CheckpointList) temp).
-          getCheckpoints().entrySet()) {
-        checkpointMap.put(entry.getKey(), new Checkpoint(entry.getValue().
-            toBytes()));
-      }
-    }
+    //create consumer checkpoint
+    createCheckpointList(temp, checkpointMap, null, consumer);
+
     Assert.assertEquals(((CheckpointList)consumer.getCurrentCheckpoint()).
         getCheckpoints(), checkpointMap);
 

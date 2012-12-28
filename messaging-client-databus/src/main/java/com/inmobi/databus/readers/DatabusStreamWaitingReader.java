@@ -55,7 +55,7 @@ public class DatabusStreamWaitingReader
       if (partitionCheckpoint != null) {
         Date checkpointedTimestamp = getDateFromCheckpointPath(
             partitionCheckpoint.getFileName());
-        if (currentTimeStamp.before(checkpointedTimestamp)) {  
+        if (currentTimeStamp.before(checkpointedTimestamp)) {
           return true;
         } else if (currentTimeStamp.equals(checkpointedTimestamp)) {
           if (partitionCheckpoint.getLineNum() == -1) {
@@ -147,8 +147,8 @@ public class DatabusStreamWaitingReader
 
     if (getFirstFileInStream() != null && (currentMin == -1)) {
       Calendar cal = Calendar.getInstance();
-      Date currentDate = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
-          getFirstFileInStream().getPath().getParent());
+      Date currentDate = DatabusStreamWaitingReader.getDateFromStreamDir(
+          streamDir, getFirstFileInStream().getPath().getParent());
       cal.setTime(currentDate);
       currentMin = cal.get(Calendar.MINUTE);
     }
@@ -157,7 +157,8 @@ public class DatabusStreamWaitingReader
   @Override
   public boolean prepareMoveToNext(FileStatus currentFile, FileStatus nextFile) 
       throws IOException {                              
-    Date date = getDateFromStreamDir(streamDir, currentFile.getPath().getParent());
+    Date date = getDateFromStreamDir(streamDir, currentFile.getPath().
+        getParent());
     Calendar now = Calendar.getInstance();
     now.setTime(date);
     currentMin = now.get(Calendar.MINUTE);
@@ -336,6 +337,5 @@ public class DatabusStreamWaitingReader
 
   public int getCurrentMin() {
     return this.currentMin;
-    
   }
 }

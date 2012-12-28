@@ -1,8 +1,8 @@
 package com.inmobi.databus.partition;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.apache.hadoop.fs.FileSystem;
@@ -38,10 +38,10 @@ public class TestPartitionReaderWaitingLocalStream
         new Path(cluster.getRootDir()), testStream);
     partitionMinList = new TreeSet<Integer>();
     for (int i =0; i< 60; i++) {
-    	partitionMinList.add(i);
+      partitionMinList.add(i);
     }
     Map<Integer, PartitionCheckpoint> list = new 
-    		TreeMap<Integer, PartitionCheckpoint>();
+        HashMap<Integer, PartitionCheckpoint>();
     partitionCheckpointlist = new PartitionCheckpointList(list);
     consumerNumber = 1;
   }

@@ -43,7 +43,7 @@ public class TestCollectorStreamWithEmptyFiles {
   @BeforeTest
   public void setup() throws Exception {
     // setup cluster
-  	consumerNumber = 1;
+    consumerNumber = 1;
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
         testStream, partitionId, files, emptyfiles, 0);
     collectorDir = DatabusUtil.getCollectorStreamDir(

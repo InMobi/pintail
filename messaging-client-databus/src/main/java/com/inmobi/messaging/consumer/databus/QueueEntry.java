@@ -10,7 +10,7 @@ public class QueueEntry {
   private final MessageCheckpoint msgCheckpoint;
 
   public QueueEntry(Message msg, PartitionId partitionId,
-  	 	MessageCheckpoint msgCheckpoint) {
+      MessageCheckpoint msgCheckpoint) {
     this.message = msg;
     this.partitionId = partitionId;
     this.msgCheckpoint = msgCheckpoint;
@@ -21,7 +21,7 @@ public class QueueEntry {
   }
 
   public MessageCheckpoint getMessageChkpoint() {
-  	return msgCheckpoint;
+    return msgCheckpoint;
   }
 
   public Message getMessage() {

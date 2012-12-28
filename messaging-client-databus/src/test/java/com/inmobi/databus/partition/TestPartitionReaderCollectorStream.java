@@ -50,7 +50,7 @@ public class TestPartitionReaderCollectorStream {
 
   @BeforeTest
   public void setup() throws Exception {
-  	consumerNUmber = 1;
+    consumerNUmber = 1;
     // setup cluster
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
         testStream, partitionId, files, null, 0);

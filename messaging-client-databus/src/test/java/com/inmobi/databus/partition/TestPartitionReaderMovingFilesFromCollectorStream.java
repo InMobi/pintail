@@ -52,7 +52,7 @@ public class TestPartitionReaderMovingFilesFromCollectorStream {
   @BeforeTest
   public void setup() throws Exception {
     // setup cluster
-  	consumerNumber = 1;
+    consumerNumber = 1;
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
         testStream, partitionId, files, emptyfiles, 1);
     collectorDir = DatabusUtil.getCollectorStreamDir(

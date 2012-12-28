@@ -7,7 +7,6 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import com.inmobi.databus.partition.ConsumerPartitionCheckPoint;
-import org.mortbay.log.Log;
 
 import com.inmobi.databus.CheckpointProvider;
 import com.inmobi.databus.partition.PartitionCheckpoint;

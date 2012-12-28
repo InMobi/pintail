@@ -22,7 +22,7 @@ public class TestLocalStreamReader extends TestAbstractDatabusWaitingReader{
 
   @BeforeTest
   public void setup() throws Exception {
-  	consumerNumber = 1;
+    consumerNumber = 1;
     // initialize config
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
     testStream, new PartitionId(clusterName, collectorName), files, null,
@@ -34,7 +34,7 @@ public class TestLocalStreamReader extends TestAbstractDatabusWaitingReader{
     encoded = true;
     partitionMinList = new TreeSet<Integer>();
     for (int i = 0; i < 60; i++) {
-    	partitionMinList.add(i);
+      partitionMinList.add(i);
     }
     chkPoints = new TreeMap<Integer, PartitionCheckpoint>();
     partitionCheckpointList = new PartitionCheckpointList(chkPoints);

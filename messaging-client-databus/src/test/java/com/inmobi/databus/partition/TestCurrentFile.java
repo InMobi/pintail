@@ -66,7 +66,7 @@ public class TestCurrentFile {
 
   @BeforeTest
   public void setup() throws Exception {
-  	consumerNumber = 1;
+    consumerNumber = 1;
     cluster = TestUtil.setupDFSCluster(this.getClass().getSimpleName(),
         testStream, partitionId,
         MiniClusterUtil.getDFSCluster(conf).getFileSystem().getUri().toString(),

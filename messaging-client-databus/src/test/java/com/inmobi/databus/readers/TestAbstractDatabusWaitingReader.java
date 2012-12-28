@@ -106,15 +106,15 @@ public abstract class TestAbstractDatabusWaitingReader {
         finalFiles[1].getParent()));
     lreader.startFromTimestmp(cal.getTime());
     Assert.assertEquals(lreader.getCurrentFile(), finalFiles[1]);
-    
+
     // startFromBegining 
-   lreader.startFromBegining();
-   Assert.assertEquals(lreader.getCurrentFile(), finalFiles[0]);
+    lreader.startFromBegining();
+    Assert.assertEquals(lreader.getCurrentFile(), finalFiles[0]);
   }
 
   static void readFile(StreamReader reader, int fileNum,
       int startIndex, Path filePath, boolean encoded)
-      throws Exception {
+          throws Exception {
     int fileIndex = fileNum * 100 ;
     for (int i = startIndex; i < 100; i++) {
       byte[] line = reader.readLine();
@@ -133,7 +133,7 @@ public abstract class TestAbstractDatabusWaitingReader {
 
 
   public void testReadFromStart() throws Exception {
-  	initializePartitionCheckpointList();
+    initializePartitionCheckpointList();
     PartitionReaderStatsExposer metrics = new PartitionReaderStatsExposer(
         testStream, "c1", partitionId.toString(), consumerNumber);
     lreader = new DatabusStreamWaitingReader(partitionId,
@@ -158,7 +158,7 @@ public abstract class TestAbstractDatabusWaitingReader {
   }
 
   public void testReadFromCheckpoint() throws Exception {
-  	initializePartitionCheckpointList();
+    initializePartitionCheckpointList();
     PartitionReaderStatsExposer metrics = new PartitionReaderStatsExposer(
         testStream, "c1", partitionId.toString(), consumerNumber);
     lreader = new DatabusStreamWaitingReader(partitionId,
@@ -182,8 +182,8 @@ public abstract class TestAbstractDatabusWaitingReader {
   }
 
   public void testReadFromTimeStamp() throws Exception {
-  	initializePartitionCheckpointList();
-  	PartitionReaderStatsExposer metrics = new PartitionReaderStatsExposer(
+    initializePartitionCheckpointList();
+    PartitionReaderStatsExposer metrics = new PartitionReaderStatsExposer(
         testStream, "c1", partitionId.toString(), consumerNumber);
     lreader = new DatabusStreamWaitingReader(partitionId,
         fs, getStreamsDir(), inputFormatClass, conf, 1000, metrics, false, 
@@ -192,7 +192,7 @@ public abstract class TestAbstractDatabusWaitingReader {
         finalFiles[1].getParent()));
     lreader.initializeCurrentFile(
         DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
-        finalFiles[1].getParent()));
+            finalFiles[1].getParent()));
     Assert.assertNotNull(lreader.getCurrentFile());
     lreader.openStream();
     readFile(lreader, 1, 0, finalFiles[1], encoded);
@@ -205,7 +205,7 @@ public abstract class TestAbstractDatabusWaitingReader {
     Assert.assertTrue(metrics.getCumulativeNanosForFetchMessage() > 0);
   }
   public void initializePartitionCheckpointList() {
-  	chkPoints = new TreeMap<Integer, PartitionCheckpoint>();
-  	partitionCheckpointList = new PartitionCheckpointList(chkPoints);
+    chkPoints = new TreeMap<Integer, PartitionCheckpoint>();
+    partitionCheckpointList = new PartitionCheckpointList(chkPoints);
   }
 }

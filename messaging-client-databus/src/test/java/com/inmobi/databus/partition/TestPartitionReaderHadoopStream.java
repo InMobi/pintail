@@ -114,6 +114,17 @@ public class TestPartitionReaderHadoopStream extends TestAbstractClusterReader {
     super.testReadFromTwoCompleteCheckpoint();
   }
 
+  @Test
+  public void testReadFromCheckpointsAndSomeNotExists() throws Exception {
+    super.testReadFromCheckpointsAndSomeNotExists();
+  }
+
+  @Test
+  public void testReadFromExistingCompletedCheckpointAndCheckpointNotExists() 
+      throws Exception {
+    super.testReadFromExistingCompletedCheckpointAndCheckpointNotExists();
+  }
+
   @Override
   Path getStreamsDir() {
     return streamDir;

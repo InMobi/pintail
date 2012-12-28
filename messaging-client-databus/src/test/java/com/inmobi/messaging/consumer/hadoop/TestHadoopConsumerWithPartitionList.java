@@ -25,14 +25,14 @@ import com.inmobi.messaging.consumer.util.HadoopUtil;
 import com.inmobi.messaging.consumer.util.MessageUtil;
 
 public class TestHadoopConsumerWithPartitionList  {
-	protected static final Log LOG = LogFactory.getLog(
-			TestHadoopConsumerWithPartitionList.class);
-	HadoopConsumer consumer;
-	HadoopConsumer secondConsumer;
-	String firstConfFile = "messaging-consumer-hadoop-conf11.properties";
-	String secondConfFile = "messaging-consumer-hadoop-conf12.properties";
-	String streamName = "testStream";
-	int numMessagesPerFile = 100;
+  protected static final Log LOG = LogFactory.getLog(
+      TestHadoopConsumerWithPartitionList.class);
+  HadoopConsumer consumer;
+  HadoopConsumer secondConsumer;
+  String firstConfFile = "messaging-consumer-hadoop-conf11.properties";
+  String secondConfFile = "messaging-consumer-hadoop-conf12.properties";
+  String streamName = "testStream";
+  int numMessagesPerFile = 100;
   int numDataFiles;
   int numSuffixDirs;
   protected String[] dataFiles = new String[] {HadoopUtil.files[0],
@@ -43,31 +43,31 @@ public class TestHadoopConsumerWithPartitionList  {
   protected Path[] rootDirs;
   Path [][] finalPaths;
   Configuration conf;
-	ClientConfig firstConsumerConfig;
+  ClientConfig firstConsumerConfig;
   ClientConfig secondConsuemrConfig;
   protected String ck8;
-  
-	boolean hadoop = true;
-	
-	@BeforeTest
-	public void setup() throws Exception {
-		firstConsumerConfig = ClientConfig.loadFromClasspath(firstConfFile);
-		secondConsuemrConfig = ClientConfig.loadFromClasspath(secondConfFile);
-	 
-	  createFiles(consumer);
-	  
-	  ck8 = "/tmp/test/hadoop/8/checkpoint";
-	  consumer = new HadoopConsumer();
-	  secondConsumer = new HadoopConsumer();
-	}
-	
-	public void createFiles(HadoopConsumer consumer) throws Exception {
-  	consumer = new HadoopConsumer();
+
+  boolean hadoop = true;
+
+  @BeforeTest
+  public void setup() throws Exception {
+    firstConsumerConfig = ClientConfig.loadFromClasspath(firstConfFile);
+    secondConsuemrConfig = ClientConfig.loadFromClasspath(secondConfFile);
+
+    createFiles(consumer);
+
+    ck8 = "/tmp/test/hadoop/8/checkpoint";
+    consumer = new HadoopConsumer();
+    secondConsumer = new HadoopConsumer();
+  }
+
+  public void createFiles(HadoopConsumer consumer) throws Exception {
+    consumer = new HadoopConsumer();
     consumer.initializeConfig(firstConsumerConfig);
-    
+
     conf = consumer.getHadoopConf();
     Assert.assertEquals(conf.get("myhadoop.property"), "myvalue");
-    
+
     rootDirs = consumer.getRootDirs();
     LOG.info("size is" + rootDirs.length);
     LOG.info("number of root dirs   "+ rootDirs.length);
@@ -80,25 +80,25 @@ public class TestHadoopConsumerWithPartitionList  {
     }
     HadoopUtil.setUpHadoopFiles(rootDirs[0], conf, 
         new String[] {"_SUCCESS", "_DONE"}, suffixDirs, null);
-	}
-	
-	@Test
-	public void testConsumerMarkAndResetWithStartTime() throws Exception {
-		firstConsumerConfig.set(HadoopConsumerConfig.rootDirsConfig,
+  }
+
+  @Test
+  public void testConsumerMarkAndResetWithStartTime() throws Exception {
+    firstConsumerConfig.set(HadoopConsumerConfig.rootDirsConfig,
         rootDirs[1].toString());
-		firstConsumerConfig.set(HadoopConsumerConfig.checkpointDirConfig,
+    firstConsumerConfig.set(HadoopConsumerConfig.checkpointDirConfig,
         ck8);
-		secondConsuemrConfig.set(HadoopConsumerConfig.rootDirsConfig, 
-				rootDirs[1].toString());
-		secondConsuemrConfig.set(HadoopConsumerConfig.checkpointDirConfig, ck8);
-		ConsumerUtil.testConsumerMarkAndResetWithStartTime(firstConsumerConfig,
-				secondConsuemrConfig, streamName, consumerName,
+    secondConsuemrConfig.set(HadoopConsumerConfig.rootDirsConfig, 
+        rootDirs[1].toString());
+    secondConsuemrConfig.set(HadoopConsumerConfig.checkpointDirConfig, ck8);
+    ConsumerUtil.testConsumerMarkAndResetWithStartTime(firstConsumerConfig,
+        secondConsuemrConfig, streamName, consumerName,
         DatabusStreamWaitingReader.getDateFromStreamDir(
             rootDirs[1], finalPaths[0][1]), true);  
-	}
-	
-	@AfterTest
-	public void cleanup() throws IOException {
+  }
+
+  @AfterTest
+  public void cleanup() throws IOException {
     FileSystem lfs = FileSystem.getLocal(conf);
     for (Path rootDir : rootDirs) {
       lfs.delete(rootDir.getParent(), true);

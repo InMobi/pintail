@@ -23,7 +23,7 @@ public class CounterClient {
     final Thread mainThread = Thread.currentThread();
     if (args.length == 0) {
       System.out.println("start time is not provided. Starts from the last " +
-      		"marked position");
+          "marked position");
       consumer = MessageConsumerFactory.create();
     } else if (args.length == 1) {
       Calendar now = Calendar.getInstance();

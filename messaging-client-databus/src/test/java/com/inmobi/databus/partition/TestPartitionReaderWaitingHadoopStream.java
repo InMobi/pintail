@@ -1,8 +1,8 @@
 package com.inmobi.databus.partition;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.apache.hadoop.conf.Configuration;
@@ -21,7 +21,7 @@ public class TestPartitionReaderWaitingHadoopStream extends
 
   @BeforeTest
   public void setup() throws Exception {
-  	consumerNumber = 1;
+    consumerNumber = 1;
     conf = new Configuration();
     files = new String[] {HadoopUtil.files[1],
         HadoopUtil.files[3], HadoopUtil.files[5]};
@@ -30,16 +30,16 @@ public class TestPartitionReaderWaitingHadoopStream extends
     // setup fs
     fs = FileSystem.getLocal(conf);
     streamDir = new Path("/tmp/test/hadoop/" + this.getClass().getSimpleName(),
-         testStream).makeQualified(fs);
+        testStream).makeQualified(fs);
     HadoopUtil.setupHadoopCluster(conf, files, null, databusFiles, streamDir);
     inputFormatClass = SequenceFileInputFormat.class.getName();
     dataEncoding = DataEncodingType.NONE;
     partitionMinList = new TreeSet<Integer>();
     for (int i =0; i< 60; i++) {
-    	partitionMinList.add(i);
+      partitionMinList.add(i);
     }
     Map<Integer, PartitionCheckpoint> list = new 
-    		TreeMap<Integer, PartitionCheckpoint>();
+        HashMap<Integer, PartitionCheckpoint>();
     partitionCheckpointlist = new PartitionCheckpointList(list);
   }
 

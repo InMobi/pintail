@@ -39,7 +39,7 @@ public class TestLocalStreamCollectorReader {
   @BeforeTest
   public void setup() throws Exception {
     // initialize config
-  	consumerNumber = 1;
+    consumerNumber = 1;
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
         testStream, partitionId, files, null, databusFiles, 3);
     conf = cluster.getHadoopConf();
@@ -54,7 +54,7 @@ public class TestLocalStreamCollectorReader {
   public void testInitialize() throws Exception {
     CollectorReaderStatsExposer metrics = new 
         CollectorReaderStatsExposer(testStream, "c1", partitionId.toString(),
-        		consumerNumber);
+            consumerNumber);
     // Read from start
     lreader = new LocalStreamCollectorReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
@@ -135,7 +135,7 @@ public class TestLocalStreamCollectorReader {
   public void testReadFromStart() throws Exception {
     CollectorReaderStatsExposer metrics = new 
         CollectorReaderStatsExposer(testStream, "c1", partitionId.toString(), 
-        		consumerNumber);
+            consumerNumber);
     lreader = new LocalStreamCollectorReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
         DatabusStreamReader.getStreamsLocalDir(cluster, testStream), conf,
@@ -159,7 +159,7 @@ public class TestLocalStreamCollectorReader {
   public void testReadFromCheckpoint() throws Exception {
     CollectorReaderStatsExposer metrics = new 
         CollectorReaderStatsExposer(testStream, "c1", partitionId.toString(), 
-        		consumerNumber);
+            consumerNumber);
     lreader = new LocalStreamCollectorReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
         DatabusStreamReader.getStreamsLocalDir(cluster, testStream), conf, 0L,
@@ -185,7 +185,7 @@ public class TestLocalStreamCollectorReader {
   public void testReadFromTimeStamp() throws Exception {
     CollectorReaderStatsExposer metrics = new 
         CollectorReaderStatsExposer(testStream, "c1", partitionId.toString(), 
-        		consumerNumber);
+            consumerNumber);
     lreader = new LocalStreamCollectorReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
         DatabusStreamReader.getStreamsLocalDir(cluster, testStream), conf, 0L,

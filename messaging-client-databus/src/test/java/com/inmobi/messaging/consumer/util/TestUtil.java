@@ -146,11 +146,11 @@ public class TestUtil {
       QueueEntry entry = buffer.take();
       Assert.assertEquals(entry.getPartitionId(), pid);
       if (entry.getMessageChkpoint() instanceof ConsumerPartitionCheckPoint) {
-      	int min = Integer.parseInt(new Path(file.toString()).getParent().getName());
-      	Assert.assertEquals(entry.getMessageChkpoint(),                            
-      			new ConsumerPartitionCheckPoint(file, i + 1, min)); 
+        int min = Integer.parseInt(new Path(file.toString()).getParent().getName());
+        Assert.assertEquals(entry.getMessageChkpoint(),                            
+            new ConsumerPartitionCheckPoint(file, i + 1, min)); 
       } else {
-      	Assert.assertEquals(entry.getMessageChkpoint(),                            
+        Assert.assertEquals(entry.getMessageChkpoint(),                            
             new PartitionCheckpoint(file, i + 1));
       }
       if (isDatabusData) {

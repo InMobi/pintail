@@ -41,10 +41,10 @@ public class TestMergeStreamMultipleCollectors {
   PartitionCheckpointList partitionCheckpointList;
   Map<Integer, PartitionCheckpoint> chkPoints;
   int conusmerNumber;
-  
+
   @BeforeTest
   public void setup() throws Exception {
-  	conusmerNumber = 1;
+    conusmerNumber = 1;
     // initialize config
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
         testStream, new PartitionId(clusterName, collectors[0]), files, null,
@@ -54,7 +54,7 @@ public class TestMergeStreamMultipleCollectors {
     conf = cluster.getHadoopConf();
     partitionMinList = new TreeSet<Integer>();
     for (int i = 0; i < 60; i++) {
-    	partitionMinList.add(i);
+      partitionMinList.add(i);
     }
     chkPoints = new TreeMap<Integer, PartitionCheckpoint>();
     partitionCheckpointList = new PartitionCheckpointList(chkPoints);

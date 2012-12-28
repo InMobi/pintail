@@ -114,7 +114,7 @@ public class CheckpointUtil implements DatabusConsumerConfig {
       }
       thisChkpoint.put(checkpointMin, entry.getValue());
       checkpointList.setForCheckpointUtil(entry.getKey(), new 
-          PartitionCheckpointList(thisChkpoint));
+          PartitionCheckpointList(thisChkpoint));  
     }
   }
 
@@ -219,6 +219,7 @@ public class CheckpointUtil implements DatabusConsumerConfig {
             topicName);
         streamDirs.put(new PartitionId(DatabusConsumer.clusterNamePrefix + i, 
             null), streamDir);
+        i++;
       }
     } else if (config.getString(HadoopConsumerConfig.rootDirsConfig) != null) {
       rootDirConfig = config.getString(HadoopConsumerConfig.rootDirsConfig);
@@ -228,6 +229,7 @@ public class CheckpointUtil implements DatabusConsumerConfig {
         Path streamDir = new Path(rootDir);
         streamDirs.put(new PartitionId(HadoopConsumer.clusterNamePrefix + i, 
             null), streamDir);
+        i++;
       }
     }
     CheckpointList checkpointList = new CheckpointList(idList);
@@ -243,7 +245,7 @@ public class CheckpointUtil implements DatabusConsumerConfig {
       run(args);
     } else {
       System.out.println("incorrect number of arguments. provide one " +
-      		"argument : " + "path to configuration file ");
+          "argument : " + "path to configuration file ");
       System.exit(1);
     }
   }

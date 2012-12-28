@@ -2,8 +2,8 @@ package com.inmobi.messaging.consumer.hadoop;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -63,16 +63,16 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
     for (int i= 0; i < clusterNames.length; i++) {
       String clusterName = clusterNames[i];
       LOG.debug("Creating partition reader for cluster:" + clusterName);
-     
+
       // create partition id
       PartitionId id = new PartitionId(clusterName, null);
       Map<Integer, PartitionCheckpoint> listofPartitionCheckpoints = new 
-      		TreeMap<Integer, PartitionCheckpoint>();
+          HashMap<Integer, PartitionCheckpoint>();
 
       PartitionCheckpointList partitionCheckpointList = new 
-      		PartitionCheckpointList(listofPartitionCheckpoints);    
+          PartitionCheckpointList(listofPartitionCheckpoints);    
       ((CheckpointList)currentCheckpoint).preaprePartitionCheckPointList(id, 
-      		partitionCheckpointList);   
+          partitionCheckpointList);   
 
       // calculate the allowed start time
       long currentMillis = System.currentTimeMillis();
@@ -81,8 +81,8 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
       Date partitionTimestamp = getPartitionTimestamp(id,
           partitionCheckpointList, allowedStartTime);
       PartitionReaderStatsExposer clusterMetrics = 
-      		new PartitionReaderStatsExposer(topicName, consumerName, id.toString(), 
-          		consumerNumber);
+          new PartitionReaderStatsExposer(topicName, consumerName, id.toString(), 
+              consumerNumber);
       addStatsExposer(clusterMetrics);
       PartitionReader reader = new PartitionReader(id,
           partitionCheckpointList, fileSystems[i], buffer, rootDirs[i],
@@ -97,14 +97,14 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
   Configuration getHadoopConf() {
     return conf;
   }
-  
+
   Path[] getRootDirs() {
     return rootDirs;
   }
-  
+
   @Override
   protected void createCheckpoint() {
-  	currentCheckpoint = new CheckpointList(partitionMinList); 
+    currentCheckpoint = new CheckpointList(partitionMinList); 
   }
 
 }

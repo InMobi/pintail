@@ -42,7 +42,7 @@ public class TestClusterReaderEmptyStream {
   Set<Integer> partitionMinList;                                                   
   PartitionCheckpointList partitionCheckpointList;       
   Map<Integer, PartitionCheckpoint> chkPoints;
-  
+
   FileSystem fs;
   Path streamDir;
   Configuration conf = new Configuration();
@@ -52,15 +52,15 @@ public class TestClusterReaderEmptyStream {
   @BeforeTest
   public void setup() throws Exception {
     // setup cluster
-  	consumerNumber = 1;
+    consumerNumber = 1;
     fs = FileSystem.getLocal(conf);
     streamDir = new Path("/tmp/test/hadoop/" + this.getClass().getSimpleName(),
-         testStream).makeQualified(fs);
+        testStream).makeQualified(fs);
     HadoopUtil.setupHadoopCluster(conf, null, null, null, streamDir);
     inputFormatClass = SequenceFileInputFormat.class.getName();
     partitionMinList = new TreeSet<Integer>();
     for (int i = 0; i < 60; i++) {
-    	partitionMinList.add(i);
+      partitionMinList.add(i);
     }
     chkPoints = new TreeMap<Integer, PartitionCheckpoint>();
     partitionCheckpointList = new PartitionCheckpointList(chkPoints);
@@ -91,9 +91,9 @@ public class TestClusterReaderEmptyStream {
 
     //Read from checkpoint
     prepareCheckpointList(new HadoopStreamFile(DatabusStreamWaitingReader.
-    		getMinuteDirPath(streamDir, CollectorStreamReader.
-    				getDateFromCollectorFile(TestUtil.files[0])),
-    				"dummyfile", 0L), 20, partitionCheckpointList);
+        getMinuteDirPath(streamDir, CollectorStreamReader.
+            getDateFromCollectorFile(TestUtil.files[0])),
+            "dummyfile", 0L), 20, partitionCheckpointList);
     preader = new PartitionReader(clusterId, partitionCheckpointList, fs, buffer,
         streamDir, conf, inputFormatClass, null, 
         1000, false, DataEncodingType.BASE64, prMetrics, true, partitionMinList);
@@ -107,9 +107,9 @@ public class TestClusterReaderEmptyStream {
 
     //Read from startTime with checkpoint    
     prepareCheckpointList(new HadoopStreamFile(DatabusStreamWaitingReader.
-    		getMinuteDirPath(streamDir, CollectorStreamReader.
-    				getDateFromCollectorFile(TestUtil.files[0])),
-    				"dummyfile", 0L), 20, partitionCheckpointList);
+        getMinuteDirPath(streamDir, CollectorStreamReader.
+            getDateFromCollectorFile(TestUtil.files[0])),
+            "dummyfile", 0L), 20, partitionCheckpointList);
     preader = new PartitionReader(clusterId, partitionCheckpointList, fs, buffer,
         streamDir, conf, inputFormatClass,
         CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[0]), 
@@ -123,12 +123,12 @@ public class TestClusterReaderEmptyStream {
         .getReader()).getReader().getClass().getName(),
         DatabusStreamWaitingReader.class.getName());
   }
-  
+
   public void prepareCheckpointList(StreamFile streamFile, int lineNum, 
-		  PartitionCheckpointList partitionCheckpointList) {
-  	partitionCheckpointList = new PartitionCheckpointList(chkPoints);
-  	Date date = DatabusStreamWaitingReader.getDateFromCheckpointPath(streamFile.toString());
-  	partitionCheckpointList.set(date.getMinutes(), new PartitionCheckpoint(
-  			streamFile, lineNum));
+      PartitionCheckpointList partitionCheckpointList) {
+    partitionCheckpointList = new PartitionCheckpointList(chkPoints);
+    Date date = DatabusStreamWaitingReader.getDateFromCheckpointPath(streamFile.toString());
+    partitionCheckpointList.set(date.getMinutes(), new PartitionCheckpoint(
+        streamFile, lineNum));
   }
 }

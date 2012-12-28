@@ -2,18 +2,21 @@ package com.inmobi.messaging.consumer.databus;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.TreeMap;
+import java.util.HashMap;
 
 import org.testng.Assert;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
+import com.inmobi.databus.partition.PartitionCheckpoint;
+import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.BaseMessageConsumerStatsExposer;
 import com.inmobi.messaging.consumer.util.MessageUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
+import com.inmobi.messaging.consumer.util.ConsumerUtil;
 
 public class TestDatabusConsumerWithFailover extends
     TestAbstractDatabusConsumer {
@@ -101,19 +104,10 @@ public class TestDatabusConsumerWithFailover extends
     }
     consumer.mark();
     ConsumerCheckpoint temp = consumer.getCurrentCheckpoint();
-    Checkpoint lastCheckpoint = null;
-    //
-    Map<Integer, Checkpoint> checkpointMap = new TreeMap<Integer, Checkpoint>();
-    if(temp instanceof CheckpointList) {
-      //Do a deep copy of the Tree Map, as the entry sets in original map can change
-      for(Map.Entry<Integer,Checkpoint> entry: ((CheckpointList) temp).
-          getCheckpoints().entrySet()) {
-        checkpointMap.put(entry.getKey(), new Checkpoint(entry.getValue().toBytes()));
-      }
-    } else {
-      lastCheckpoint = new Checkpoint(
-          ((Checkpoint)consumer.getCurrentCheckpoint()).toBytes());
-    }
+    Map<PartitionId, PartitionCheckpoint> lastCheckpoint = null;
+    Map<Integer, Checkpoint> checkpointMap = new HashMap<Integer, Checkpoint>();
+    ConsumerUtil.createCheckpointList(temp, checkpointMap, 
+        lastCheckpoint, consumer); 
 
     for (int i = 0; i < numCounters; i++) {
       markedcounter1[i] = counter[i];
@@ -131,12 +125,8 @@ public class TestDatabusConsumerWithFailover extends
     // restart consumer with different rootDir
     consumer = new DatabusConsumer();
     consumer.init(streamName, consumerName, null, config2);
-    if(temp instanceof CheckpointList) {
-      Assert.assertEquals(((CheckpointList)consumer.getCurrentCheckpoint()).
-          getCheckpoints(), checkpointMap);
-    } else {
-      Assert.assertEquals(consumer.getCurrentCheckpoint(), lastCheckpoint);
-    }
+    ConsumerUtil.compareConsumerCheckpoints(temp, checkpointMap, 
+        lastCheckpoint, consumer);
     for (int i = 0; i < totalMessages / 2; i++) {
       Message msg = consumer.next();
       String msgStr = new String(msg.getData().array());
