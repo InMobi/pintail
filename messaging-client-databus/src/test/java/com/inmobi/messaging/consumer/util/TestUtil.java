@@ -19,6 +19,7 @@ import org.testng.Assert;
 
 import com.inmobi.databus.Cluster;
 import com.inmobi.databus.files.StreamFile;
+import com.inmobi.databus.partition.ConsumerPartitionCheckPoint;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.readers.CollectorStreamReader;
@@ -138,12 +139,20 @@ public class TestUtil {
       int numMsgs, PartitionId pid, LinkedBlockingQueue<QueueEntry> buffer,
       boolean isDatabusData)
           throws InterruptedException, IOException {
+  	
+  
     int fileIndex = (fileNum - 1) * 100 ;
     for (int i = startIndex; i < (startIndex + numMsgs); i++) {
       QueueEntry entry = buffer.take();
       Assert.assertEquals(entry.getPartitionId(), pid);
-      Assert.assertEquals(entry.getPartitionChkpoint(),
-          new PartitionCheckpoint(file, i + 1));
+      if (entry.getMessageChkpoint() instanceof ConsumerPartitionCheckPoint) {
+        int min = Integer.parseInt(new Path(file.toString()).getParent().getName());
+        Assert.assertEquals(entry.getMessageChkpoint(),                            
+            new ConsumerPartitionCheckPoint(file, i + 1, min)); 
+      } else {
+        Assert.assertEquals(entry.getMessageChkpoint(),                            
+            new PartitionCheckpoint(file, i + 1));
+      }
       if (isDatabusData) {
         Assert.assertEquals(new String(entry.getMessage().getData().array()),
           MessageUtil.constructMessage(fileIndex + i));

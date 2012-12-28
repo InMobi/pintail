@@ -3,6 +3,7 @@ package com.inmobi.databus.partition;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Date;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 
 import org.apache.commons.codec.binary.Base64;
@@ -15,6 +16,7 @@ import org.apache.hadoop.fs.Path;
 import com.inmobi.databus.files.StreamFile;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.databus.DataEncodingType;
+import com.inmobi.messaging.consumer.databus.MessageCheckpoint;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
 import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
@@ -47,15 +49,16 @@ public class PartitionReader {
   }
 
   public PartitionReader(PartitionId partitionId,
-      PartitionCheckpoint partitionCheckpoint, FileSystem fs,
+      PartitionCheckpointList partitionCheckpointList, FileSystem fs,
       BlockingQueue<QueueEntry> buffer, Path streamDir,
       Configuration conf, String inputFormatClass,
       Date startTime, long waitTimeForFileCreate, boolean isDatabusData,
-      DataEncodingType dataEncoding, PartitionReaderStatsExposer prMetrics)
+      DataEncodingType dataEncoding, PartitionReaderStatsExposer prMetrics,
+      Set<Integer> partitionMinList)
           throws IOException {
-    this(partitionId, partitionCheckpoint, fs, buffer, streamDir,
+    this(partitionId, partitionCheckpointList, fs, buffer, streamDir,
         conf, inputFormatClass, startTime, waitTimeForFileCreate, isDatabusData,
-        dataEncoding, prMetrics, false);
+        dataEncoding, prMetrics, false, partitionMinList);
   }
 
   PartitionReader(PartitionId partitionId,
@@ -82,32 +85,33 @@ public class PartitionReader {
   }
 
   PartitionReader(PartitionId partitionId,
-      PartitionCheckpoint partitionCheckpoint, FileSystem fs,
+      PartitionCheckpointList partitionCheckpointList, FileSystem fs,
       BlockingQueue<QueueEntry> buffer, Path streamDir,
       Configuration conf, String inputFormatClass,
       Date startTime, long waitTimeForFileCreate, boolean isDatabusData,
       DataEncodingType dataEncoding, PartitionReaderStatsExposer prMetrics,
-      boolean noNewFiles)
+      boolean noNewFiles, Set<Integer> partitionMinList)
           throws IOException {
-    this(partitionId, partitionCheckpoint, buffer, startTime, dataEncoding,
+    this(partitionId, partitionCheckpointList, buffer, startTime, dataEncoding,
         prMetrics);
-    reader = new ClusterReader(partitionId, partitionCheckpoint,
+    reader = new ClusterReader(partitionId, partitionCheckpointList,
         fs, streamDir, conf, inputFormatClass, startTime,
-        waitTimeForFileCreate, isDatabusData, prMetrics, noNewFiles);
+        waitTimeForFileCreate, isDatabusData, prMetrics, noNewFiles, 
+        partitionMinList);
     // initialize cluster and its directories
     LOG.info("Partition reader initialized with partitionId:" + partitionId +
-        " checkPoint:" + partitionCheckpoint +  
+        " checkPoint:" + partitionCheckpointList +  
         " startTime:" + startTime +
         " currentReader:" + reader);
   }
 
   private PartitionReader(PartitionId partitionId,
-      PartitionCheckpoint partitionCheckpoint,
+      MessageCheckpoint msgCheckpoint,
       BlockingQueue<QueueEntry> buffer, Date startTime,
       DataEncodingType dataEncoding,
       PartitionReaderStatsExposer prMetrics)
           throws IOException {
-    if (startTime == null && partitionCheckpoint == null) {
+    if (startTime == null && msgCheckpoint == null) {
       String msg = "StartTime and checkpoint both" +
           " cannot be null in PartitionReader";
       LOG.warn(msg);
@@ -210,10 +214,9 @@ public class PartitionReader {
           } else {
             data = line;
           }
+          MessageCheckpoint checkpoint = reader.getMessageCheckpoint();
           buffer.put(new QueueEntry(new Message(
-              ByteBuffer.wrap(data)), partitionId,
-              new PartitionCheckpoint(reader.getCurrentFile(),
-                  reader.getCurrentLineNum())));
+              ByteBuffer.wrap(data)), partitionId, checkpoint));
           prMetrics.incrementMessagesAddedToBuffer();
         } else {
           LOG.info("No stream to read");

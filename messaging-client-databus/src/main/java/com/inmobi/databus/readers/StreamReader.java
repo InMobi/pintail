@@ -44,6 +44,12 @@ public abstract class StreamReader<T extends StreamFile> {
     this.noNewFiles = noNewFiles;
     this.fileMap = createFileMap();
   }
+  
+  public boolean prepareMoveToNext(FileStatus currentFile, FileStatus nextFile)
+      throws IOException {
+    this.currentFile = nextFile;
+    return true;
+  }
 
   public void openStream() throws IOException {
     openCurrentFile(false);
@@ -234,8 +240,8 @@ public abstract class StreamReader<T extends StreamFile> {
   protected void setNextFile() throws IOException {
     FileStatus nextFile = fileMap.getNext();
     if (nextFile != null) {
-      currentFile = nextFile;
-      openCurrentFile(true);
+      boolean next = prepareMoveToNext(currentFile, nextFile);
+      openCurrentFile(next);
     }
   }
 
@@ -327,5 +333,13 @@ public abstract class StreamReader<T extends StreamFile> {
   
   protected boolean isWithinStream(String fileName) throws IOException {
     return fileMap.isWithin(fileName);
+  }
+  
+  protected FileStatus getFirstFileInStream() {
+  	return fileMap.getFirstFile();
+  }
+
+  protected FileStatus getFileMapValue(StreamFile streamFile) {
+    return fileMap.getValue(streamFile);
   }
 }
