@@ -164,9 +164,11 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
       try {
         inStream.seek(currentOffset);
       } catch (IOException e) {
+        LOG.warn(
+            "Ignoring the seek exception which can be encountered while seeking beyond EOF in S3",
+            e);
         skipLines(currentLineNum);
         currentOffset = inStream.getPos();
-        LOG.debug("Ignoring the seek exception which can be encountered while seeking beyond EOF in S3");
       }
     } else {
       skipLines(currentLineNum);
