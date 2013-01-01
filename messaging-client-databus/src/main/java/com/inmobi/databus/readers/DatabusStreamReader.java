@@ -129,7 +129,6 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
           needsDeserialize = true;
         } else {
           assert (msgValue instanceof Message);
-          LOG.info("No deserializing required");
           needsDeserialize = false;
         }
         skipLines(currentLineNum);
