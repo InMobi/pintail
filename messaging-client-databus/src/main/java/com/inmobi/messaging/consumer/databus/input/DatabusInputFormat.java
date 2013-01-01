@@ -3,19 +3,23 @@ package com.inmobi.messaging.consumer.databus.input;
 import java.io.IOException;
 
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.RecordReader;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapred.InputSplit;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapred.RecordReader;
+import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.mapred.FileInputFormat;
 
 import com.inmobi.messaging.Message;
 
 public class DatabusInputFormat extends FileInputFormat<LongWritable, Message>{
 
   @Override
-  public RecordReader<LongWritable, Message> createRecordReader(InputSplit arg0,
-      TaskAttemptContext arg1) throws IOException, InterruptedException {
-    return new DatabusRecordReader();
+  public RecordReader<LongWritable, Message> getRecordReader(InputSplit split,
+      JobConf job,
+      Reporter reporter)
+          throws IOException {
+    reporter.setStatus(split.toString());
+    return new DatabusRecordReader(job, split);
   }
 
 }

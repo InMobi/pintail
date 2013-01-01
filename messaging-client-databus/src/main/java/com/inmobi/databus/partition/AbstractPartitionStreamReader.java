@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import com.inmobi.databus.files.StreamFile;
 import com.inmobi.databus.readers.StreamReader;
+import com.inmobi.messaging.Message;
 
 public abstract class AbstractPartitionStreamReader implements 
      PartitionStreamReader {
@@ -42,7 +43,7 @@ public abstract class AbstractPartitionStreamReader implements
     reader.closeStream();    
   }
 
-  public byte[] readLine() throws IOException, InterruptedException {
+  public Message readLine() throws IOException, InterruptedException {
     return reader.readLine();
   }
 

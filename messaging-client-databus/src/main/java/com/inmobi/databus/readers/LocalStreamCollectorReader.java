@@ -12,13 +12,14 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
-import org.apache.hadoop.mapred.TextInputFormat;
 
 import com.inmobi.databus.files.CollectorFile;
 import com.inmobi.databus.files.DatabusStreamFile;
 import com.inmobi.databus.files.FileMap;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
+import com.inmobi.messaging.Message;
+import com.inmobi.messaging.consumer.databus.input.DatabusInputFormat;
 import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 
 public class LocalStreamCollectorReader extends 
@@ -36,7 +37,7 @@ public class LocalStreamCollectorReader extends
       long waitTimeForFileCreate, CollectorReaderStatsExposer metrics)
           throws IOException {
     super(partitionId, fs, streamDir,
-        TextInputFormat.class.getCanonicalName(), conf, waitTimeForFileCreate,
+        DatabusInputFormat.class.getCanonicalName(), conf, waitTimeForFileCreate,
         metrics, false);
     this.streamName = streamName;
     this.collector = partitionId.getCollector();
@@ -113,8 +114,8 @@ public class LocalStreamCollectorReader extends
     };
   }
   
-  public byte[] readLine() throws IOException {
-    byte[] line = readNextLine();
+  public Message readLine() throws IOException {
+    Message line = readNextLine();
     while (line == null) { // reached end of file
       if (closed) {
         LOG.info("Stream closed");

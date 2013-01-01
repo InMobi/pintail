@@ -1,58 +1,61 @@
 package com.inmobi.messaging.consumer.databus.input;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.RecordReader;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.mapreduce.lib.input.LineRecordReader;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.FileSplit;
+import org.apache.hadoop.mapred.InputSplit;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapred.RecordReader;
+import org.apache.hadoop.mapred.LineRecordReader;
 
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.consumer.util.DatabusUtil;
 
-public class DatabusRecordReader extends RecordReader<LongWritable, Message> {
+public class DatabusRecordReader implements RecordReader<LongWritable, Message> {
 
   private LineRecordReader lineReader;
+  private Text textValue;
+  private Configuration conf;
+  public DatabusRecordReader(JobConf job, InputSplit split) throws IOException {
+    lineReader = new LineRecordReader(job, (FileSplit)split);
+    this.conf = job;
+  }
 
-  @Override
+  public LongWritable createKey() {
+    return lineReader.createKey();
+  }
+
+  public Message createValue() {
+    textValue = lineReader.createValue();
+    return new Message(new byte[0]);
+  }
+
+  public long getPos() throws IOException {
+    return lineReader.getPos();
+  }
+
+  public boolean next(LongWritable key, Message value) throws IOException {
+    textValue.clear();
+    boolean ret = lineReader.next(key, this.textValue);
+    if (ret) {
+      //TODO:strip headers if any
+
+      //decode Base 64
+      DatabusUtil.decodeMessage(this.textValue.getBytes(), conf, value);
+    }
+    return ret;
+  }
+
   public void close() throws IOException {
     lineReader.close();
   }
 
-  @Override
-  public LongWritable getCurrentKey() throws IOException,
-      InterruptedException {
-    return lineReader.getCurrentKey();
-  }
-
-  @Override
-  public Message getCurrentValue() throws IOException, InterruptedException {
-    byte[] line = lineReader.getCurrentValue().getBytes();
-    
-    //TODO:strip headers if any
-    
-    //decode Base 64
-    byte[] data = Base64.decodeBase64(line);
-
-    return new Message(data);
-  }
-
-  @Override
-  public float getProgress() throws IOException, InterruptedException {
+  public float getProgress() throws IOException {
     return lineReader.getProgress();
   }
-
-  @Override
-  public void initialize(InputSplit genericSplit, TaskAttemptContext context)
-      throws IOException, InterruptedException {
-    lineReader.initialize(genericSplit, context);
-  }
-
-  @Override
-  public boolean nextKeyValue() throws IOException, InterruptedException {
-    return lineReader.nextKeyValue();
-  }
-
-  
 }

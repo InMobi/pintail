@@ -13,13 +13,13 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapred.TextInputFormat;
 
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionCheckpointList;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.partition.PartitionReader;
 import com.inmobi.messaging.ClientConfig;
+import com.inmobi.messaging.consumer.databus.input.DatabusInputFormat;
 import com.inmobi.messaging.consumer.util.DatabusUtil;
 import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
@@ -171,7 +171,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
         addStatsExposer(clusterMetrics);
         readers.put(id, new PartitionReader(id,
             partitionCheckpointList, fs, buffer, streamDir, conf,
-            TextInputFormat.class.getCanonicalName(), partitionTimestamp,
+            DatabusInputFormat.class.getCanonicalName(), partitionTimestamp,
             waitTimeForFileCreate, true, dataEncodingType, clusterMetrics, 
             partitionMinList));
       }
