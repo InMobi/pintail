@@ -16,7 +16,7 @@ import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.messaging.consumer.databus.DataEncodingType;
 import com.inmobi.messaging.consumer.databus.MessagingConsumerConfig;
-import com.inmobi.messaging.consumer.databus.input.DatabusInputFormat;
+import com.inmobi.messaging.consumer.databus.mapred.DatabusInputFormat;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
 public class TestLocalStreamReader extends TestAbstractDatabusWaitingReader{

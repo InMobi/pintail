@@ -1,4 +1,4 @@
-package com.inmobi.messaging.consumer.databus.input;
+package com.inmobi.messaging.consumer.databus.mapred;
 
 import java.io.IOException;
 

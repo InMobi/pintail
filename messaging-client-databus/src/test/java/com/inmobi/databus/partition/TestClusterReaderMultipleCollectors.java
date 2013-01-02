@@ -23,7 +23,7 @@ import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 import com.inmobi.messaging.consumer.databus.DataEncodingType;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
 import com.inmobi.messaging.consumer.databus.StreamType;
-import com.inmobi.messaging.consumer.databus.input.DatabusInputFormat;
+import com.inmobi.messaging.consumer.databus.mapred.DatabusInputFormat;
 import com.inmobi.messaging.consumer.util.DatabusUtil;
 import com.inmobi.messaging.consumer.util.MiniClusterUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;

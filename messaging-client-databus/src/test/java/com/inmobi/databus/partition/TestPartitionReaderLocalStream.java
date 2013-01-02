@@ -12,7 +12,7 @@ import com.inmobi.databus.Cluster;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 import com.inmobi.messaging.consumer.databus.DataEncodingType;
-import com.inmobi.messaging.consumer.databus.input.DatabusInputFormat;
+import com.inmobi.messaging.consumer.databus.mapred.DatabusInputFormat;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
 public class TestPartitionReaderLocalStream extends TestAbstractClusterReader {

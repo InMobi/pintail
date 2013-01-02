@@ -1,9 +1,7 @@
-package com.inmobi.messaging.consumer.databus.input;
+package com.inmobi.messaging.consumer.databus.mapred;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;

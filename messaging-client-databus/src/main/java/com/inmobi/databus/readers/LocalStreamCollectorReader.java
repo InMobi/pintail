@@ -19,7 +19,7 @@ import com.inmobi.databus.files.FileMap;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.Message;
-import com.inmobi.messaging.consumer.databus.input.DatabusInputFormat;
+import com.inmobi.messaging.consumer.databus.mapred.DatabusInputFormat;
 import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 
 public class LocalStreamCollectorReader extends 
