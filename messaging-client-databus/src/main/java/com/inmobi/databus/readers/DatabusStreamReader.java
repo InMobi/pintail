@@ -46,7 +46,7 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
   private Object msgKey;
   private Object msgValue;
   private ByteArrayOutputStream baos = new ByteArrayOutputStream();
-  private boolean needsDeserialize;
+  private boolean needsSerialize;
 
   protected DatabusStreamReader(PartitionId partitionId, FileSystem fs,
       Path streamDir, String inputFormatClass,
@@ -126,10 +126,10 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
         msgKey = recordReader.createKey();
         msgValue = recordReader.createValue();
         if (msgValue instanceof Writable) {
-          needsDeserialize = true;
+          needsSerialize = true;
         } else {
           assert (msgValue instanceof Message);
-          needsDeserialize = false;
+          needsSerialize = false;
         }
         skipLines(currentLineNum);
       } else {
@@ -150,12 +150,12 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
 
   protected Message readRawLine() throws IOException {
     if (recordReader != null) {
-      if (!needsDeserialize) {
+      if (!needsSerialize) {
         msgValue = recordReader.createValue();
       }
       boolean ret = recordReader.next(msgKey, msgValue);
       if (ret) {
-        if (needsDeserialize) {
+        if (needsSerialize) {
           baos.reset();
           ((Writable)msgValue).write(new DataOutputStream(baos));
           return new Message(baos.toByteArray());
