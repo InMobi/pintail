@@ -13,6 +13,7 @@ public class MessagePublisherFactory {
       "messaging-publisher-conf.properties";
   public static final String PUBLISHER_CLASS_NAME_KEY = "publisher.classname";
   public static final String EMITTER_CONF_FILE_KEY = "statemitter.filename";
+  public static final String AUDIT_CONF_FILE_KEY = "audit.filename";
   public static final String DEFAULT_PUBLISHER_CLASS_NAME = 
       "com.inmobi.messaging.netty.ScribeMessagePublisher";
 

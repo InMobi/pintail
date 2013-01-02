@@ -5,6 +5,7 @@ import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 
+import org.lwes.util.Log;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -34,7 +35,10 @@ public class TestPublisher {
     doTest(publisher);
     Assert.assertTrue(publisher.getMetrics().statEmissionEnabled());
     Assert.assertTrue((
-        (MockStatsEmitter)publisher.getMetrics().getStatsEmitter()).inited);
+(MockStatsEmitter) publisher.getMetrics()
+        .getStatsEmitter()).inited);
+    Assert.assertNotNull(MockPublisher.getMsg("audit"));
+    Log.info("AUDIT PACKET " + MockPublisher.getMsg("audit"));
   }
 
   @Test

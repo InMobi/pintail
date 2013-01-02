@@ -2,7 +2,6 @@ package com.inmobi.audit;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -11,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.inmobi.messaging.ClientConfig;
+import com.inmobi.messaging.Message;
 
 public class AuditMessagePublisher {
 
@@ -22,22 +22,28 @@ public class AuditMessagePublisher {
   private static int aggregateWindowSizeInMins;
   public static ConcurrentHashMap<String, AuditCounterAccumulator> topicAccumulatorMap = new ConcurrentHashMap<String, AuditCounterAccumulator>();
   private static final String tier = "publisher";
-  private ScheduledThreadPoolExecutor executor;
+  private static ScheduledThreadPoolExecutor executor;
+  private static boolean isInit = false;
+  private static AuditMessageWorker worker;
 
   private static final Logger LOG = LoggerFactory
       .getLogger(AuditMessagePublisher.class);
 
-  public void init() {
+  public static void init() {
+    if (isInit)
+      return;
     ClientConfig config = ClientConfig.loadFromClasspath(AUDIT_CONF_FILE);
     init(config);
   }
 
-  public void init(String confFile) {
+  public static void init(String confFile) {
+    if (isInit)
+      return;
     ClientConfig config = ClientConfig.loadFromClasspath(confFile);
     init(config);
   }
 
-  private void init(ClientConfig config) {
+  private static void init(ClientConfig config) {
     windowSizeInMins = config.getInteger(WINDOW_SIZE_KEY, 5);
     aggregateWindowSizeInMins = config.getInteger(AGGREGATE_WINDOW_KEY, 5);
     executor = new ScheduledThreadPoolExecutor(
@@ -49,10 +55,11 @@ public class AuditMessagePublisher {
       LOG.error("Unable to find the hostanme of the local box,audit packets wont contain hostname");
       hostname = "";
     }
-    executor.scheduleWithFixedDelay(new AuditMessageWorker(hostname, tier,
-        windowSizeInMins), aggregateWindowSizeInMins,
+    worker = new AuditMessageWorker(hostname, tier, windowSizeInMins);
+    executor.scheduleWithFixedDelay(worker, aggregateWindowSizeInMins,
         aggregateWindowSizeInMins, TimeUnit.MINUTES);
-
+    // setting init flag to true
+    isInit = true;
   }
 
   public static AuditCounterAccumulator getAccumulator(String topic) {
@@ -62,7 +69,13 @@ public class AuditMessagePublisher {
     return topicAccumulatorMap.get(topic);
   }
 
-  public static void attachHeaders(ByteBuffer bytes) {
+  public static void close() {
+    if (worker != null)
+      worker.run(); // flushing the last audit packet during shutdown
+    executor.shutdown();
+  }
+
+  public static void attachHeaders(Message m) {
 
   }
 
