@@ -40,11 +40,11 @@ public final class Message {
     return data;
   }
 
-  public void set(ByteBuffer data) {
+  public synchronized void set(ByteBuffer data) {
     this.data = data;
   }
 
-  public void clear() {
+  public synchronized void clear() {
     data.clear();
   }
 
