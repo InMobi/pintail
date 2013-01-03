@@ -15,6 +15,7 @@ import org.testng.Assert;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionCheckpointList;
 import com.inmobi.databus.partition.PartitionId;
+import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.util.HadoopUtil;
 import com.inmobi.messaging.consumer.util.MessageUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
@@ -117,13 +118,14 @@ public abstract class TestAbstractDatabusWaitingReader {
           throws Exception {
     int fileIndex = fileNum * 100 ;
     for (int i = startIndex; i < 100; i++) {
-      byte[] line = reader.readLine();
-      Text text = MessageUtil.getTextMessage(line);
-      Assert.assertNotNull(line);
+      Message msg = reader.readLine();
+      Assert.assertNotNull(msg);
+      byte[] line = msg.getData().array();
       if (encoded) {
-        Assert.assertEquals(new String(Base64.decodeBase64(text.getBytes())),
+        Assert.assertEquals(new String(line),
             MessageUtil.constructMessage(fileIndex + i));
       } else {
+        Text text = MessageUtil.getTextMessage(line);
         Assert.assertEquals(text,
             new Text(MessageUtil.constructMessage(fileIndex + i)));        
       }

@@ -9,7 +9,6 @@ import java.util.TreeSet;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapred.TextInputFormat;
 import org.testng.Assert;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
@@ -19,6 +18,9 @@ import com.inmobi.databus.Cluster;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionCheckpointList;
 import com.inmobi.databus.partition.PartitionId;
+import com.inmobi.messaging.consumer.databus.DataEncodingType;
+import com.inmobi.messaging.consumer.databus.MessagingConsumerConfig;
+import com.inmobi.messaging.consumer.databus.mapred.DatabusInputFormat;
 import com.inmobi.messaging.consumer.util.TestUtil;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
@@ -52,6 +54,8 @@ public class TestMergeStreamMultipleCollectors {
     TestUtil.setUpFiles(cluster, collectors[1], files, null, databusFiles2, 0,
         3);
     conf = cluster.getHadoopConf();
+    conf.set(MessagingConsumerConfig.dataEncodingConfg,
+        DataEncodingType.BASE64.name());
     partitionMinList = new TreeSet<Integer>();
     for (int i = 0; i < 60; i++) {
       partitionMinList.add(i);
@@ -72,7 +76,7 @@ public class TestMergeStreamMultipleCollectors {
     reader = new DatabusStreamWaitingReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()),
         DatabusStreamReader.getStreamsDir(cluster, testStream),
-        TextInputFormat.class.getCanonicalName(),
+        DatabusInputFormat.class.getCanonicalName(),
         conf, 1000, metrics, false, partitionMinList, partitionCheckpointList);                             
     reader.build(CollectorStreamReader.getDateFromCollectorFile(files[0]));
     reader.initFromStart();

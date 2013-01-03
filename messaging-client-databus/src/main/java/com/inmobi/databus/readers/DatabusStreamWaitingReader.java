@@ -20,6 +20,7 @@ import com.inmobi.databus.files.HadoopStreamFile;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionCheckpointList;
 import com.inmobi.databus.partition.PartitionId;
+import com.inmobi.messaging.Message;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
 public class DatabusStreamWaitingReader 
@@ -238,8 +239,8 @@ public class DatabusStreamWaitingReader
   }
 
   @Override
-  public byte[] readLine() throws IOException, InterruptedException {
-    byte[] line = readNextLine();
+  public Message readLine() throws IOException, InterruptedException {
+    Message line = readNextLine();
     while (line == null) { // reached end of file
       LOG.info("Read " + getCurrentFile() + " with lines:" + currentLineNum);
       if (closed) {

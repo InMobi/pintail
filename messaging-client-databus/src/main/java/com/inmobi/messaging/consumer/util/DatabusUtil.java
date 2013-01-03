@@ -1,7 +1,14 @@
 package com.inmobi.messaging.consumer.util;
 
+import java.nio.ByteBuffer;
+
+import org.apache.commons.codec.binary.Base64;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
+import com.inmobi.messaging.Message;
+import com.inmobi.messaging.consumer.databus.DataEncodingType;
+import com.inmobi.messaging.consumer.databus.MessagingConsumerConfig;
 import com.inmobi.messaging.consumer.databus.StreamType;
 
 public class DatabusUtil {
@@ -35,4 +42,25 @@ public class DatabusUtil {
     return baseDir;
   }
 
+  public static Message decodeMessage(byte[] line, Configuration conf) {
+    return new Message(decodeByteBuffer(line, conf));
+  }
+
+  public static void decodeMessage(byte[] line, Configuration conf,
+      Message msg) {
+    msg.set(decodeByteBuffer(line, conf));
+  }
+
+  private static ByteBuffer decodeByteBuffer(byte[] line, Configuration conf) {
+    DataEncodingType dataEncoding = DataEncodingType.valueOf(
+        conf.get(MessagingConsumerConfig.dataEncodingConfg,
+            MessagingConsumerConfig.DEFAULT_DATA_ENCODING));
+    byte[] data;
+    if (dataEncoding.equals(DataEncodingType.BASE64)) {
+      data = Base64.decodeBase64(line);
+    } else {
+      data = line;
+    }
+    return ByteBuffer.wrap(data);
+  }
 }

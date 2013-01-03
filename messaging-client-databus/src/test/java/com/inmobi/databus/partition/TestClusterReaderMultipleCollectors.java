@@ -11,7 +11,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapred.TextInputFormat;
 import org.testng.Assert;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
@@ -24,6 +23,7 @@ import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 import com.inmobi.messaging.consumer.databus.DataEncodingType;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
 import com.inmobi.messaging.consumer.databus.StreamType;
+import com.inmobi.messaging.consumer.databus.mapred.DatabusInputFormat;
 import com.inmobi.messaging.consumer.util.DatabusUtil;
 import com.inmobi.messaging.consumer.util.MiniClusterUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
@@ -84,7 +84,7 @@ public class TestClusterReaderMultipleCollectors {
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
         testStream, "c1", partitionId.toString(), consumerNumber);
     preader = new PartitionReader(partitionId, partitionCheckpointList, fs, 
-        buffer, streamDir, conf, TextInputFormat.class.getCanonicalName(),
+        buffer, streamDir, conf, DatabusInputFormat.class.getCanonicalName(),
         CollectorStreamReader.getDateFromCollectorFile(files[0]), 10, true,
         DataEncodingType.BASE64, prMetrics, false, partitionMinList);            
     preader.init();
@@ -181,7 +181,7 @@ public class TestClusterReaderMultipleCollectors {
     prepareCheckpoint( DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath5)), 50, movedPath5, partitionCheckpointList);
     preader = new PartitionReader(partitionId,  partitionCheckpointList, fs, 
-        buffer, streamDir, conf, TextInputFormat.class.getCanonicalName(),
+        buffer, streamDir, conf, DatabusInputFormat.class.getCanonicalName(),
         null, 1000, true, DataEncodingType.BASE64, prMetrics, false, 
         partitionMinList); 
     preader.start();

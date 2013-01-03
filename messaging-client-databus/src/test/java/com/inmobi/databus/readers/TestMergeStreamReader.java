@@ -6,7 +6,6 @@ import java.util.TreeSet;
 
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapred.TextInputFormat;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -15,6 +14,9 @@ import com.inmobi.databus.Cluster;
 import com.inmobi.databus.partition.PartitionCheckpointList;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.partition.PartitionCheckpoint;
+import com.inmobi.messaging.consumer.databus.DataEncodingType;
+import com.inmobi.messaging.consumer.databus.MessagingConsumerConfig;
+import com.inmobi.messaging.consumer.databus.mapred.DatabusInputFormat;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
 public class TestMergeStreamReader extends TestAbstractDatabusWaitingReader{
@@ -29,9 +31,11 @@ public class TestMergeStreamReader extends TestAbstractDatabusWaitingReader{
         testStream, new PartitionId(clusterName, collectorName), files, null,
         finalFiles, 0, 3);
     conf = cluster.getHadoopConf();
+    conf.set(MessagingConsumerConfig.dataEncodingConfg,
+        DataEncodingType.BASE64.name());
     fs = FileSystem.get(conf);
     streamDir = getStreamsDir();
-    inputFormatClass = TextInputFormat.class.getCanonicalName();
+    inputFormatClass = DatabusInputFormat.class.getCanonicalName();
     encoded = true;
     partitionMinList = new TreeSet<Integer>();
     for (int i = 0; i < 60; i++) {

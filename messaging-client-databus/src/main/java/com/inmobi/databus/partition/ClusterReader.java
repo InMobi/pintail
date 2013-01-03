@@ -1,7 +1,5 @@
 package com.inmobi.databus.partition;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
@@ -15,7 +13,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.Text;
 
 import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 import com.inmobi.messaging.consumer.databus.MessageCheckpoint;
@@ -123,17 +120,6 @@ public class ClusterReader extends AbstractPartitionStreamReader {
     }
     LOG.info("Intialized currentFile:" + reader.getCurrentFile() +
         " currentLineNum:" + reader.getCurrentLineNum());
-  }
-
-  public byte[] readLine() throws IOException, InterruptedException {
-    byte[] line = super.readLine();
-    if (line != null && isDatabusData) {
-      Text text = new Text();
-      ByteArrayInputStream bais = new ByteArrayInputStream(line);
-      text.readFields(new DataInputStream(bais));
-      return text.getBytes();
-    } 
-    return line;
   }
 
   @Override

@@ -1,12 +1,10 @@
 package com.inmobi.databus.partition;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -17,6 +15,7 @@ import com.inmobi.databus.files.StreamFile;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.databus.DataEncodingType;
 import com.inmobi.messaging.consumer.databus.MessageCheckpoint;
+import com.inmobi.messaging.consumer.databus.MessagingConsumerConfig;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
 import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
@@ -32,7 +31,6 @@ public class PartitionReader {
   private Thread thread;
   private volatile boolean stopped;
   private boolean inited = false;
-  private final DataEncodingType dataEncoding;
   private final PartitionReaderStatsExposer prMetrics;
 
   public PartitionReader(PartitionId partitionId,
@@ -71,8 +69,8 @@ public class PartitionReader {
       DataEncodingType dataEncoding, PartitionReaderStatsExposer prMetrics,
       boolean noNewFiles)
           throws IOException {
-    this(partitionId, partitionCheckpoint, buffer, startTime, dataEncoding,
-        prMetrics);
+    this(partitionId, partitionCheckpoint, buffer, startTime, prMetrics);
+    conf.set(MessagingConsumerConfig.dataEncodingConfg, dataEncoding.name());
     reader = new CollectorReader(partitionId, partitionCheckpoint, fs,
         streamName, collectorDataDir, streamLocalDir, conf,
         startTime, waitTimeForFlush, waitTimeForFileCreate,
@@ -92,8 +90,8 @@ public class PartitionReader {
       DataEncodingType dataEncoding, PartitionReaderStatsExposer prMetrics,
       boolean noNewFiles, Set<Integer> partitionMinList)
           throws IOException {
-    this(partitionId, partitionCheckpointList, buffer, startTime, dataEncoding,
-        prMetrics);
+    this(partitionId, partitionCheckpointList, buffer, startTime, prMetrics);
+    conf.set(MessagingConsumerConfig.dataEncodingConfg, dataEncoding.name());
     reader = new ClusterReader(partitionId, partitionCheckpointList,
         fs, streamDir, conf, inputFormatClass, startTime,
         waitTimeForFileCreate, isDatabusData, prMetrics, noNewFiles, 
@@ -108,7 +106,6 @@ public class PartitionReader {
   private PartitionReader(PartitionId partitionId,
       MessageCheckpoint msgCheckpoint,
       BlockingQueue<QueueEntry> buffer, Date startTime,
-      DataEncodingType dataEncoding,
       PartitionReaderStatsExposer prMetrics)
           throws IOException {
     if (startTime == null && msgCheckpoint == null) {
@@ -119,7 +116,6 @@ public class PartitionReader {
     }
     this.partitionId = partitionId;
     this.buffer = buffer;
-    this.dataEncoding = dataEncoding;
     this.prMetrics = prMetrics;
   }
 
@@ -205,18 +201,11 @@ public class PartitionReader {
       LOG.info("Reading file " + reader.getCurrentFile() + 
           " and lineNum:" + reader.getCurrentLineNum());
       while (!stopped) {
-        byte[] line = reader.readLine();
-        if (line != null) {
+        Message msg = reader.readLine();
+        if (msg != null) {
           // add the data to queue
-          byte[] data;
-          if (dataEncoding.equals(DataEncodingType.BASE64)) {
-            data = Base64.decodeBase64(line);
-          } else {
-            data = line;
-          }
           MessageCheckpoint checkpoint = reader.getMessageCheckpoint();
-          buffer.put(new QueueEntry(new Message(
-              ByteBuffer.wrap(data)), partitionId, checkpoint));
+          buffer.put(new QueueEntry(msg, partitionId, checkpoint));
           prMetrics.incrementMessagesAddedToBuffer();
         } else {
           LOG.info("No stream to read");

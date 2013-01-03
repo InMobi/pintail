@@ -30,6 +30,7 @@ import com.inmobi.databus.files.FileMap;
 import com.inmobi.databus.files.StreamFile;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
+import com.inmobi.messaging.Message;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
 public abstract class DatabusStreamReader<T extends StreamFile> extends 
@@ -45,6 +46,7 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
   private Object msgKey;
   private Object msgValue;
   private ByteArrayOutputStream baos = new ByteArrayOutputStream();
+  private boolean needsSerialize;
 
   protected DatabusStreamReader(PartitionId partitionId, FileSystem fs,
       Path streamDir, String inputFormatClass,
@@ -123,7 +125,12 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
             Reporter.NULL);
         msgKey = recordReader.createKey();
         msgValue = recordReader.createValue();
-        assert(msgValue instanceof Writable);
+        if (msgValue instanceof Writable) {
+          needsSerialize = true;
+        } else {
+          assert (msgValue instanceof Message);
+          needsSerialize = false;
+        }
         skipLines(currentLineNum);
       } else {
         LOG.info("CurrentFile:" + getCurrentFile() + " does not exist");        
@@ -141,13 +148,20 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
     currentFileSplit = null;
   }
 
-  protected byte[] readRawLine() throws IOException {
+  protected Message readRawLine() throws IOException {
     if (recordReader != null) {
+      if (!needsSerialize) {
+        msgValue = recordReader.createValue();
+      }
       boolean ret = recordReader.next(msgKey, msgValue);
       if (ret) {
-        baos.reset();
-        ((Writable)msgValue).write(new DataOutputStream(baos));
-        return baos.toByteArray();
+        if (needsSerialize) {
+          baos.reset();
+          ((Writable)msgValue).write(new DataOutputStream(baos));
+          return new Message(baos.toByteArray());
+        } else {
+           return ((Message)msgValue);
+        }
       }
     }
     return null;
