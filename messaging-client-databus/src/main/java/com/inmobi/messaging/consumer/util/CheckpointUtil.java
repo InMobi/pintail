@@ -37,6 +37,16 @@ import com.inmobi.messaging.consumer.databus.StreamType;
 import com.inmobi.messaging.consumer.hadoop.HadoopConsumer;
 import com.inmobi.messaging.consumer.hadoop.HadoopConsumerConfig;
 
+/**
+ * This Utility takes consumer configuration as input and creates a list of new
+ * checkpoints. This utility is applicable for only where the stream types of 
+ * consumers  are “LOCAL” or “MERGED”. This utility reads the consumer 
+ * configuration file and read the checkpoint from “consumername_topicname.ck” 
+ * file and creates a list of 60 new checkpoint files with the names of 
+ * “consumername_topicname_id.ck”.Ex: if old checkpoint file is 
+ * l1_benchmark_local.ck then new checkpoint files will be 
+ * l1_benchmark_local_0.ck,l1_benchmark_local_1.ck,....,l1_benchmark_local_59.ck.
+ */
 
 public class CheckpointUtil implements DatabusConsumerConfig {
 
@@ -75,6 +85,13 @@ public class CheckpointUtil implements DatabusConsumerConfig {
       int checkpointMin = chkCal.get(Calendar.MINUTE);
       Calendar chkPrevHrCal = Calendar.getInstance();
       chkPrevHrCal.setTime(checkpointDate);
+      /*
+       * if the old checkpoint is on 2nd hour 05th minute, minutes [06-59], the 
+       * checkpoint will be having the last file of the previous hour directory. 
+       * All these checkpoints should constructed and given to the consumer to 
+       * start.
+       */
+      
       chkPrevHrCal.add(Calendar.MINUTE, 1);
       chkPrevHrCal.add(Calendar.HOUR, -1);
       while (chkPrevHrCal.before(chkCal)) {
@@ -93,8 +110,14 @@ public class CheckpointUtil implements DatabusConsumerConfig {
                   -1));
         }
         chkPrevHrCal.add(Calendar.MINUTE, 1);
-      }        
-
+      }
+      
+      /*
+       * if the old checkpoint is on 2nd hour 05th minute, Then for the minutes 
+       * of [00 - 04], the checkpoint should be constructed as 2nd hour 
+       * minute directory with last file in the directory. 05th minute will 
+       * have same checkpoint as the one read.
+       */
       Calendar chkHrCal = Calendar.getInstance();
       chkHrCal.setTime(checkpointDate);
       chkHrCal.set(Calendar.MINUTE, 0);
@@ -112,6 +135,10 @@ public class CheckpointUtil implements DatabusConsumerConfig {
         }
         chkHrCal.add(Calendar.MINUTE, 1);
       }
+      /*
+       * if the old checkpoint is on 2nd hour 05th minute, 05th minute will 
+       * have same checkpoint as the one read.
+       */
       thisChkpoint.put(checkpointMin, entry.getValue());
       checkpointList.setForCheckpointUtil(entry.getKey(), new 
           PartitionCheckpointList(thisChkpoint));  

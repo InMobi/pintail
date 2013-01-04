@@ -15,7 +15,10 @@ import com.inmobi.databus.partition.PartitionId;
 
 /**
  * Checkpoint for the segments of databus stream consumer. 
- * 
+ * This class is used to construct the checkpoint list. Checkpoint list contains 
+ * set of segment ids and respective checkpoints. 
+ * This class also implements methods for writing the consumer checkpoint to the 
+ * file system and to read the consumer checkpoint from the file system.
  */
 public class CheckpointList implements ConsumerCheckpoint {
 
@@ -36,6 +39,12 @@ public class CheckpointList implements ConsumerCheckpoint {
     return chkpoints;
   }
 
+  /**
+   * This method is used for updating the checkpoint list. This method is used 
+   * by only CheckpointUtil class. This is no longer useful after removing the 
+   * CheckpointUtil utility. So we can remove it after removing the 
+   * migrate-checkpoint utility.
+   */
   public void setForCheckpointUtil(PartitionId pid, MessageCheckpoint msgCkp) {
     PartitionCheckpointList pckList = (PartitionCheckpointList) msgCkp;
     for (Map.Entry<Integer, PartitionCheckpoint> entry : pckList.
@@ -51,6 +60,7 @@ public class CheckpointList implements ConsumerCheckpoint {
     }
   }
 
+  @Override
   public void set(PartitionId pid, MessageCheckpoint msgCkp) {
     ConsumerPartitionCheckPoint checkPoint = (ConsumerPartitionCheckPoint) msgCkp;
     Checkpoint cp = chkpoints.get(checkPoint.getMinId());
@@ -110,6 +120,10 @@ public class CheckpointList implements ConsumerCheckpoint {
     }
   }
 
+  /**
+   * It constructs a partition checkpoint list for the given partition 
+   * from the checkpoint list(consumer checkpoint).
+   */
   public void preaprePartitionCheckPointList(PartitionId pid, 
       PartitionCheckpointList partitionCheckpointList) {
     PartitionCheckpoint partitionCheckpoint;

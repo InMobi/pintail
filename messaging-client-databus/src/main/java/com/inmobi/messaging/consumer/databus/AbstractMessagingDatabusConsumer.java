@@ -47,8 +47,13 @@ public abstract class AbstractMessagingDatabusConsumer
 
   @Override
   protected void init(ClientConfig config) throws IOException {
-    initializeConfig(config);
-    start();
+    try {
+      initializeConfig(config);
+      start();
+    } catch (Throwable th) {
+      close();
+      throw new IllegalArgumentException(th);
+    }
   }
 
   public static CheckpointProvider createCheckpointProvider(
@@ -211,7 +216,9 @@ public abstract class AbstractMessagingDatabusConsumer
       removeStatsExposer(reader.getStatsExposer());
     }
     readers.clear();
-    buffer.clear();
+    if (buffer != null) {
+      buffer.clear();
+    }
     super.close();
   }
 
