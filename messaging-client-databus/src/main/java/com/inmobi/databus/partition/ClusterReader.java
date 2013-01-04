@@ -36,6 +36,7 @@ public class ClusterReader extends AbstractPartitionStreamReader {
           throws IOException {
     this.startTime = startTime;
     this.streamDir = streamDir;
+    //create an empty partition checkpoint list if the start time is not null
     if (startTime != null) {
       Map<Integer, PartitionCheckpoint> startPckList;
       startPckList = new HashMap<Integer, PartitionCheckpoint>();
@@ -50,10 +51,10 @@ public class ClusterReader extends AbstractPartitionStreamReader {
   }
 
   /*
-   *  this method is used to find the partition checkpoint which has least 
-   *  time stamp.
-   *  So that reader starts build listing from this partition checkpoint  
-   *  time stamp).
+   * this method is used to find the partition checkpoint which has least 
+   * time stamp.
+   * So that reader starts build listing from this partition checkpoint  
+   * time stamp).
    */
   public static PartitionCheckpoint findLeastPartitionCheckPointTime(
       PartitionCheckpointList partitionCheckpointList) {
@@ -106,6 +107,8 @@ public class ClusterReader extends AbstractPartitionStreamReader {
           DatabusStreamWaitingReader.getBuildTimestamp(streamDir,
               partitionCheckpoint));
       if (!reader.isEmpty()) {
+        // if the partition checkpoint is completed checkpoint
+        //(i.e. line number is -1) then it has to start from the next checkpoint.
         if (partitionCheckpoint.getLineNum() == -1) {
           ((DatabusStreamWaitingReader)reader).initFromNextCheckPoint(); 
         }

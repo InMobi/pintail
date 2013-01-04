@@ -48,6 +48,16 @@ public class DatabusStreamWaitingReader
     currentMin = -1;
   }
 
+  /**
+   * This method is used to check whether the given minute directory is 
+   * completely read or not. It takes the current time stamp and the minute 
+   * on which the reader is currently working. It retrieves the partition checkpoint 
+   * for that minute if it contains. It compares the current time stamp with 
+   * the checkpointed time stamp. If current time stamp is before the 
+   * checkpointed time stamp then that minute directory for the current hour is 
+   * completely read. If both the time stamps are same then it checks line number.
+   * If line num is -1 means all the files in that minute dir are already read.
+   */ 
   public boolean isRead(Date currentTimeStamp, int minute) {
     PartitionCheckpoint partitionCheckpoint = null;
     if (partitionCheckpointList != null && (partitionCheckpointList.
@@ -68,6 +78,12 @@ public class DatabusStreamWaitingReader
     return false;
   }
 
+  /**
+   * It reads from the next checkpoint. It retrieves the first file from the filemap. 
+   * Get the minute id from the file and see the checkpoint value. If the 
+   * checkpointed file is not same as current file then it sets the iterator to 
+   * the checkpointed file if the checkpointed file exists. 
+   */
   public boolean initFromNextCheckPoint() throws IOException {
     initCurrentFile();
     currentFile = getFirstFileInStream();
@@ -155,6 +171,14 @@ public class DatabusStreamWaitingReader
     }
   }
 
+  /**
+   * This method does the required setup before moving to next file. First it 
+   * checks whether the both current file and next file belongs to same minute 
+   * or different minutes. If files exists on across minutes then it has to 
+   * check the next file is same as checkpointed file. If not same and checkpointed 
+   * file exists then sets the iterator to the checkpointed file. 
+   * @return false if it reads from the checkpointed file.
+   */
   @Override
   public boolean prepareMoveToNext(FileStatus currentFile, FileStatus nextFile) 
       throws IOException {                              
