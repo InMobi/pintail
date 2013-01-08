@@ -649,6 +649,12 @@ public abstract class TestAbstractClusterReader {
     Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0); 
   }
 
+  /*
+   * If all the checkpoints are complete checkpoints(i.e all are having line 
+   * number as -1) then no files will be added to file map. Reader cannot read 
+   * any file. Number of messages read by reader and number of messages added 
+   * to the buffer should be zero.
+   */
   public void testReadFromMultipleCompleteCheckpoints() throws Exception {
     partitionMinList = new TreeSet<Integer>();
     initializePartitionCheckpointList();
@@ -675,8 +681,17 @@ public abstract class TestAbstractClusterReader {
         buffer, streamDir, conf, inputFormatClass, null, 1000,
         isDatabusData(), dataEncoding, prMetrics,true, partitionMinList);             
     preader.init();
-
-    preader.execute();
+    /*
+     * In general, Partition reader has to start reading once it finds some 
+     * files and exited from init method. If there are no files to read then 
+     * reader has to wait until the new files are available. But we are using 
+     * noNewFiles flag is to avoid continuous looping for test cases. Reader does
+     *  not wait for the new files creation if we set noNewFiles flag is true.. 
+     */
+    if (preader.getCurrentFile() != null) {
+      // this code can not be reached as current file always null.
+      preader.execute();   
+    }
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[0])), 1, 0, 0, partitionId,
         buffer, dataEncoding.equals(DataEncodingType.BASE64));
@@ -863,6 +878,7 @@ public abstract class TestAbstractClusterReader {
     Assert.assertEquals(prMetrics.getWaitTimeUnitsNewFile(), 0);
     Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0); 
   }
+  
   /*
    * this test is used to test the scenario where some checkpoints exists with 
    * line number has -1 and some of them are not exists 
