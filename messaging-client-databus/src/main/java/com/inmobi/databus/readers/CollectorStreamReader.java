@@ -165,7 +165,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
         inStream.seek(currentOffset);
       } catch (IOException e) {
         LOG.warn(
-            "Ignoring seek exception", e);
+            "Ignoring seek exception which can be encountered while seeking beyond EOF", e);
         skipLines(currentLineNum);
         currentOffset = inStream.getPos();
       }
