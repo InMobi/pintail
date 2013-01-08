@@ -94,7 +94,7 @@ public abstract class AbstractMessagingDatabusConsumer
       consumerNumber = Integer.parseInt(id[0]);
       totalConsumers = Integer.parseInt(id[1]);
       partitionMinList = new HashSet<Integer>();
-      if (consumerNumber > 0 && totalConsumers > 0) {
+      if (isValidConfiguration()) {
         for (int i = 0; i < 60; i++) {
           if ((i % totalConsumers) == (consumerNumber - 1)) {
             partitionMinList.add(i);
@@ -133,6 +133,15 @@ public abstract class AbstractMessagingDatabusConsumer
         DEFAULT_RETENTION_HOURS); 
 
     LOG.debug("Using data encoding type as " + dataEncodingType);
+  }
+
+  protected boolean isValidConfiguration() {
+    if (consumerNumber > 0 && totalConsumers > 0) {
+      if (consumerNumber <= totalConsumers) {
+        return true;
+      } 
+    } 
+    return false;
   }
 
   public Map<PartitionId, PartitionReader> getPartitionReaders() {
