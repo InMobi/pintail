@@ -117,6 +117,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     LOG.info("Opening file:" + getCurrentFile() + " NumLinesTobeSkipped when" +
         " opening:" + currentLineNum);
     if (fs.exists(getCurrentFile())) {
+
       inStream = fs.open(getCurrentFile());
       reader = new BufferedReader(new InputStreamReader(inStream));
       skipOldData();
@@ -164,7 +165,14 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
       throws IOException {
     if (sameStream) {
       LOG.info("Seeking to offset:" + currentOffset);
-      inStream.seek(currentOffset);
+      try {
+        inStream.seek(currentOffset);
+      } catch (IOException e) {
+        LOG.warn(
+            "Ignoring seek exception which can be encountered while seeking beyond EOF", e);
+        skipLines(currentLineNum);
+        currentOffset = inStream.getPos();
+      }
     } else {
       skipLines(currentLineNum);
       sameStream = true;
