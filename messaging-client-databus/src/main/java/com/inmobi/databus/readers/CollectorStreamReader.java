@@ -37,8 +37,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   private boolean moveToNext = false;
   private CollectorReaderStatsExposer collectorMetrics;
   private Configuration conf;
-  private StringBuilder builder;
-  private boolean checkFullMsg = true;
+  private StringBuilder builder = new StringBuilder();
 
   public CollectorStreamReader(PartitionId partitionId,
       FileSystem fs, String streamName, Path streamDir,
@@ -138,25 +137,17 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     }
   }
   protected Message readRawLine() throws IOException {
-    StringBuilder builder = new StringBuilder();
     int next = reader.read();
-    if(!checkFullMsg){
-      builder.append(this.builder);
-      checkFullMsg = true;
-    }
     while ((char) next != '\n') {
       if (next == -1) {
-        LOG.info("reading EOF before a line feed");
-        if(builder.length() > 0){
-          checkFullMsg = false;
-          this.builder = new StringBuilder(builder);
-        }
+        LOG.info("reading EOF before a line feed ");
         return null;
       }
       builder.append((char) next);
       next = reader.read();
     }
     String line = builder.toString();
+    builder.setLength(0);
     if (line != null) {
       return DatabusUtil.decodeMessage(line.getBytes(), conf);
     } else {
