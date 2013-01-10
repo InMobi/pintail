@@ -21,21 +21,24 @@ public abstract class TopicSelector<T> {
   }
 
   public static TopicSelector create(String logicalTopic, ClientConfig conf) {
-    return init(logicalTopic, conf);
-  }
-
-  public static TopicSelector init(String logicalTopic, ClientConfig conf) {
     String name = conf.getString(logicalTopic + CLASS_SUFFIX);
+    TopicSelector selector;
     if (name != null) {
       Class<TopicSelector> claz;
       try {
         claz = (Class<TopicSelector>) Class.forName(name);
-        return claz.newInstance();
+        selector = claz.newInstance();
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
+    } else {
+      selector = new DefaultTopicSelector(logicalTopic);
     }
-    return new DefaultTopicSelector(logicalTopic);
+    selector.init();
+    return selector;
+  }
+
+  protected void init() {
   }
 
   public void close() {
