@@ -32,13 +32,13 @@ public abstract class TopicSelector<T> {
         throw new RuntimeException(e);
       }
     } else {
-      selector = new DefaultTopicSelector(logicalTopic);
+      selector = new DefaultTopicSelector();
     }
-    selector.init();
+    selector.init(logicalTopic, conf);
     return selector;
   }
 
-  protected void init() {
+  protected void init(String logicalTopic, ClientConfig conf) {
   }
 
   public void close() {
@@ -53,10 +53,18 @@ public abstract class TopicSelector<T> {
    * 
    */
   public static class DefaultTopicSelector extends TopicSelector {
-    private final String topic;
-    public DefaultTopicSelector(String topic) {
-      this.topic = topic;
+    private String topic;
+    private ClientConfig conf;
+    
+    public DefaultTopicSelector() {
     }
+    
+    @Override
+    protected void init(String logicalTopic, ClientConfig conf) {
+      this.topic = logicalTopic;
+      this.conf = conf;
+    }
+    
     @Override
     public String selectTopic(Object object) {
       return topic;

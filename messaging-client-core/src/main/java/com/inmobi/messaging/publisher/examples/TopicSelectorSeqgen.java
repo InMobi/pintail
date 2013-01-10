@@ -46,6 +46,7 @@ public class TopicSelectorSeqgen {
       }
     }
     publisher.close();
+    selector.close();
     System.out.println("Total topic invocations: " + 
         publisher.getStats(top1).getInvocationCount());
     System.out.println("Total topic success: " +
@@ -62,9 +63,20 @@ public class TopicSelectorSeqgen {
   }
 
   public static class MsgValueTopicSelector extends TopicSelector<TopicMessage> {
+    private String logicalTopic;
+    
+    @Override
+    protected void init(String logicalTopic, ClientConfig conf) {
+      this.logicalTopic = logicalTopic;
+    }
+    
     @Override
     public String selectTopic(TopicMessage object) {
       return object.getTopic();
+    }
+    
+    public String getLogicalTopic() {
+      return logicalTopic;
     }
   }
 }
