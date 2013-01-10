@@ -303,6 +303,7 @@ public class StreamingBenchmark {
     long nextElementToPurge = 1;
     String fixedMsg;
     int mismatches = 0;
+    int corrupt = 0;
 
     Consumer(ClientConfig config, long maxSent, Date startTime,
         int numProducers, boolean hadoopConsumer, int msgSize)
@@ -342,6 +343,9 @@ public class StreamingBenchmark {
     public void run() {
       System.out.println("Consumer started!");
       while (true) {
+        if (received == maxSent * numProducers) {
+          break;
+        }
         Message msg = null;
         try {
           msg = consumer.next();
@@ -367,12 +371,9 @@ public class StreamingBenchmark {
             }
           }
           purgeCounts();
-          if (received == maxSent * numProducers) {
-            break;
-          }
         } catch (Exception e) {
+          corrupt++;
           e.printStackTrace();
-          return;
         }
       }
       purgeCounts();
@@ -408,6 +409,10 @@ public class StreamingBenchmark {
       }
       if (mismatches != 0) {
         System.out.println("No zero mismatches!");
+        success = false;
+      }
+      if (corrupt != 0) {
+        System.out.println("Corrupt messages:" + corrupt);
         success = false;
       }
       consumer.close();
