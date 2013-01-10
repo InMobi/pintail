@@ -80,26 +80,32 @@ public class TestAbstractInputFormat {
     cluster = new Cluster(clusterConf, rootDirSuffix, null, sourceNames);
   }
 
-
+  /**
+   * @param index construct the messages from the given index.
+   */
   public void assertMessages(int index ) {
     for (Message msg : readMessages) {  
       LOG.info("read msg is "+ new String(msg.getData().array()));
       Assert.assertEquals(new String(msg.getData().array()), 
           MessageUtil.constructMessage(index++));
     }
+    Assert.assertEquals(readMessages.size(), 100);
   }
-
-  protected void listAllPaths(Path localstreamDir, List<Path> minuteDirs) 
+  
+  /*
+   * lists all the files for the given path
+   */
+  protected void listAllPaths(Path filePath, List<Path> listOfFiles) 
       throws Exception {
-    FileStatus [] fileStatuses = fs.listStatus(localstreamDir);
+    FileStatus [] fileStatuses = fs.listStatus(filePath);
     if (fileStatuses == null || fileStatuses.length == 0) {
       // no files in directory
     } else {
       for (FileStatus file : fileStatuses) { 
         if (file.isDir()) {
-          listAllPaths(file.getPath(), minuteDirs);
+          listAllPaths(file.getPath(), listOfFiles);
         } else { 
-          minuteDirs.add(file.getPath());
+          listOfFiles.add(file.getPath());
         }
       } 
     }

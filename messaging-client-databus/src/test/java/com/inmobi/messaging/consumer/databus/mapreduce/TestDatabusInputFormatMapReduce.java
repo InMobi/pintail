@@ -35,7 +35,11 @@ public class TestDatabusInputFormatMapReduce extends TestAbstractInputFormat {
     super.setUp();
   }
 
-  private static List<Message> readSplit(DatabusInputFormat format, 
+  /**
+   * read the the given split.
+   * @return List : List of read messages
+   */
+  private List<Message> readSplit(DatabusInputFormat format, 
       org.apache.hadoop.mapreduce.InputSplit split, 
       JobConf job) throws IOException,
       InterruptedException {
@@ -72,6 +76,10 @@ public class TestDatabusInputFormatMapReduce extends TestAbstractInputFormat {
     return inputSplit;
   }
 
+  /**
+   * It reads the collector file (i.e. non compressed file) and assert on the 
+   * read messages
+   */
   @Test
   public void testDatabusInputFormatMapReduce() throws Exception {
     FileInputFormat.setInputPaths(defaultConf, collectorDir);
@@ -85,6 +93,10 @@ public class TestDatabusInputFormatMapReduce extends TestAbstractInputFormat {
     assertMessages(100);
   }
 
+  /**
+   * It reads the local stream file(i.e. compressed file) and assert on the 
+   * read messages
+   */
   @Test
   protected void testGZFile() throws Exception {
     Path localstreamDir = new Path(cluster.getLocalFinalDestDirRoot(), 

@@ -33,7 +33,11 @@ public class TestDatabusInputFormat extends TestAbstractInputFormat {
     super.setUp();
   }
 
-  public static List<Message> readSplit(DatabusInputFormat format, 
+  /**
+   * read the the given input split.
+   * @return List : List of read messages
+   */
+  private List<Message> readSplit(DatabusInputFormat format, 
       InputSplit split, 
       JobConf job, Reporter reporter) throws IOException {
     List<Message> result = new ArrayList<Message>();
@@ -60,6 +64,10 @@ public class TestDatabusInputFormat extends TestAbstractInputFormat {
     }
   }
 
+  /**
+   * It reads the collector file (i.e. non compressed file) and assert on the 
+   * read messages
+   */
   @Test
   public void testDatabusInputFormat() throws Exception {
     FileInputFormat.setInputPaths(defaultConf, collectorDir);
@@ -67,6 +75,10 @@ public class TestDatabusInputFormat extends TestAbstractInputFormat {
     assertMessages(100);
   }
 
+  /**
+   * It reads the local stream file(i.e. compressed file) and assert on the 
+   * read messages
+   */
   @Test
   protected void testGZFile() throws Exception {
     Path localstreamDir = new Path(cluster.getLocalFinalDestDirRoot(), 
