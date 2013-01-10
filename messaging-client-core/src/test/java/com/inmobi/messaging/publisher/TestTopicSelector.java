@@ -17,6 +17,7 @@ public class TestTopicSelector {
     String msg = "msg1";
     TopicSelector selector = TopicSelector.create(topic, conf);
     Assert.assertEquals(selector.selectTopic(msg), topic);
+    selector.close();
   }
 
   @Test
@@ -28,6 +29,7 @@ public class TestTopicSelector {
         MsgValueTopicSelector.class.getName());
     TopicSelector selector = TopicSelector.create(topic, conf);
     Assert.assertEquals(selector.selectTopic(msg), msg);
+    selector.close();
   }
 
   //selects the topic based on the message string

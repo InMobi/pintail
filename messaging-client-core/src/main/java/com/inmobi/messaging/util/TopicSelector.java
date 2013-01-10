@@ -38,7 +38,7 @@ public abstract class TopicSelector<T> {
     return new DefaultTopicSelector(logicalTopic);
   }
 
-  public static void close() {
+  public void close() {
   }
 
   public static void setSelectorClass(ClientConfig conf, String logicalTopic,
