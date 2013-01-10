@@ -26,6 +26,7 @@
 
 CLIENT_FILELOGGER_CLASS="com.inmobi.messaging.publisher.examples.FileLoggerClient"
 CLIENT_SEQGEN_CLASS="com.inmobi.messaging.publisher.examples.SeqGeneratorClient"
+CLIENT_TOPICSELECTOR="com.inmobi.messaging.publisher.examples.TopicSelectorSeqgen"
 CLIENT_MULTITHREAD_SEQGEN="com.inmobi.messaging.publisher.examples.MultithreadSeqgen"
 CLIENT_CONSOLECONSUMER_CLASS="com.inmobi.messaging.consumer.examples.ConsoleClient"
 CLIENT_BENCHMARK_CLASS="com.inmobi.messaging.consumer.examples.StreamingBenchmark"
@@ -65,6 +66,7 @@ display_help() {
   cat <<EOF
 Usage: $0 file <topic> <file> --conf <confdir>
        $0 seqgen <topic> <maxSeq> --conf <confdir>
+       $0 topicselector <topic> <maxseq> --conf <confdir>
        $0 multithreadseqgen <topic> <maxseq> <no-of-threads> --conf <confdir>
        $0 consoleconsumer --conf <confdir> 
        $0 benchmark 
@@ -115,6 +117,9 @@ case "$mode" in
     ;;
   seqgen)
     opt_seqgen=1
+    ;;
+  topicselector)
+    opt_topicselector=1
     ;;
   multithreadseqgen)
     opt_multithreadseqgen=1
@@ -205,6 +210,8 @@ if [ -n "$opt_file" ] ; then
   run_client $CLIENT_FILELOGGER_CLASS $args
 elif [ -n "$opt_seqgen" ] ; then
   run_client $CLIENT_SEQGEN_CLASS $args
+elif [ -n "$opt_topicselector" ] ; then
+  run_client $CLIENT_TOPICSELECTOR $args
 elif [ -n "$opt_multithreadseqgen" ] ; then
   run_client $CLIENT_MULTITHREAD_SEQGEN $args
 elif [ -n "$opt_consoleconsumer" ] ; then
