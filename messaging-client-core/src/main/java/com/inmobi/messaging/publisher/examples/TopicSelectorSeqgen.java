@@ -19,8 +19,6 @@ public class TopicSelectorSeqgen {
     AbstractMessagePublisher publisher = 
         (AbstractMessagePublisher) MessagePublisherFactory.create();
     String top = args[0];
-    String top1 = top + "1";
-    String top2 = top + "2";
     long maxSeq = Integer.parseInt(args[1]);
 
     TopicSelector.setSelectorClass(conf, top, MsgValueTopicSelector.class.getName());
@@ -28,8 +26,8 @@ public class TopicSelectorSeqgen {
 
     for (long seq = 1; seq <= maxSeq; seq++) {
       String str1 = Long.toString(seq);
-      TopicMessage msg1 = new TopicMessage(top1,str1);
-      TopicMessage msg2 = new TopicMessage(top2,str1);
+      TopicMessage msg1 = new TopicMessage(1,str1);
+      TopicMessage msg2 = new TopicMessage(2,str1);
 
       Message msg = new Message(ByteBuffer.wrap((msg1.toString().getBytes())));
       publisher.publish(selector.selectTopic(msg1), msg);
@@ -45,8 +43,12 @@ public class TopicSelectorSeqgen {
         e.printStackTrace();
       }
     }
+    String top1 = selector.selectTopic(new TopicMessage(1,""));
+    String top2 = selector.selectTopic(new TopicMessage(2,""));
+    
     publisher.close();
     selector.close();
+    
     System.out.println("Total topic invocations: " + 
         publisher.getStats(top1).getInvocationCount());
     System.out.println("Total topic success: " +
@@ -72,7 +74,7 @@ public class TopicSelectorSeqgen {
     
     @Override
     public String selectTopic(TopicMessage object) {
-      return object.getTopic();
+      return logicalTopic+object.getIndex();
     }
     
     public String getLogicalTopic() {
@@ -83,14 +85,14 @@ public class TopicSelectorSeqgen {
 
 class TopicMessage
 {
-  String topic;
+  int index;
   String message;
-  TopicMessage(String topic, String message){
-    this.topic = topic;
+  TopicMessage(int index, String message){
+    this.index = index;
     this.message = message;
   }
 
-  String getTopic(){
-    return this.topic;
+  int getIndex(){
+    return this.index;
   }
 }
