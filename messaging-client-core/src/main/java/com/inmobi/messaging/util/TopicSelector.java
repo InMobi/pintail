@@ -21,6 +21,10 @@ public abstract class TopicSelector<T> {
   }
 
   public static TopicSelector create(String logicalTopic, ClientConfig conf) {
+    return init(logicalTopic, conf);
+  }
+
+  public static TopicSelector init(String logicalTopic, ClientConfig conf) {
     String name = conf.getString(logicalTopic + CLASS_SUFFIX);
     if (name != null) {
       Class<TopicSelector> claz;
@@ -32,6 +36,9 @@ public abstract class TopicSelector<T> {
       }
     }
     return new DefaultTopicSelector(logicalTopic);
+  }
+
+  public static void close() {
   }
 
   public static void setSelectorClass(ClientConfig conf, String logicalTopic,
