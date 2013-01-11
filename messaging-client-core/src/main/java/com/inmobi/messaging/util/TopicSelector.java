@@ -2,6 +2,7 @@ package com.inmobi.messaging.util;
 
 import com.inmobi.messaging.ClientConfig;
 
+@SuppressWarnings("rawtypes")
 public abstract class TopicSelector<T> {
 
   private static final String CLASS_SUFFIX = ".selector.class";
@@ -20,6 +21,7 @@ public abstract class TopicSelector<T> {
     return create(logicalTopic, new ClientConfig());
   }
 
+  @SuppressWarnings("unchecked")
   public static TopicSelector create(String logicalTopic, ClientConfig conf) {
     String name = conf.getString(logicalTopic + CLASS_SUFFIX);
     TopicSelector selector;
@@ -54,7 +56,7 @@ public abstract class TopicSelector<T> {
    */
   public static class DefaultTopicSelector extends TopicSelector {
     private String topic;
-    private ClientConfig conf;
+    protected ClientConfig conf;
     
     public DefaultTopicSelector() {
     }
