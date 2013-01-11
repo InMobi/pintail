@@ -17,6 +17,7 @@ public class TestTopicSelector {
     String msg = "msg1";
     TopicSelector selector = TopicSelector.create(topic, conf);
     Assert.assertEquals(selector.selectTopic(msg), topic);
+    selector.close();
   }
 
   @Test
@@ -26,16 +27,28 @@ public class TestTopicSelector {
     String msg = "msg1";
     TopicSelector.setSelectorClass(conf, topic, 
         MsgValueTopicSelector.class.getName());
-    TopicSelector selector = TopicSelector.create(topic, conf);
+    MsgValueTopicSelector selector = (MsgValueTopicSelector) TopicSelector.create(topic, conf);
     Assert.assertEquals(selector.selectTopic(msg), msg);
+    Assert.assertEquals(selector.getLogicalTopic(), topic);
+    selector.close();
   }
 
   //selects the topic based on the message string
   public static class MsgValueTopicSelector extends TopicSelector<String> {
-
+    private String logicalTopic;
+    
+    @Override
+    protected void init(String logicalTopic, ClientConfig conf) {
+      this.logicalTopic = logicalTopic;
+    }
+    
     @Override
     public String selectTopic(String object) {
       return object;
+    }
+    
+    public String getLogicalTopic() {
+      return logicalTopic;
     }
   }
 }

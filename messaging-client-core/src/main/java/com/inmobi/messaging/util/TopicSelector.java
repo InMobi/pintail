@@ -22,16 +22,26 @@ public abstract class TopicSelector<T> {
 
   public static TopicSelector create(String logicalTopic, ClientConfig conf) {
     String name = conf.getString(logicalTopic + CLASS_SUFFIX);
+    TopicSelector selector;
     if (name != null) {
       Class<TopicSelector> claz;
       try {
         claz = (Class<TopicSelector>) Class.forName(name);
-        return claz.newInstance();
+        selector = claz.newInstance();
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
+    } else {
+      selector = new DefaultTopicSelector();
     }
-    return new DefaultTopicSelector(logicalTopic);
+    selector.init(logicalTopic, conf);
+    return selector;
+  }
+
+  protected void init(String logicalTopic, ClientConfig conf) {
+  }
+
+  public void close() {
   }
 
   public static void setSelectorClass(ClientConfig conf, String logicalTopic,
@@ -43,10 +53,18 @@ public abstract class TopicSelector<T> {
    * 
    */
   public static class DefaultTopicSelector extends TopicSelector {
-    private final String topic;
-    public DefaultTopicSelector(String topic) {
-      this.topic = topic;
+    private String topic;
+    private ClientConfig conf;
+    
+    public DefaultTopicSelector() {
     }
+    
+    @Override
+    protected void init(String logicalTopic, ClientConfig conf) {
+      this.topic = logicalTopic;
+      this.conf = conf;
+    }
+    
     @Override
     public String selectTopic(Object object) {
       return topic;
