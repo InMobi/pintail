@@ -70,8 +70,9 @@ public class AuditMessagePublisher {
   }
 
   public static void close() {
-    if (worker != null)
+    if (worker != null) {
       worker.run(); // flushing the last audit packet during shutdown
+    }
     executor.shutdown();
   }
 

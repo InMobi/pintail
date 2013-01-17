@@ -5,10 +5,12 @@ import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 
-import org.lwes.util.Log;
+import org.apache.thrift.TDeserializer;
+import org.apache.thrift.TException;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import com.inmobi.audit.thrift.AuditPacket;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.stats.MockStatsEmitter;
@@ -17,7 +19,7 @@ import com.inmobi.stats.emitter.EmitMondemand;
 public class TestPublisher {
 
   @Test
-  public void test() throws IOException {
+  public void test() throws IOException, TException {
     ClientConfig conf = new ClientConfig();
     conf.set(MessagePublisherFactory.PUBLISHER_CLASS_NAME_KEY,
         MockPublisher.class.getName());
@@ -26,6 +28,12 @@ public class TestPublisher {
     doTest(publisher);
     Assert.assertFalse(publisher.getMetrics().statEmissionEnabled());
     Assert.assertNull((publisher.getMetrics().getStatsEmitter()));
+    publisher.close();
+    Assert.assertNotNull(MockPublisher.getMsg("audit"));
+    TDeserializer deser = new TDeserializer();
+    AuditPacket packet = new AuditPacket();
+    deser.deserialize(packet, MockPublisher.getMsg("audit").getData().array());
+    System.out.println("AUDIT PACKET " + packet);
   }
 
   @Test
@@ -37,8 +45,6 @@ public class TestPublisher {
     Assert.assertTrue((
 (MockStatsEmitter) publisher.getMetrics()
         .getStatsEmitter()).inited);
-    Assert.assertNotNull(MockPublisher.getMsg("audit"));
-    Log.info("AUDIT PACKET " + MockPublisher.getMsg("audit"));
   }
 
   @Test
