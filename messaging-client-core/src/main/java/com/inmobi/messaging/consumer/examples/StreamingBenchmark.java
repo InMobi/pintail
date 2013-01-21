@@ -408,7 +408,7 @@ public class StreamingBenchmark {
         }
       }
       if (mismatches != 0) {
-        System.out.println("No zero mismatches!");
+        System.out.println("Number of mismatches:" + mismatches);
         success = false;
       }
       if (corrupt != 0) {
