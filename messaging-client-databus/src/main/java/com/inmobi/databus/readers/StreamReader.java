@@ -13,6 +13,7 @@ import com.inmobi.databus.files.FileMap;
 import com.inmobi.databus.files.StreamFile;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
+import com.inmobi.messaging.Message;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
 public abstract class StreamReader<T extends StreamFile> {
@@ -43,6 +44,12 @@ public abstract class StreamReader<T extends StreamFile> {
     this.metrics = metrics;
     this.noNewFiles = noNewFiles;
     this.fileMap = createFileMap();
+  }
+  
+  public boolean prepareMoveToNext(FileStatus currentFile, FileStatus nextFile)
+      throws IOException {
+    this.currentFile = nextFile;
+    return true;
   }
 
   public void openStream() throws IOException {
@@ -175,9 +182,9 @@ public abstract class StreamReader<T extends StreamFile> {
   /** 
    * Returns null when reached end of stream 
    */
-  public abstract byte[] readLine() throws IOException, InterruptedException;
+  public abstract Message readLine() throws IOException, InterruptedException;
 
-  protected abstract byte[] readRawLine() throws IOException;
+  protected abstract Message readRawLine() throws IOException;
 
   /**
    * Skip the number of lines passed.
@@ -187,7 +194,7 @@ public abstract class StreamReader<T extends StreamFile> {
   protected long skipLines(long numLines) throws IOException {
     long lineNum = 0;
     while (lineNum != numLines) {
-      byte[] line = readRawLine();
+      Message line = readRawLine();
       if (line == null) {
         break;
       }
@@ -206,9 +213,9 @@ public abstract class StreamReader<T extends StreamFile> {
    * 
    * @throws IOException
    */
-  protected byte[] readNextLine() throws IOException {
+  protected Message readNextLine() throws IOException {
     long start = System.nanoTime();
-    byte[] line = readRawLine();
+    Message line = readRawLine();
     if (line != null) {
       long end = System.nanoTime();
       currentLineNum++;
@@ -234,8 +241,8 @@ public abstract class StreamReader<T extends StreamFile> {
   protected void setNextFile() throws IOException {
     FileStatus nextFile = fileMap.getNext();
     if (nextFile != null) {
-      currentFile = nextFile;
-      openCurrentFile(true);
+      boolean next = prepareMoveToNext(currentFile, nextFile);
+      openCurrentFile(next);
     }
   }
 
@@ -327,5 +334,13 @@ public abstract class StreamReader<T extends StreamFile> {
   
   protected boolean isWithinStream(String fileName) throws IOException {
     return fileMap.isWithin(fileName);
+  }
+  
+  protected FileStatus getFirstFileInStream() {
+  	return fileMap.getFirstFile();
+  }
+
+  protected FileStatus getFileMapValue(StreamFile streamFile) {
+    return fileMap.getValue(streamFile);
   }
 }

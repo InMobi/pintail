@@ -1,7 +1,5 @@
 package com.inmobi.databus.partition;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.Date;
 
@@ -10,11 +8,12 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.Text;
 
 import com.inmobi.databus.files.DatabusStreamFile;
 import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.databus.readers.LocalStreamCollectorReader;
+import com.inmobi.messaging.Message;
+import com.inmobi.messaging.consumer.databus.MessageCheckpoint;
 import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 
 public class CollectorReader extends AbstractPartitionStreamReader {
@@ -47,7 +46,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
         streamsLocalDir, conf, waitTimeForFileCreate, metrics);
     cReader = new CollectorStreamReader(partitionId, fs, streamName,
         collectorDir, waitTimeForFlush, waitTimeForFileCreate, metrics,
-        noNewFiles);
+        conf, noNewFiles);
   }
 
   private void initializeCurrentFileFromTimeStamp(Date timestamp)
@@ -125,9 +124,9 @@ public class CollectorReader extends AbstractPartitionStreamReader {
           " currentLineNum:" + reader.getCurrentLineNum());
   }
 
-  public byte[] readLine() throws IOException, InterruptedException {
+  public Message readLine() throws IOException, InterruptedException {
     assert (reader != null);
-    byte[] line = super.readLine();
+    Message line = super.readLine();
     if (line == null) {
       if (closed) {
         return line;
@@ -163,15 +162,13 @@ public class CollectorReader extends AbstractPartitionStreamReader {
           metrics.incrementSwitchesFromCollectorToLocal();
         }
       }
-    } else {
-      if (reader == lReader) {
-        Text text = new Text();
-        ByteArrayInputStream bais = new ByteArrayInputStream(line);
-        text.readFields(new DataInputStream(bais));
-        return text.getBytes();
-      }
     }
     return line;
   }
-
+  
+  @Override
+  public MessageCheckpoint getMessageCheckpoint() {
+  	return new PartitionCheckpoint(reader.getCurrentStreamFile(),
+  			reader.getCurrentLineNum());
+  }
 }

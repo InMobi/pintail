@@ -69,6 +69,6 @@ public class TestCollectorFile {
     }
     Assert.assertNotNull(th);
     Assert.assertTrue(th instanceof IllegalArgumentException);
-
+    
   }
 }

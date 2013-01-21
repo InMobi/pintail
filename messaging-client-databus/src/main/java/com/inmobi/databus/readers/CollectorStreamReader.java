@@ -8,6 +8,7 @@ import java.util.TreeMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -19,6 +20,8 @@ import com.inmobi.databus.files.CollectorFile;
 import com.inmobi.databus.files.DatabusStreamFile;
 import com.inmobi.databus.files.FileMap;
 import com.inmobi.databus.partition.PartitionId;
+import com.inmobi.messaging.Message;
+import com.inmobi.messaging.consumer.util.DatabusUtil;
 import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 
 public class CollectorStreamReader extends StreamReader<CollectorFile> {
@@ -33,16 +36,19 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   protected final String streamName;
   private boolean moveToNext = false;
   private CollectorReaderStatsExposer collectorMetrics;
+  private Configuration conf;
+  private StringBuilder builder = new StringBuilder();
 
   public CollectorStreamReader(PartitionId partitionId,
       FileSystem fs, String streamName, Path streamDir,
       long waitTimeForFlush,
       long waitTimeForCreate, CollectorReaderStatsExposer metrics,
-      boolean noNewFiles) throws IOException {
+      Configuration conf, boolean noNewFiles) throws IOException {
     super(partitionId, fs, streamDir, waitTimeForCreate, metrics, noNewFiles);
     this.streamName = streamName;
     this.waitTimeForFlush = waitTimeForFlush;
     this.collectorMetrics = (CollectorReaderStatsExposer)(this.metrics);
+    this.conf = conf;
     LOG.info("Collector reader initialized with partitionId:" + partitionId +
         " streamDir:" + streamDir + 
         " waitTimeForFlush:" + waitTimeForFlush +
@@ -112,6 +118,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     LOG.info("Opening file:" + getCurrentFile() + " NumLinesTobeSkipped when" +
         " opening:" + currentLineNum);
     if (fs.exists(getCurrentFile())) {
+
       inStream = fs.open(getCurrentFile());
       reader = new BufferedReader(new InputStreamReader(inStream));
       skipOldData();
@@ -130,19 +137,28 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
       inStream = null;
     }
   }
-
-  protected byte[] readRawLine() throws IOException {
-    String line = reader.readLine();
+  protected Message readRawLine() throws IOException {
+    int next = reader.read();
+    while ((char) next != '\n') {
+      if (next == -1) {
+        LOG.info("reading EOF before a line feed ");
+        return null;
+      }
+      builder.append((char) next);
+      next = reader.read();
+    }
+    String line = builder.toString();
+    builder.setLength(0);
     if (line != null) {
-      return line.getBytes();
+      return DatabusUtil.decodeMessage(line.getBytes(), conf);
     } else {
       return null;
     }
   }
 
-  protected byte[] readNextLine()
+  protected Message readNextLine()
       throws IOException {
-    byte[] line = null;
+    Message line = null;
     if (inStream != null) {
       line = super.readNextLine();
       currentOffset = inStream.getPos();
@@ -160,7 +176,14 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
       throws IOException {
     if (sameStream) {
       LOG.info("Seeking to offset:" + currentOffset);
-      inStream.seek(currentOffset);
+      try {
+        inStream.seek(currentOffset);
+      } catch (IOException e) {
+        LOG.warn(
+            "Ignoring seek exception which can be encountered while seeking beyond EOF", e);
+        skipLines(currentLineNum);
+        currentOffset = inStream.getPos();
+      }
     } else {
       skipLines(currentLineNum);
       sameStream = true;
@@ -168,8 +191,8 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     }
   }
 
-  public byte[] readLine() throws IOException, InterruptedException {
-    byte[] line = readNextLine();
+  public Message readLine() throws IOException, InterruptedException {
+    Message line = readNextLine();
     while (line == null) { // reached end of file?
       LOG.info("Read " + getCurrentFile() + " with lines:" + currentLineNum);
       if (closed) {

@@ -3,6 +3,7 @@ package com.inmobi.messaging.consumer.databus;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -12,14 +13,13 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapred.TextInputFormat;
 
 import com.inmobi.databus.partition.PartitionCheckpoint;
+import com.inmobi.databus.partition.PartitionCheckpointList;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.partition.PartitionReader;
-import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
 import com.inmobi.messaging.ClientConfig;
-import com.inmobi.messaging.Message;
+import com.inmobi.messaging.consumer.databus.mapred.DatabusInputFormat;
 import com.inmobi.messaging.consumer.util.DatabusUtil;
 import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
@@ -68,9 +68,11 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
   private Path[] rootDirs;
   private StreamType streamType;
   private Configuration conf = new Configuration();
-  private static String clusterNamePrefix = "databusCluster";
+  public static String clusterNamePrefix = "databusCluster";
 
   protected void initializeConfig(ClientConfig config) throws IOException {
+    String type = config.getString(databusStreamType, DEFAULT_STREAM_TYPE);
+    streamType = StreamType.valueOf(type);
     super.initializeConfig(config);
     waitTimeForFlush = config.getLong(waitTimeForFlushConfig,
         DEFAULT_WAIT_TIME_FOR_FLUSH);
@@ -88,13 +90,10 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
     for (int i = 0; i < rootDirSplits.length; i++) {
       rootDirs[i] = new Path(rootDirSplits[i]);
     }
-    String type = config.getString(databusStreamType, DEFAULT_STREAM_TYPE);
-    streamType = StreamType.valueOf(type);
-    
     if (streamType.equals(StreamType.MERGED)) {
       if (rootDirs.length > 1) {
         throw new IllegalArgumentException("Multiple directories are not" +
-          " allowed for merge stream");
+            " allowed for merge stream");
       }
     }
     LOG.info("Databus consumer initialized with streamName:" + topicName +
@@ -119,8 +118,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
   }
 
   protected void createPartitionReaders() throws IOException {
-    Map<PartitionId, PartitionCheckpoint> partitionsChkPoints = 
-        currentCheckpoint.getPartitionsCheckpoint();
+
     // calculate the allowed start time
     long currentMillis = System.currentTimeMillis();
     Date allowedStartTime = new Date(currentMillis - 
@@ -133,6 +131,8 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
           topicName);
       String clusterName = clusterNamePrefix + i;
       if (streamType.equals(StreamType.COLLECTOR)) {
+        Map<PartitionId, PartitionCheckpoint> partitionsChkPoints = 
+            ((Checkpoint)currentCheckpoint).getPartitionsCheckpoint();
         LOG.info("Creating partition readers for all the collectors");
         for (String collector : getCollectors(fs, streamDir)) {
           PartitionId id = new PartitionId(clusterName, collector);
@@ -144,11 +144,10 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
           LOG.debug("Creating partition " + id);
           PartitionReaderStatsExposer collectorMetrics = new 
               CollectorReaderStatsExposer(topicName, consumerName,
-                  id.toString());
+                  id.toString(), consumerNumber);
           addStatsExposer(collectorMetrics);
           readers.put(id, new PartitionReader(id,
-              partitionsChkPoints.get(id), conf, fs,
-              new Path(streamDir, collector), 
+              partitionsChkPoints.get(id), conf, fs, new Path(streamDir, collector), 
               DatabusUtil.getStreamDir(StreamType.LOCAL, rootDirs[i], topicName),
               buffer, topicName, partitionTimestamp,
               waitTimeForFlush, waitTimeForFileCreate, dataEncodingType,
@@ -157,25 +156,38 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
       } else {
         LOG.info("Creating partition reader for cluster");
         PartitionId id = new PartitionId(clusterName, null);
-        if (partitionsChkPoints.get(id) == null) {
-          partitionsChkPoints.put(id, null);
-        }
+        Map<Integer, PartitionCheckpoint> listofPartitionCheckpoints = new 
+            HashMap<Integer, PartitionCheckpoint>();
+        PartitionCheckpointList partitionCheckpointList = new 
+            PartitionCheckpointList(listofPartitionCheckpoints);
+        ((CheckpointList)currentCheckpoint).preaprePartitionCheckPointList(id, 
+            partitionCheckpointList);
         Date partitionTimestamp = getPartitionTimestamp(id,
-            partitionsChkPoints.get(id), allowedStartTime);
+            partitionCheckpointList, allowedStartTime);
         LOG.debug("Creating partition " + id);
         PartitionReaderStatsExposer clusterMetrics = 
             new PartitionReaderStatsExposer(topicName, consumerName,
-                id.toString());
+                id.toString(), consumerNumber);
         addStatsExposer(clusterMetrics);
         readers.put(id, new PartitionReader(id,
-            partitionsChkPoints.get(id), fs, buffer, streamDir, conf,
-            TextInputFormat.class.getCanonicalName(), partitionTimestamp,
-            waitTimeForFileCreate, true, dataEncodingType, clusterMetrics));              
+            partitionCheckpointList, fs, buffer, streamDir, conf,
+            DatabusInputFormat.class.getCanonicalName(), partitionTimestamp,
+            waitTimeForFileCreate, true, dataEncodingType, clusterMetrics, 
+            partitionMinList));
       }
     }
   }
 
   Path[] getRootDirs() {
     return rootDirs;
+  }
+
+  @Override
+  protected void createCheckpoint() {
+    if (streamType.equals(StreamType.COLLECTOR)) {
+      currentCheckpoint = new Checkpoint();
+    } else {
+      currentCheckpoint = new CheckpointList(partitionMinList);
+    }
   }
 }

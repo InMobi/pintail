@@ -8,7 +8,10 @@ import java.nio.ByteBuffer;
  */
 public final class Message {
 
-  private final ByteBuffer data;
+  private ByteBuffer data;
+
+  public Message() {
+  }
 
   /**
    * Create new message with {@link ByteBuffer}
@@ -35,6 +38,14 @@ public final class Message {
    */
   public ByteBuffer getData() {
     return data;
+  }
+
+  public synchronized void set(ByteBuffer data) {
+    this.data = data;
+  }
+
+  public synchronized void clear() {
+    data.clear();
   }
 
   @Override
