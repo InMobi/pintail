@@ -55,7 +55,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     headers.put(HEADER_TOPIC, topicName);
     // Add timstamp to the message
     Long timestamp = System.currentTimeMillis();
-    AuditMessagePublisher.attachHeaders(m);
+    m = AuditMessagePublisher.attachHeaders(m, timestamp);
     publish(headers, m);
     incrementSent(topicName, timestamp);
   }

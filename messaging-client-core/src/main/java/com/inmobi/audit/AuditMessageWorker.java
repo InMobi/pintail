@@ -12,7 +12,7 @@ import org.apache.thrift.TSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.inmobi.audit.thrift.AuditPacket;
+import com.inmobi.audit.thrift.AuditMessage;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 import com.inmobi.messaging.publisher.MessagePublisherFactory;
@@ -49,7 +49,7 @@ public class AuditMessageWorker implements Runnable {
                            // occur to previous counters NOTE:there is a chance
                            // that after retrieving counters and before reset
                            // few updates may happen which could get lost
-      AuditPacket packet = createPacket(topic, received, sent);
+        AuditMessage packet = createPacket(topic, received, sent);
       publishPacket(packet);
 
     }
@@ -60,7 +60,7 @@ public class AuditMessageWorker implements Runnable {
 
   }
 
-  private void publishPacket(AuditPacket packet) {
+  private void publishPacket(AuditMessage packet) {
     if (publisher == null)
       try {
         publisher = (AbstractMessagePublisher) MessagePublisherFactory.create();
@@ -75,7 +75,7 @@ public class AuditMessageWorker implements Runnable {
   }
 
 
-  private AuditPacket createPacket(String topic,
+  private AuditMessage createPacket(String topic,
       Map<Long, AtomicLong> received, Map<Long, AtomicLong> sent) {
     Map<Long, Long> finalReceived = new HashMap<Long, Long>();
     Map<Long, Long> finalSent = new HashMap<Long, Long>();
@@ -90,7 +90,7 @@ public class AuditMessageWorker implements Runnable {
       finalSent.put(entry.getKey(), entry.getValue().get());
     }
 
-    AuditPacket packet = new AuditPacket(System.currentTimeMillis(), topic,
+    AuditMessage packet = new AuditMessage(System.currentTimeMillis(), topic,
         tier, hostname, windowSizeInMins, finalReceived, finalSent);
     return packet;
   }

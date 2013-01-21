@@ -2,7 +2,7 @@ package com.inmobi.messaging.consumer.stats;
 
 import java.util.Date;
 
-import com.inmobi.audit.thrift.AuditPacket;
+import com.inmobi.audit.thrift.AuditMessage;
 
 public class Filter {
 
@@ -18,7 +18,7 @@ public class Filter {
     this.toTime = toTime;
   }
 
-  public boolean apply(AuditPacket packet) {
+  public boolean apply(AuditMessage packet) {
 
     if (tier != null && !packet.getTier().equalsIgnoreCase(tier))
       return false;

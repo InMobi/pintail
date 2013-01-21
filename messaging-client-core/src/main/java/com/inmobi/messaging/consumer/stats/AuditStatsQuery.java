@@ -13,7 +13,7 @@ import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.inmobi.audit.thrift.AuditPacket;
+import com.inmobi.audit.thrift.AuditMessage;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.MessageConsumer;
@@ -53,13 +53,13 @@ public class AuditStatsQuery {
       throws InterruptedException, TException {
     Message message;
     TDeserializer deserialize = new TDeserializer();
-    AuditPacket packet;
+    AuditMessage packet;
     long currentTime;
     do {
       System.out.println("READING NEXT PACKET");
       message = consumer.next();
       System.out.println("READ NEXT PACKET");
-      packet = new AuditPacket();
+      packet = new AuditMessage();
       deserialize.deserialize(packet, message.getData().array());
       currentTime = packet.getTimestamp();
       if(filter.apply(packet)){

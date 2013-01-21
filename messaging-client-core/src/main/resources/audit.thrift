@@ -3,7 +3,7 @@
 namespace java com.inmobi.audit.thrift
 namespace cpp  audit.thrift
 
-struct AuditPacket
+struct AuditMessage
 {
   1: i64 timestamp,
   2: string topic,

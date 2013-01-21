@@ -10,7 +10,7 @@ import org.apache.thrift.TException;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.inmobi.audit.thrift.AuditPacket;
+import com.inmobi.audit.thrift.AuditMessage;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.stats.MockStatsEmitter;
@@ -31,7 +31,7 @@ public class TestPublisher {
     publisher.close();
     Assert.assertNotNull(MockPublisher.getMsg("audit"));
     TDeserializer deser = new TDeserializer();
-    AuditPacket packet = new AuditPacket();
+    AuditMessage packet = new AuditMessage();
     deser.deserialize(packet, MockPublisher.getMsg("audit").getData().array());
     System.out.println("AUDIT PACKET " + packet);
   }

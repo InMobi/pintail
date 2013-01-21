@@ -2,6 +2,7 @@ package com.inmobi.audit;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -25,6 +26,9 @@ public class AuditMessagePublisher {
   private static ScheduledThreadPoolExecutor executor;
   private static boolean isInit = false;
   private static AuditMessageWorker worker;
+  private static final byte[] magicBytes = { (byte) 0xAB, (byte) 0xCD,
+      (byte) 0xEF };
+  private static final int version = 1;
 
   private static final Logger LOG = LoggerFactory
       .getLogger(AuditMessagePublisher.class);
@@ -76,7 +80,26 @@ public class AuditMessagePublisher {
     executor.shutdown();
   }
 
-  public static void attachHeaders(Message m) {
+  public static Message attachHeaders(Message m, Long timestamp) {
+    byte[] b = m.getData().array();
+    int messageSize = b.length;
+    int totalSize = messageSize + 16;
+    ByteBuffer buffer = ByteBuffer.allocate(totalSize);
+
+    // writing version
+    buffer.put((byte) version);
+    // writing magic bytes
+    buffer.put(magicBytes);
+    // writing timestamp
+    long time = timestamp;
+    buffer.putLong(time);
+
+    // writing message size
+    buffer.putInt(messageSize);
+    // writing message
+    buffer.put(b);
+
+    return new Message(buffer);
 
   }
 
