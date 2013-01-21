@@ -32,6 +32,9 @@ public class PartitionReader {
   private boolean inited = false;
   private final DataEncodingType dataEncoding;
   private final PartitionReaderStatsExposer prMetrics;
+  private static final byte[] magicBytes = { (byte) 0xAB, (byte) 0xCD,
+      (byte) 0xEF };
+  private static final byte[] versions = { 1 };
 
   public PartitionReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, Configuration conf,
@@ -194,6 +197,49 @@ public class PartitionReader {
     return reader;
   }
 
+  private Message removeHeader(byte data[]) {
+    boolean isValidHeaders = true;
+    if (data.length < 16) {
+      LOG.debug("Total size of data in message is less than length of headers");
+      isValidHeaders = false;
+    }
+    ByteBuffer buffer = ByteBuffer.wrap(data);
+    boolean isVersionValid = false;
+    if (isValidHeaders) {
+      for (byte version : versions) {
+        if (buffer.get() == version) {
+          isVersionValid = true;
+          break;
+        }
+      }
+      if (isVersionValid) {
+        // compare all 3 magicBytes
+        byte[] mBytesRead = new byte[3];
+        buffer.get(mBytesRead);
+        if (mBytesRead[0] != magicBytes[0] || mBytesRead[1] != magicBytes[1]
+            || mBytesRead[2] != magicBytes[2])
+          isValidHeaders = false;
+      } else {
+        LOG.debug("Invalid version in the headers");
+      }
+    }
+    // TODO add validation for timestamp
+    long timestamp = buffer.getLong();
+
+    int messageSize = buffer.getInt();
+    if (isValidHeaders && data.length != 16 + messageSize) {
+      isValidHeaders = false;
+      LOG.debug("Invalid size of messag in headers");
+    }
+
+    if (isValidHeaders) {
+      ByteBuffer tmp = buffer.slice();
+      return new Message(tmp);
+    }
+ else
+      return new Message(data);
+
+  }
   void execute() {
     assert (reader != null);
     try {
@@ -210,8 +256,8 @@ public class PartitionReader {
           } else {
             data = line;
           }
-          buffer.put(new QueueEntry(new Message(
-              ByteBuffer.wrap(data)), partitionId,
+          Message msg = removeHeader(data);
+          buffer.put(new QueueEntry(msg, partitionId,
               new PartitionCheckpoint(reader.getCurrentFile(),
                   reader.getCurrentLineNum())));
           prMetrics.incrementMessagesAddedToBuffer();
