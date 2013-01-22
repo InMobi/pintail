@@ -6,9 +6,9 @@
   <packaging>pom</packaging>
 
   <scm>
-    <connection>scm:git:git://github.com/InMobi/messaging-client</connection>
-    <url>https://github.com/InMobi/messaging-client</url>
-    <developerConnection>scm:git:git@github.com/InMobi/messaging-client.git</developerConnection>
+    <connection>scm:git:git://github.corp.inmobi.com/platform/pintail</connection>
+    <url>https://github.corp.inmobi.com/platform/pintail</url>
+    <developerConnection>scm:git:git@github.corp.inmobi.com/platform/pintail.git</developerConnection>
   </scm>
 
   <properties>
