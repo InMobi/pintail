@@ -8,7 +8,7 @@
   <scm>
     <connection>scm:git:git://github.corp.inmobi.com/platform/pintail</connection>
     <url>https://github.corp.inmobi.com/platform/pintail</url>
-    <developerConnection>scm:git:git@github.corp.inmobi.com/platform/pintail.git</developerConnection>
+    <developerConnection>scm:git:git@github.corp.inmobi.com:platform/pintail.git</developerConnection>
   </scm>
 
   <properties>
