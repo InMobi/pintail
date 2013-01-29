@@ -1,3 +1,37 @@
+Release 1.5.0 
+
+Incompatible Changes:
+    1. Feature : Consumer groups added
+
+Bug Fixes and Improvements:
+    14. consumer should exit whenever it gets run time exception
+
+    13. changed inmobi-stats dependency version to 0.0.3
+
+    12. databus dependency upgraded 1.3.1
+
+    11. Adding logs to data validation failures in benchmark 
+
+    10. Add topic selector example
+
+    9. init() and close() added to TopicSelector
+
+    8. Ignore seek exceptions in CollectorStream and skiplines if seek fails
+
+    7. Add tests for DatabusInputFormat
+
+    6. Fix for part of message being read by CollectorStreamReader from currentFile 
+
+    5. Use DatabusInputFormat in all databus readers
+
+    4. Add DatabusInpuFormat for both mapred and mapreduce packages
+
+    3. Counter client modified to start from checkpoint and print stats while closing
+
+    2. Client utility to publish to multiple topics
+
+    1. Checkpoint does not include hdfs uri
+
 Release 1.4.1 - 2012-12-05
 
 Bug Fixes and Improvements:
