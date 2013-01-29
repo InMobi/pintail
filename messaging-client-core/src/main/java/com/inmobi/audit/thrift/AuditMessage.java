@@ -33,7 +33,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
   private static final TField TOPIC_FIELD_DESC = new TField("topic", TType.STRING, (short)2);
   private static final TField TIER_FIELD_DESC = new TField("tier", TType.STRING, (short)3);
   private static final TField HOSTNAME_FIELD_DESC = new TField("hostname", TType.STRING, (short)4);
-  private static final TField WINDOW_SIZE_IN_MINS_FIELD_DESC = new TField("windowSizeInMins", TType.I32, (short)5);
+  private static final TField WINDOW_SIZE_FIELD_DESC = new TField("windowSize", TType.I32, (short)5);
   private static final TField RECEIVED_FIELD_DESC = new TField("received", TType.MAP, (short)6);
   private static final TField SENT_FIELD_DESC = new TField("sent", TType.MAP, (short)7);
 
@@ -41,7 +41,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
   public String topic;
   public String tier;
   public String hostname;
-  public int windowSizeInMins;
+  public int windowSize;
   public Map<Long,Long> received;
   public Map<Long,Long> sent;
 
@@ -51,7 +51,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     TOPIC((short)2, "topic"),
     TIER((short)3, "tier"),
     HOSTNAME((short)4, "hostname"),
-    WINDOW_SIZE_IN_MINS((short)5, "windowSizeInMins"),
+    WINDOW_SIZE((short)5, "windowSize"),
     RECEIVED((short)6, "received"),
     SENT((short)7, "sent");
 
@@ -76,8 +76,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
           return TIER;
         case 4: // HOSTNAME
           return HOSTNAME;
-        case 5: // WINDOW_SIZE_IN_MINS
-          return WINDOW_SIZE_IN_MINS;
+        case 5: // WINDOW_SIZE
+          return WINDOW_SIZE;
         case 6: // RECEIVED
           return RECEIVED;
         case 7: // SENT
@@ -123,7 +123,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
 
   // isset id assignments
   private static final int __TIMESTAMP_ISSET_ID = 0;
-  private static final int __WINDOWSIZEINMINS_ISSET_ID = 1;
+  private static final int __WINDOWSIZE_ISSET_ID = 1;
   private BitSet __isset_bit_vector = new BitSet(2);
 
   public static final Map<_Fields, FieldMetaData> metaDataMap;
@@ -137,7 +137,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
         new FieldValueMetaData(TType.STRING)));
     tmpMap.put(_Fields.HOSTNAME, new FieldMetaData("hostname", TFieldRequirementType.DEFAULT, 
         new FieldValueMetaData(TType.STRING)));
-    tmpMap.put(_Fields.WINDOW_SIZE_IN_MINS, new FieldMetaData("windowSizeInMins", TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.WINDOW_SIZE, new FieldMetaData("windowSize", TFieldRequirementType.DEFAULT, 
         new FieldValueMetaData(TType.I32)));
     tmpMap.put(_Fields.RECEIVED, new FieldMetaData("received", TFieldRequirementType.DEFAULT, 
         new MapMetaData(TType.MAP, 
@@ -159,7 +159,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     String topic,
     String tier,
     String hostname,
-    int windowSizeInMins,
+    int windowSize,
     Map<Long,Long> received,
     Map<Long,Long> sent)
   {
@@ -169,8 +169,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     this.topic = topic;
     this.tier = tier;
     this.hostname = hostname;
-    this.windowSizeInMins = windowSizeInMins;
-    setWindowSizeInMinsIsSet(true);
+    this.windowSize = windowSize;
+    setWindowSizeIsSet(true);
     this.received = received;
     this.sent = sent;
   }
@@ -191,7 +191,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     if (other.isSetHostname()) {
       this.hostname = other.hostname;
     }
-    this.windowSizeInMins = other.windowSizeInMins;
+    this.windowSize = other.windowSize;
     if (other.isSetReceived()) {
       Map<Long,Long> __this__received = new HashMap<Long,Long>();
       for (Map.Entry<Long, Long> other_element : other.received.entrySet()) {
@@ -240,8 +240,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     this.topic = null;
     this.tier = null;
     this.hostname = null;
-    setWindowSizeInMinsIsSet(false);
-    this.windowSizeInMins = 0;
+    setWindowSizeIsSet(false);
+    this.windowSize = 0;
     this.received = null;
     this.sent = null;
   }
@@ -341,27 +341,27 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     }
   }
 
-  public int getWindowSizeInMins() {
-    return this.windowSizeInMins;
+  public int getWindowSize() {
+    return this.windowSize;
   }
 
-  public AuditMessage setWindowSizeInMins(int windowSizeInMins) {
-    this.windowSizeInMins = windowSizeInMins;
-    setWindowSizeInMinsIsSet(true);
+  public AuditMessage setWindowSize(int windowSize) {
+    this.windowSize = windowSize;
+    setWindowSizeIsSet(true);
     return this;
   }
 
-  public void unsetWindowSizeInMins() {
-    __isset_bit_vector.clear(__WINDOWSIZEINMINS_ISSET_ID);
+  public void unsetWindowSize() {
+    __isset_bit_vector.clear(__WINDOWSIZE_ISSET_ID);
   }
 
-  /** Returns true if field windowSizeInMins is set (has been asigned a value) and false otherwise */
-  public boolean isSetWindowSizeInMins() {
-    return __isset_bit_vector.get(__WINDOWSIZEINMINS_ISSET_ID);
+  /** Returns true if field windowSize is set (has been asigned a value) and false otherwise */
+  public boolean isSetWindowSize() {
+    return __isset_bit_vector.get(__WINDOWSIZE_ISSET_ID);
   }
 
-  public void setWindowSizeInMinsIsSet(boolean value) {
-    __isset_bit_vector.set(__WINDOWSIZEINMINS_ISSET_ID, value);
+  public void setWindowSizeIsSet(boolean value) {
+    __isset_bit_vector.set(__WINDOWSIZE_ISSET_ID, value);
   }
 
   public int getReceivedSize() {
@@ -468,11 +468,11 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       }
       break;
 
-    case WINDOW_SIZE_IN_MINS:
+    case WINDOW_SIZE:
       if (value == null) {
-        unsetWindowSizeInMins();
+        unsetWindowSize();
       } else {
-        setWindowSizeInMins((Integer)value);
+        setWindowSize((Integer)value);
       }
       break;
 
@@ -513,8 +513,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     case HOSTNAME:
       return getHostname();
 
-    case WINDOW_SIZE_IN_MINS:
-      return new Integer(getWindowSizeInMins());
+    case WINDOW_SIZE:
+      return new Integer(getWindowSize());
 
     case RECEIVED:
       return getReceived();
@@ -541,8 +541,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       return isSetTier();
     case HOSTNAME:
       return isSetHostname();
-    case WINDOW_SIZE_IN_MINS:
-      return isSetWindowSizeInMins();
+    case WINDOW_SIZE:
+      return isSetWindowSize();
     case RECEIVED:
       return isSetReceived();
     case SENT:
@@ -604,12 +604,12 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
         return false;
     }
 
-    boolean this_present_windowSizeInMins = true;
-    boolean that_present_windowSizeInMins = true;
-    if (this_present_windowSizeInMins || that_present_windowSizeInMins) {
-      if (!(this_present_windowSizeInMins && that_present_windowSizeInMins))
+    boolean this_present_windowSize = true;
+    boolean that_present_windowSize = true;
+    if (this_present_windowSize || that_present_windowSize) {
+      if (!(this_present_windowSize && that_present_windowSize))
         return false;
-      if (this.windowSizeInMins != that.windowSizeInMins)
+      if (this.windowSize != that.windowSize)
         return false;
     }
 
@@ -683,11 +683,11 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetWindowSizeInMins()).compareTo(typedOther.isSetWindowSizeInMins());
+    lastComparison = Boolean.valueOf(isSetWindowSize()).compareTo(typedOther.isSetWindowSize());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetWindowSizeInMins()) {      lastComparison = TBaseHelper.compareTo(this.windowSizeInMins, typedOther.windowSizeInMins);
+    if (isSetWindowSize()) {      lastComparison = TBaseHelper.compareTo(this.windowSize, typedOther.windowSize);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -752,10 +752,10 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
             TProtocolUtil.skip(iprot, field.type);
           }
           break;
-        case 5: // WINDOW_SIZE_IN_MINS
+        case 5: // WINDOW_SIZE
           if (field.type == TType.I32) {
-            this.windowSizeInMins = iprot.readI32();
-            setWindowSizeInMinsIsSet(true);
+            this.windowSize = iprot.readI32();
+            setWindowSizeIsSet(true);
           } else { 
             TProtocolUtil.skip(iprot, field.type);
           }
@@ -831,8 +831,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       oprot.writeString(this.hostname);
       oprot.writeFieldEnd();
     }
-    oprot.writeFieldBegin(WINDOW_SIZE_IN_MINS_FIELD_DESC);
-    oprot.writeI32(this.windowSizeInMins);
+    oprot.writeFieldBegin(WINDOW_SIZE_FIELD_DESC);
+    oprot.writeI32(this.windowSize);
     oprot.writeFieldEnd();
     if (this.received != null) {
       oprot.writeFieldBegin(RECEIVED_FIELD_DESC);
@@ -897,8 +897,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     }
     first = false;
     if (!first) sb.append(", ");
-    sb.append("windowSizeInMins:");
-    sb.append(this.windowSizeInMins);
+    sb.append("windowSize:");
+    sb.append(this.windowSize);
     first = false;
     if (!first) sb.append(", ");
     sb.append("received:");

@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 import org.testng.annotations.Test;
 
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.publisher.AuditService;
 
 public class TestAuditMessagePublisher {
   private static final byte[] magicbytes = { (byte) 0xAB, (byte) 0xCD,
@@ -13,7 +14,8 @@ public class TestAuditMessagePublisher {
   public void testAttachHeaders() {
     Message m = new Message("test data".getBytes());
     Long timestamp = System.currentTimeMillis();
-    Message msgWithHeaders = AuditMessagePublisher.attachHeaders(m, timestamp);
+    Message msgWithHeaders = AuditService.getInstance().attachHeaders(m,
+        timestamp);
     ByteBuffer buffer = msgWithHeaders.getData();
     buffer.rewind();
     int version = buffer.get();

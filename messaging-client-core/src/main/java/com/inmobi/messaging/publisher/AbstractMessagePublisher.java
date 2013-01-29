@@ -1,14 +1,13 @@
 package com.inmobi.messaging.publisher;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.inmobi.audit.AuditCounterAccumulator;
-import com.inmobi.audit.AuditMessagePublisher;
 import com.inmobi.instrumentation.MessagingClientStatBuilder;
 import com.inmobi.instrumentation.TimingAccumulator;
 import com.inmobi.messaging.ClientConfig;
@@ -32,6 +31,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
   private MessagingClientStatBuilder statsEmitter = new 
       MessagingClientStatBuilder();
   public static final String HEADER_TOPIC = "topic";
+  public static final String AUDIT_TOPIC = "audit";
 
   @Override
   public void publish(String topicName, Message m) {
@@ -53,18 +53,16 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     // TODO: generate headers
     Map<String, String> headers = new HashMap<String, String>();
     headers.put(HEADER_TOPIC, topicName);
+    // if (!topicName.equals(AUDIT_TOPIC)) {
     // Add timstamp to the message
-    Long timestamp = System.currentTimeMillis();
-    m = AuditMessagePublisher.attachHeaders(m, timestamp);
+    Long timestamp = new Date().getTime();
+    AuditService auditService = AuditService.getInstance();
+    m = auditService.attachHeaders(m, timestamp);
+      auditService.incrementSent(topicName, timestamp);
+    // }
     publish(headers, m);
-    incrementSent(topicName, timestamp);
   }
 
-  private void incrementSent(String topicName, Long timestamp) {
-    AuditCounterAccumulator accumulator = AuditMessagePublisher
-        .getAccumulator(topicName);
-    accumulator.incrementSent(timestamp);
-  }
 
   protected void initTopic(String topic, TimingAccumulator stats) {}
 
@@ -104,13 +102,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     try {
       String emitterConfig = config
           .getString(MessagePublisherFactory.EMITTER_CONF_FILE_KEY);
-      String auditConfig = config
-          .getString(MessagePublisherFactory.AUDIT_CONF_FILE_KEY);
-      if (auditConfig == null) {
-        AuditMessagePublisher.init();
-      } else {
-        AuditMessagePublisher.init(auditConfig);
-      }
+      AuditService.getInstance().init(config);
       if (emitterConfig == null) {
         LOG.warn("Stat emitter is disabled as config "
             + MessagePublisherFactory.EMITTER_CONF_FILE_KEY + " is not set in" +
@@ -130,11 +122,11 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     for (StatsExposer statsExposer : statsExposers.values()) {
       statsEmitter.remove(statsExposer);
     }
-    AuditMessagePublisher.close();
+    AuditService.getInstance().close();
   }
 
-  protected void init() {
-    AuditMessagePublisher.init();
+  protected void init() throws IOException {
+    AuditService.getInstance().init();
 
   }
 }

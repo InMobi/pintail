@@ -106,7 +106,7 @@ public class DatabusUtil {
   }
 
   if (isValidHeaders) {
-      return ByteBuffer.wrap(Arrays.copyOfRange(data, HEADER_LENGTH - 1,
+      return ByteBuffer.wrap(Arrays.copyOfRange(data, HEADER_LENGTH,
           data.length));
   }
 else

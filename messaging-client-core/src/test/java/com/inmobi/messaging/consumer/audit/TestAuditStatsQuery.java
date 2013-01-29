@@ -1,4 +1,4 @@
-package com.inmobi.messaging.consumer.stats;
+package com.inmobi.messaging.consumer.audit;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -7,6 +7,8 @@ import java.util.Date;
 
 import org.apache.thrift.TException;
 import org.testng.annotations.Test;
+
+import com.inmobi.messaging.consumer.audit.AuditStatsQuery;
 
 public class TestAuditStatsQuery {
 

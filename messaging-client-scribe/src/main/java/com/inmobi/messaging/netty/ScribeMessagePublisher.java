@@ -47,7 +47,8 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher implements
 
   public void init(String host, int port, int backoffSeconds, int timeout,
       boolean enableRetries, boolean resendOnAckLost, long sleepInterval,
-      int msgQueueSize, int ackQueueSize, int numDrainsOnClose) {
+      int msgQueueSize, int ackQueueSize, int numDrainsOnClose)
+      throws IOException {
     super.init();
     this.host = host;
     this.port = port;
