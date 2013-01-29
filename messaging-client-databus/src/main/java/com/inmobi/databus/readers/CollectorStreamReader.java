@@ -141,6 +141,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   protected Message readRawLine() throws IOException {
     int next = reader.read();
     if (openedNextFile) {
+      LOG.warn("Discarding partial message "+ builder.toString());
       builder.setLength(0);
       openedNextFile = false;
     }
