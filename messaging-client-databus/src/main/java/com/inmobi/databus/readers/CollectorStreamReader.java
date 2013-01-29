@@ -170,6 +170,10 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     super.resetCurrentFileSettings();
     currentOffset = 0;
     moveToNext = false;
+    if (builder.length() != 0) {
+      LOG.warn("Discarding partial message " + builder.toString());
+      builder.setLength(0);
+    }
   }
 
   protected void skipOldData()
