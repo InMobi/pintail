@@ -35,7 +35,6 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   protected BufferedReader reader;
   protected final String streamName;
   private boolean moveToNext = false;
-  private boolean openedNextFile = false;
   private CollectorReaderStatsExposer collectorMetrics;
   private Configuration conf;
   private StringBuilder builder = new StringBuilder();
@@ -140,11 +139,6 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   }
   protected Message readRawLine() throws IOException {
     int next = reader.read();
-    if (openedNextFile) {
-      LOG.warn("Discarding partial message "+ builder.toString());
-      builder.setLength(0);
-      openedNextFile = false;
-    }
     while ((char) next != '\n') {
       if (next == -1) {
         LOG.info("reading EOF before a line feed ");
@@ -176,6 +170,10 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     super.resetCurrentFileSettings();
     currentOffset = 0;
     moveToNext = false;
+    if (builder.length() != 0) {
+      LOG.warn("Discarding partial message " + builder.toString());
+      builder.setLength(0);
+    }
   }
 
   protected void skipOldData()
@@ -228,7 +226,6 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
       } else {
         if (moveToNext) {
           setNextFile();
-          openedNextFile = true;
           LOG.info("Reading from next file: " + getCurrentFile());
         } else {
           LOG.info("Reading from same file before moving to next");
