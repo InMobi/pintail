@@ -19,19 +19,19 @@ import com.inmobi.stats.StatsExposer;
  * Abstract class implementing {@link MessagePublisher} interface.
  * 
  * Initializes {@link StatsEmitter} and {@link StatsExposer} with configuration
- * defined in file {@value MessagePublisherFactory#EMITTER_CONF_FILE_KEY}. If 
- * no such file exists, statistics will be disabled.
+ * defined in file {@value MessagePublisherFactory#EMITTER_CONF_FILE_KEY}. If no
+ * such file exists, statistics will be disabled.
  */
 public abstract class AbstractMessagePublisher implements MessagePublisher {
 
   private static final Logger LOG = LoggerFactory
       .getLogger(AbstractMessagePublisher.class);
-  private Map<String, TopicStatsExposer> statsExposers = new HashMap<String,
-      TopicStatsExposer>();
-  private MessagingClientStatBuilder statsEmitter = new 
-      MessagingClientStatBuilder();
+  private Map<String, TopicStatsExposer> statsExposers = new HashMap<String, TopicStatsExposer>();
+  private MessagingClientStatBuilder statsEmitter = new MessagingClientStatBuilder();
   public static final String HEADER_TOPIC = "topic";
   public static final String AUDIT_TOPIC = "audit";
+  private static final String AUDIT_ENABLED_KEY = "audit.enabled";
+  private boolean isAuditEnabled = true;
 
   @Override
   public void publish(String topicName, Message m) {
@@ -53,18 +53,18 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     // TODO: generate headers
     Map<String, String> headers = new HashMap<String, String>();
     headers.put(HEADER_TOPIC, topicName);
-    // if (!topicName.equals(AUDIT_TOPIC)) {
-    // Add timstamp to the message
-    Long timestamp = new Date().getTime();
-    AuditService auditService = AuditService.getInstance();
-    m = auditService.attachHeaders(m, timestamp);
+    if (isAuditEnabled) {
+      // Add timstamp to the message
+      Long timestamp = new Date().getTime();
+      AuditService auditService = AuditService.getInstance();
+      auditService.attachHeaders(m, timestamp);
       auditService.incrementSent(topicName, timestamp);
-    // }
+    }
     publish(headers, m);
   }
 
-
-  protected void initTopic(String topic, TimingAccumulator stats) {}
+  protected void initTopic(String topic, TimingAccumulator stats) {
+  }
 
   /**
    * Initializes stats for the topic
@@ -74,8 +74,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
    * @throws IOException
    */
   private void initTopicStats(String topic, TimingAccumulator stats) {
-    TopicStatsExposer statsExposer = new TopicStatsExposer(topic,
-        stats);
+    TopicStatsExposer statsExposer = new TopicStatsExposer(topic, stats);
     statsEmitter.add(statsExposer);
     statsExposers.put(topic, statsExposer);
   }
@@ -103,16 +102,17 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
       String emitterConfig = config
           .getString(MessagePublisherFactory.EMITTER_CONF_FILE_KEY);
       AuditService.getInstance().init(config);
+      isAuditEnabled = config.getBoolean(AUDIT_ENABLED_KEY, true);
       if (emitterConfig == null) {
         LOG.warn("Stat emitter is disabled as config "
-            + MessagePublisherFactory.EMITTER_CONF_FILE_KEY + " is not set in" +
-            		" the config.");
+            + MessagePublisherFactory.EMITTER_CONF_FILE_KEY + " is not set in"
+            + " the config.");
         return;
       }
       statsEmitter.init(emitterConfig);
     } catch (Exception e) {
-      throw new IOException("Couldn't find or initialize the configured stats" +
-      		" emitter", e);
+      throw new IOException("Couldn't find or initialize the configured stats"
+          + " emitter", e);
     }
   }
 

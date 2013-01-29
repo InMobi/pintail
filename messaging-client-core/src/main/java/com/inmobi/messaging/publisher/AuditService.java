@@ -88,7 +88,7 @@ public class AuditService {
     }
   }
 
-  public Message attachHeaders(Message m, Long timestamp) {
+  public void attachHeaders(Message m, Long timestamp) {
     byte[] b = m.getData().array();
     int messageSize = b.length;
     int totalSize = messageSize + 16;
@@ -107,7 +107,8 @@ public class AuditService {
     // writing message
     buffer.put(b);
     buffer.rewind();
-    return new Message(buffer);
+    m.set(buffer);
+    // return new Message(buffer);
 
   }
 
