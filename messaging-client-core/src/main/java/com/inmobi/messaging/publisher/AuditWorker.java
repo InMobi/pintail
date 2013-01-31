@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.inmobi.audit.thrift.AuditMessage;
+import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 
 class AuditWorker implements Runnable {
@@ -22,14 +23,17 @@ class AuditWorker implements Runnable {
   private String tier;
   private int windowSizeInMins;
   private static final String AUDIT_STREAM_TOPIC_NAME = "audit";
+  private ClientConfig config;
   private AbstractMessagePublisher publisher;
   private static final Logger LOG = LoggerFactory.getLogger(AuditWorker.class);
   private final TSerializer serializer = new TSerializer();
 
-  AuditWorker(String hostname, String tier, int windowSizeInMins) {
+  AuditWorker(String hostname, String tier, int windowSizeInMins,
+      ClientConfig config) {
     this.hostname = hostname;
     this.tier = tier;
     this.windowSizeInMins = windowSizeInMins;
+    this.config = config;
   }
 
   @Override
@@ -65,7 +69,8 @@ class AuditWorker implements Runnable {
   private void publishPacket(AuditMessage packet) {
     if (publisher == null) {
       try {
-        publisher = (AbstractMessagePublisher) MessagePublisherFactory.create();
+        publisher = (AbstractMessagePublisher) MessagePublisherFactory
+            .create(config);
       } catch (IOException e) {
         LOG.error(
             "Cannot create publisher to publish audit package;Audit packet would be dropped",

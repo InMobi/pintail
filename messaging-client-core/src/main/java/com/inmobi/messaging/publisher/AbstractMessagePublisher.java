@@ -35,6 +35,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
 
   @Override
   public void publish(String topicName, Message m) {
+    LOG.info("PUBLISH");
     if (topicName == null) {
       throw new IllegalArgumentException("Cannot publish to null topic");
     }

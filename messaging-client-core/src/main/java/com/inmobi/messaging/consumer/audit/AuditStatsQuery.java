@@ -28,19 +28,30 @@ enum Columns {
 public class AuditStatsQuery {
 
   Map<Group, Long> received;
+
+  public Map<Group, Long> getReceived() {
+    return received;
+  }
+
+  public Map<Group, Long> getSent() {
+    return sent;
+  }
+
   Map<Group, Long> sent;
   private static final int minArgs = 4;
+
   private static final Logger LOG = LoggerFactory
       .getLogger(AuditStatsQuery.class);
-  private Date fromTime;
-  private Date toTime;
-  private long cutoffTime;
-  private static final long timeout = 60000;
-  private static final String MESSAGE_CLIENT_CONF_FILE = "messaging-consumer-conf.properties";
+  Date fromTime;
+  Date toTime;
+  private long cutoffTime = 600000;
+  long timeout = 60000;
+  private static final String MESSAGE_CLIENT_CONF_FILE = "audit-consumer-conf.properties";
   private static final String ROOT_DIR_KEY = "databus.consumer.rootdirs";
-  private GroupBy groupBy;
-  private Filter filter;
-  private AuditStatsQuery() {
+  GroupBy groupBy;
+  Filter filter;
+
+  AuditStatsQuery() {
     received = new HashMap<Group, Long>();
     sent = new HashMap<Group, Long>();
   }
@@ -71,9 +82,9 @@ public class AuditStatsQuery {
 
 
 
-  private void aggregateStats(MessageConsumer consumer)
+  void aggregateStats(MessageConsumer consumer)
       throws InterruptedException, TException {
-    Message message;
+    Message message = null;
     TDeserializer deserialize = new TDeserializer();
     AuditMessage packet;
     long currentTime;
@@ -87,7 +98,6 @@ public class AuditStatsQuery {
         break;
       }
       message = consumerThread.message;
-      // message = consumer.next();
       packet = new AuditMessage();
       deserialize.deserialize(packet, message.getData().array());
       System.out.println("Packet read is " + packet);
@@ -155,6 +165,8 @@ public class AuditStatsQuery {
       } else if (args[i].equalsIgnoreCase("-rootdir")) {
         rootDir = args[i + 1];
         i = i + 2;
+      } else if (args[i].equalsIgnoreCase("-timeout")) {
+        statsQuery.timeout = Long.parseLong(args[i + 1]) * 60 * 1000;
       } else {
         try {
           if (statsQuery.fromTime == null) {
@@ -218,16 +230,18 @@ public class AuditStatsQuery {
     }
   }
 
-  private static MessageConsumer getConsumer(Date fromTime, String rootDir)
+  static MessageConsumer getConsumer(Date fromTime, String rootDir)
       throws IOException {
     // TODO remove next 3 lines
     Calendar calendar = Calendar.getInstance();
+    calendar.setTimeZone(TimeZone.getTimeZone("GMT"));
     calendar.setTime(fromTime);
-    calendar.add(Calendar.MINUTE, -2);
+    calendar.add(Calendar.MINUTE, -1);
 
     ClientConfig config = ClientConfig
         .loadFromClasspath(MESSAGE_CLIENT_CONF_FILE);
     config.set(ROOT_DIR_KEY, rootDir);
+    LOG.info("Intializing pintail from " + calendar.getTime());
     return MessageConsumerFactory.create(config, calendar.getTime());
   }
 
@@ -236,6 +250,7 @@ public class AuditStatsQuery {
     usage.append("Usage : AuditStatsQuery ");
     usage.append("-rootdir <hdfs root dir>");
     usage.append("[-cutoff <cuttofTimeInMins>]");
+    usage.append("[-timeout <timeoutInMins>]");
 
     usage.append("[-group <");
     for (Columns key : Columns.values()) {

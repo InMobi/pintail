@@ -62,7 +62,7 @@ public class AuditService {
       LOG.error("Unable to find the hostanme of the local box,audit packets won't contain hostname");
       hostname = "";
     }
-    worker = new AuditWorker(hostname, tier, windowSize);
+    worker = new AuditWorker(hostname, tier, windowSize, config);
     executor.scheduleWithFixedDelay(worker, aggregateWindowSize,
         aggregateWindowSize, TimeUnit.SECONDS);
     // setting init flag to true
