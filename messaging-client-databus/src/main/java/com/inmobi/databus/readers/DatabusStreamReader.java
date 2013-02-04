@@ -131,7 +131,11 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
           assert (msgValue instanceof Message);
           needsSerialize = false;
         }
-        skipLines(currentLineNum);
+        try {
+          skipLines(currentLineNum);
+        } catch (RuntimeException e) {
+          e.printStackTrace();
+        }
       } else {
         LOG.info("CurrentFile:" + getCurrentFile() + " does not exist");        
       }
