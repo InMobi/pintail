@@ -186,18 +186,14 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   }
 
   protected void skipOldData()
-      throws IOException {
+      throws IOException, RuntimeException {
     if (sameStream && !isS3Fs) {
       LOG.info("Seeking to offset:" + currentOffset);
       inStream.seek(currentOffset);
     } else {
-      try {
-        skipLines(currentLineNum);
-        sameStream = true;
-        currentOffset = inStream.getPos();
-      } catch (RuntimeException e) {
-        e.printStackTrace();
-      }
+      skipLines(currentLineNum);
+      sameStream = true;
+      currentOffset = inStream.getPos();
     }
   }
 

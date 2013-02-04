@@ -109,7 +109,7 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
     return ret;
   }
 
-  protected void openCurrentFile(boolean next) throws IOException {
+  protected void openCurrentFile(boolean next) throws IOException, RuntimeException {
     closeCurrentFile();
     if (next) {
       resetCurrentFileSettings();
@@ -131,11 +131,7 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
           assert (msgValue instanceof Message);
           needsSerialize = false;
         }
-        try {
-          skipLines(currentLineNum);
-        } catch (RuntimeException e) {
-          e.printStackTrace();
-        }
+        skipLines(currentLineNum);
       } else {
         LOG.info("CurrentFile:" + getCurrentFile() + " does not exist");        
       }
