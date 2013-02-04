@@ -109,7 +109,7 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
     return ret;
   }
 
-  protected void openCurrentFile(boolean next) throws IOException, RuntimeException {
+  protected void openCurrentFile(boolean next) throws IOException {
     closeCurrentFile();
     if (next) {
       resetCurrentFileSettings();

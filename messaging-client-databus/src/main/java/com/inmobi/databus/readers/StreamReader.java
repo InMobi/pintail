@@ -203,7 +203,7 @@ public abstract class StreamReader<T extends StreamFile> {
     LOG.info("Skipped " + lineNum + " lines");
     if (lineNum != numLines) {
       LOG.warn("Skipped wrong number of lines");
-      throw new RuntimeException("Skipped wrong number of lines while " +
+      throw new IOException("Skipped wrong number of lines while " +
           "skipping old data in CollectorStreamReader");
     }
     return lineNum;

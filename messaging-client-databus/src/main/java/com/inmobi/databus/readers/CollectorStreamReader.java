@@ -186,7 +186,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   }
 
   protected void skipOldData()
-      throws IOException, RuntimeException {
+      throws IOException {
     if (sameStream && !isS3Fs) {
       LOG.info("Seeking to offset:" + currentOffset);
       inStream.seek(currentOffset);
