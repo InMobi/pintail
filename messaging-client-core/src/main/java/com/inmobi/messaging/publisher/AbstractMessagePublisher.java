@@ -32,6 +32,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
   public static final String AUDIT_TOPIC = "audit";
   private static final String AUDIT_ENABLED_KEY = "audit.enabled";
   private boolean isAuditEnabled = true;
+  private final AuditService auditService = new AuditService(this);
 
   @Override
   public void publish(String topicName, Message m) {
@@ -57,8 +58,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     if (isAuditEnabled) {
       // Add timstamp to the message
       Long timestamp = new Date().getTime();
-      AuditService auditService = AuditService.getInstance();
-      auditService.attachHeaders(m, timestamp);
+      AuditService.attachHeaders(m, timestamp);
       auditService.incrementSent(topicName, timestamp);
     }
     publish(headers, m);
@@ -102,7 +102,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     try {
       String emitterConfig = config
           .getString(MessagePublisherFactory.EMITTER_CONF_FILE_KEY);
-      AuditService.getInstance().init(config);
+      auditService.init(config);
       isAuditEnabled = config.getBoolean(AUDIT_ENABLED_KEY, true);
       if (emitterConfig == null) {
         LOG.warn("Stat emitter is disabled as config "
@@ -123,11 +123,11 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     for (StatsExposer statsExposer : statsExposers.values()) {
       statsEmitter.remove(statsExposer);
     }
-    AuditService.getInstance().close();
+    auditService.close();
   }
 
   protected void init() throws IOException {
-    AuditService.getInstance().init();
+    auditService.init();
 
   }
 }

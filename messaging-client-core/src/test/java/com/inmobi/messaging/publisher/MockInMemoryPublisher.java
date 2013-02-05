@@ -9,7 +9,7 @@ import com.inmobi.messaging.Message;
 
 public class MockInMemoryPublisher extends AbstractMessagePublisher {
 
-  public static Map<String, BlockingQueue<Message>> source = new HashMap<String, BlockingQueue<Message>>();
+  public Map<String, BlockingQueue<Message>> source = new HashMap<String, BlockingQueue<Message>>();
 
   @Override
   protected void publish(Map<String, String> headers, Message m) {
@@ -23,6 +23,10 @@ public class MockInMemoryPublisher extends AbstractMessagePublisher {
       source.get(topic).add(m);
     }
 
+  }
+
+  public void reset() {
+    source = new HashMap<String, BlockingQueue<Message>>();
   }
 
 }

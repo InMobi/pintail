@@ -62,7 +62,7 @@ public class MockInMemoryConsumer extends AbstractMessageConsumer {
     return msg;
   }
 
-  private static ByteBuffer removeHeader(byte data[]) {
+  public static ByteBuffer removeHeader(byte data[]) {
     boolean isValidHeaders = true;
     if (data.length < 16) {
       isValidHeaders = false;
@@ -83,17 +83,19 @@ public class MockInMemoryConsumer extends AbstractMessageConsumer {
         if (mBytesRead[0] != magicBytes[0] || mBytesRead[1] != magicBytes[1]
             || mBytesRead[2] != magicBytes[2])
           isValidHeaders = false;
-      } else {
+      }
 
+      if (isValidHeaders) {
+        // TODO add validation for timestamp
+        long timestamp = buffer.getLong();
+
+        int messageSize = buffer.getInt();
+        if (isValidHeaders && data.length != HEADER_LENGTH + messageSize) {
+          isValidHeaders = false;
+        }
       }
     }
-    // TODO add validation for timestamp
-    long timestamp = buffer.getLong();
 
-    int messageSize = buffer.getInt();
-    if (isValidHeaders && data.length != HEADER_LENGTH + messageSize) {
-      isValidHeaders = false;
-    }
 
     if (isValidHeaders) {
       return ByteBuffer.wrap(Arrays.copyOfRange(data, HEADER_LENGTH,

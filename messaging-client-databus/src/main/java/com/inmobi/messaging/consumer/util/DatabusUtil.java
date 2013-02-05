@@ -95,15 +95,18 @@ public class DatabusUtil {
     } else {
       LOG.debug("Invalid version in the headers");
     }
-  }
-  // TODO add validation for timestamp
-  long timestamp = buffer.getLong();
+      if (isValidHeaders) {
+        // TODO add validation for timestamp
+        long timestamp = buffer.getLong();
 
-  int messageSize = buffer.getInt();
-    if (isValidHeaders && data.length != HEADER_LENGTH + messageSize) {
-    isValidHeaders = false;
-    LOG.debug("Invalid size of messag in headers");
+        int messageSize = buffer.getInt();
+        if (isValidHeaders && data.length != HEADER_LENGTH + messageSize) {
+          isValidHeaders = false;
+          LOG.debug("Invalid size of messag in headers");
+        }
+      }
   }
+
 
   if (isValidHeaders) {
       return ByteBuffer.wrap(Arrays.copyOfRange(data, HEADER_LENGTH,

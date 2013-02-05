@@ -3,7 +3,7 @@ package com.inmobi.messaging.publisher;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.ByteBuffer;
-import java.util.concurrent.CountDownLatch;
+import java.util.Collection;
 
 import org.apache.thrift.TDeserializer;
 import org.apache.thrift.TException;
@@ -13,6 +13,9 @@ import org.testng.annotations.Test;
 import com.inmobi.audit.thrift.AuditMessage;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.consumer.MessageConsumer;
+import com.inmobi.messaging.consumer.MessageConsumerFactory;
+import com.inmobi.messaging.consumer.MockInMemoryConsumer;
 import com.inmobi.messaging.stats.MockStatsEmitter;
 import com.inmobi.stats.emitter.EmitMondemand;
 
@@ -25,21 +28,18 @@ public class TestPublisher {
         MockPublisher.class.getName());
     AbstractMessagePublisher publisher =
         (AbstractMessagePublisher) MessagePublisherFactory.create(conf);
+    // AuditService.worker.publisher = null;
     doTest(publisher);
     Assert.assertFalse(publisher.getMetrics().statEmissionEnabled());
     Assert.assertNull((publisher.getMetrics().getStatsEmitter()));
-    publisher.close();
-    Assert.assertNotNull(MockPublisher.getMsg("audit"));
-    TDeserializer deser = new TDeserializer();
-    AuditMessage packet = new AuditMessage();
-    deser.deserialize(packet, MockPublisher.getMsg("audit").getData().array());
-    System.out.println("AUDIT PACKET " + packet);
+
   }
 
   @Test
   public void testLoadFromClasspath() throws IOException {
     AbstractMessagePublisher publisher =
         (AbstractMessagePublisher) MessagePublisherFactory.create();
+    // AuditService.worker.publisher = null;
     doTest(publisher);
     Assert.assertTrue(publisher.getMetrics().statEmissionEnabled());
     Assert.assertTrue((
@@ -54,6 +54,7 @@ public class TestPublisher {
     AbstractMessagePublisher publisher =
         (AbstractMessagePublisher) MessagePublisherFactory.create(
             url.getFile());
+    // AuditService.worker.publisher = null;
     doTest(publisher);
     Assert.assertTrue(publisher.getMetrics().statEmissionEnabled());
     Assert.assertTrue((
@@ -66,6 +67,7 @@ public class TestPublisher {
     AbstractMessagePublisher publisher = 
       (AbstractMessagePublisher) MessagePublisherFactory.create(
           conf, MockPublisher.class.getName());
+    // AuditService.worker.publisher = null;
     doTest(publisher);
     Assert.assertFalse(publisher.getMetrics().statEmissionEnabled());
     Assert.assertNull((publisher.getMetrics().getStatsEmitter()));
@@ -80,10 +82,67 @@ public class TestPublisher {
     AbstractMessagePublisher publisher = 
       (AbstractMessagePublisher) MessagePublisherFactory.create(
           conf, MockPublisher.class.getName());
+    // AuditService.worker.publisher = null;
     doTest(publisher);
     Assert.assertTrue(publisher.getMetrics().statEmissionEnabled());
     Assert.assertTrue((
         publisher.getMetrics().getStatsEmitter()) instanceof EmitMondemand);    
+  }
+
+  @Test
+  public void testPublisherWithHeaders() throws IOException,
+      InterruptedException {
+    ClientConfig conf = new ClientConfig();
+    conf.set("publisher.classname",
+        "com.inmobi.messaging.publisher.MockInMemoryPublisher");
+    conf.set("window.size.sec", "60");
+    conf.set("aggregate.window.sec", "60");
+    MessagePublisher publisher = MessagePublisherFactory.create(conf,
+        MockInMemoryPublisher.class.getName());
+    // AuditService.worker.publisher=null;
+    publisher.publish("topic", new Message("message".getBytes()));
+    publisher.close();
+    conf.set("topic.name", "topic");
+    conf.set("consumer.name", "c1");
+    MessageConsumer consumer = MessageConsumerFactory.create(conf,
+        MockInMemoryConsumer.class.getName());
+    ((MockInMemoryConsumer) consumer)
+        .setSource(((MockInMemoryPublisher) (publisher)).source);
+    Message m = consumer.next();
+    String msg = new String(m.getData().array());
+    assert (msg.equals("message"));
+
+  }
+
+  @Test
+  public void testAuditMessage() throws IOException, InterruptedException,
+      TException {
+    ClientConfig conf = new ClientConfig();
+    conf.set("publisher.classname",
+        "com.inmobi.messaging.publisher.MockInMemoryPublisher");
+    conf.set("window.size.sec", "60");
+    conf.set("aggregate.window.sec", "60");
+
+    MessagePublisher publisher = MessagePublisherFactory.create(conf,
+        MockInMemoryPublisher.class.getName());
+    // AuditService.worker.publisher = null;
+    publisher.publish("topic", new Message("message".getBytes()));
+    publisher.close();
+    conf.set("topic.name", "audit");
+    conf.set("consumer.name", "c1");
+    MessageConsumer consumer = MessageConsumerFactory.create(conf,
+        MockInMemoryConsumer.class.getName());
+    // AuditService.worker.publisher=null;
+    ((MockInMemoryConsumer) consumer)
+        .setSource(((MockInMemoryPublisher) (publisher)).source);
+    Message m = consumer.next();
+    TDeserializer deserializer = new TDeserializer();
+    AuditMessage audit = new AuditMessage();
+    deserializer.deserialize(audit, m.getData().array());
+    Collection<Long> values = audit.getSent().values();
+    assert (values.iterator().hasNext());
+    assert (values.iterator().next() == 1);
+
   }
 
   private void doTest(AbstractMessagePublisher publisher) {
@@ -144,10 +203,9 @@ public class TestPublisher {
     AbstractMessagePublisher publisher =
         (AbstractMessagePublisher) MessagePublisherFactory.create(conf);
     String topic = "test";
-    CountDownLatch startLatch = new CountDownLatch(10);
     Assert.assertNull(publisher.getStats(topic));
-    PublishThread p1 = new PublishThread(startLatch, topic, publisher);
-    PublishThread p2 = new PublishThread(startLatch, topic, publisher);    
+    PublishThread p1 = new PublishThread(topic, publisher);
+    PublishThread p2 = new PublishThread(topic, publisher);
     p1.start();
     p2.start();
     p1.join();
@@ -172,11 +230,9 @@ public class TestPublisher {
       
     private String topic;
     private AbstractMessagePublisher publisher;
-    private final CountDownLatch startLatch;
     
-    PublishThread(CountDownLatch startLatch, String topic,
+    PublishThread(String topic,
         AbstractMessagePublisher publisher) {
-      this.startLatch= startLatch;
       this.topic = topic;
       this.publisher = publisher;
     }
