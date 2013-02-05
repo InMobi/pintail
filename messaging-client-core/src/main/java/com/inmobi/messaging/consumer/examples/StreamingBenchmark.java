@@ -16,6 +16,7 @@ import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.MessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
+import com.inmobi.messaging.consumer.audit.AuditStatsQuery;
 import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 import com.inmobi.messaging.publisher.MessagePublisherFactory;
 import com.inmobi.messaging.util.ConsumerUtil;
@@ -67,6 +68,11 @@ public class StreamingBenchmark {
     int producerTimeout = 0;
     int consumerTimeout = 0;
     int msgSize = 2000;
+    String auditStartTime = null;
+    String auditEndTime = null;
+    String auditRootDir = null;
+    String auditTopic = null;
+    SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy-HH:mm");
 
     if (args.length >= minArgs) {
       int consumerOptionIndex = -1;
@@ -140,6 +146,10 @@ public class StreamingBenchmark {
         now = Calendar.getInstance().getTime(); 
       }
       System.out.println("Starting from " + now);
+      // set consumer start time as auditStartTime
+      auditStartTime = formatter.format(now);
+      auditRootDir = config.getString(AuditStatsQuery.ROOT_DIR_KEY) + "/system";
+      auditTopic = config.getString(MessageConsumerFactory.TOPIC_NAME_KEY);
 
       // create and start consumer
       assert(config != null);
@@ -171,10 +181,28 @@ public class StreamingBenchmark {
       consumer.join(consumerTimeout * 1000);
       System.out.println("Consumer thread state: "+ consumer.getState());
       statusPrinter.stopped = true;
+      // set consumer end time as auditEndTime
+      Date now;
+      if (timezone != null) {
+        now = ConsumerUtil.getCurrenDateForTimeZone(timezone);
+      } else {
+        now = Calendar.getInstance().getTime(); 
+      }
+      auditEndTime = formatter.format(now);
     }
 
     statusPrinter.join();
     if (runConsumer) {
+      // start audit thread to perform audit query
+      AuditThread auditThread = createAuditThread(auditTopic, auditRootDir,
+    		  auditStartTime, auditEndTime);
+      auditThread.start();
+      
+      // wait for audit thread to join
+      assert (auditThread != null);
+      auditThread.join(consumerTimeout * 1000);
+      System.out.println("Audit thread state: "+ auditThread.getState());
+    	
       if (!consumer.success) {
         System.out.println("Data validation FAILED!");
         exitcode = FAILED_CODE;
@@ -195,6 +223,11 @@ public class StreamingBenchmark {
           throws IOException {
     return new Consumer(config, maxSent, startTime, numProducers,
         hadoopConsumer, maxSize);    
+  }
+  
+  static AuditThread createAuditThread(String topic, String rootDir, 
+		  String fromTime, String toTime) {
+	  return new AuditThread(topic, rootDir, fromTime, toTime);
   }
 
   static class Producer extends Thread {
@@ -488,4 +521,47 @@ public class StreamingBenchmark {
       }      
     }
   }
+  
+  static class AuditThread extends Thread {
+	  final String topic;
+	  final String rootDir;
+	  final String startTime;
+	  final String endTime;
+	  
+	  AuditThread(String topic, String rootDir, String startTime, String endTime) {
+		  this.topic = topic;
+		  this.rootDir = rootDir;
+		  this.startTime = startTime;
+		  this.endTime = endTime;
+	  }
+	  
+	  @Override
+	  public void run() {
+		  System.out.println("Audit Thread started!");
+		  
+		  // prepare args to AuditStatsQuery
+		  String args[] = new String[10];
+		  args[0] = "-filter";
+		  args[1] = "TOPIC=" + topic;
+		  args[2] = "-rootdir";
+		  args[3] = rootDir;
+		  args[4] = startTime;
+		  args[5] = endTime;
+		  args[6] = "-cutoff";
+		  args[7] = "10";
+		  args[8] = "-timeout";
+		  args[9] = "2";
+		  
+		  // print audit arguments
+		  StringBuffer auditArgs = new StringBuffer(100);
+		  for (int i = 0; i < args.length; i++) {
+			  auditArgs.append(args[i]).append(" ");
+		  }
+		  System.out.println("Executing Audit Query with arguments: " + auditArgs);
+		  
+		  AuditStatsQuery.main(args);
+		  System.out.println("Audit Thread closed");
+	  }
+  }
+  
 }
