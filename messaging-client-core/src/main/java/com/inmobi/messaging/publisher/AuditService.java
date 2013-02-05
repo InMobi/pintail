@@ -20,26 +20,21 @@ public class AuditService {
   private static final String AGGREGATE_WINDOW_KEY = "aggregate.window.sec";
   private static final int DEFAULT_WINDOW_SIZE = 60;
   private static final int DEFAULT_AGGREGATE_WINDOW_SIZE = 60;
-  private static int windowSize;
-  private static int aggregateWindowSize;
-  static ConcurrentHashMap<String, AuditCounterAccumulator> topicAccumulatorMap = new ConcurrentHashMap<String, AuditCounterAccumulator>();
-  private static final String tier = "publisher";
-  private static ScheduledThreadPoolExecutor executor;
-  private static boolean isInit = false;
-  private static AuditWorker worker;
+  private int windowSize;
+  private int aggregateWindowSize;
+  final ConcurrentHashMap<String, AuditCounterAccumulator> topicAccumulatorMap = new ConcurrentHashMap<String, AuditCounterAccumulator>();
+  private final String tier = "publisher";
+  private ScheduledThreadPoolExecutor executor;
+  private boolean isInit = false;
+  private AuditWorker worker;
   private static final byte[] magicBytes = { (byte) 0xAB, (byte) 0xCD,
       (byte) 0xEF };
   private static final int version = 1;
-
   private static final Logger LOG = LoggerFactory.getLogger(AuditService.class);
-  private static final AuditService service = new AuditService();
-  private static boolean isClose = false;
+  private AbstractMessagePublisher publisher;
 
-  private AuditService() {
-  };
-
-  public static AuditService getInstance() {
-    return service;
+  AuditService(AbstractMessagePublisher publisher) {
+    this.publisher = publisher;
   }
 
   public synchronized void init() throws IOException {
@@ -62,7 +57,8 @@ public class AuditService {
       LOG.error("Unable to find the hostanme of the local box,audit packets won't contain hostname");
       hostname = "";
     }
-    worker = new AuditWorker(hostname, tier, windowSize, config);
+    worker = new AuditWorker(hostname, tier, windowSize, publisher,
+        topicAccumulatorMap);
     executor.scheduleWithFixedDelay(worker, aggregateWindowSize,
         aggregateWindowSize, TimeUnit.SECONDS);
     // setting init flag to true
@@ -77,18 +73,13 @@ public class AuditService {
   }
 
   public synchronized void close() {
-    if (!isClose) {
-      isClose = true;// setting it true before worker.close();to avoid recursion
-                     // when worker closes its own publisher
     if (worker != null) {
       worker.run(); // flushing the last audit packet during shutdown
-      worker.close();
     }
     executor.shutdown();
-    }
   }
 
-  public void attachHeaders(Message m, Long timestamp) {
+  public static void attachHeaders(Message m, Long timestamp) {
     byte[] b = m.getData().array();
     int messageSize = b.length;
     int totalSize = messageSize + 16;

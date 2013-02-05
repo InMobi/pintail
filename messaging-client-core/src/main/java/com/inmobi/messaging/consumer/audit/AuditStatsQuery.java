@@ -44,10 +44,12 @@ public class AuditStatsQuery {
       .getLogger(AuditStatsQuery.class);
   Date fromTime;
   Date toTime;
-  private long cutoffTime = 600000;
+  long cutoffTime = 600000;
   long timeout = 60000;
   private static final String MESSAGE_CLIENT_CONF_FILE = "audit-consumer-conf.properties";
   private static final String ROOT_DIR_KEY = "databus.consumer.rootdirs";
+  private boolean isPartialResult =false;
+  long currentTime;
   GroupBy groupBy;
   Filter filter;
 
@@ -69,7 +71,8 @@ public class AuditStatsQuery {
       try {
         message = consumer.next();
       } catch (InterruptedException e) {
-        LOG.error("Error while fetching the next message", e);
+        LOG.debug("Consumer Thread interuppted", e);
+        isPartialResult=true;
       }
 
     }
@@ -87,8 +90,7 @@ public class AuditStatsQuery {
     Message message = null;
     TDeserializer deserialize = new TDeserializer();
     AuditMessage packet;
-    long currentTime;
-
+    currentTime = 0;
     do {
       ConsumerWorker consumerThread = new ConsumerWorker(consumer);
       consumerThread.start();
@@ -100,7 +102,7 @@ public class AuditStatsQuery {
       message = consumerThread.message;
       packet = new AuditMessage();
       deserialize.deserialize(packet, message.getData().array());
-      System.out.println("Packet read is " + packet);
+      LOG.debug("Packet read is " + packet);
       currentTime = packet.getTimestamp();
       Map<Columns, String> values = new HashMap<Columns, String>();
       values.put(Columns.HOSTNAME, packet.getHostname());
@@ -183,7 +185,8 @@ public class AuditStatsQuery {
       }
 
     }
-    if (cutoff == null) {
+    if (cutoff == null || statsQuery.fromTime == null
+        || statsQuery.toTime == null) {
       statsQuery.cutoffTime = 60000000l;
     } else {
       statsQuery.cutoffTime = Long.parseLong(cutoff) * 60 * 1000;
@@ -223,6 +226,15 @@ public class AuditStatsQuery {
   }
 
   private void displayResults() {
+    if (isPartialResult) {
+      System.out
+          .println("Query was stopped due to timeout limit,Partial Result Possible");
+      SimpleDateFormat formatter = new SimpleDateFormat();
+      formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
+      String date = formatter.format(new Date(currentTime));
+      System.out.println("Time of Last Processed Audit Message [ " + date
+          + " ]");
+    }
     System.out.println("Group \t Received \t Sent \t");
     for (Entry<Group, Long> entry : received.entrySet()) {
       System.out.println(entry.getKey() + " \t" + entry.getValue() + " \t"

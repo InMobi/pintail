@@ -1,11 +1,11 @@
 package com.inmobi.messaging.publisher;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.thrift.TException;
@@ -14,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.inmobi.audit.thrift.AuditMessage;
-import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 
 class AuditWorker implements Runnable {
@@ -23,24 +22,27 @@ class AuditWorker implements Runnable {
   private String tier;
   private int windowSizeInMins;
   private static final String AUDIT_STREAM_TOPIC_NAME = "audit";
-  private ClientConfig config;
   private AbstractMessagePublisher publisher;
   private static final Logger LOG = LoggerFactory.getLogger(AuditWorker.class);
   private final TSerializer serializer = new TSerializer();
+  private ConcurrentHashMap<String, AuditCounterAccumulator> topicAccumulatorMap;
 
   AuditWorker(String hostname, String tier, int windowSizeInMins,
-      ClientConfig config) {
+      AbstractMessagePublisher publisher,
+      ConcurrentHashMap<String, AuditCounterAccumulator> topicAccumulatorMap) {
     this.hostname = hostname;
     this.tier = tier;
     this.windowSizeInMins = windowSizeInMins;
-    this.config = config;
+    this.publisher = publisher;
+    this.topicAccumulatorMap = topicAccumulatorMap;
+
   }
 
   @Override
   public void run() {
     try {
       LOG.info("Running the AuditWorker");
-      for (Entry<String, AuditCounterAccumulator> entry : AuditService.topicAccumulatorMap
+      for (Entry<String, AuditCounterAccumulator> entry : topicAccumulatorMap
           .entrySet()) {
         String topic = entry.getKey();
         AuditCounterAccumulator accumulator = entry.getValue();
@@ -49,6 +51,10 @@ class AuditWorker implements Runnable {
         accumulator.reset(); // resetting before creating packet to make sure
                              // that during creation of packet no more writes
                              // should occur to previous counters
+        if (received.size() == 0 && sent.size() == 0) {
+          LOG.debug("Not publishing audit packet as all the metric counters are 0");
+          return;
+        }
         AuditMessage packet = createPacket(topic, received, sent);
         publishPacket(packet);
 
@@ -60,25 +66,7 @@ class AuditWorker implements Runnable {
 
   }
 
-  void close() {
-    if (publisher != null) {
-      publisher.close();
-    }
-  }
-
   private void publishPacket(AuditMessage packet) {
-    if (publisher == null) {
-      try {
-        publisher = (AbstractMessagePublisher) MessagePublisherFactory
-            .create(config);
-      } catch (IOException e) {
-        LOG.error(
-            "Cannot create publisher to publish audit package;Audit packet would be dropped",
-            e);
-        return;
-      }
-    }
-
     try {
         LOG.debug("Publishing audit packet" + packet);
         publisher.publish(AUDIT_STREAM_TOPIC_NAME,

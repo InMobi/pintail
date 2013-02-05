@@ -12,16 +12,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import org.apache.commons.codec.binary.Base64;
+import org.apache.hadoop.io.Text;
+
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.MessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
+import com.inmobi.messaging.consumer.MockInMemoryConsumer;
 import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 import com.inmobi.messaging.publisher.MessagePublisherFactory;
 import com.inmobi.messaging.util.ConsumerUtil;
-
-import org.apache.commons.codec.binary.Base64;
-import org.apache.hadoop.io.Text;
 
 public class StreamingBenchmark {
 
@@ -31,6 +32,7 @@ public class StreamingBenchmark {
 
   static final int WRONG_USAGE_CODE = -1;
   static final int FAILED_CODE = 1;
+  static final int HEADER_LENGTH = 16;
 
   static int printUsage() {
     System.out.println(
@@ -279,14 +281,17 @@ public class StreamingBenchmark {
 
   static String getMessage(Message msg, boolean hadoopConsumer)
       throws IOException {
-    byte[] byteArray = msg.getData().array();
+    byte[] data = msg.getData().array();
+    byte[] byteArray = MockInMemoryConsumer.removeHeader(data).array();
     if (!hadoopConsumer) {
       return new String(byteArray);
     } else {
       Text text = new Text();
       ByteArrayInputStream bais = new ByteArrayInputStream(byteArray);
       text.readFields(new DataInputStream(bais));
-      return new String(Base64.decodeBase64(text.getBytes()));
+      byte[] decoded = Base64.decodeBase64(text.getBytes());
+
+      return new String(decoded);
     }
   }
 
