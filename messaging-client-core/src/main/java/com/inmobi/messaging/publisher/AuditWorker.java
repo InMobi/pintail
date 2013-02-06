@@ -92,7 +92,8 @@ class AuditWorker implements Runnable {
     }
     long currentTime = new Date().getTime();
     AuditMessage packet = new AuditMessage(currentTime, topic,
-        tier, hostname, windowSizeInMins, finalReceived, finalSent);
+ tier, hostname,
+        windowSizeInMins, finalReceived, finalSent, null, null);
     return packet;
   }
 

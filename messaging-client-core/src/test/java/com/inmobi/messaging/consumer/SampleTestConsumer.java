@@ -27,7 +27,8 @@ public class SampleTestConsumer extends MockConsumer {
     long window = time - time % 60000;
     received.put(window, 100l);
     AuditMessage packet = new AuditMessage(System.currentTimeMillis(),
-        "testTopic", "publisher", "localhost", 1, received, received);
+        "testTopic", "publisher", "localhost", 1, received, received, null,
+        null);
     TSerializer serializer = new TSerializer();
     // serializer.serialize(packet);
     byte[] output = serializer.serialize(packet);
