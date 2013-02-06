@@ -82,7 +82,6 @@ public class TestPublisher {
     AbstractMessagePublisher publisher = 
       (AbstractMessagePublisher) MessagePublisherFactory.create(
           conf, MockPublisher.class.getName());
-    // AuditService.worker.publisher = null;
     doTest(publisher);
     Assert.assertTrue(publisher.getMetrics().statEmissionEnabled());
     Assert.assertTrue((
@@ -99,7 +98,6 @@ public class TestPublisher {
     conf.set("aggregate.window.sec", "60");
     MessagePublisher publisher = MessagePublisherFactory.create(conf,
         MockInMemoryPublisher.class.getName());
-    // AuditService.worker.publisher=null;
     publisher.publish("topic", new Message("message".getBytes()));
     publisher.close();
     conf.set("topic.name", "topic");
@@ -125,14 +123,12 @@ public class TestPublisher {
 
     MessagePublisher publisher = MessagePublisherFactory.create(conf,
         MockInMemoryPublisher.class.getName());
-    // AuditService.worker.publisher = null;
     publisher.publish("topic", new Message("message".getBytes()));
     publisher.close();
     conf.set("topic.name", "audit");
     conf.set("consumer.name", "c1");
     MessageConsumer consumer = MessageConsumerFactory.create(conf,
         MockInMemoryConsumer.class.getName());
-    // AuditService.worker.publisher=null;
     ((MockInMemoryConsumer) consumer)
         .setSource(((MockInMemoryPublisher) (publisher)).source);
     Message m = consumer.next();
@@ -142,6 +138,23 @@ public class TestPublisher {
     Collection<Long> values = audit.getSent().values();
     assert (values.iterator().hasNext());
     assert (values.iterator().next() == 1);
+
+  }
+
+  @Test
+  public void testAuditDisbaled() throws IOException {
+    ClientConfig conf = new ClientConfig();
+    conf.set("publisher.classname",
+        "com.inmobi.messaging.publisher.MockInMemoryPublisher");
+    conf.set("window.size.sec", "60");
+    conf.set("aggregate.window.sec", "60");
+    conf.set("audit.enabled", "false");
+
+    MessagePublisher publisher = MessagePublisherFactory.create(conf,
+        MockInMemoryPublisher.class.getName());
+    publisher.publish("topic", new Message("message".getBytes()));
+    publisher.close();
+    assert (!((MockInMemoryPublisher) publisher).source.containsKey("audit"));
 
   }
 

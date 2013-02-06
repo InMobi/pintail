@@ -19,7 +19,6 @@ import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.MessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
-import com.inmobi.messaging.consumer.MockInMemoryConsumer;
 import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 import com.inmobi.messaging.publisher.MessagePublisherFactory;
 import com.inmobi.messaging.util.ConsumerUtil;
@@ -282,7 +281,7 @@ public class StreamingBenchmark {
   static String getMessage(Message msg, boolean hadoopConsumer)
       throws IOException {
     byte[] data = msg.getData().array();
-    byte[] byteArray = MockInMemoryConsumer.removeHeader(data).array();
+    byte[] byteArray = ConsumerUtil.removeHeader(data).array();
     if (!hadoopConsumer) {
       return new String(byteArray);
     } else {

@@ -1,7 +1,6 @@
 package com.inmobi.messaging.consumer.util;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
@@ -13,6 +12,7 @@ import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.databus.DataEncodingType;
 import com.inmobi.messaging.consumer.databus.MessagingConsumerConfig;
 import com.inmobi.messaging.consumer.databus.StreamType;
+import com.inmobi.messaging.util.ConsumerUtil;
 
 public class DatabusUtil {
   private static final Log LOG = LogFactory.getLog(DatabusUtil.class);
@@ -67,52 +67,8 @@ public class DatabusUtil {
     } else {
       data = line;
     }
-    return removeHeader(data);
-  }
-
-  private static ByteBuffer removeHeader(byte data[]) {
-  boolean isValidHeaders = true;
-  if (data.length < 16) {
-    LOG.debug("Total size of data in message is less than length of headers");
-    isValidHeaders = false;
-  }
-  ByteBuffer buffer = ByteBuffer.wrap(data);
-  boolean isVersionValid = false;
-  if (isValidHeaders) {
-    for (byte version : versions) {
-      if (buffer.get() == version) {
-        isVersionValid = true;
-        break;
-      }
-    }
-    if (isVersionValid) {
-      // compare all 3 magicBytes
-      byte[] mBytesRead = new byte[3];
-      buffer.get(mBytesRead);
-      if (mBytesRead[0] != magicBytes[0] || mBytesRead[1] != magicBytes[1]
-          || mBytesRead[2] != magicBytes[2])
-        isValidHeaders = false;
-    } else {
-      LOG.debug("Invalid version in the headers");
-    }
-      if (isValidHeaders) {
-        // TODO add validation for timestamp
-        long timestamp = buffer.getLong();
-
-        int messageSize = buffer.getInt();
-        if (isValidHeaders && data.length != HEADER_LENGTH + messageSize) {
-          isValidHeaders = false;
-          LOG.debug("Invalid size of messag in headers");
-        }
-      }
+    return ConsumerUtil.removeHeader(data);
   }
 
 
-  if (isValidHeaders) {
-      return ByteBuffer.wrap(Arrays.copyOfRange(data, HEADER_LENGTH,
-          data.length));
-  }
-else
-      return ByteBuffer.wrap(data);
-}
 }

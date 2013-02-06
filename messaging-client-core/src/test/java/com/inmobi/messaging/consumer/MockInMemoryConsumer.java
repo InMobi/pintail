@@ -1,14 +1,13 @@
 package com.inmobi.messaging.consumer;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.util.ConsumerUtil;
 
 public class MockInMemoryConsumer extends AbstractMessageConsumer {
 
@@ -53,7 +52,7 @@ public class MockInMemoryConsumer extends AbstractMessageConsumer {
     if (queue == null)
       queue = new LinkedBlockingQueue<Message>();
     Message msg = queue.take();
-    msg.set(removeHeader(msg.getData().array()));
+    msg.set(ConsumerUtil.removeHeader(msg.getData().array()));
     return msg;
   }
 
@@ -62,47 +61,7 @@ public class MockInMemoryConsumer extends AbstractMessageConsumer {
     return msg;
   }
 
-  public static ByteBuffer removeHeader(byte data[]) {
-    boolean isValidHeaders = true;
-    if (data.length < 16) {
-      isValidHeaders = false;
-    }
-    ByteBuffer buffer = ByteBuffer.wrap(data);
-    boolean isVersionValid = false;
-    if (isValidHeaders) {
-      for (byte version : versions) {
-        if (buffer.get() == version) {
-          isVersionValid = true;
-          break;
-        }
-      }
-      if (isVersionValid) {
-        // compare all 3 magicBytes
-        byte[] mBytesRead = new byte[3];
-        buffer.get(mBytesRead);
-        if (mBytesRead[0] != magicBytes[0] || mBytesRead[1] != magicBytes[1]
-            || mBytesRead[2] != magicBytes[2])
-          isValidHeaders = false;
-      }
 
-      if (isValidHeaders) {
-        // TODO add validation for timestamp
-        long timestamp = buffer.getLong();
-
-        int messageSize = buffer.getInt();
-        if (isValidHeaders && data.length != HEADER_LENGTH + messageSize) {
-          isValidHeaders = false;
-        }
-      }
-    }
-
-
-    if (isValidHeaders) {
-      return ByteBuffer.wrap(Arrays.copyOfRange(data, HEADER_LENGTH,
-          data.length));
-    } else
-      return ByteBuffer.wrap(data);
-  }
 
 
 }

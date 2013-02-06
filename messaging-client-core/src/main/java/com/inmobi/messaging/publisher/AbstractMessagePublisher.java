@@ -36,7 +36,6 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
 
   @Override
   public void publish(String topicName, Message m) {
-    LOG.info("PUBLISH");
     if (topicName == null) {
       throw new IllegalArgumentException("Cannot publish to null topic");
     }
@@ -102,8 +101,9 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     try {
       String emitterConfig = config
           .getString(MessagePublisherFactory.EMITTER_CONF_FILE_KEY);
-      auditService.init(config);
       isAuditEnabled = config.getBoolean(AUDIT_ENABLED_KEY, true);
+      if (isAuditEnabled)
+        auditService.init(config);
       if (emitterConfig == null) {
         LOG.warn("Stat emitter is disabled as config "
             + MessagePublisherFactory.EMITTER_CONF_FILE_KEY + " is not set in"
@@ -123,7 +123,9 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     for (StatsExposer statsExposer : statsExposers.values()) {
       statsEmitter.remove(statsExposer);
     }
+    if (isAuditEnabled) {
     auditService.close();
+    }
   }
 
   protected void init() throws IOException {

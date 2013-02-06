@@ -52,7 +52,7 @@ class AuditWorker implements Runnable {
                              // that during creation of packet no more writes
                              // should occur to previous counters
         if (received.size() == 0 && sent.size() == 0) {
-          LOG.debug("Not publishing audit packet as all the metric counters are 0");
+          LOG.info("Not publishing audit packet as all the metric counters are 0");
           return;
         }
         AuditMessage packet = createPacket(topic, received, sent);
@@ -91,7 +91,6 @@ class AuditWorker implements Runnable {
       finalSent.put(entry.getKey(), entry.getValue().get());
     }
     long currentTime = new Date().getTime();
-    System.out.println("Generating audit packet at " + currentTime);
     AuditMessage packet = new AuditMessage(currentTime, topic,
         tier, hostname, windowSizeInMins, finalReceived, finalSent);
     return packet;
