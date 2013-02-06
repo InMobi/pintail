@@ -47,7 +47,7 @@ public class AuditStatsQuery {
   long cutoffTime = 600000;
   long timeout = 60000;
   private static final String MESSAGE_CLIENT_CONF_FILE = "audit-consumer-conf.properties";
-  private static final String ROOT_DIR_KEY = "databus.consumer.rootdirs";
+  public static final String ROOT_DIR_KEY = "databus.consumer.rootdirs";
   private boolean isPartialResult =false;
   long currentTime;
   GroupBy groupBy;
@@ -169,6 +169,7 @@ public class AuditStatsQuery {
         i = i + 2;
       } else if (args[i].equalsIgnoreCase("-timeout")) {
         statsQuery.timeout = Long.parseLong(args[i + 1]) * 60 * 1000;
+        i = i + 2;
       } else {
         try {
           if (statsQuery.fromTime == null) {

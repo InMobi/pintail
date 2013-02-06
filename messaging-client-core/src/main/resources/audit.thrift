@@ -11,5 +11,7 @@ struct AuditMessage
   4: string hostname,
   5: i32 windowSize,
   6: map<i64,i64> received,
-  7: map<i64,i64> sent
+  7: map<i64,i64> sent,
+  8: list<string> filenames,
+  9: map<string, string> tags
 }
