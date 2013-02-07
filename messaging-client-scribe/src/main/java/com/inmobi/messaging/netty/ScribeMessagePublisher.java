@@ -86,10 +86,17 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher implements
     scribeConnections.get(topic).publish(m);
   }
 
+  protected void flush() {
+    super.flush();
+    for (ScribeTopicPublisher connection : scribeConnections.values()) {
+      connection.flush();
+    }
+  }
+
   public void close() {
+    super.close();
     for (ScribeTopicPublisher connection : scribeConnections.values()) {
       connection.close();
     }
-    super.close();
   }
 }

@@ -97,4 +97,8 @@ class AuditWorker implements Runnable {
     return packet;
   }
 
+  public synchronized void flush() {
+    run();
+  }
+
 }
