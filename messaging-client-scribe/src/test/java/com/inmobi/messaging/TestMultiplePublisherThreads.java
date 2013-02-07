@@ -26,8 +26,8 @@ public class TestMultiplePublisherThreads {
   @AfterTest
   public void tearDown() {
     server.stop();
-    if (publisher != null)
-      publisher.close();
+    // if (publisher != null)
+    // publisher.close();
   }
   
   @Test

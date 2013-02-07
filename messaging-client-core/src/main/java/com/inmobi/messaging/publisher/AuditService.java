@@ -73,10 +73,15 @@ public class AuditService {
   }
 
   public synchronized void close() {
-    if (worker != null) {
-      worker.run(); // flushing the last audit packet during shutdown
-    }
+    if (executor != null) {
     executor.shutdown();
+    }
+  }
+
+  public synchronized void flush() {
+    if (worker != null) {
+      worker.flush(); // flushing the last audit packet during shutdown
+    }
   }
 
   public static void attachHeaders(Message m, Long timestamp) {

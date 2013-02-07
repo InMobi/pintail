@@ -36,6 +36,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
   private static final TField WINDOW_SIZE_FIELD_DESC = new TField("windowSize", TType.I32, (short)5);
   private static final TField RECEIVED_FIELD_DESC = new TField("received", TType.MAP, (short)6);
   private static final TField SENT_FIELD_DESC = new TField("sent", TType.MAP, (short)7);
+  private static final TField FILENAMES_FIELD_DESC = new TField("filenames", TType.LIST, (short)8);
+  private static final TField TAGS_FIELD_DESC = new TField("tags", TType.MAP, (short)9);
 
   public long timestamp;
   public String topic;
@@ -44,6 +46,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
   public int windowSize;
   public Map<Long,Long> received;
   public Map<Long,Long> sent;
+  public List<String> filenames;
+  public Map<String,String> tags;
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements TFieldIdEnum {
@@ -53,7 +57,9 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     HOSTNAME((short)4, "hostname"),
     WINDOW_SIZE((short)5, "windowSize"),
     RECEIVED((short)6, "received"),
-    SENT((short)7, "sent");
+    SENT((short)7, "sent"),
+    FILENAMES((short)8, "filenames"),
+    TAGS((short)9, "tags");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -82,6 +88,10 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
           return RECEIVED;
         case 7: // SENT
           return SENT;
+        case 8: // FILENAMES
+          return FILENAMES;
+        case 9: // TAGS
+          return TAGS;
         default:
           return null;
       }
@@ -147,6 +157,13 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
         new MapMetaData(TType.MAP, 
             new FieldValueMetaData(TType.I64), 
             new FieldValueMetaData(TType.I64))));
+    tmpMap.put(_Fields.FILENAMES, new FieldMetaData("filenames", TFieldRequirementType.DEFAULT, 
+        new ListMetaData(TType.LIST, 
+            new FieldValueMetaData(TType.STRING))));
+    tmpMap.put(_Fields.TAGS, new FieldMetaData("tags", TFieldRequirementType.DEFAULT, 
+        new MapMetaData(TType.MAP, 
+            new FieldValueMetaData(TType.STRING), 
+            new FieldValueMetaData(TType.STRING))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     FieldMetaData.addStructMetaDataMap(AuditMessage.class, metaDataMap);
   }
@@ -161,7 +178,9 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     String hostname,
     int windowSize,
     Map<Long,Long> received,
-    Map<Long,Long> sent)
+    Map<Long,Long> sent,
+    List<String> filenames,
+    Map<String,String> tags)
   {
     this();
     this.timestamp = timestamp;
@@ -173,6 +192,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     setWindowSizeIsSet(true);
     this.received = received;
     this.sent = sent;
+    this.filenames = filenames;
+    this.tags = tags;
   }
 
   /**
@@ -222,6 +243,28 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       }
       this.sent = __this__sent;
     }
+    if (other.isSetFilenames()) {
+      List<String> __this__filenames = new ArrayList<String>();
+      for (String other_element : other.filenames) {
+        __this__filenames.add(other_element);
+      }
+      this.filenames = __this__filenames;
+    }
+    if (other.isSetTags()) {
+      Map<String,String> __this__tags = new HashMap<String,String>();
+      for (Map.Entry<String, String> other_element : other.tags.entrySet()) {
+
+        String other_element_key = other_element.getKey();
+        String other_element_value = other_element.getValue();
+
+        String __this__tags_copy_key = other_element_key;
+
+        String __this__tags_copy_value = other_element_value;
+
+        __this__tags.put(__this__tags_copy_key, __this__tags_copy_value);
+      }
+      this.tags = __this__tags;
+    }
   }
 
   public AuditMessage deepCopy() {
@@ -244,6 +287,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     this.windowSize = 0;
     this.received = null;
     this.sent = null;
+    this.filenames = null;
+    this.tags = null;
   }
 
   public long getTimestamp() {
@@ -434,6 +479,80 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     }
   }
 
+  public int getFilenamesSize() {
+    return (this.filenames == null) ? 0 : this.filenames.size();
+  }
+
+  public java.util.Iterator<String> getFilenamesIterator() {
+    return (this.filenames == null) ? null : this.filenames.iterator();
+  }
+
+  public void addToFilenames(String elem) {
+    if (this.filenames == null) {
+      this.filenames = new ArrayList<String>();
+    }
+    this.filenames.add(elem);
+  }
+
+  public List<String> getFilenames() {
+    return this.filenames;
+  }
+
+  public AuditMessage setFilenames(List<String> filenames) {
+    this.filenames = filenames;
+    return this;
+  }
+
+  public void unsetFilenames() {
+    this.filenames = null;
+  }
+
+  /** Returns true if field filenames is set (has been asigned a value) and false otherwise */
+  public boolean isSetFilenames() {
+    return this.filenames != null;
+  }
+
+  public void setFilenamesIsSet(boolean value) {
+    if (!value) {
+      this.filenames = null;
+    }
+  }
+
+  public int getTagsSize() {
+    return (this.tags == null) ? 0 : this.tags.size();
+  }
+
+  public void putToTags(String key, String val) {
+    if (this.tags == null) {
+      this.tags = new HashMap<String,String>();
+    }
+    this.tags.put(key, val);
+  }
+
+  public Map<String,String> getTags() {
+    return this.tags;
+  }
+
+  public AuditMessage setTags(Map<String,String> tags) {
+    this.tags = tags;
+    return this;
+  }
+
+  public void unsetTags() {
+    this.tags = null;
+  }
+
+  /** Returns true if field tags is set (has been asigned a value) and false otherwise */
+  public boolean isSetTags() {
+    return this.tags != null;
+  }
+
+  public void setTagsIsSet(boolean value) {
+    if (!value) {
+      this.tags = null;
+    }
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case TIMESTAMP:
@@ -492,6 +611,22 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       }
       break;
 
+    case FILENAMES:
+      if (value == null) {
+        unsetFilenames();
+      } else {
+        setFilenames((List<String>)value);
+      }
+      break;
+
+    case TAGS:
+      if (value == null) {
+        unsetTags();
+      } else {
+        setTags((Map<String,String>)value);
+      }
+      break;
+
     }
   }
 
@@ -522,6 +657,12 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     case SENT:
       return getSent();
 
+    case FILENAMES:
+      return getFilenames();
+
+    case TAGS:
+      return getTags();
+
     }
     throw new IllegalStateException();
   }
@@ -547,6 +688,10 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       return isSetReceived();
     case SENT:
       return isSetSent();
+    case FILENAMES:
+      return isSetFilenames();
+    case TAGS:
+      return isSetTags();
     }
     throw new IllegalStateException();
   }
@@ -631,6 +776,24 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
         return false;
     }
 
+    boolean this_present_filenames = true && this.isSetFilenames();
+    boolean that_present_filenames = true && that.isSetFilenames();
+    if (this_present_filenames || that_present_filenames) {
+      if (!(this_present_filenames && that_present_filenames))
+        return false;
+      if (!this.filenames.equals(that.filenames))
+        return false;
+    }
+
+    boolean this_present_tags = true && this.isSetTags();
+    boolean that_present_tags = true && that.isSetTags();
+    if (this_present_tags || that_present_tags) {
+      if (!(this_present_tags && that_present_tags))
+        return false;
+      if (!this.tags.equals(that.tags))
+        return false;
+    }
+
     return true;
   }
 
@@ -706,6 +869,24 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       return lastComparison;
     }
     if (isSetSent()) {      lastComparison = TBaseHelper.compareTo(this.sent, typedOther.sent);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetFilenames()).compareTo(typedOther.isSetFilenames());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetFilenames()) {      lastComparison = TBaseHelper.compareTo(this.filenames, typedOther.filenames);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetTags()).compareTo(typedOther.isSetTags());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetTags()) {      lastComparison = TBaseHelper.compareTo(this.tags, typedOther.tags);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -798,6 +979,42 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
             TProtocolUtil.skip(iprot, field.type);
           }
           break;
+        case 8: // FILENAMES
+          if (field.type == TType.LIST) {
+            {
+              TList _list8 = iprot.readListBegin();
+              this.filenames = new ArrayList<String>(_list8.size);
+              for (int _i9 = 0; _i9 < _list8.size; ++_i9)
+              {
+                String _elem10;
+                _elem10 = iprot.readString();
+                this.filenames.add(_elem10);
+              }
+              iprot.readListEnd();
+            }
+          } else { 
+            TProtocolUtil.skip(iprot, field.type);
+          }
+          break;
+        case 9: // TAGS
+          if (field.type == TType.MAP) {
+            {
+              TMap _map11 = iprot.readMapBegin();
+              this.tags = new HashMap<String,String>(2*_map11.size);
+              for (int _i12 = 0; _i12 < _map11.size; ++_i12)
+              {
+                String _key13;
+                String _val14;
+                _key13 = iprot.readString();
+                _val14 = iprot.readString();
+                this.tags.put(_key13, _val14);
+              }
+              iprot.readMapEnd();
+            }
+          } else { 
+            TProtocolUtil.skip(iprot, field.type);
+          }
+          break;
         default:
           TProtocolUtil.skip(iprot, field.type);
       }
@@ -838,10 +1055,10 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       oprot.writeFieldBegin(RECEIVED_FIELD_DESC);
       {
         oprot.writeMapBegin(new TMap(TType.I64, TType.I64, this.received.size()));
-        for (Map.Entry<Long, Long> _iter8 : this.received.entrySet())
+        for (Map.Entry<Long, Long> _iter15 : this.received.entrySet())
         {
-          oprot.writeI64(_iter8.getKey());
-          oprot.writeI64(_iter8.getValue());
+          oprot.writeI64(_iter15.getKey());
+          oprot.writeI64(_iter15.getValue());
         }
         oprot.writeMapEnd();
       }
@@ -851,10 +1068,35 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       oprot.writeFieldBegin(SENT_FIELD_DESC);
       {
         oprot.writeMapBegin(new TMap(TType.I64, TType.I64, this.sent.size()));
-        for (Map.Entry<Long, Long> _iter9 : this.sent.entrySet())
+        for (Map.Entry<Long, Long> _iter16 : this.sent.entrySet())
         {
-          oprot.writeI64(_iter9.getKey());
-          oprot.writeI64(_iter9.getValue());
+          oprot.writeI64(_iter16.getKey());
+          oprot.writeI64(_iter16.getValue());
+        }
+        oprot.writeMapEnd();
+      }
+      oprot.writeFieldEnd();
+    }
+    if (this.filenames != null) {
+      oprot.writeFieldBegin(FILENAMES_FIELD_DESC);
+      {
+        oprot.writeListBegin(new TList(TType.STRING, this.filenames.size()));
+        for (String _iter17 : this.filenames)
+        {
+          oprot.writeString(_iter17);
+        }
+        oprot.writeListEnd();
+      }
+      oprot.writeFieldEnd();
+    }
+    if (this.tags != null) {
+      oprot.writeFieldBegin(TAGS_FIELD_DESC);
+      {
+        oprot.writeMapBegin(new TMap(TType.STRING, TType.STRING, this.tags.size()));
+        for (Map.Entry<String, String> _iter18 : this.tags.entrySet())
+        {
+          oprot.writeString(_iter18.getKey());
+          oprot.writeString(_iter18.getValue());
         }
         oprot.writeMapEnd();
       }
@@ -914,6 +1156,22 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       sb.append("null");
     } else {
       sb.append(this.sent);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("filenames:");
+    if (this.filenames == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.filenames);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("tags:");
+    if (this.tags == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.tags);
     }
     first = false;
     sb.append(")");

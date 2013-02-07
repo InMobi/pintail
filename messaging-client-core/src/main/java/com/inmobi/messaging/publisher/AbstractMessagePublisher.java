@@ -63,6 +63,11 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     publish(headers, m);
   }
 
+  protected void flush() {
+    if (isAuditEnabled)
+      auditService.flush();
+
+  }
   protected void initTopic(String topic, TimingAccumulator stats) {
   }
 
@@ -119,6 +124,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
 
   @Override
   public void close() {
+    flush();
     LOG.info("Closing the stat exposers");
     for (StatsExposer statsExposer : statsExposers.values()) {
       statsEmitter.remove(statsExposer);
