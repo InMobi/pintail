@@ -33,6 +33,7 @@ CLIENT_BENCHMARK_CLASS="com.inmobi.messaging.consumer.examples.StreamingBenchmar
 CLIENT_COUNTER_CLASS="com.inmobi.messaging.consumer.examples.CounterClient"
 CLIENT_MULTITOPIC_SEQGEN_CLASS="com.inmobi.messaging.publisher.examples.MultiTopicSeqGenerator"
 CLIENT_CHECKPOINT_UTIL_CLASS="com.inmobi.messaging.consumer.util.CheckpointUtil"
+CLIENT_AUDIT_QUERY_CLASS="com.inmobi.messaging.consumer.audit.AuditStatsQuery"
 
 ################################
 # functions
@@ -75,6 +76,8 @@ Usage: $0 file <topic> <file> --conf <confdir>
        $0 counter <minutes-to-read-from> --conf <confdir> 
        $0 multitopicseqgen <topic1> <topic2> <maxSeq> --conf <confdir>
        $0 migrate-checkpoint <confFile>
+       $0 audit -rootdir <hdfs root dir> [-cutoff <cuttofTimeInMins>] [-timeout <timeoutInMins>] [-group <TIER,HOSTNAME,TOPIC>] 
+          [-filter tier='abc',hostname='xyz',topic='ABC'] fromTime(dd-mm-yyyy-HH:mm) toTime(dd-mm-yyyy-HH:mm) --conf <confdir>
 EOF
 }
 
@@ -138,6 +141,9 @@ case "$mode" in
     ;;
   migrate-checkpoint)
     opt_checkpointutil=1
+    ;;
+  audit)
+    opt_audit=1
     ;;
   *)
     error "Unknown or unspecified command '$mode'"
@@ -224,6 +230,8 @@ elif [ -n "$opt_multitopicseqgen" ] ; then
   run_client $CLIENT_MULTITOPIC_SEQGEN_CLASS $args
 elif [ -n "$opt_checkpointutil" ] ; then
   run_client $CLIENT_CHECKPOINT_UTIL_CLASS $args
+elif [ -n "$opt_audit" ] ; then
+  run_client $CLIENT_AUDIT_QUERY_CLASS $args
 else
   error "This message should never appear" 1
 fi
