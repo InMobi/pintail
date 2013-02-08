@@ -64,23 +64,30 @@ public class AuditUtil {
         byte[] mBytesRead = new byte[3];
         buffer.get(mBytesRead);
         if (mBytesRead[0] != magicBytes[0] || mBytesRead[1] != magicBytes[1]
-            || mBytesRead[2] != magicBytes[2])
+            || mBytesRead[2] != magicBytes[2]) {
           isValidHeaders = false;
+          LOG.debug("Invalid magic bytes");
+        }
         if (isValidHeaders) {
           long timestamp = buffer.getLong();
-          if (timestamp < BASE_TIME)
+          if (timestamp < BASE_TIME) {
             isValidHeaders = false;
+            LOG.debug("Invalid TimeStamp in headers [" + timestamp + "]");
+          }
         }
         if (isValidHeaders) {
           int messageSize = buffer.getInt();
           if (isValidHeaders && data.length != HEADER_LENGTH + messageSize) {
             isValidHeaders = false;
-            LOG.debug("Invalid size of messag in headers");
+            LOG.debug("Invalid size of message in headers;expected ["
+                + (HEADER_LENGTH + messageSize) + "] found [" + data.length
+                + "]");
           }
         }
       } else {
         isValidHeaders = false;
-        LOG.debug("Invalid version in the headers");
+        LOG.debug("Invalid version in the headers;found version [ "
+            + versionFound + "]");
       }
 
     }

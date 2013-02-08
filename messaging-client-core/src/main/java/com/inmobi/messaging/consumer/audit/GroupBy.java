@@ -8,6 +8,11 @@ import java.util.Set;
 class GroupBy {
 
 
+  @Override
+  public String toString() {
+    return "GroupBy [isSet=" + isSet + "]";
+  }
+
   class Group {
     private Map<Column, String> columns;
 
