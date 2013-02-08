@@ -21,8 +21,9 @@ import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.MessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
 import com.inmobi.messaging.consumer.audit.GroupBy.Group;
+import com.inmobi.messaging.util.AuditUtil;
 
-enum Columns {
+enum Column {
   TIER, HOSTNAME, TOPIC
 }
 public class AuditStatsQuery {
@@ -52,11 +53,24 @@ public class AuditStatsQuery {
   long currentTime;
   GroupBy groupBy;
   Filter filter;
+  private MessageConsumer consumer;
+  private String rootDir, filterString, groupByString, toTimeString,
+      fromTimeString, cuttoffString, timeOutString;
 
-  AuditStatsQuery() {
+  AuditStatsQuery(String rootDir, String toTimeString, String fromTimeString,
+      String filterString, String groupByString, String cuttoffTime,
+      String timeOut) {
     received = new HashMap<Group, Long>();
     sent = new HashMap<Group, Long>();
+    this.rootDir = rootDir;
+    this.toTimeString = toTimeString;
+    this.fromTimeString = fromTimeString;
+    this.filterString = filterString;
+    this.groupByString = groupByString;
+    this.cuttoffString = cuttoffTime;
+    this.timeOutString = timeOut;
   }
+
 
   class ConsumerWorker extends Thread {
     private Message message = null;
@@ -69,6 +83,7 @@ public class AuditStatsQuery {
     @Override
     public void run() {
       try {
+        message=null;
         message = consumer.next();
       } catch (InterruptedException e) {
         LOG.debug("Consumer Thread interuppted", e);
@@ -86,11 +101,13 @@ public class AuditStatsQuery {
 
 
   void aggregateStats(MessageConsumer consumer)
-      throws InterruptedException, TException {
+ throws InterruptedException, TException,
+      ParseException, IOException {
     Message message = null;
     TDeserializer deserialize = new TDeserializer();
     AuditMessage packet;
     currentTime = 0;
+
     do {
       ConsumerWorker consumerThread = new ConsumerWorker(consumer);
       consumerThread.start();
@@ -104,10 +121,10 @@ public class AuditStatsQuery {
       deserialize.deserialize(packet, message.getData().array());
       LOG.debug("Packet read is " + packet);
       currentTime = packet.getTimestamp();
-      Map<Columns, String> values = new HashMap<Columns, String>();
-      values.put(Columns.HOSTNAME, packet.getHostname());
-      values.put(Columns.TIER, packet.getTier());
-      values.put(Columns.TOPIC, packet.getTopic());
+      Map<Column, String> values = new HashMap<Column, String>();
+      values.put(Column.HOSTNAME, packet.getHostname());
+      values.put(Column.TIER, packet.getTier());
+      values.put(Column.TOPIC, packet.getTopic());
       if (filter.apply(values)) {
         Group group = groupBy.getGroup(values);
         Long alreadyReceived = received.get(group);
@@ -136,25 +153,54 @@ public class AuditStatsQuery {
   }
 
   private static Date getDate(String date) throws ParseException {
-    SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy-HH:mm");
+    SimpleDateFormat formatter = new SimpleDateFormat(AuditUtil.DATE_FORMAT);
     formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
     return formatter.parse(date);
   }
 
+  public void execute() throws ParseException, IOException,
+      InterruptedException, TException {
+    try {
+    parseAndSetArguments();
+    aggregateStats(consumer);
+    } finally {
+      if (consumer != null)
+        consumer.close();
+    }
+  }
+
+  void parseAndSetArguments() throws ParseException, IOException {
+    if (cuttoffString == null)
+      cutoffTime = 3600000l;
+    else
+      cutoffTime = Long.parseLong(cuttoffString) * 60 * 1000;
+    if (timeOutString == null)
+      timeout = 120000;
+    else
+      timeout = Long.parseLong(timeOutString) * 60 * 1000;
+    groupBy = new GroupBy(groupByString);
+    filter = new Filter(filterString);
+    fromTime = getDate(fromTimeString);
+    toTime   = getDate(toTimeString);
+    consumer = getConsumer(fromTime, rootDir);
+  }
+
   public static void main(String args[]) {
-    String cutoff = null;
-    AuditStatsQuery statsQuery = new AuditStatsQuery();
+    String cutoffString = null, timeoutString = null;
+    // AuditStatsQuery statsQuery = new AuditStatsQuery();
     String groupByKeys = null;
     String filterKeys = null;
     String rootDir = null;
+    String fromTime = null, toTime = null;
+    try {
     if (args.length < minArgs) {
       printUsage();
       return;
     }
     for (int i = 0; i < args.length;) {
       if (args[i].equalsIgnoreCase("-cutoff")) {
-        cutoff = args[i + 1];
-        LOG.info("Cuttof Time is  " + cutoff);
+        cutoffString = args[i + 1];
+        LOG.info("Cuttof Time is  " + cutoffString);
         i = i + 2;
       } else if (args[i].equalsIgnoreCase("-group")) {
         groupByKeys = args[i + 1];
@@ -168,52 +214,40 @@ public class AuditStatsQuery {
         rootDir = args[i + 1];
         i = i + 2;
       } else if (args[i].equalsIgnoreCase("-timeout")) {
-        statsQuery.timeout = Long.parseLong(args[i + 1]) * 60 * 1000;
+        timeoutString = args[i + 1];
         i = i + 2;
       } else {
-        try {
-          if (statsQuery.fromTime == null) {
-            statsQuery.fromTime = getDate(args[i++]);
-            LOG.info("From time is " + statsQuery.fromTime);
+        if (fromTime == null) {
+          fromTime = args[i++];
+          LOG.info("From time is " + fromTime);
           } else {
-            statsQuery.toTime = getDate(args[i++]);
-            LOG.info("To time is " + statsQuery.toTime);
+          toTime = args[i++];
+          LOG.info("To time is " + toTime);
           }
-        } catch (ParseException e) {
-          printUsage();
-          return;
-        }
       }
 
     }
-    if (cutoff == null || statsQuery.fromTime == null
-        || statsQuery.toTime == null) {
-      statsQuery.cutoffTime = 60000000l;
-    } else {
-      statsQuery.cutoffTime = Long.parseLong(cutoff) * 60 * 1000;
-    }
-    if (rootDir == null) {
+    if (fromTime == null || toTime == null || rootDir == null) {
       printUsage();
-      return;
+      System.exit(-1);
     }
-    statsQuery.groupBy = new GroupBy(groupByKeys);
-    statsQuery.filter = new Filter(filterKeys);
-    MessageConsumer consumer = null;
-    // statsQuery.keys = keys.split(",");
-    try {
-      consumer = getConsumer(statsQuery.fromTime, rootDir);
-      statsQuery.aggregateStats(consumer);
-      consumer.close();
-      System.out.println("Displaying results for " + statsQuery);
-      statsQuery.displayResults();
-    } catch (IOException e) {
-      LOG.error("Check the config file");
-    } catch (InterruptedException e) {
-      LOG.error("Consumer was interrupted while aggregating stats", e);
-    } catch (TException e) {
-      LOG.error("Corrupted packet data;exiting", e);
+    AuditStatsQuery auditStatsQuery = new AuditStatsQuery(rootDir, toTime,
+        fromTime, filterKeys, groupByKeys, cutoffString, timeoutString);
+      try {
+        auditStatsQuery.execute();
+      } catch (InterruptedException e) {
+        LOG.error("Exception in query", e);
+        System.exit(-1);
+      } catch (TException e) {
+        LOG.error("Exception in query", e);
+        System.exit(-1);
+      }
+      System.out.println("Displaying results for " + auditStatsQuery);
+      auditStatsQuery.displayResults();
+    } catch (Throwable e) {
+      LOG.error("Runtime Exception", e);
+      System.exit(-1);
     }
-
   }
 
   @Override
@@ -264,14 +298,16 @@ public class AuditStatsQuery {
     usage.append("[-cutoff <cuttofTimeInMins>]");
     usage.append("[-timeout <timeoutInMins>]");
 
-    usage.append("[-group <");
-    for (Columns key : Columns.values()) {
+    usage.append("[-group <comma seperated columns>]");
+    usage.append("[-filter <comma seperated column=<value>>]");
+    usage.append("where column can take value :[");
+    for (Column key : Column.values()) {
       usage.append(key);
       usage.append(",");
     }
-    usage.append(">]");
-    usage.append("[-filter tier='abc',hostname='xyz',topic='ABC']");
-    usage.append("fromTime(dd-mm-yyyy-HH:mm) toTime(dd-mm-yyyy-HH:mm)");
+    usage.append("]");
+    usage.append("fromTime(" + AuditUtil.DATE_FORMAT + ")" + "toTime("
+        + AuditUtil.DATE_FORMAT + ")");
     System.out.println(usage);
   }
 
