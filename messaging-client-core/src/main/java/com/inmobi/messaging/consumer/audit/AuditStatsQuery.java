@@ -279,11 +279,10 @@ public class AuditStatsQuery {
 
   static MessageConsumer getConsumer(Date fromTime, String rootDir)
       throws IOException {
-    // TODO remove next 3 lines
     Calendar calendar = Calendar.getInstance();
     calendar.setTimeZone(TimeZone.getTimeZone("GMT"));
     calendar.setTime(fromTime);
-    calendar.add(Calendar.MINUTE, -1);
+    calendar.add(Calendar.HOUR_OF_DAY, -1);
 
     ClientConfig config = ClientConfig
         .loadFromClasspath(MESSAGE_CLIENT_CONF_FILE);
