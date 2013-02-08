@@ -544,17 +544,19 @@ public class StreamingBenchmark {
 		  System.out.println("Audit Thread started!");
 		  
 		  // prepare args to AuditStatsQuery
-		  String args[] = new String[10];
+		  String args[] = new String[12];
 		  args[0] = "-filter";
 		  args[1] = "TOPIC=" + topic;
-		  args[2] = "-rootdir";
-		  args[3] = rootDir;
-		  args[4] = startTime;
-		  args[5] = endTime;
-		  args[6] = "-cutoff";
-		  args[7] = "10";
-		  args[8] = "-timeout";
-		  args[9] = "2";
+		  args[2] = "-group";
+		  args[3] = "tier";
+		  args[4] = "-rootdir";
+		  args[5] = rootDir;
+		  args[6] = startTime;
+		  args[7] = endTime;
+		  args[8] = "-cutoff";
+		  args[9] = "10";
+		  args[10] = "-timeout";
+		  args[11] = "2";
 		  
 		  // print audit arguments
 		  StringBuffer auditArgs = new StringBuffer(100);
