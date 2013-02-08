@@ -154,7 +154,7 @@ public class AuditStatsQuery {
 
   private static Date getDate(String date) throws ParseException {
     SimpleDateFormat formatter = new SimpleDateFormat(AuditUtil.DATE_FORMAT);
-    formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
+    // formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
     return formatter.parse(date);
   }
 

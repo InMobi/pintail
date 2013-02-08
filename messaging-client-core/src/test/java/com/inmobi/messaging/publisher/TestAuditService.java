@@ -1,11 +1,11 @@
-package com.inmobi.audit;
+package com.inmobi.messaging.publisher;
 
 import java.nio.ByteBuffer;
 
 import org.testng.annotations.Test;
 
 import com.inmobi.messaging.Message;
-import com.inmobi.messaging.publisher.AuditService;
+import com.inmobi.messaging.util.AuditUtil;
 
 public class TestAuditService {
   private static final byte[] magicbytes = { (byte) 0xAB, (byte) 0xCD,
@@ -14,7 +14,7 @@ public class TestAuditService {
   public void testAttachHeaders() {
     Message m = new Message("test data".getBytes());
     Long timestamp = System.currentTimeMillis();
-    AuditService.attachHeaders(m,
+    AuditUtil.attachHeaders(m,
         timestamp);
     ByteBuffer buffer = m.getData();
     buffer.rewind();
@@ -30,6 +30,9 @@ public class TestAuditService {
     byte[] msg = new byte[msgSize];
     buffer.get(msg);
     assert (new String(msg).equals("test data"));
+    buffer.rewind();
+    byte[] withoutHeaders = AuditUtil.removeHeader(buffer.array()).array();
+    assert (new String(withoutHeaders).equals("test data"));
 
   }
 

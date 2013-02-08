@@ -12,6 +12,7 @@ import com.inmobi.instrumentation.MessagingClientStatBuilder;
 import com.inmobi.instrumentation.TimingAccumulator;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.util.AuditUtil;
 import com.inmobi.stats.StatsEmitter;
 import com.inmobi.stats.StatsExposer;
 
@@ -26,10 +27,11 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
 
   private static final Logger LOG = LoggerFactory
       .getLogger(AbstractMessagePublisher.class);
-  private Map<String, TopicStatsExposer> statsExposers = new HashMap<String, TopicStatsExposer>();
-  private MessagingClientStatBuilder statsEmitter = new MessagingClientStatBuilder();
+  private Map<String, TopicStatsExposer> statsExposers =
+      new HashMap<String, TopicStatsExposer>();
+  private MessagingClientStatBuilder statsEmitter = 
+      new MessagingClientStatBuilder();
   public static final String HEADER_TOPIC = "topic";
-  public static final String AUDIT_TOPIC = "audit";
   private static final String AUDIT_ENABLED_KEY = "audit.enabled";
   private boolean isAuditEnabled = true;
   private final AuditService auditService = new AuditService(this);
@@ -57,7 +59,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     if (isAuditEnabled) {
       // Add timstamp to the message
       Long timestamp = new Date().getTime();
-      AuditService.attachHeaders(m, timestamp);
+      AuditUtil.attachHeaders(m, timestamp);
       auditService.incrementSent(topicName, timestamp);
     }
     publish(headers, m);

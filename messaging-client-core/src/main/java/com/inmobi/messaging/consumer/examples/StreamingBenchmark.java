@@ -22,6 +22,7 @@ import com.inmobi.messaging.consumer.MessageConsumerFactory;
 import com.inmobi.messaging.consumer.audit.AuditStatsQuery;
 import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 import com.inmobi.messaging.publisher.MessagePublisherFactory;
+import com.inmobi.messaging.util.AuditUtil;
 import com.inmobi.messaging.util.ConsumerUtil;
 
 public class StreamingBenchmark {
@@ -314,7 +315,7 @@ public class StreamingBenchmark {
   static String getMessage(Message msg, boolean hadoopConsumer)
       throws IOException {
     byte[] data = msg.getData().array();
-    byte[] byteArray = ConsumerUtil.removeHeader(data).array();
+    byte[] byteArray = AuditUtil.removeHeader(data).array();
     if (!hadoopConsumer) {
       return new String(byteArray);
     } else {

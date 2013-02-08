@@ -9,9 +9,9 @@ class GroupBy {
 
 
   class Group {
-    private Map<Columns, String> columns;
+    private Map<Column, String> columns;
 
-    public Group(Map<Columns, String> values) {
+    public Group(Map<Column, String> values) {
       this.columns = values;
     }
 
@@ -19,9 +19,9 @@ class GroupBy {
     public int hashCode() {
       final int prime = 31;
       int result = 1;
-      Iterator<Columns> iterator = isSet.iterator();
+      Iterator<Column> iterator = isSet.iterator();
       while (iterator.hasNext()) {
-        Columns column = iterator.next();
+        Column column = iterator.next();
         result = prime
             * result
             + ((columns.get(column) == null) ? 0 : columns.get(column)
@@ -34,9 +34,9 @@ class GroupBy {
     public String toString() {
       StringBuffer buffer = new StringBuffer();
       buffer.append("Group [");
-      Iterator<Columns> iterator = isSet.iterator();
+      Iterator<Column> iterator = isSet.iterator();
       while (iterator.hasNext()) {
-        Columns column = iterator.next();
+        Column column = iterator.next();
         buffer.append(column + " = " + columns.get(column) + ",");
       }
       buffer.append("]");
@@ -52,10 +52,9 @@ class GroupBy {
       if (getClass() != obj.getClass())
         return false;
       Group other = (Group) obj;
-
-      Iterator<Columns> iterator = isSet.iterator();
+      Iterator<Column> iterator = isSet.iterator();
       while (iterator.hasNext()) {
-        Columns column = iterator.next();
+        Column column = iterator.next();
         if (columns.get(column) == null) {
           if (other.columns.get(column) != null)
             return false;
@@ -67,21 +66,45 @@ class GroupBy {
 
   }
 
-  private Set<Columns> isSet;
+  private Set<Column> isSet;
 
   GroupBy(String input) {
-    isSet = new HashSet<Columns>();
+    isSet = new HashSet<Column>();
     if (input == null)
       return;
     String[] columns = input.split(",");
     for (String s : columns) {
-      isSet.add(Columns.valueOf(s.toUpperCase()));
+      isSet.add(Column.valueOf(s.toUpperCase()));
     }
   }
 
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((isSet == null) ? 0 : isSet.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    GroupBy other = (GroupBy) obj;
+    if (isSet == null) {
+      if (other.isSet != null)
+        return false;
+    } else if (!isSet.equals(other.isSet))
+      return false;
+    return true;
+  }
 
 
-  public Group getGroup(Map<Columns, String> values) {
+  public Group getGroup(Map<Column, String> values) {
     return new Group(values);
   }
 
