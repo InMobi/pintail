@@ -17,6 +17,7 @@ import com.inmobi.messaging.consumer.MessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
 import com.inmobi.messaging.consumer.MockInMemoryConsumer;
 import com.inmobi.messaging.stats.MockStatsEmitter;
+import com.inmobi.messaging.util.AuditUtil;
 import com.inmobi.stats.emitter.EmitMondemand;
 
 public class TestPublisher {
@@ -28,7 +29,6 @@ public class TestPublisher {
         MockPublisher.class.getName());
     AbstractMessagePublisher publisher =
         (AbstractMessagePublisher) MessagePublisherFactory.create(conf);
-    // AuditService.worker.publisher = null;
     doTest(publisher);
     Assert.assertFalse(publisher.getMetrics().statEmissionEnabled());
     Assert.assertNull((publisher.getMetrics().getStatsEmitter()));
@@ -39,7 +39,6 @@ public class TestPublisher {
   public void testLoadFromClasspath() throws IOException {
     AbstractMessagePublisher publisher =
         (AbstractMessagePublisher) MessagePublisherFactory.create();
-    // AuditService.worker.publisher = null;
     doTest(publisher);
     Assert.assertTrue(publisher.getMetrics().statEmissionEnabled());
     Assert.assertTrue((
@@ -54,7 +53,6 @@ public class TestPublisher {
     AbstractMessagePublisher publisher =
         (AbstractMessagePublisher) MessagePublisherFactory.create(
             url.getFile());
-    // AuditService.worker.publisher = null;
     doTest(publisher);
     Assert.assertTrue(publisher.getMetrics().statEmissionEnabled());
     Assert.assertTrue((
@@ -67,7 +65,6 @@ public class TestPublisher {
     AbstractMessagePublisher publisher = 
       (AbstractMessagePublisher) MessagePublisherFactory.create(
           conf, MockPublisher.class.getName());
-    // AuditService.worker.publisher = null;
     doTest(publisher);
     Assert.assertFalse(publisher.getMetrics().statEmissionEnabled());
     Assert.assertNull((publisher.getMetrics().getStatsEmitter()));
@@ -119,13 +116,13 @@ public class TestPublisher {
     conf.set("publisher.classname",
         "com.inmobi.messaging.publisher.MockInMemoryPublisher");
     conf.set("window.size.sec", "60");
-    conf.set("aggregate.window.sec", "60");
+    conf.set("aggregate.window.sec", "5");
 
     MessagePublisher publisher = MessagePublisherFactory.create(conf,
         MockInMemoryPublisher.class.getName());
     publisher.publish("topic", new Message("message".getBytes()));
     publisher.close();
-    conf.set("topic.name", "audit");
+    conf.set("topic.name", AuditUtil.AUDIT_STREAM_TOPIC_NAME);
     conf.set("consumer.name", "c1");
     MessageConsumer consumer = MessageConsumerFactory.create(conf,
         MockInMemoryConsumer.class.getName());
@@ -154,7 +151,8 @@ public class TestPublisher {
         MockInMemoryPublisher.class.getName());
     publisher.publish("topic", new Message("message".getBytes()));
     publisher.close();
-    assert (!((MockInMemoryPublisher) publisher).source.containsKey("audit"));
+    assert (!((MockInMemoryPublisher) publisher).source
+        .containsKey(AuditUtil.AUDIT_STREAM_TOPIC_NAME));
 
   }
 

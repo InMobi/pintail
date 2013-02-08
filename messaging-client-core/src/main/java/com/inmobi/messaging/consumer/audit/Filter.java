@@ -6,23 +6,23 @@ import java.util.Map.Entry;
 
 public class Filter {
 
-  private Map<Columns, String> filters;
+  private Map<Column, String> filters;
 
   public Filter(String input) {
     if (input == null) {
       filters = null;
     }
  else {
-      filters = new HashMap<Columns, String>();
+      filters = new HashMap<Column, String>();
       String inputSplit[] = input.split(",");
       for (int i = 0; i < inputSplit.length; i++) {
         String tmp = inputSplit[i];
         String keyValues[] = tmp.split("=");
         if (keyValues.length != 2)
           continue; // skip this filter as it is malformed
-        Columns key;
+        Column key;
         try {
-          key = Columns.valueOf(keyValues[0].toUpperCase());
+          key = Column.valueOf(keyValues[0].toUpperCase());
         } catch (Exception e) {
           continue;
         }
@@ -41,10 +41,10 @@ public class Filter {
     return input;
   }
 
-  public boolean apply(Map<Columns, String> values) {
+  public boolean apply(Map<Column, String> values) {
 
     if (filters != null) {
-      for (Entry<Columns, String> filter : filters.entrySet()) {
+      for (Entry<Column, String> filter : filters.entrySet()) {
         if (!filter.getValue().equals(values.get(filter.getKey())))
           return false;
       }

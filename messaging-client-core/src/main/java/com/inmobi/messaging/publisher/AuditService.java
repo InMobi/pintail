@@ -4,17 +4,26 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
+import org.apache.thrift.TException;
+import org.apache.thrift.TSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.inmobi.audit.thrift.AuditMessage;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.util.AuditUtil;
 
-public class AuditService {
+class AuditService {
 
   private static final String WINDOW_SIZE_KEY = "window.size.sec";
   private static final String AGGREGATE_WINDOW_KEY = "aggregate.window.sec";
@@ -27,11 +36,76 @@ public class AuditService {
   private ScheduledThreadPoolExecutor executor;
   private boolean isInit = false;
   private AuditWorker worker;
-  private static final byte[] magicBytes = { (byte) 0xAB, (byte) 0xCD,
-      (byte) 0xEF };
-  private static final int version = 1;
+
   private static final Logger LOG = LoggerFactory.getLogger(AuditService.class);
   private AbstractMessagePublisher publisher;
+  private String hostname;
+
+  class AuditWorker implements Runnable {
+    private final TSerializer serializer = new TSerializer();
+    @Override
+    public void run() {
+      try {
+        LOG.info("Running the AuditWorker");
+        for (Entry<String, AuditCounterAccumulator> entry : topicAccumulatorMap
+            .entrySet()) {
+          String topic = entry.getKey();
+          AuditCounterAccumulator accumulator = entry.getValue();
+          Map<Long, AtomicLong> received = accumulator.getReceived();
+          Map<Long, AtomicLong> sent = accumulator.getSent();
+          accumulator.reset(); // resetting before creating packet to make sure
+                               // that during creation of packet no more writes
+                               // should occur to previous counters
+          if (received.size() == 0 && sent.size() == 0) {
+            LOG.info("Not publishing audit packet as all the metric counters are 0");
+            return;
+          }
+          AuditMessage packet = createPacket(topic, received, sent);
+          publishPacket(packet);
+
+        }
+      } catch (Throwable e) {// catching general exception so that thread should
+                             // not get aborted
+        LOG.error("Error while publishing the audit message", e);
+      }
+
+    }
+
+    private void publishPacket(AuditMessage packet) {
+      try {
+        LOG.debug("Publishing audit packet" + packet);
+        publisher.publish(AuditUtil.AUDIT_STREAM_TOPIC_NAME,
+            new Message(ByteBuffer.wrap(serializer.serialize(packet))));
+      } catch (TException e) {
+        LOG.error("Error while serializing the audit packet " + packet, e);
+      }
+    }
+
+    private AuditMessage createPacket(String topic,
+        Map<Long, AtomicLong> received, Map<Long, AtomicLong> sent) {
+      Map<Long, Long> finalReceived = new HashMap<Long, Long>();
+      Map<Long, Long> finalSent = new HashMap<Long, Long>();
+
+      // TODO find a better way of converting Map<Long,AtomicLong> to
+      // Map<Long,Long>;if any
+      for (Entry<Long, AtomicLong> entry : received.entrySet()) {
+        finalReceived.put(entry.getKey(), entry.getValue().get());
+      }
+
+      for (Entry<Long, AtomicLong> entry : sent.entrySet()) {
+        finalSent.put(entry.getKey(), entry.getValue().get());
+      }
+      long currentTime = new Date().getTime();
+      AuditMessage packet = new AuditMessage(currentTime, topic, tier,
+          hostname, windowSize, finalReceived, finalSent, null, null);
+      return packet;
+    }
+
+    public synchronized void flush() {
+      run();
+    }
+
+  }
 
   AuditService(AbstractMessagePublisher publisher) {
     this.publisher = publisher;
@@ -50,15 +124,13 @@ public class AuditService {
     aggregateWindowSize = config.getInteger(AGGREGATE_WINDOW_KEY,
         DEFAULT_AGGREGATE_WINDOW_SIZE);
     executor = new ScheduledThreadPoolExecutor(1);
-    String hostname;
     try {
       hostname = InetAddress.getLocalHost().getHostName();
     } catch (UnknownHostException e) {
       LOG.error("Unable to find the hostanme of the local box,audit packets won't contain hostname");
       hostname = "";
     }
-    worker = new AuditWorker(hostname, tier, windowSize, publisher,
-        topicAccumulatorMap);
+    worker = new AuditWorker();
     executor.scheduleWithFixedDelay(worker, aggregateWindowSize,
         aggregateWindowSize, TimeUnit.SECONDS);
     // setting init flag to true
@@ -84,29 +156,6 @@ public class AuditService {
     }
   }
 
-  public static void attachHeaders(Message m, Long timestamp) {
-    byte[] b = m.getData().array();
-    int messageSize = b.length;
-    int totalSize = messageSize + 16;
-    ByteBuffer buffer = ByteBuffer.allocate(totalSize);
-
-    // writing version
-    buffer.put((byte) version);
-    // writing magic bytes
-    buffer.put(magicBytes);
-    // writing timestamp
-    long time = timestamp;
-    buffer.putLong(time);
-
-    // writing message size
-    buffer.putInt(messageSize);
-    // writing message
-    buffer.put(b);
-    buffer.rewind();
-    m.set(buffer);
-    // return new Message(buffer);
-
-  }
 
   public void incrementSent(String topicName, Long timestamp) {
     AuditCounterAccumulator accumulator = getAccumulator(topicName);

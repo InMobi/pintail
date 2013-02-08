@@ -3,8 +3,6 @@ package com.inmobi.messaging.consumer.util;
 import java.nio.ByteBuffer;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
@@ -12,13 +10,9 @@ import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.databus.DataEncodingType;
 import com.inmobi.messaging.consumer.databus.MessagingConsumerConfig;
 import com.inmobi.messaging.consumer.databus.StreamType;
-import com.inmobi.messaging.util.ConsumerUtil;
+import com.inmobi.messaging.util.AuditUtil;
 
 public class DatabusUtil {
-  private static final Log LOG = LogFactory.getLog(DatabusUtil.class);
-  private static final byte[] magicBytes = {(byte)0xAB,(byte)0xCD,(byte)0xEF};
-  private static final byte[] versions = { 1 };
-  private static final int HEADER_LENGTH = 16;
   public static Path getStreamDir(StreamType streamType, Path databusRootDir,
       String streamName) {
     return new Path(getBaseDir(streamType, databusRootDir), streamName);
@@ -67,7 +61,7 @@ public class DatabusUtil {
     } else {
       data = line;
     }
-    return ConsumerUtil.removeHeader(data);
+    return AuditUtil.removeHeader(data);
   }
 
 
