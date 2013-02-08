@@ -157,9 +157,9 @@ class AuditService {
   }
 
 
-  public void incrementSent(String topicName, Long timestamp) {
+  public void incrementReceived(String topicName, Long timestamp) {
     AuditCounterAccumulator accumulator = getAccumulator(topicName);
-    accumulator.incrementSent(timestamp);
+    accumulator.incrementReceived(timestamp);
   }
 
 }

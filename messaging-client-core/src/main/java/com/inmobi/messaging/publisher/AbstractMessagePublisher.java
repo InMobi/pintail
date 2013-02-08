@@ -60,7 +60,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
       // Add timstamp to the message
       Long timestamp = new Date().getTime();
       AuditUtil.attachHeaders(m, timestamp);
-      auditService.incrementSent(topicName, timestamp);
+      auditService.incrementReceived(topicName, timestamp);
     }
     publish(headers, m);
   }

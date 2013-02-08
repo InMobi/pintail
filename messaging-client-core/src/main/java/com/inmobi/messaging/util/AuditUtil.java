@@ -51,9 +51,10 @@ public class AuditUtil {
     }
     ByteBuffer buffer = ByteBuffer.wrap(data);
     boolean isVersionValid = false;
+    byte versionFound = buffer.get();
     if (isValidHeaders) {
       for (byte version : versions) {
-        if (buffer.get() == version) {
+        if (versionFound == version) {
           isVersionValid = true;
           break;
         }
@@ -65,21 +66,23 @@ public class AuditUtil {
         if (mBytesRead[0] != magicBytes[0] || mBytesRead[1] != magicBytes[1]
             || mBytesRead[2] != magicBytes[2])
           isValidHeaders = false;
+        if (isValidHeaders) {
+          long timestamp = buffer.getLong();
+          if (timestamp < BASE_TIME)
+            isValidHeaders = false;
+        }
+        if (isValidHeaders) {
+          int messageSize = buffer.getInt();
+          if (isValidHeaders && data.length != HEADER_LENGTH + messageSize) {
+            isValidHeaders = false;
+            LOG.debug("Invalid size of messag in headers");
+          }
+        }
       } else {
+        isValidHeaders = false;
         LOG.debug("Invalid version in the headers");
       }
-      if (isValidHeaders) {
-        long timestamp = buffer.getLong();
-        if (timestamp < BASE_TIME)
-          isValidHeaders = false;
-      }
-      if (isValidHeaders) {
-        int messageSize = buffer.getInt();
-        if (isValidHeaders && data.length != HEADER_LENGTH + messageSize) {
-          isValidHeaders = false;
-          LOG.debug("Invalid size of messag in headers");
-        }
-      }
+
     }
 
     if (isValidHeaders) {
