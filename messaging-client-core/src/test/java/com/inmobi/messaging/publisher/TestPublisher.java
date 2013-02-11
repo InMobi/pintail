@@ -132,7 +132,7 @@ public class TestPublisher {
     TDeserializer deserializer = new TDeserializer();
     AuditMessage audit = new AuditMessage();
     deserializer.deserialize(audit, m.getData().array());
-    Collection<Long> values = audit.getSent().values();
+    Collection<Long> values = audit.getReceived().values();
     assert (values.iterator().hasNext());
     assert (values.iterator().next() == 1);
 

@@ -82,7 +82,7 @@ public class TestAuditStatsQuery {
     ((MockInMemoryConsumer) consumer)
         .setSource(((MockInMemoryPublisher) (publisher)).source);
     query.aggregateStats(consumer);
-    Collection<Long> sent = query.getSent().values();
+    Collection<Long> sent = query.getReceived().values();
     assert (sent.iterator().hasNext());
     Long sentPublisher = sent.iterator().next();
     System.out.println("DATA SENT IN AUDIT QUERY " + sentPublisher);
@@ -110,9 +110,9 @@ public class TestAuditStatsQuery {
     Map<Column, String> map = new HashMap<Column, String>();
     map.put(Column.TIER, "publisher");
     Group grp = query.groupBy.getGroup(map);
-    assert (query.getSent().containsKey(grp));
-    System.out.println("DATA SENT IN filter " + query.getSent().get(grp));
-    assert (query.getSent().get(grp) == totalData / 2);
+    assert (query.getReceived().containsKey(grp));
+    System.out.println("DATA SENT IN filter " + query.getReceived().get(grp));
+    assert (query.getReceived().get(grp) == totalData / 2);
   }
 
   @Test
@@ -134,7 +134,7 @@ public class TestAuditStatsQuery {
     ((MockInMemoryConsumer) consumer)
         .setSource(((MockInMemoryPublisher) (publisher)).source);
     query.aggregateStats(consumer);
-    Collection<Long> sent = query.getSent().values();
+    Collection<Long> sent = query.getReceived().values();
     assert (sent.iterator().next() == 0);
 
   }
@@ -154,7 +154,7 @@ public class TestAuditStatsQuery {
     ((MockInMemoryConsumer) consumer)
         .setSource(((MockInMemoryPublisher) (publisher)).source);
     query.aggregateStats(consumer);
-    Collection<Long> sent = query.getSent().values();
+    Collection<Long> sent = query.getReceived().values();
     assert (!sent.iterator().hasNext());
 
   }
@@ -188,7 +188,7 @@ public class TestAuditStatsQuery {
     ((MockInMemoryConsumer) consumer)
         .setSource(((MockInMemoryPublisher) (publisher)).source);
     query.aggregateStats(consumer);
-    Collection<Long> sent = query.getSent().values();
+    Collection<Long> sent = query.getReceived().values();
     assert (sent.iterator().hasNext());
     Long sentPublisher = sent.iterator().next();
     System.out.println("DATA SENT IN Valid cutoff " + sentPublisher);
