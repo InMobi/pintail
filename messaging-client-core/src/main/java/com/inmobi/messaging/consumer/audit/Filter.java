@@ -54,6 +54,6 @@ public class Filter {
 
   @Override
   public String toString() {
-    return "Filter [filters=" + filters + "]";
+    return "Filter" + filters;
   }
 }

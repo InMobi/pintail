@@ -28,9 +28,7 @@ enum Column {
   TIER, HOSTNAME, TOPIC
 }
 
-enum Tier implements Comparable<Tier> {
-  PUBLISHER, AGENT, COLLECTOR;
-}
+
 public class AuditStatsQuery {
 
   Map<Group, Long> received;
@@ -54,7 +52,7 @@ public class AuditStatsQuery {
   long timeout = 60000;
   private static final String MESSAGE_CLIENT_CONF_FILE = "audit-consumer-conf.properties";
   public static final String ROOT_DIR_KEY = "databus.consumer.rootdirs";
-  private boolean isTimeOut =false;
+  private boolean isTimeOut = false;
   private boolean isMaxMsgsProcessed = false;
   long currentTime;
   GroupBy groupBy;
@@ -64,12 +62,12 @@ public class AuditStatsQuery {
       fromTimeString, cuttoffString, timeOutString;
   private long maxMessages = Long.MAX_VALUE;
   private long messageCount = 0;
-  private String cuttoffTier = null;
+  private Tier cutoffTier = null;
+  private String timezone;
 
   public AuditStatsQuery(String rootDir, String toTimeString,
-      String fromTimeString,
-      String filterString, String groupByString, String cuttoffTime,
-      String timeOut) {
+      String fromTimeString, String filterString, String groupByString,
+      String cuttoffTime, String timeOut, String timezone) {
     received = new TreeMap<Group, Long>();
     sent = new TreeMap<Group, Long>();
     this.rootDir = rootDir;
@@ -79,18 +77,18 @@ public class AuditStatsQuery {
     this.groupByString = groupByString;
     this.cuttoffString = cuttoffTime;
     this.timeOutString = timeOut;
+    this.timezone = timezone;
   }
 
   public AuditStatsQuery(String rootDir, String toTimeString,
-      String fromTimeString,
-      String filterString, String groupByString, String cuttoffTime,
-      String timeOut, String cuttoffTier, long maxMessages) {
+      String fromTimeString, String filterString, String groupByString,
+      String cuttoffTime, String timeOut, String timezone, Tier cutoffTier,
+      long maxMessages) {
     this(rootDir, toTimeString, fromTimeString, filterString, groupByString,
-        cuttoffTime, timeOut);
-    this.cuttoffTier = cuttoffTier;
+        cuttoffTime, timeOut, timezone);
+    this.cutoffTier = cutoffTier;
     this.maxMessages = maxMessages;
   }
-
 
   class ConsumerWorker extends Thread {
     private Message message = null;
@@ -103,11 +101,11 @@ public class AuditStatsQuery {
     @Override
     public void run() {
       try {
-        message=null;
+        message = null;
         message = consumer.next();
       } catch (InterruptedException e) {
         LOG.debug("Consumer Thread interuppted", e);
-        isTimeOut=true;
+        isTimeOut = true;
       }
 
     }
@@ -121,11 +119,8 @@ public class AuditStatsQuery {
         || (messageCount >= maxMessages);
   }
 
-
-
-  void aggregateStats(MessageConsumer consumer)
- throws InterruptedException, TException,
-      ParseException, IOException {
+  void aggregateStats(MessageConsumer consumer) throws InterruptedException,
+      TException, ParseException, IOException {
     Message message = null;
     TDeserializer deserialize = new TDeserializer();
     AuditMessage packet;
@@ -152,15 +147,16 @@ public class AuditStatsQuery {
         Group group = groupBy.getGroup(values);
         Long alreadyReceived = received.get(group);
         Long alreadySent = sent.get(group);
-        if(alreadyReceived==null)
-          alreadyReceived=0l;
+        if (alreadyReceived == null)
+          alreadyReceived = 0l;
         if (alreadySent == null)
           alreadySent = 0l;
         Long receivedCount = getSum(packet.getReceived());
         alreadyReceived += receivedCount;
         alreadySent += getSum(packet.getSent());
 
-        if (packet.getTier().equalsIgnoreCase(cuttoffTier)) {
+        if (cutoffTier != null
+            && packet.getTier().equalsIgnoreCase(cutoffTier.toString())) {
           messageCount += receivedCount;
         }
 
@@ -181,17 +177,18 @@ public class AuditStatsQuery {
 
   }
 
-  private static Date getDate(String date) throws ParseException {
+  private Date getDate(String date) throws ParseException {
     SimpleDateFormat formatter = new SimpleDateFormat(AuditUtil.DATE_FORMAT);
-    // formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
+    if (timezone != null)
+      formatter.setTimeZone(TimeZone.getTimeZone(timezone));
     return formatter.parse(date);
   }
 
   public void execute() throws ParseException, IOException,
       InterruptedException, TException {
     try {
-    parseAndSetArguments();
-    aggregateStats(consumer);
+      parseAndSetArguments();
+      aggregateStats(consumer);
     } finally {
       if (consumer != null)
         consumer.close();
@@ -210,58 +207,62 @@ public class AuditStatsQuery {
     groupBy = new GroupBy(groupByString);
     filter = new Filter(filterString);
     fromTime = getDate(fromTimeString);
-    toTime   = getDate(toTimeString);
+    toTime = getDate(toTimeString);
     consumer = getConsumer(fromTime, rootDir);
   }
 
   public static void main(String args[]) {
     String cutoffString = null, timeoutString = null;
-    // AuditStatsQuery statsQuery = new AuditStatsQuery();
     String groupByKeys = null;
     String filterKeys = null;
     String rootDir = null;
     String fromTime = null, toTime = null;
+    String timezone = null;
     try {
-    if (args.length < minArgs) {
-      printUsage();
-      return;
-    }
-    for (int i = 0; i < args.length;) {
-      if (args[i].equalsIgnoreCase("-cutoff")) {
-        cutoffString = args[i + 1];
-        LOG.info("Cuttof Time is  " + cutoffString);
-        i = i + 2;
-      } else if (args[i].equalsIgnoreCase("-group")) {
-        groupByKeys = args[i + 1];
-        LOG.info("Group is " + groupByKeys);
-        i = i + 2;
-      } else if (args[i].equalsIgnoreCase("-filter")) {
-        filterKeys = args[i + 1];
-        LOG.info("Filter is " + filterKeys);
-        i = i + 2;
-      } else if (args[i].equalsIgnoreCase("-rootdir")) {
-        rootDir = args[i + 1];
-        i = i + 2;
-      } else if (args[i].equalsIgnoreCase("-timeout")) {
-        timeoutString = args[i + 1];
-        i = i + 2;
-      } else {
-        if (fromTime == null) {
-          fromTime = args[i++];
-          LOG.info("From time is " + fromTime);
-          } else {
-          toTime = args[i++];
-          LOG.info("To time is " + toTime);
-          }
+      if (args.length < minArgs) {
+        printUsage();
+        return;
       }
+      for (int i = 0; i < args.length;) {
+        if (args[i].equalsIgnoreCase("-cutoff")) {
+          cutoffString = args[i + 1];
+          LOG.info("Cuttof Time is  " + cutoffString);
+          i = i + 2;
+        } else if (args[i].equalsIgnoreCase("-group")) {
+          groupByKeys = args[i + 1];
+          LOG.info("Group is " + groupByKeys);
+          i = i + 2;
+        } else if (args[i].equalsIgnoreCase("-filter")) {
+          filterKeys = args[i + 1];
+          LOG.info("Filter is " + filterKeys);
+          i = i + 2;
+        } else if (args[i].equalsIgnoreCase("-rootdir")) {
+          rootDir = args[i + 1];
+          i = i + 2;
+        } else if (args[i].equalsIgnoreCase("-timeout")) {
+          timeoutString = args[i + 1];
+          i = i + 2;
+        } else if (args[i].equalsIgnoreCase("-timezone")) {
+          timezone = args[i + 1];
+          i = i + 2;
+        } else {
+          if (fromTime == null) {
+            fromTime = args[i++];
+            LOG.info("From time is " + fromTime);
+          } else {
+            toTime = args[i++];
+            LOG.info("To time is " + toTime);
+          }
+        }
 
-    }
-    if (fromTime == null || toTime == null || rootDir == null) {
-      printUsage();
-      System.exit(-1);
-    }
-    AuditStatsQuery auditStatsQuery = new AuditStatsQuery(rootDir, toTime,
-        fromTime, filterKeys, groupByKeys, cutoffString, timeoutString);
+      }
+      if (fromTime == null || toTime == null || rootDir == null) {
+        printUsage();
+        System.exit(-1);
+      }
+      AuditStatsQuery auditStatsQuery = new AuditStatsQuery(rootDir, toTime,
+          fromTime, filterKeys, groupByKeys, cutoffString, timeoutString,
+          timezone);
       try {
         auditStatsQuery.execute();
       } catch (InterruptedException e) {
@@ -282,11 +283,11 @@ public class AuditStatsQuery {
   @Override
   public String toString() {
     SimpleDateFormat formatter = new SimpleDateFormat("dd-MM HH:mm");
-    formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
+    if (timezone != null)
+      formatter.setTimeZone(TimeZone.getTimeZone(timezone));
     return "AuditStatsQuery [fromTime=" + formatter.format(fromTime)
-        + ", toTime=" + formatter.format(toTime)
-        + ", cutoffTime=" + cutoffTime + ", groupBy=" + groupBy + ", filter="
-        + filter + "]";
+        + ", toTime=" + formatter.format(toTime) + ", cutoffTime=" + cutoffTime
+        + ", groupBy=" + groupBy + ", filter=" + filter + "]";
   }
 
   private void displayResults() {
@@ -294,25 +295,26 @@ public class AuditStatsQuery {
       System.out
           .println("Query was stopped due to timeout limit,Partial Result Possible");
       SimpleDateFormat formatter = new SimpleDateFormat();
-      formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
+      if (timezone != null)
+        formatter.setTimeZone(TimeZone.getTimeZone(timezone));
       String date = formatter.format(new Date(currentTime));
       System.out.println("Time of Last Processed Audit Message [ " + date
           + " ]");
-    }
- else if (isMaxMsgsProcessed) {
+    } else if (isMaxMsgsProcessed) {
       System.out
           .println("Query was stopped due to maximum number of messages processed");
     }
-    System.out.println("Group \t Received");
+    System.out.println("Group \t\t\t\t\t Received");
     for (Entry<Group, Long> entry : received.entrySet()) {
       System.out.println(entry.getKey() + " \t" + entry.getValue());
     }
   }
 
-  static MessageConsumer getConsumer(Date fromTime, String rootDir)
+  MessageConsumer getConsumer(Date fromTime, String rootDir)
       throws IOException {
     Calendar calendar = Calendar.getInstance();
-    calendar.setTimeZone(TimeZone.getTimeZone("GMT"));
+    if (timezone != null)
+      calendar.setTimeZone(TimeZone.getTimeZone(timezone));
     calendar.setTime(fromTime);
     calendar.add(Calendar.HOUR_OF_DAY, -1);
 

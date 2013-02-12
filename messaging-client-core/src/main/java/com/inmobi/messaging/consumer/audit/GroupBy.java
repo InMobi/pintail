@@ -1,51 +1,24 @@
 package com.inmobi.messaging.consumer.audit;
 
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-class GroupBy {
-
+public class GroupBy {
 
   @Override
   public String toString() {
-    return "GroupBy [isSet=" + isSet + "]";
+    return "GroupBy" + isSet;
   }
 
-  class Group {
-    private Map<Column, String> columns;
-
-    public Group(Map<Column, String> values) {
-      this.columns = values;
-    }
-
+  public class Group implements Comparable<Group> {
     @Override
     public int hashCode() {
       final int prime = 31;
       int result = 1;
-      Iterator<Column> iterator = isSet.iterator();
-      while (iterator.hasNext()) {
-        Column column = iterator.next();
-        result = prime
-            * result
-            + ((columns.get(column) == null) ? 0 : columns.get(column)
-                .hashCode());
-      }
+      result = prime * result + getOuterType().hashCode();
+      result = prime * result + ((columns == null) ? 0 : columns.hashCode());
       return result;
-    }
-
-    @Override
-    public String toString() {
-      StringBuffer buffer = new StringBuffer();
-      buffer.append("Group [");
-      Iterator<Column> iterator = isSet.iterator();
-      while (iterator.hasNext()) {
-        Column column = iterator.next();
-        buffer.append(column + " = " + columns.get(column) + ",");
-      }
-      buffer.append("]");
-      return buffer.toString();
     }
 
     @Override
@@ -57,16 +30,56 @@ class GroupBy {
       if (getClass() != obj.getClass())
         return false;
       Group other = (Group) obj;
-      Iterator<Column> iterator = isSet.iterator();
-      while (iterator.hasNext()) {
-        Column column = iterator.next();
-        if (columns.get(column) == null) {
-          if (other.columns.get(column) != null)
-            return false;
-        } else if (!columns.get(column).equals(other.columns.get(column)))
+      if (!getOuterType().equals(other.getOuterType()))
+        return false;
+      if (columns == null) {
+        if (other.columns != null)
           return false;
-      }
+      } else if (!columns.equals(other.columns))
+        return false;
       return true;
+    }
+
+    @Override
+    public String toString() {
+      return "" + columns;
+    }
+
+    private Map<Column, String> columns;
+
+    public Group(Map<Column, String> values) {
+      this.columns = values;
+    }
+
+    @Override
+    public int compareTo(Group group) {
+      int result = 0;
+      if (columns.containsKey(Column.TIER)) {
+        Tier tier1 = Tier.valueOf(columns.get(Column.TIER).toUpperCase());
+        Tier tier2 = Tier.valueOf(group.columns.get(Column.TIER).toUpperCase());
+        result = tier1.compareTo(tier2);
+        if (result != 0)
+          return result;
+      }
+      if (columns.containsKey(Column.TOPIC)) {
+        String topic1 = columns.get(Column.TOPIC);
+        String topic2 = group.columns.get(Column.TOPIC);
+        result = topic1.compareTo(topic2);
+        if (result != 0)
+          return result;
+      }
+      if (columns.containsKey(Column.HOSTNAME)) {
+        String hostname1 = columns.get(Column.HOSTNAME);
+        String hostname2 = columns.get(Column.HOSTNAME);
+        result = hostname1.compareTo(hostname2);
+        if (result != 0)
+          return result;
+      }
+      return 0;
+    }
+
+    private GroupBy getOuterType() {
+      return GroupBy.this;
     }
 
   }
@@ -108,8 +121,8 @@ class GroupBy {
     return true;
   }
 
-
   public Group getGroup(Map<Column, String> values) {
+    values.keySet().retainAll(isSet);
     return new Group(values);
   }
 
