@@ -65,6 +65,15 @@ public abstract class TestAbstractHadoopConsumer {
       rootDirs[0].toString());
     ConsumerUtil.testMarkAndReset(config, testStream, consumerName, true);
   }
+  
+  public void testTimeoutStats() throws IOException, InterruptedException {
+    config.set(HadoopConsumerConfig.checkpointDirConfig, ck1);
+    config.set(HadoopConsumerConfig.rootDirsConfig,
+      rootDirs[0].toString());
+    ConsumerUtil.testTimeoutStats(config, testStream, consumerName, 
+        DatabusStreamWaitingReader.getDateFromStreamDir(
+            rootDirs[0], finalPaths[0][0]), true);
+  }
 
   public void testMarkAndResetWithStartTime() throws Exception {
     config.set(HadoopConsumerConfig.checkpointDirConfig, ck2);

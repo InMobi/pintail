@@ -47,6 +47,11 @@ public class TestHadoopConsumer extends TestAbstractHadoopConsumer {
   public void testMultipleClusters2() throws Exception {
     super.testMultipleClusters2();
   }
+  
+  @Test
+  public void testTimeoutStats() throws IOException, InterruptedException {
+    super.testTimeoutStats();
+  }
  
   @AfterTest
   public void cleanup() throws IOException {

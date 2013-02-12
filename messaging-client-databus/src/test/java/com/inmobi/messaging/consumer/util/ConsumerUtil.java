@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 import org.testng.Assert;
 
@@ -262,6 +263,20 @@ public class ConsumerUtil {
         consumer.getMetrics())).getNumResetCalls(), 0);
     Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
         consumer.getMetrics())).getNumMessagesConsumed(), 60); 
+  }
+  
+  public static void testTimeoutStats(ClientConfig config, String streamName,
+      String consumerName, Date startTime, boolean hadoop) 
+          throws IOException, InterruptedException {
+    AbstractMessagingDatabusConsumer consumer = createConsumer(hadoop);
+    consumer.init(streamName, consumerName, startTime, config);
+    Assert.assertEquals(consumer.getTopicName(), streamName);
+    Assert.assertEquals(consumer.getConsumerName(), consumerName);
+    for (int i = 0; i < 310; i++) {
+      consumer.next(1, TimeUnit.SECONDS);
+    }
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumOfTiemOutsOnNext(), 10);
   }
 
   public static void testMarkAndReset(ClientConfig config, String streamName,

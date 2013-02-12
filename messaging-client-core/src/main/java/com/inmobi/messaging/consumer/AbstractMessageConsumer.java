@@ -2,6 +2,7 @@ package com.inmobi.messaging.consumer;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
 import com.inmobi.instrumentation.MessagingClientStatBuilder;
@@ -54,10 +55,24 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
   protected abstract void doReset() throws IOException;
 
   protected abstract Message getNext() throws InterruptedException;
+  
+  protected abstract Message getNext(long timeout, TimeUnit timeunit) 
+      throws InterruptedException;
 
   public synchronized Message next() throws InterruptedException {
     Message msg = getNext();
     metrics.incrementMessagesConsumed();
+    return msg;
+  }
+  
+  public synchronized Message next(long timeout, TimeUnit timeunit) 
+      throws InterruptedException {
+    Message msg = getNext(timeout, timeunit);
+    if (msg != null) {
+    metrics.incrementMessagesConsumed();
+    } else {
+      metrics.incrementTimeOutsOnNext();
+    }
     return msg;
   }
 

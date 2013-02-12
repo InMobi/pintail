@@ -3,6 +3,7 @@ package com.inmobi.messaging.consumer.impl;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.concurrent.TimeUnit;
 
 import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
 import com.inmobi.messaging.ClientConfig;
@@ -87,5 +88,11 @@ public class StdInConsumer extends AbstractMessageConsumer {
   @Override
   protected AbstractMessagingClientStatsExposer getMetricsImpl() {
     return new BaseMessageConsumerStatsExposer(topicName, consumerName);
+  }
+
+  @Override
+  protected Message getNext(long timeout, TimeUnit timeunit)
+      throws InterruptedException {
+    return null;
   }
 }
