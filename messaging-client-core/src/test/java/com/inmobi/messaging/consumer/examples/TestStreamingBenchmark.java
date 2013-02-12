@@ -130,7 +130,6 @@ public class TestStreamingBenchmark {
     Assert.assertEquals(exitcode, 0);
     Assert.assertEquals(msg.length, 3);
     Assert.assertEquals(Long.parseLong(msg[0]), numMessages);
-    System.out.println("msg:" + msg[2]);
     Assert.assertEquals(msg[2].length(), msgSize);
     Assert.assertEquals(msg[2], new String(StreamingBenchmark.getMessageBytes(
         msgSize)));

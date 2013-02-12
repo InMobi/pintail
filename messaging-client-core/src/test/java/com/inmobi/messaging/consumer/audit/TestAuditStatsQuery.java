@@ -55,7 +55,6 @@ public class TestAuditStatsQuery {
       String topic1) {
     String msg = "sample data";
     SimpleDateFormat formatter = new SimpleDateFormat(AuditUtil.DATE_FORMAT);
-    System.out.println("PUBLISHING");
     startDate = new Date();
     Calendar calendar = Calendar.getInstance();
     calendar.setTime(startDate);
@@ -93,7 +92,6 @@ public class TestAuditStatsQuery {
     Collection<Long> sent = query.getReceived().values();
     assert (sent.iterator().hasNext());
     Long sentPublisher = sent.iterator().next();
-    System.out.println("DATA SENT IN AUDIT QUERY " + sentPublisher);
     assert (sentPublisher == totalData / 2);
 
   }
@@ -176,7 +174,6 @@ public class TestAuditStatsQuery {
   @Test
   public void testAuditQueryValidCuttoffTime() throws IOException,
       InterruptedException, TException, ParseException {
-    System.out.println("STARTING");
     ClientConfig config = ClientConfig
         .load("src/test/resources/mock-publisher.properties");
     publisher = MessagePublisherFactory.create(config);
@@ -188,14 +185,10 @@ public class TestAuditStatsQuery {
     query.parseAndSetArguments();
     query.timeout = 200;
     query.cutoffTime = 60000;
-    System.out.println("FROM TIME " + query.fromTime.getTime() + " to time "
-        + query.toTime.getTime());
     Thread.sleep(61000);
     generateData(topic2, topic3);
 
     publisher.close();
-    System.out.println("FROM TIME " + query.fromTime.getTime() + " to time "
-        + query.toTime.getTime());
     query.filter = new Filter("topic=" + topic2);
     query.groupBy = new GroupBy(null);
     MessageConsumer consumer = query.getConsumer(startDate, "mock");
@@ -205,7 +198,6 @@ public class TestAuditStatsQuery {
     Collection<Long> sent = query.getReceived().values();
     assert (sent.iterator().hasNext());
     Long sentPublisher = sent.iterator().next();
-    System.out.println("DATA SENT IN Valid cutoff " + sentPublisher);
     assert (sentPublisher == totalData / 2);
 
   }
@@ -234,7 +226,6 @@ public class TestAuditStatsQuery {
     Collection<Long> sent = query.getReceived().values();
     assert (sent.iterator().hasNext());
     Long sentPublisher = sent.iterator().next();
-    System.out.println("DATA SENT IN Valid cutoff " + sentPublisher);
     assert (sentPublisher == totalData / 2);
 
   }
