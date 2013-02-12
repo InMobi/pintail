@@ -1,6 +1,7 @@
 package com.inmobi.messaging.consumer;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import com.inmobi.messaging.Message;
 
@@ -20,7 +21,8 @@ public interface MessageConsumer {
    * 
    * @throws InterruptedException 
    */
-  public Message next() throws InterruptedException;
+  public Message next(long timeout, TimeUnit timeunit) 
+      throws InterruptedException;
 
   /**
    * Tells if this interface supports <code>mark</code> and <code>reset</code>

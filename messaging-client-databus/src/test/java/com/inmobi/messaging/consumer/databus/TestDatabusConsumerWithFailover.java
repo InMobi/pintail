@@ -3,6 +3,7 @@ package com.inmobi.messaging.consumer.databus;
 import java.io.IOException;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 
 import org.testng.Assert;
 import org.testng.annotations.AfterTest;
@@ -93,7 +94,11 @@ public class TestDatabusConsumerWithFailover extends
     Assert.assertEquals(consumer.getConsumerName(), consumerName);
 
     for (int i = 0; i < totalMessages / 2; i++) {
-      Message msg = consumer.next();
+      Message msg = consumer.next(1000, TimeUnit.MILLISECONDS);
+      if (msg == null) {
+        --i;
+        continue;
+      }
       String msgStr = new String(msg.getData().array());
       for (int m = 0; m < numCounters; m++) {
         if (msgStr.equals(MessageUtil.constructMessage(counter[m]))) {
@@ -128,7 +133,11 @@ public class TestDatabusConsumerWithFailover extends
     ConsumerUtil.compareConsumerCheckpoints(temp, checkpointMap, 
         lastCheckpoint, consumer);
     for (int i = 0; i < totalMessages / 2; i++) {
-      Message msg = consumer.next();
+      Message msg = consumer.next(1000, TimeUnit.MILLISECONDS);
+      if (msg == null) {
+        --i;
+        continue;
+      }
       String msgStr = new String(msg.getData().array());
       for (int m = 0; m < numCounters; m++) {
         if (msgStr.equals(MessageUtil.constructMessage(markedcounter2[m]))) {
@@ -144,7 +153,11 @@ public class TestDatabusConsumerWithFailover extends
 
     consumer.reset();
     for (int i = 0; i < totalMessages / 2; i++) {
-      Message msg = consumer.next();
+      Message msg = consumer.next(1000, TimeUnit.MILLISECONDS);
+      if (msg == null) {
+        --i;
+        continue;
+      }
       String msgStr = new String(msg.getData().array());
       for (int m = 0; m < numCounters; m++) {
         if (msgStr.equals(MessageUtil.constructMessage(markedcounter1[m]))) {

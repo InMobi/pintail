@@ -1,5 +1,7 @@
 package com.inmobi.messaging.consumer.examples;
 
+import java.util.concurrent.TimeUnit;
+
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.MessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
@@ -14,8 +16,10 @@ public class ConsoleClient {
     MessageConsumer consumer = MessageConsumerFactory.create();
     
     while (true) {
-      Message msg = consumer.next();
-      System.out.println("MESSAGE:" + new String(msg.getData().array()));
+      Message msg = consumer.next(1000, TimeUnit.MILLISECONDS);
+      if (msg != null) {
+        System.out.println("MESSAGE:" + new String(msg.getData().array()));
+      }
     }
   }
 }

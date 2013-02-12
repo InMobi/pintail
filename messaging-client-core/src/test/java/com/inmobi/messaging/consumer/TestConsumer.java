@@ -3,6 +3,7 @@ package com.inmobi.messaging.consumer;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -144,7 +145,13 @@ public class TestConsumer {
     Assert.assertEquals(consumer.getConsumerName(), "testconsumer");
     Assert.assertEquals(consumer.getStartTime(), startTime);
     
-    Message msg = consumer.next();
+    Message msg;
+    while (true) {
+      msg = consumer.next(1000, TimeUnit.MILLISECONDS);
+      if (msg != null) {
+        break;
+      }
+    }
     consumer.close();
     Assert.assertEquals(new String(msg.getData().array()), MockConsumer.mockMsg);
     

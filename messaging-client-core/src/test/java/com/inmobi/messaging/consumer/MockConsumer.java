@@ -2,6 +2,7 @@ package com.inmobi.messaging.consumer;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
 import com.inmobi.messaging.ClientConfig;
@@ -18,7 +19,8 @@ public class MockConsumer extends AbstractMessageConsumer {
     initedConf = true;
   }
   @Override
-  protected Message getNext() throws InterruptedException {
+  protected Message getNext(long timeout, TimeUnit timeunit) 
+      throws InterruptedException {
     if (block) {
       Thread.sleep(2000);
     }

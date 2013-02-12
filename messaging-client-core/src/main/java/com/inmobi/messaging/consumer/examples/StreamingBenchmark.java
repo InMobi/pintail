@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
@@ -348,7 +349,10 @@ public class StreamingBenchmark {
         }
         Message msg = null;
         try {
-          msg = consumer.next();
+          msg = consumer.next(1000, TimeUnit.MILLISECONDS);
+          if (msg == null) {
+            continue;
+          }
           received++;
           String s = getMessage(msg, hadoopConsumer);
           String[] ar = s.split(DELIMITER);

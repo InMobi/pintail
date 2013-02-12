@@ -3,6 +3,7 @@ package com.inmobi.messaging.consumer.impl;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.concurrent.TimeUnit;
 
 import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
 import com.inmobi.messaging.ClientConfig;
@@ -27,7 +28,8 @@ public class StdInConsumer extends AbstractMessageConsumer {
   }
 
   @Override
-  public Message getNext() throws InterruptedException {
+  public Message getNext(long timeout, TimeUnit timeunit) 
+      throws InterruptedException {
     try {
       String str = in.readLine();
       if (str != null) {
@@ -76,8 +78,10 @@ public class StdInConsumer extends AbstractMessageConsumer {
       
     try {
       while (true) {
-        Message msg = consumer.next();
-        System.out.println("Message:" + msg.getData());
+        Message msg = consumer.next(1000, TimeUnit.MILLISECONDS);
+        if (msg != null) {
+          System.out.println("Message:" + msg.getData());
+        }
       }
     }  finally {
       consumer.close();

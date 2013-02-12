@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -159,9 +160,13 @@ public abstract class AbstractMessagingDatabusConsumer
   }
 
   @Override
-  protected Message getNext() throws InterruptedException {
+  protected Message getNext(long timeout, TimeUnit timeunit) 
+      throws InterruptedException {
     QueueEntry entry;
-    entry = buffer.take();
+    entry = buffer.poll(timeout, timeunit);
+    if (entry == null) {      
+      return null;
+    }
     MessageCheckpoint msgchk = entry.getMessageChkpoint();
     currentCheckpoint.set(entry.getPartitionId(), msgchk);
     return entry.getMessage();
