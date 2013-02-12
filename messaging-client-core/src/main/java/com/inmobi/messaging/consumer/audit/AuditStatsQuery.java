@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
+import java.util.TreeMap;
 
 import org.apache.thrift.TDeserializer;
 import org.apache.thrift.TException;
@@ -25,6 +26,10 @@ import com.inmobi.messaging.util.AuditUtil;
 
 enum Column {
   TIER, HOSTNAME, TOPIC
+}
+
+enum Tier implements Comparable<Tier> {
+  PUBLISHER, AGENT, COLLECTOR;
 }
 public class AuditStatsQuery {
 
@@ -49,19 +54,24 @@ public class AuditStatsQuery {
   long timeout = 60000;
   private static final String MESSAGE_CLIENT_CONF_FILE = "audit-consumer-conf.properties";
   public static final String ROOT_DIR_KEY = "databus.consumer.rootdirs";
-  private boolean isPartialResult =false;
+  private boolean isTimeOut =false;
+  private boolean isMaxMsgsProcessed = false;
   long currentTime;
   GroupBy groupBy;
   Filter filter;
   private MessageConsumer consumer;
   private String rootDir, filterString, groupByString, toTimeString,
       fromTimeString, cuttoffString, timeOutString;
+  private long maxMessages = Long.MAX_VALUE;
+  private long messageCount = 0;
+  private String cuttoffTier = null;
 
-  AuditStatsQuery(String rootDir, String toTimeString, String fromTimeString,
+  public AuditStatsQuery(String rootDir, String toTimeString,
+      String fromTimeString,
       String filterString, String groupByString, String cuttoffTime,
       String timeOut) {
-    received = new HashMap<Group, Long>();
-    sent = new HashMap<Group, Long>();
+    received = new TreeMap<Group, Long>();
+    sent = new TreeMap<Group, Long>();
     this.rootDir = rootDir;
     this.toTimeString = toTimeString;
     this.fromTimeString = fromTimeString;
@@ -69,6 +79,16 @@ public class AuditStatsQuery {
     this.groupByString = groupByString;
     this.cuttoffString = cuttoffTime;
     this.timeOutString = timeOut;
+  }
+
+  public AuditStatsQuery(String rootDir, String toTimeString,
+      String fromTimeString,
+      String filterString, String groupByString, String cuttoffTime,
+      String timeOut, String cuttoffTier, long maxMessages) {
+    this(rootDir, toTimeString, fromTimeString, filterString, groupByString,
+        cuttoffTime, timeOut);
+    this.cuttoffTier = cuttoffTier;
+    this.maxMessages = maxMessages;
   }
 
 
@@ -87,7 +107,7 @@ public class AuditStatsQuery {
         message = consumer.next();
       } catch (InterruptedException e) {
         LOG.debug("Consumer Thread interuppted", e);
-        isPartialResult=true;
+        isTimeOut=true;
       }
 
     }
@@ -95,7 +115,10 @@ public class AuditStatsQuery {
   }
 
   private boolean isCutoffReached(long timestamp) {
-    return timestamp - toTime.getTime() >= cutoffTime;
+    if (messageCount >= maxMessages)
+      isMaxMsgsProcessed = true;
+    return (timestamp - toTime.getTime() >= cutoffTime)
+        || (messageCount >= maxMessages);
   }
 
 
@@ -133,8 +156,14 @@ public class AuditStatsQuery {
           alreadyReceived=0l;
         if (alreadySent == null)
           alreadySent = 0l;
-        alreadyReceived += getSum(packet.getReceived());
+        Long receivedCount = getSum(packet.getReceived());
+        alreadyReceived += receivedCount;
         alreadySent += getSum(packet.getSent());
+
+        if (packet.getTier().equalsIgnoreCase(cuttoffTier)) {
+          messageCount += receivedCount;
+        }
+
         received.put(group, alreadyReceived);
         sent.put(group, alreadySent);
       }
@@ -261,7 +290,7 @@ public class AuditStatsQuery {
   }
 
   private void displayResults() {
-    if (isPartialResult) {
+    if (isTimeOut) {
       System.out
           .println("Query was stopped due to timeout limit,Partial Result Possible");
       SimpleDateFormat formatter = new SimpleDateFormat();
@@ -270,10 +299,13 @@ public class AuditStatsQuery {
       System.out.println("Time of Last Processed Audit Message [ " + date
           + " ]");
     }
-    System.out.println("Group \t Received \t Sent \t");
+ else if (isMaxMsgsProcessed) {
+      System.out
+          .println("Query was stopped due to maximum number of messages processed");
+    }
+    System.out.println("Group \t Received");
     for (Entry<Group, Long> entry : received.entrySet()) {
-      System.out.println(entry.getKey() + " \t" + entry.getValue() + " \t"
-          + sent.get(entry.getKey()));
+      System.out.println(entry.getKey() + " \t" + entry.getValue());
     }
   }
 
