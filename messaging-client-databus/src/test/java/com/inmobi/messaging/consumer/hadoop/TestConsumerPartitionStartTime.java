@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -101,19 +100,15 @@ public class TestConsumerPartitionStartTime {
 
     //consume all messages
     while (firstConsumedMessages.size() < 600) {
-      Message msg = consumer.next(1000, TimeUnit.MILLISECONDS);
-      if (msg != null) {
-        firstConsumedMessages.add(getMessage(msg.getData().array()));
-      }
+      Message msg = consumer.next();
+      firstConsumedMessages.add(getMessage(msg.getData().array()));
     }
     consumer.close();
     LOG.info("msgs consumed by first consumer" + firstConsumedMessages.size());
 
     while (secondConsumedMessages.size() < 600) {
-      Message msgs = secondConsumer.next(1000, TimeUnit.MILLISECONDS);
-      if (msgs != null) {
-        secondConsumedMessages.add(getMessage(msgs.getData().array()));
-      }
+      Message msgs = secondConsumer.next();
+      secondConsumedMessages.add(getMessage(msgs.getData().array()));
     }
     secondConsumer.close();
     LOG.info("msgs consumed by second consumer " + secondConsumedMessages.size());

@@ -5,7 +5,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.TimeUnit;
 
 import org.testng.Assert;
 
@@ -71,11 +70,7 @@ public class ConsumerUtil {
     Assert.assertEquals(consumer.getConsumerName(), consumerName);
 
     for (int i = 0; i < totalMessages/2; i++) {
-      Message msg = consumer.next(1000, TimeUnit.MILLISECONDS);
-      if (msg == null) {
-        --i;
-        continue;
-      }
+      Message msg = consumer.next();
       String msgStr = getMessage(msg.getData().array(), hadoop);
       for (int m = 0;  m < numCounters; m++) {
         if (msgStr.equals(MessageUtil.constructMessage(counter[m]))) {
@@ -102,11 +97,7 @@ public class ConsumerUtil {
     }
 
     for (int i = 0; i < totalMessages/2; i++) {
-      Message msg = consumer.next(1000, TimeUnit.MILLISECONDS);
-      if (msg == null) {
-        --i;
-        continue;
-      }
+      Message msg = consumer.next();
       String msgStr = getMessage(msg.getData().array(), hadoop);
       for (int m = 0;  m < numCounters; m++) {
         if (msgStr.equals(MessageUtil.constructMessage(counter[m]))) {
@@ -122,11 +113,7 @@ public class ConsumerUtil {
     consumer.reset();
 
     for (int i = 0; i < totalMessages/2; i++) {
-      Message msg = consumer.next(1000, TimeUnit.MILLISECONDS);
-      if (msg == null) {
-        --i;
-        continue;
-      }
+      Message msg = consumer.next();
       String msgStr = getMessage(msg.getData().array(), hadoop);
       for (int m = 0;  m < numCounters; m++) {
         if (msgStr.equals(MessageUtil.constructMessage(markedcounter1[m]))) {
@@ -156,11 +143,7 @@ public class ConsumerUtil {
     compareConsumerCheckpoints(temp, checkpointMap, lastCheckpoint, consumer);
 
     for (int i = 0; i < totalMessages/2; i++) {
-      Message msg = consumer.next(1000, TimeUnit.MILLISECONDS);
-      if (msg == null) {
-        --i;
-        continue;
-      }
+      Message msg = consumer.next();
       String msgStr = getMessage(msg.getData().array(), hadoop);
       for (int m = 0;  m < numCounters; m++) {
         if (msgStr.equals(MessageUtil.constructMessage(markedcounter2[m]))) {
@@ -213,21 +196,13 @@ public class ConsumerUtil {
 
     int i;
     for (i = 100; i < 120; i++) {                                                       
-      Message msg = consumer.next(1000, TimeUnit.MILLISECONDS);
-      if (msg == null) {
-        --i;
-        continue;
-      }
+      Message msg = consumer.next();
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
     consumer.mark(); 
     for (i = 120; i < 130; i++) {
-      Message msg = consumer.next(1000, TimeUnit.MILLISECONDS);
-      if (msg == null) {
-        --i;
-        continue;
-      }
+      Message msg = consumer.next();
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
@@ -235,11 +210,7 @@ public class ConsumerUtil {
     consumer.reset();
 
     for (i = 120; i < 240; i++) {
-      Message msg = consumer.next(1000, TimeUnit.MILLISECONDS);
-      if (msg == null) {
-        --i;
-        continue;
-      }
+      Message msg = consumer.next();
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i)); 
     }
@@ -253,22 +224,14 @@ public class ConsumerUtil {
     createCheckpointList(temp, checkpointMap, lastCheckpoint, consumer);
 
     for (i = 240; i < 260; i++) {
-      Message msg = consumer.next(1000, TimeUnit.MILLISECONDS);
-      if (msg == null) {
-        --i;
-        continue;
-      }
+      Message msg = consumer.next();
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
 
     consumer.reset();
     for (i = 240; i < 300; i++) {
-      Message msg = consumer.next(1000, TimeUnit.MILLISECONDS);
-      if (msg == null) {
-        --i;
-        continue;
-      }
+      Message msg = consumer.next();
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
@@ -286,13 +249,9 @@ public class ConsumerUtil {
     consumer.init(streamName, consumerName, null, config);
     compareConsumerCheckpoints(temp, checkpointMap, lastCheckpoint, consumer);
     for (i = 240; i < 300; i++) {
-      Message msg = consumer.next(1000, TimeUnit.MILLISECONDS);
-      if (msg == null) { 
-        --i;
-        continue;
-      }
+      Message msg = consumer.next();
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
-          MessageUtil.constructMessage(i));     
+          MessageUtil.constructMessage(i));
     }
     consumer.mark();
 
@@ -316,32 +275,20 @@ public class ConsumerUtil {
 
     int i;
     for (i = 0; i < 20; i++) {
-      Message msg = consumer.next(1000, TimeUnit.MILLISECONDS);
-      if (msg == null) { 
-        --i;
-        continue;
-      }
+      Message msg = consumer.next();
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
-          MessageUtil.constructMessage(i));     
+          MessageUtil.constructMessage(i));
     }
     consumer.mark(); 
     for (i = 20; i < 30; i++) {
-      Message msg = consumer.next(1000, TimeUnit.MILLISECONDS);
-      if (msg == null) { 
-        --i;
-        continue;
-      }
+      Message msg = consumer.next();
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
 
     consumer.reset();
     for (i = 20; i < 140; i++) {
-      Message msg = consumer.next(1000, TimeUnit.MILLISECONDS);
-      if (msg == null) { 
-        --i;
-        continue;
-      }
+      Message msg = consumer.next();
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
@@ -356,22 +303,14 @@ public class ConsumerUtil {
     createCheckpointList(temp, checkpointMap, lastCheckpoint, consumer);
 
     for (i = 140; i < 160; i++) {
-      Message msg = consumer.next(1000, TimeUnit.MILLISECONDS);
-      if (msg == null) { 
-        --i;
-        continue;
-      }
+      Message msg = consumer.next();
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
 
     consumer.reset();
     for (i = 140; i < 300; i++) {
-      Message msg = consumer.next(1000, TimeUnit.MILLISECONDS);
-      if (msg == null) { 
-        --i;
-        continue;
-      }
+      Message msg = consumer.next();
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
@@ -389,11 +328,7 @@ public class ConsumerUtil {
     consumer.init(streamName, consumerName, null, config);
     compareConsumerCheckpoints(temp, checkpointMap, lastCheckpoint, consumer);
     for (i = 140; i < 300; i++) {
-      Message msg = consumer.next(1000, TimeUnit.MILLISECONDS);
-      if (msg == null) { 
-        --i;
-        continue;
-      }
+      Message msg = consumer.next();
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
@@ -425,77 +360,49 @@ public class ConsumerUtil {
     Assert.assertEquals(consumer.getStartTime(), secondConsumer.getStartTime());
 
     int i;
-    Message msg;
     for (i = 0; i < 5; i++) {                                                       
-      msg = secondConsumer.next(1000, TimeUnit.MILLISECONDS);
-      if (msg == null) { 
-        --i;
-      }
+      secondConsumer.next();
     } 
     secondConsumer.mark();
     for (i = 0; i < 25; i++) {
-      msg = consumer.next(1000, TimeUnit.MILLISECONDS);
-      if (msg == null) { 
-        --i;
-      }
+      consumer.next();
     }
     consumer.mark();
     for (i = 5; i < 10; i++) {                                                       
-      msg = secondConsumer.next(1000, TimeUnit.MILLISECONDS);
-      if (msg == null) { 
-        --i;
-      }
+      secondConsumer.next();
     } 
     secondConsumer.reset();
 
     for (i = 5; i < 10; i++) {                                                       
-      msg = secondConsumer.next(1000, TimeUnit.MILLISECONDS);
-      if (msg == null) { 
-        --i;
-      }
+      secondConsumer.next();
 
     } 
     secondConsumer.mark();
 
     for (i = 25; i < 75; i++) {                                                       
-      msg = consumer.next(1000, TimeUnit.MILLISECONDS);
-      if (msg == null) { 
-        --i;
-      }
+      consumer.next();
     }
     consumer.mark(); 
 
     for (i = 75; i < 80; i++) {
-      msg = consumer.next(1000, TimeUnit.MILLISECONDS);
-      if (msg == null) { 
-        --i;
-      }
+      consumer.next();
     }
 
     consumer.reset();
 
     for (i = 75; i < 80; i++) {
-      msg = consumer.next(1000, TimeUnit.MILLISECONDS);
-      if (msg == null) { 
-        --i;
-      }
+      consumer.next();
     }
     consumer.mark();
     Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
         consumer.getMetrics())).getNumMessagesConsumed(), 85); 
     for (i = 80; i < 82; i++) {
-      msg = consumer.next(1000, TimeUnit.MILLISECONDS);
-      if (msg == null) { 
-        --i;
-      }
+      consumer.next();
     }
 
     consumer.reset();
     for (i = 80; i < 82; i++) {
-      msg = consumer.next(1000, TimeUnit.MILLISECONDS);
-      if (msg == null) { 
-        --i;
-      }
+      consumer.next();
     }
     consumer.mark();
     consumer.close();

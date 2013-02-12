@@ -2,9 +2,7 @@ package com.inmobi.messaging.consumer.examples;
 
 import java.io.IOException;
 import java.util.Calendar;
-import java.util.concurrent.TimeUnit;
 
-import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.MessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
 
@@ -56,12 +54,9 @@ public class CounterClient {
     });
     while (keepRunnig) {
       try {
-        for (int i = 0; i < 1000; ) {
-          Message msg = consumer.next(1000, TimeUnit.MILLISECONDS);
-          if (msg != null) {
-            msgCounter++;
-            i++;
-          }
+        for (int i = 0; i < 1000; i++) {
+          consumer.next();
+          msgCounter++;
         }
         System.out.println("Counter:" + msgCounter);
         markCounter++;

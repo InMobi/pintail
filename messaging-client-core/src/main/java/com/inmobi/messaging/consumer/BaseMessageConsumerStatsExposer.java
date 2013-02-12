@@ -11,17 +11,12 @@ public class BaseMessageConsumerStatsExposer extends
   private final AtomicLong numMessagesConsumed = new AtomicLong(0);
   private final AtomicLong numMarkCalls = new AtomicLong(0);
   private final AtomicLong numResetCalls = new AtomicLong(0);
-  private final AtomicLong numOfTimeoutsOnNext = new AtomicLong(0);
 
   public BaseMessageConsumerStatsExposer(String topicName, String consumerName)
   {
     super(topicName, consumerName);
   }
 
-  public void incrementTimeoutsonNext() {
-    numOfTimeoutsOnNext.incrementAndGet();
-  }
-  
   public void incrementMessagesConsumed() {
     numMessagesConsumed.incrementAndGet();
   }
