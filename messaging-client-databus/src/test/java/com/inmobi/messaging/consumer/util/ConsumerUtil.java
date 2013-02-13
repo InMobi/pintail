@@ -286,7 +286,7 @@ public class ConsumerUtil {
     createCheckpointList(expectedCheckpoint, checkpointMap, lastCheckpoint, 
         consumer);
     for (int i = 300; i < 310; i++) {
-      consumer.next(60, TimeUnit.SECONDS);
+      consumer.next(1, TimeUnit.SECONDS);
     }
     compareConsumerCheckpoints(expectedCheckpoint, checkpointMap, 
         lastCheckpoint, consumer);
