@@ -49,7 +49,7 @@ public class TestHadoopConsumer extends TestAbstractHadoopConsumer {
   }
   
   @Test
-  public void testTimeoutStats() throws IOException, InterruptedException {
+  public void testTimeoutStats() throws Exception {
     super.testTimeoutStats();
   }
  

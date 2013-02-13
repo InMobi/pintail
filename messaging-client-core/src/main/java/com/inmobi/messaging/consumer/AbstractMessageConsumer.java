@@ -69,7 +69,7 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
       throws InterruptedException {
     Message msg = getNext(timeout, timeunit);
     if (msg != null) {
-    metrics.incrementMessagesConsumed();
+      metrics.incrementMessagesConsumed();
     } else {
       metrics.incrementTimeOutsOnNext();
     }

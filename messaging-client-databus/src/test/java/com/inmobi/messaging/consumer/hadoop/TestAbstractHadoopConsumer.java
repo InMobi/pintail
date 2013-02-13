@@ -66,7 +66,7 @@ public abstract class TestAbstractHadoopConsumer {
     ConsumerUtil.testMarkAndReset(config, testStream, consumerName, true);
   }
   
-  public void testTimeoutStats() throws IOException, InterruptedException {
+  public void testTimeoutStats() throws Exception {
     config.set(HadoopConsumerConfig.checkpointDirConfig, ck1);
     config.set(HadoopConsumerConfig.rootDirsConfig,
       rootDirs[0].toString());

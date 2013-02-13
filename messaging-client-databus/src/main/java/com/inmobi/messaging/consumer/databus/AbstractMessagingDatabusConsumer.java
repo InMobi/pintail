@@ -158,14 +158,19 @@ public abstract class AbstractMessagingDatabusConsumer
   public ConsumerCheckpoint getCurrentCheckpoint() {
     return currentCheckpoint;
   }
+  
 
   @Override
   protected Message getNext() throws InterruptedException {
     QueueEntry entry;
     entry = buffer.take();
+    setMessageCheckpoint(entry);
+    return entry.getMessage();
+  }
+
+  private void setMessageCheckpoint(QueueEntry entry) {
     MessageCheckpoint msgchk = entry.getMessageChkpoint();
     currentCheckpoint.set(entry.getPartitionId(), msgchk);
-    return entry.getMessage();
   }
   
   @Override
@@ -176,8 +181,7 @@ public abstract class AbstractMessagingDatabusConsumer
     if (entry == null) {
       return null;
     }
-    MessageCheckpoint msgchk = entry.getMessageChkpoint();
-    currentCheckpoint.set(entry.getPartitionId(), msgchk);
+    setMessageCheckpoint(entry);
     return entry.getMessage();
   }
 

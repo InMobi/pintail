@@ -267,14 +267,31 @@ public class ConsumerUtil {
   
   public static void testTimeoutStats(ClientConfig config, String streamName,
       String consumerName, Date startTime, boolean hadoop) 
-          throws IOException, InterruptedException {
+          throws Exception {
     AbstractMessagingDatabusConsumer consumer = createConsumer(hadoop);
     consumer.init(streamName, consumerName, startTime, config);
     Assert.assertEquals(consumer.getTopicName(), streamName);
     Assert.assertEquals(consumer.getConsumerName(), consumerName);
-    for (int i = 0; i < 310; i++) {
+    for (int i = 0; i < 120; i++) {
       consumer.next(1, TimeUnit.SECONDS);
     }
+    consumer.mark();
+    ConsumerCheckpoint expectedCheckpoint = consumer.getCurrentCheckpoint();
+    Map<PartitionId, PartitionCheckpoint> lastCheckpoint = new 
+        HashMap<PartitionId, PartitionCheckpoint>();
+    Map<Integer, Checkpoint> checkpointMap = new 
+        HashMap<Integer, Checkpoint>();
+    //create consumer checkpoint
+    createCheckpointList(expectedCheckpoint, checkpointMap, lastCheckpoint, 
+        consumer);
+    compareConsumerCheckpoints(expectedCheckpoint, checkpointMap, 
+        lastCheckpoint, consumer);
+    for (int i = 120; i < 310; i++) {
+      consumer.next(1, TimeUnit.SECONDS);
+    }
+    
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMessagesConsumed(), 300);
     Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
         consumer.getMetrics())).getNumOfTiemOutsOnNext(), 10);
   }
