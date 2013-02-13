@@ -23,6 +23,8 @@ import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.util.DatabusUtil;
 import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
+import org.apache.hadoop.fs.s3.S3FileSystem;
+import org.apache.hadoop.fs.s3native.NativeS3FileSystem;
 
 public class CollectorStreamReader extends StreamReader<CollectorFile> {
 
@@ -38,6 +40,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   private CollectorReaderStatsExposer collectorMetrics;
   private Configuration conf;
   private StringBuilder builder = new StringBuilder();
+  private boolean isS3Fs = false;
 
   public CollectorStreamReader(PartitionId partitionId,
       FileSystem fs, String streamName, Path streamDir,
@@ -53,6 +56,12 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
         " streamDir:" + streamDir + 
         " waitTimeForFlush:" + waitTimeForFlush +
         " waitTimeForCreate:" + waitTimeForCreate);
+    isFileSystemS3();
+  }
+
+  private void isFileSystemS3() {
+    if(fs instanceof S3FileSystem || fs instanceof NativeS3FileSystem)
+      isS3Fs = true;
   }
 
   protected FileMap<CollectorFile> createFileMap() throws IOException {
@@ -170,20 +179,17 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     super.resetCurrentFileSettings();
     currentOffset = 0;
     moveToNext = false;
+    if (builder.length() != 0) {
+      LOG.warn("Discarding partial message " + builder.toString());
+      builder.setLength(0);
+    }
   }
 
   protected void skipOldData()
       throws IOException {
-    if (sameStream) {
+    if (sameStream && !isS3Fs) {
       LOG.info("Seeking to offset:" + currentOffset);
-      try {
-        inStream.seek(currentOffset);
-      } catch (IOException e) {
-        LOG.warn(
-            "Ignoring seek exception which can be encountered while seeking beyond EOF", e);
-        skipLines(currentLineNum);
-        currentOffset = inStream.getPos();
-      }
+      inStream.seek(currentOffset);
     } else {
       skipLines(currentLineNum);
       sameStream = true;

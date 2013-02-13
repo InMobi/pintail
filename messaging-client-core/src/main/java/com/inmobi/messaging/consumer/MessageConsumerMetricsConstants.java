@@ -9,4 +9,5 @@ public interface MessageConsumerMetricsConstants {
   public static final String MESSAGES_CONSUMED = "messagesConsumed";
   public static final String MARK_CALLS = "markCalls";
   public static final String RESET_CALLS = "resetCalls";
+  public static final String TIMEOUTS_NEXT_CALL = "timeouts";
 }
