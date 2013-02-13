@@ -77,7 +77,7 @@ Usage: $0 file <topic> <file> --conf <confdir>
        $0 multitopicseqgen <topic1> <topic2> <maxSeq> --conf <confdir>
        $0 migrate-checkpoint <confFile>
        $0 audit -rootdir <hdfs root dir> [-cutoff <cuttofTimeInMins>] [-timeout <timeoutInMins>] [-group <TIER,HOSTNAME,TOPIC>] 
-          [-filter tier='abc',hostname='xyz',topic='ABC'] fromTime(dd-mm-yyyy-HH:mm) toTime(dd-mm-yyyy-HH:mm) --conf <confdir>
+          [-filter <TIER=xxx,HOSTNAME=xxx,TOPIC=xxx>] <dd-mm-yyyy-HH:mm> <dd-mm-yyyy-HH:mm> --conf <confdir>
 EOF
 }
 

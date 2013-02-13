@@ -21,7 +21,6 @@ import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.MessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
 import com.inmobi.messaging.consumer.audit.AuditStatsQuery;
-import com.inmobi.messaging.consumer.audit.Tier;
 import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 import com.inmobi.messaging.publisher.MessagePublisherFactory;
 import com.inmobi.messaging.util.AuditUtil;
@@ -76,6 +75,8 @@ public class StreamingBenchmark {
     String auditEndTime = null;
     String auditRootDir = null;
     String auditTopic = null;
+    String auditCutOff = null;
+    String auditTimeout = null;
     SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy-HH:mm");
 
     if (args.length >= minArgs) {
@@ -154,6 +155,8 @@ public class StreamingBenchmark {
       auditStartTime = formatter.format(now);
       auditRootDir = config.getString(AuditStatsQuery.ROOT_DIR_KEY) + "/system";
       auditTopic = config.getString(MessageConsumerFactory.TOPIC_NAME_KEY);
+      auditCutOff = config.getString("audit.cutoff.min","10");
+      auditTimeout = config.getString("audit.timeout.min","1");
 
       // create and start consumer
       assert(config != null);
@@ -199,7 +202,7 @@ public class StreamingBenchmark {
     if (runConsumer) {
       // start audit thread to perform audit query
       AuditThread auditThread = createAuditThread(auditTopic, auditRootDir,
-    		  auditStartTime, auditEndTime, maxSent);
+    		  auditStartTime, auditEndTime, auditCutOff, auditTimeout, maxSent);
       auditThread.start();
       
       // wait for audit thread to join
@@ -235,9 +238,9 @@ public class StreamingBenchmark {
         hadoopConsumer, maxSize);    
   }
   
-  static AuditThread createAuditThread(String topic, String rootDir, 
-		  String fromTime, String toTime, long maxMessages) {
-	  return new AuditThread(topic, rootDir, fromTime, toTime, maxMessages);
+  static AuditThread createAuditThread(String topic, String rootDir,  String fromTime,
+		  String toTime, String cutoff, String timeout, long maxMessages) {
+	  return new AuditThread(topic, rootDir, fromTime, toTime, cutoff, timeout, maxMessages);
   }
 
   static class Producer extends Thread {
@@ -540,24 +543,28 @@ public class StreamingBenchmark {
 	final String rootDir;
 	final String startTime;
 	final String endTime;
+	final String cutoff;
+	final String timeout;
 	final long maxMessages;
 	boolean success = false;
 	  
-	AuditThread(String topic, String rootDir, String startTime, 
-			String endTime, long maxMessages) {
+	AuditThread(String topic, String rootDir, String startTime, String endTime,
+			String cutoff, String timeout, long maxMessages) {
       this.topic = topic;
       this.rootDir = rootDir;
       this.startTime = startTime;
       this.endTime = endTime;
+      this.cutoff = cutoff;
+      this.timeout = timeout;
       this.maxMessages = maxMessages;
 	}
-	  
+	
 	@Override
 	public void run() {
       System.out.println("Audit Thread started!");
 		  
 	  AuditStatsQuery auditQuery = new AuditStatsQuery(rootDir, endTime, startTime,
-			  "TOPIC=" + topic, "TIER", "10", "2", null, Tier.COLLECTOR, maxMessages);
+			  "TOPIC=" + topic, "TIER", cutoff, timeout, null);
 		  
       try {
 		auditQuery.execute();
@@ -568,21 +575,20 @@ public class StreamingBenchmark {
 	  }
       
       System.out.println("Displaying results for Audit Query: " + auditQuery);
-
 	  // display audit query results
 	  auditQuery.displayResults();
-		  
+	  
 	  // validate that all tiers have received same number of messages equal to maxMessages
 	  Collection<Long> recvdMessages = auditQuery.getReceived().values();
 	  boolean match = true;
 	  for (Long msgCount : recvdMessages) {
-	    if (msgCount != maxMessages) {
+		if (msgCount != maxMessages) {
 		  match = false;
 		  break;
-	    }
+		}
 	  }
 	  if (match == true) {
-		  success = true;
+		success = true;
 	  }
 
 	  System.out.println("Audit Thread closed");
