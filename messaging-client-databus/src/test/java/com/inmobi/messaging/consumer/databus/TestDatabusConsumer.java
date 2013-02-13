@@ -33,6 +33,16 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
         TestUtil.files[2]};
     super.setup(1);
   }
+  
+  @Test
+  public void testTimeoutStats() throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+        rootDirs[0].toUri().toString());
+    config.set(DatabusConsumerConfig.checkpointDirConfig, ck1);
+    ConsumerUtil.testTimeoutStats(config, testStream, consumerName, 
+        CollectorStreamReader.getDateFromCollectorFile(dataFiles[0]), false);
+  }
 
   @Test
   public void testMarkAndReset() throws Exception {

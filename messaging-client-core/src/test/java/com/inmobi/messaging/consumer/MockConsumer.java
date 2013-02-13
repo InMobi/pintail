@@ -2,6 +2,7 @@ package com.inmobi.messaging.consumer;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
 import com.inmobi.messaging.ClientConfig;
@@ -45,6 +46,12 @@ public class MockConsumer extends AbstractMessageConsumer {
 
   @Override
   protected void doReset() throws IOException {
+  }
+  
+  @Override
+  protected Message getNext(long timeout, TimeUnit timeunit)
+      throws InterruptedException {
+    return null;
   }
 
 }

@@ -44,7 +44,6 @@ public class TestAbstractInputFormat {
   protected Cluster cluster;
   protected TaskAttemptID taskId;
 
-  @BeforeTest
   public void setUp() throws Exception {
     readMessages = new ArrayList<Message>();
     fs = rootDir.getFileSystem(conf);
