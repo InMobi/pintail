@@ -287,10 +287,11 @@ public class AuditStatsQuery {
       formatter.setTimeZone(TimeZone.getTimeZone(timezone));
     return "AuditStatsQuery [fromTime=" + formatter.format(fromTime)
         + ", toTime=" + formatter.format(toTime) + ", cutoffTime=" + cutoffTime
-        + ", groupBy=" + groupBy + ", filter=" + filter + "]";
+        + ", groupBy=" + groupBy + ", filter=" + filter + ", timeout=" + timeout 
+        + ", rootdir=" + rootDir + "]";
   }
 
-  private void displayResults() {
+  public void displayResults() {
     if (isTimeOut) {
       System.out
           .println("Query was stopped due to timeout limit,Partial Result Possible");

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
@@ -20,6 +21,7 @@ import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.MessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
 import com.inmobi.messaging.consumer.audit.AuditStatsQuery;
+import com.inmobi.messaging.consumer.audit.Tier;
 import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 import com.inmobi.messaging.publisher.MessagePublisherFactory;
 import com.inmobi.messaging.util.AuditUtil;
@@ -197,13 +199,19 @@ public class StreamingBenchmark {
     if (runConsumer) {
       // start audit thread to perform audit query
       AuditThread auditThread = createAuditThread(auditTopic, auditRootDir,
-    		  auditStartTime, auditEndTime);
+    		  auditStartTime, auditEndTime, maxSent);
       auditThread.start();
       
       // wait for audit thread to join
       assert (auditThread != null);
       auditThread.join(consumerTimeout * 1000);
       System.out.println("Audit thread state: "+ auditThread.getState());
+      
+      if (!auditThread.success) {
+    	System.out.println("Audit validation FAILED!");
+      } else {
+    	System.out.println("Audit validation SUCCESS!");
+      }
     	
       if (!consumer.success) {
         System.out.println("Data validation FAILED!");
@@ -228,8 +236,8 @@ public class StreamingBenchmark {
   }
   
   static AuditThread createAuditThread(String topic, String rootDir, 
-		  String fromTime, String toTime) {
-	  return new AuditThread(topic, rootDir, fromTime, toTime);
+		  String fromTime, String toTime, long maxMessages) {
+	  return new AuditThread(topic, rootDir, fromTime, toTime, maxMessages);
   }
 
   static class Producer extends Thread {
@@ -528,47 +536,57 @@ public class StreamingBenchmark {
   }
   
   static class AuditThread extends Thread {
-	  final String topic;
-	  final String rootDir;
-	  final String startTime;
-	  final String endTime;
+	final String topic;
+	final String rootDir;
+	final String startTime;
+	final String endTime;
+	final long maxMessages;
+	boolean success = false;
 	  
-	  AuditThread(String topic, String rootDir, String startTime, String endTime) {
-		  this.topic = topic;
-		  this.rootDir = rootDir;
-		  this.startTime = startTime;
-		  this.endTime = endTime;
-	  }
+	AuditThread(String topic, String rootDir, String startTime, 
+			String endTime, long maxMessages) {
+      this.topic = topic;
+      this.rootDir = rootDir;
+      this.startTime = startTime;
+      this.endTime = endTime;
+      this.maxMessages = maxMessages;
+	}
 	  
-	  @Override
-	  public void run() {
-		  System.out.println("Audit Thread started!");
+	@Override
+	public void run() {
+      System.out.println("Audit Thread started!");
 		  
-		  // prepare args to AuditStatsQuery
-		  String args[] = new String[12];
-		  args[0] = "-filter";
-		  args[1] = "TOPIC=" + topic;
-		  args[2] = "-group";
-		  args[3] = "tier";
-		  args[4] = "-rootdir";
-		  args[5] = rootDir;
-		  args[6] = startTime;
-		  args[7] = endTime;
-		  args[8] = "-cutoff";
-		  args[9] = "10";
-		  args[10] = "-timeout";
-		  args[11] = "2";
+	  AuditStatsQuery auditQuery = new AuditStatsQuery(rootDir, endTime, startTime,
+			  "TOPIC=" + topic, "TIER", "10", "2", null, Tier.COLLECTOR, maxMessages);
 		  
-		  // print audit arguments
-		  StringBuffer auditArgs = new StringBuffer(100);
-		  for (int i = 0; i < args.length; i++) {
-			  auditArgs.append(args[i]).append(" ");
-		  }
-		  System.out.println("Executing Audit Query with arguments: " + auditArgs);
-		  
-		  AuditStatsQuery.main(args);
-		  System.out.println("Audit Thread closed");
+      try {
+		auditQuery.execute();
+	  } catch (Exception e) {
+		System.out.println("Audit Query execute failed with exception: " + e.getMessage());
+		e.printStackTrace();
+		return;
 	  }
+      
+      System.out.println("Displaying results for Audit Query: " + auditQuery);
+
+	  // display audit query results
+	  auditQuery.displayResults();
+		  
+	  // validate that all tiers have received same number of messages equal to maxMessages
+	  Collection<Long> recvdMessages = auditQuery.getReceived().values();
+	  boolean match = true;
+	  for (Long msgCount : recvdMessages) {
+	    if (msgCount != maxMessages) {
+		  match = false;
+		  break;
+	    }
+	  }
+	  if (match == true) {
+		  success = true;
+	  }
+
+	  System.out.println("Audit Thread closed");
+	}
   }
   
 }
