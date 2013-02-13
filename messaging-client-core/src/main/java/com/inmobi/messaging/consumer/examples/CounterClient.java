@@ -23,18 +23,24 @@ public class CounterClient {
   static volatile boolean keepRunnig = true;
   public static void main(String[] args) throws Exception {
     final Thread mainThread = Thread.currentThread();
+    long timeout = 300;
     if (args.length == 0) {
       System.out.println("start time is not provided. Starts from the last " +
           "marked position");
       consumer = MessageConsumerFactory.create();
-    } else if (args.length == 1) {
+    } else if (args.length >= 1) {
       Calendar now = Calendar.getInstance();
       Integer min = Integer.parseInt(args[0]);
+      
+      if (args.length == 2) {
+        timeout = Long.parseLong(args[1]);
+      }
       now.add(Calendar.MINUTE, - (min.intValue()));
       consumer = MessageConsumerFactory.create(now.getTime());
     } else {
       consumer = null;
-      System.out.println("Usage: counterclient <minutes-to-read-from> ");
+      System.out.println("Usage: counterclient [<minutes-to-read-from>] " +
+      		"[<time-to-wait-NextMessage>]");
       System.exit(-1);
     }
 
@@ -56,12 +62,13 @@ public class CounterClient {
     });
     while (keepRunnig) {
       try {
-        for (int i = 0; i < 1000; ) {
-          Message msg = consumer.next(60, TimeUnit.SECONDS);
-          if (msg != null) {
-            msgCounter++;
-            i++;
-          }        
+        for (int i = 0; i < 1000; i++) {
+          Message msg = consumer.next(timeout, TimeUnit.SECONDS);
+          if (msg == null) {
+            keepRunnig = false;
+            break;
+          }
+          msgCounter++;
         }
         System.out.println("Counter:" + msgCounter);
         markCounter++;

@@ -272,10 +272,11 @@ public class ConsumerUtil {
     consumer.init(streamName, consumerName, startTime, config);
     Assert.assertEquals(consumer.getTopicName(), streamName);
     Assert.assertEquals(consumer.getConsumerName(), consumerName);
-    for (int i = 0; i < 120; i++) {
-      consumer.next(1, TimeUnit.SECONDS);
+    for (int i = 0; i < 300; i++) {
+      consumer.next(60, TimeUnit.SECONDS);
     }
     consumer.mark();
+    
     ConsumerCheckpoint expectedCheckpoint = consumer.getCurrentCheckpoint();
     Map<PartitionId, PartitionCheckpoint> lastCheckpoint = new 
         HashMap<PartitionId, PartitionCheckpoint>();
@@ -284,12 +285,11 @@ public class ConsumerUtil {
     //create consumer checkpoint
     createCheckpointList(expectedCheckpoint, checkpointMap, lastCheckpoint, 
         consumer);
+    for (int i = 300; i < 310; i++) {
+      consumer.next(60, TimeUnit.SECONDS);
+    }
     compareConsumerCheckpoints(expectedCheckpoint, checkpointMap, 
         lastCheckpoint, consumer);
-    for (int i = 120; i < 310; i++) {
-      consumer.next(1, TimeUnit.SECONDS);
-    }
-    
     Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
         consumer.getMetrics())).getNumMessagesConsumed(), 300);
     Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
