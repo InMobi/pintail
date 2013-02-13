@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
 import com.inmobi.messaging.Message;
@@ -51,8 +52,29 @@ public class MockInMemoryConsumer extends AbstractMessageConsumer {
     return msg;
   }
 
+  @Override
   public synchronized Message next() throws InterruptedException {
     Message msg = getNext();
+    return msg;
+  }
+
+  @Override
+  public synchronized Message next(long timeout, TimeUnit timeunit)
+      throws InterruptedException {
+    Message msg = getNext(timeout, timeunit);
+    return msg;
+  }
+
+  @Override
+  protected Message getNext(long timeout, TimeUnit timeunit)
+      throws InterruptedException {
+    BlockingQueue<Message> queue = source.get(topicName);
+    if (queue == null)
+      queue = new LinkedBlockingQueue<Message>();
+    Message msg = queue.poll(timeout, timeunit);
+    if (msg == null)
+      return null;
+    msg.set(AuditUtil.removeHeader(msg.getData().array()));
     return msg;
   }
 

@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.thrift.TDeserializer;
 import org.apache.thrift.TException;
@@ -90,28 +91,6 @@ public class AuditStatsQuery {
     this.maxMessages = maxMessages;
   }
 
-  class ConsumerWorker extends Thread {
-    private Message message = null;
-    private MessageConsumer consumer;
-
-    ConsumerWorker(MessageConsumer consumer) {
-      this.consumer = consumer;
-    }
-
-    @Override
-    public void run() {
-      try {
-        message = null;
-        message = consumer.next();
-      } catch (InterruptedException e) {
-        LOG.debug("Consumer Thread interuppted", e);
-        isTimeOut = true;
-      }
-
-    }
-
-  }
-
   private boolean isCutoffReached(long timestamp) {
     if (messageCount >= maxMessages)
       isMaxMsgsProcessed = true;
@@ -127,14 +106,9 @@ public class AuditStatsQuery {
     currentTime = 0;
 
     do {
-      ConsumerWorker consumerThread = new ConsumerWorker(consumer);
-      consumerThread.start();
-      consumerThread.join(timeout);
-      if (consumerThread.message == null) {
-        consumerThread.interrupt();
+      message = consumer.next(timeout, TimeUnit.MILLISECONDS);// consumerThread.message;
+      if (message == null)
         break;
-      }
-      message = consumerThread.message;
       packet = new AuditMessage();
       deserialize.deserialize(packet, message.getData().array());
       LOG.debug("Packet read is " + packet);
