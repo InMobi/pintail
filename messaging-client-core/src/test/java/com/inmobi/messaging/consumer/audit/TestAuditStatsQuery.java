@@ -27,7 +27,7 @@ import com.inmobi.messaging.util.AuditUtil;
 public class TestAuditStatsQuery {
   private MessagePublisher publisher;
   private String startTime, endTime;
-  private Date startDate;
+  private Date startDate, endDate;
 
   private int totalData = 10;// put an even no.
   String topic = "topic1";
@@ -67,7 +67,7 @@ public class TestAuditStatsQuery {
     for (int i = 0; i < totalData / 2; i++) {
       publisher.publish(topic1, new Message(msg.getBytes()));
     }
-    Date endDate = new Date();
+    endDate = new Date();
     endTime = formatter.format(endDate);
   }
 
@@ -179,18 +179,17 @@ public class TestAuditStatsQuery {
     publisher = MessagePublisherFactory.create(config);
     assert (publisher instanceof com.inmobi.messaging.publisher.MockInMemoryPublisher);
     generateData(topic2, topic3);
-
+    System.out.println(startTime + " " + endTime);
     AuditStatsQuery query = new AuditStatsQuery("mock", endTime, startTime,
         "topic=" + topic2, null, null, "1", null);
     query.parseAndSetArguments();
     query.timeout = 200;
     query.cutoffTime = 60000;
-    Thread.sleep(61000);
+    Thread.sleep(62000);
     generateData(topic2, topic3);
-
     publisher.close();
-    query.filter = new Filter("topic=" + topic2);
-    query.groupBy = new GroupBy(null);
+    // query.filter = new Filter("topic=" + topic2);
+    // query.groupBy = new GroupBy(null);
     MessageConsumer consumer = query.getConsumer(startDate, "mock");
     ((MockInMemoryConsumer) consumer)
         .setSource(((MockInMemoryPublisher) (publisher)).source);
