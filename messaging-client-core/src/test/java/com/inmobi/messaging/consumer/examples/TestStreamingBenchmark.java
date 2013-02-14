@@ -8,6 +8,7 @@ import org.testng.annotations.Test;
 
 import com.inmobi.messaging.consumer.MockConsumer;
 import com.inmobi.messaging.publisher.MockPublisher;
+import com.inmobi.messaging.util.AuditUtil;
 
 public class TestStreamingBenchmark {
 
@@ -125,8 +126,9 @@ public class TestStreamingBenchmark {
     args.add(Integer.toString(msgSize));
     MockPublisher.reset(); 
     exitcode = StreamingBenchmark.run(args.toArray(new String[0]));
-    String[] msg = StreamingBenchmark.getMessage(MockPublisher.getMsg(topic),
-        false).split(StreamingBenchmark.DELIMITER);
+    String msgRead = StreamingBenchmark.getMessage(MockPublisher.getMsg(topic), false); 
+    String message = new String (AuditUtil.removeHeader(msgRead.getBytes()).array());
+    String[] msg = message.split(StreamingBenchmark.DELIMITER);
     Assert.assertEquals(exitcode, 0);
     Assert.assertEquals(msg.length, 3);
     Assert.assertEquals(Long.parseLong(msg[0]), numMessages);
