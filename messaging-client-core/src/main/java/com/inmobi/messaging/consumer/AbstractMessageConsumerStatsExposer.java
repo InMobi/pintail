@@ -4,8 +4,8 @@ import java.util.Map;
 
 import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
 
-public abstract class AbstractMessageConsumerStatsExposer extends 
-    AbstractMessagingClientStatsExposer implements 
+public abstract class AbstractMessageConsumerStatsExposer extends
+    AbstractMessagingClientStatsExposer implements
     MessageConsumerMetricsConstants {
 
   private final String topicName;
@@ -19,6 +19,6 @@ public abstract class AbstractMessageConsumerStatsExposer extends
 
   protected void addToContextsMap(Map<String, String> contexts) {
     contexts.put(TOPIC_CONTEXT, topicName);
-    contexts.put(CONSUMER_CONTEXT, consumerName);    
+    contexts.put(CONSUMER_CONTEXT, consumerName);
   }
 }

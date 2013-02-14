@@ -43,10 +43,10 @@ public class AuditCounterAccumulator {
     Long window = getWindow(timestamp);
     lock.readLock().lock();
     try {
-    if (!sent.containsKey(window)) {
-      sent.putIfAbsent(window, new AtomicLong(0));
-    }
-    sent.get(window).incrementAndGet();
+      if (!sent.containsKey(window)) {
+        sent.putIfAbsent(window, new AtomicLong(0));
+      }
+      sent.get(window).incrementAndGet();
     } finally {
       lock.readLock().unlock();
     }
@@ -56,8 +56,8 @@ public class AuditCounterAccumulator {
     lock.writeLock().lock();// only 1 thread should be resetting one instance of
                             // accumulator at a time
     try {
-    received = new ConcurrentHashMap<Long, AtomicLong>();
-    sent = new ConcurrentHashMap<Long, AtomicLong>();
+      received = new ConcurrentHashMap<Long, AtomicLong>();
+      sent = new ConcurrentHashMap<Long, AtomicLong>();
     } finally {
       lock.writeLock().unlock();
     }

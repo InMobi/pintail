@@ -31,7 +31,8 @@ class AuditService {
   private static final int DEFAULT_AGGREGATE_WINDOW_SIZE = 60;
   private int windowSize;
   private int aggregateWindowSize;
-  final ConcurrentHashMap<String, AuditCounterAccumulator> topicAccumulatorMap = new ConcurrentHashMap<String, AuditCounterAccumulator>();
+  final ConcurrentHashMap<String, AuditCounterAccumulator> topicAccumulatorMap = 
+      new ConcurrentHashMap<String, AuditCounterAccumulator>();
   private final String tier = "publisher";
   private ScheduledThreadPoolExecutor executor;
   private boolean isInit = false;
@@ -43,6 +44,7 @@ class AuditService {
 
   class AuditWorker implements Runnable {
     private final TSerializer serializer = new TSerializer();
+
     @Override
     public void run() {
       try {
@@ -74,8 +76,8 @@ class AuditService {
     private void publishPacket(AuditMessage packet) {
       try {
         LOG.debug("Publishing audit packet" + packet);
-        publisher.publish(AuditUtil.AUDIT_STREAM_TOPIC_NAME,
-            new Message(ByteBuffer.wrap(serializer.serialize(packet))));
+        publisher.publish(AuditUtil.AUDIT_STREAM_TOPIC_NAME, new Message(
+            ByteBuffer.wrap(serializer.serialize(packet))));
       } catch (TException e) {
         LOG.error("Error while serializing the audit packet " + packet, e);
       }
@@ -146,7 +148,7 @@ class AuditService {
 
   public synchronized void close() {
     if (executor != null) {
-    executor.shutdown();
+      executor.shutdown();
     }
   }
 
@@ -155,7 +157,6 @@ class AuditService {
       worker.flush(); // flushing the last audit packet during shutdown
     }
   }
-
 
   public void incrementReceived(String topicName, Long timestamp) {
     AuditCounterAccumulator accumulator = getAccumulator(topicName);

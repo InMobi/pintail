@@ -27,10 +27,8 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
 
   private static final Logger LOG = LoggerFactory
       .getLogger(AbstractMessagePublisher.class);
-  private Map<String, TopicStatsExposer> statsExposers =
-      new HashMap<String, TopicStatsExposer>();
-  private MessagingClientStatBuilder statsEmitter = 
-      new MessagingClientStatBuilder();
+  private Map<String, TopicStatsExposer> statsExposers = new HashMap<String, TopicStatsExposer>();
+  private MessagingClientStatBuilder statsEmitter = new MessagingClientStatBuilder();
   public static final String HEADER_TOPIC = "topic";
   private static final String AUDIT_ENABLED_KEY = "audit.enabled";
   private boolean isAuditEnabled = true;
@@ -70,6 +68,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
       auditService.flush();
 
   }
+
   protected void initTopic(String topic, TimingAccumulator stats) {
   }
 
@@ -132,7 +131,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
       statsEmitter.remove(statsExposer);
     }
     if (isAuditEnabled) {
-    auditService.close();
+      auditService.close();
     }
   }
 

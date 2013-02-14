@@ -11,8 +11,7 @@ public class Filter {
   public Filter(String input) {
     if (input == null) {
       filters = null;
-    }
- else {
+    } else {
       filters = new HashMap<Column, String>();
       String inputSplit[] = input.split(",");
       for (int i = 0; i < inputSplit.length; i++) {

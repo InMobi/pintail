@@ -29,7 +29,6 @@ enum Column {
   TIER, HOSTNAME, TOPIC
 }
 
-
 public class AuditStatsQuery {
 
   Map<Group, Long> received;
@@ -43,7 +42,7 @@ public class AuditStatsQuery {
   }
 
   Map<Group, Long> sent;
-  private static final int minArgs = 4;
+  private static final int minArgs = 2;
 
   private static final Logger LOG = LoggerFactory
       .getLogger(AuditStatsQuery.class);
@@ -53,6 +52,7 @@ public class AuditStatsQuery {
   long timeout = 60000;
   private static final String MESSAGE_CLIENT_CONF_FILE = "audit-consumer-conf.properties";
   public static final String ROOT_DIR_KEY = "databus.consumer.rootdirs";
+  public static final String CONSUMER_CLASS_KEY = "consumer.classname";
   private boolean isTimeOut = false;
   private boolean isMaxMsgsProcessed = false;
   long currentTime;
@@ -65,6 +65,8 @@ public class AuditStatsQuery {
   private long messageCount = 0;
   private Tier cutoffTier = null;
   private String timezone;
+  public static final String CONSUMER_CLASSNAME = "com.inmobi.messaging.consumer.databus.DatabusConsumer";
+  public static final String CONSUMER_NAME = "audit-consumer";
 
   public AuditStatsQuery(String rootDir, String toTimeString,
       String fromTimeString, String filterString, String groupByString,
@@ -106,7 +108,7 @@ public class AuditStatsQuery {
     currentTime = 0;
 
     do {
-      message = consumer.next(timeout, TimeUnit.MILLISECONDS);// consumerThread.message;
+      message = consumer.next(timeout, TimeUnit.MILLISECONDS);
       if (message == null)
         break;
       packet = new AuditMessage();
@@ -230,7 +232,7 @@ public class AuditStatsQuery {
         }
 
       }
-      if (fromTime == null || toTime == null || rootDir == null) {
+      if (fromTime == null || toTime == null) {
         printUsage();
         System.exit(-1);
       }
@@ -261,8 +263,8 @@ public class AuditStatsQuery {
       formatter.setTimeZone(TimeZone.getTimeZone(timezone));
     return "AuditStatsQuery [fromTime=" + formatter.format(fromTime)
         + ", toTime=" + formatter.format(toTime) + ", cutoffTime=" + cutoffTime
-        + ", groupBy=" + groupBy + ", filter=" + filter + ", timeout=" + timeout 
-        + ", rootdir=" + rootDir + "]";
+        + ", groupBy=" + groupBy + ", filter=" + filter + ", timeout="
+        + timeout + ", rootdir=" + rootDir + "]";
   }
 
   public void displayResults() {
@@ -285,8 +287,7 @@ public class AuditStatsQuery {
     }
   }
 
-  MessageConsumer getConsumer(Date fromTime, String rootDir)
-      throws IOException {
+  MessageConsumer getConsumer(Date fromTime, String rootDir) throws IOException {
     Calendar calendar = Calendar.getInstance();
     if (timezone != null)
       calendar.setTimeZone(TimeZone.getTimeZone(timezone));
@@ -295,15 +296,19 @@ public class AuditStatsQuery {
 
     ClientConfig config = ClientConfig
         .loadFromClasspath(MESSAGE_CLIENT_CONF_FILE);
-    config.set(ROOT_DIR_KEY, rootDir);
+    if (rootDir != null) {
+      config.set(ROOT_DIR_KEY, rootDir);
+    }
     LOG.info("Intializing pintail from " + calendar.getTime());
-    return MessageConsumerFactory.create(config, calendar.getTime());
+    return MessageConsumerFactory.create(config,
+        config.getString(CONSUMER_CLASS_KEY, CONSUMER_CLASSNAME),
+        AuditUtil.AUDIT_STREAM_TOPIC_NAME, CONSUMER_NAME, calendar.getTime());
   }
 
   private static void printUsage() {
     StringBuffer usage = new StringBuffer();
     usage.append("Usage : AuditStatsQuery ");
-    usage.append("-rootdir <hdfs root dir>");
+    usage.append("[-rootdir <hdfs root dir>]");
     usage.append("[-cutoff <cuttofTimeInMins>]");
     usage.append("[-timeout <timeoutInMins>]");
 

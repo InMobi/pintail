@@ -15,18 +15,17 @@ import com.inmobi.messaging.Message;
  * It provides the access to configuration parameters({@link ClientConfig}) for
  * consumer interface
  * 
- * It initializes topic name, consumer name and startTime. 
- * startTime is the time from which messages should be consumed. 
+ * It initializes topic name, consumer name and startTime. startTime is the time
+ * from which messages should be consumed.
  * <ul>
- * <li>if no
- * startTime is passed, messages will be consumed from last marked position.
+ * <li>if no startTime is passed, messages will be consumed from last marked
+ * position.
  * <li>
  * If there is no last marked position, messages will be consumed from the
  * starting of the available stream i.e. all messages that are not purged.
- * <li>If startTime or last marked position is beyond the retention
- * period of the stream, messages will be consumed from starting of the
- * available stream.
- *</ul>
+ * <li>If startTime or last marked position is beyond the retention period of
+ * the stream, messages will be consumed from starting of the available stream.
+ * </ul>
  */
 public abstract class AbstractMessageConsumer implements MessageConsumer {
 
@@ -35,14 +34,14 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
   protected String consumerName;
   protected Date startTime;
   private BaseMessageConsumerStatsExposer metrics;
-  private MessagingClientStatBuilder statsEmitter = 
-      new MessagingClientStatBuilder();
+  private MessagingClientStatBuilder statsEmitter = new MessagingClientStatBuilder();
 
   /**
    * Initialize the consumer with passed configuration object
    * 
-   * @param config {@link ClientConfig} for the consumer
-   * @throws IOException 
+   * @param config
+   *          {@link ClientConfig} for the consumer
+   * @throws IOException
    */
   protected void init(ClientConfig config) throws IOException {
     this.config = config;
@@ -55,8 +54,8 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
   protected abstract void doReset() throws IOException;
 
   protected abstract Message getNext() throws InterruptedException;
-  
-  protected abstract Message getNext(long timeout, TimeUnit timeunit) 
+
+  protected abstract Message getNext(long timeout, TimeUnit timeunit)
       throws InterruptedException;
 
   public synchronized Message next() throws InterruptedException {
@@ -64,8 +63,8 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
     metrics.incrementMessagesConsumed();
     return msg;
   }
-  
-  public synchronized Message next(long timeout, TimeUnit timeunit) 
+
+  public synchronized Message next(long timeout, TimeUnit timeunit)
       throws InterruptedException {
     Message msg = getNext(timeout, timeunit);
     if (msg != null) {
@@ -91,14 +90,18 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
   }
 
   /**
-   * Initialize the consumer with passed configuration object, streamName and 
+   * Initialize the consumer with passed configuration object, streamName and
    * consumerName and startTime.
    * 
-   * @param topicName Name of the topic being consumed
-   * @param consumerName Name of the consumer
-   * @param startTime Starting time from which messages should be consumed
-   * @param config {@link ClientConfig} for the consumer
-   * @throws IOException 
+   * @param topicName
+   *          Name of the topic being consumed
+   * @param consumerName
+   *          Name of the consumer
+   * @param startTime
+   *          Starting time from which messages should be consumed
+   * @param config
+   *          {@link ClientConfig} for the consumer
+   * @throws IOException
    */
   public void init(String topicName, String consumerName, Date startTimestamp,
       ClientConfig config) throws IOException {
@@ -106,8 +109,8 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
     this.consumerName = consumerName;
     this.startTime = startTimestamp;
     // do not accept start time in future
-    if (startTime != null && 
-        startTime.after(new Date(System.currentTimeMillis()))) {
+    if (startTime != null
+        && startTime.after(new Date(System.currentTimeMillis()))) {
       throw new IllegalArgumentException("Future start time is not accepted");
     }
     metrics = (BaseMessageConsumerStatsExposer) getMetricsImpl();
@@ -167,7 +170,7 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
 
   /**
    * Add statsExposer to the emitter.
-   *  
+   * 
    * @param statsExposer
    */
   protected void addStatsExposer(
@@ -184,6 +187,7 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
       AbstractMessageConsumerStatsExposer statsExposer) {
     statsEmitter.remove(statsExposer);
   }
+
   /**
    * Get the client stats object
    * 
