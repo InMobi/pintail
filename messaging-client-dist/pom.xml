@@ -13,14 +13,6 @@
   <name>messaging-client distribution</name>
   <packaging>pom</packaging>
 
-  <repositories>
-    <repository>
-      <id>codehaus</id>
-      <name>codehaus mojo</name>
-      <url>http://repository.codehaus.org/org/codehaus/mojo/</url>
-    </repository>
-  </repositories>
-
   <profiles>
     <profile>
       <id>jenkins</id>

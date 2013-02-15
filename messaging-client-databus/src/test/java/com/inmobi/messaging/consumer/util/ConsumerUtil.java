@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 import org.testng.Assert;
 
@@ -262,6 +263,37 @@ public class ConsumerUtil {
         consumer.getMetrics())).getNumResetCalls(), 0);
     Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
         consumer.getMetrics())).getNumMessagesConsumed(), 60); 
+  }
+  
+  public static void testTimeoutStats(ClientConfig config, String streamName,
+      String consumerName, Date startTime, boolean hadoop) 
+          throws Exception {
+    AbstractMessagingDatabusConsumer consumer = createConsumer(hadoop);
+    consumer.init(streamName, consumerName, startTime, config);
+    Assert.assertEquals(consumer.getTopicName(), streamName);
+    Assert.assertEquals(consumer.getConsumerName(), consumerName);
+    for (int i = 0; i < 300; i++) {
+      consumer.next(60, TimeUnit.SECONDS);
+    }
+    consumer.mark();
+    
+    ConsumerCheckpoint expectedCheckpoint = consumer.getCurrentCheckpoint();
+    Map<PartitionId, PartitionCheckpoint> lastCheckpoint = new 
+        HashMap<PartitionId, PartitionCheckpoint>();
+    Map<Integer, Checkpoint> checkpointMap = new 
+        HashMap<Integer, Checkpoint>();
+    //create consumer checkpoint
+    createCheckpointList(expectedCheckpoint, checkpointMap, lastCheckpoint, 
+        consumer);
+    for (int i = 300; i < 310; i++) {
+      consumer.next(1, TimeUnit.SECONDS);
+    }
+    compareConsumerCheckpoints(expectedCheckpoint, checkpointMap, 
+        lastCheckpoint, consumer);
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMessagesConsumed(), 300);
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumOfTiemOutsOnNext(), 10);
   }
 
   public static void testMarkAndReset(ClientConfig config, String streamName,

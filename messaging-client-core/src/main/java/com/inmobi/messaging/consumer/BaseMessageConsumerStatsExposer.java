@@ -11,6 +11,7 @@ public class BaseMessageConsumerStatsExposer extends
   private final AtomicLong numMessagesConsumed = new AtomicLong(0);
   private final AtomicLong numMarkCalls = new AtomicLong(0);
   private final AtomicLong numResetCalls = new AtomicLong(0);
+  private final AtomicLong numOfTimeoutsOnNextCall = new AtomicLong(0);
 
   public BaseMessageConsumerStatsExposer(String topicName, String consumerName)
   {
@@ -28,6 +29,10 @@ public class BaseMessageConsumerStatsExposer extends
   public void incrementResetCalls() {
     numResetCalls.incrementAndGet();
   }
+  
+  public void incrementTimeOutsOnNext() {
+    numOfTimeoutsOnNextCall.incrementAndGet();
+  }
 
   public long getNumMessagesConsumed() {
     return numMessagesConsumed.get();
@@ -40,11 +45,16 @@ public class BaseMessageConsumerStatsExposer extends
   public long getNumResetCalls() {
     return numResetCalls.get();
   }
+  
+  public long getNumOfTiemOutsOnNext() {
+    return numOfTimeoutsOnNextCall.get();
+  }
 
   @Override
   protected void addToStatsMap(Map<String, Number> statsMap) {
     statsMap.put(MESSAGES_CONSUMED, getNumMessagesConsumed());
     statsMap.put(MARK_CALLS, getNumMarkCalls());
     statsMap.put(RESET_CALLS, getNumResetCalls());
+    statsMap.put(TIMEOUTS_NEXT_CALL, getNumOfTiemOutsOnNext());
   }
 }
