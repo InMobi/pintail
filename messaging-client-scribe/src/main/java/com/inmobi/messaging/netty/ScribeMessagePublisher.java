@@ -86,17 +86,26 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher implements
     scribeConnections.get(topic).publish(m);
   }
 
-  protected void flush() {
-    super.flush();
-    for (ScribeTopicPublisher connection : scribeConnections.values()) {
-      connection.flush();
-    }
+  // protected void flush() {
+  // super.flush();
+  // for (ScribeTopicPublisher connection : scribeConnections.values()) {
+  // connection.flush();
+  // }
+  // }
+
+  @Override
+  protected void closeTopic(String topicName) {
+    ScribeTopicPublisher scribePublisher = scribeConnections.get(topicName);
+    if (scribePublisher == null)
+      LOG.warn("Close called on topic[" + topicName + "]"
+          + " for which ScribeTopicPublisher doesn't exist");
+    scribePublisher.close();
   }
 
-  public void close() {
-    super.close();
-    for (ScribeTopicPublisher connection : scribeConnections.values()) {
-      connection.close();
-    }
-  }
+  // public void close() {
+  // super.close();
+  // for (ScribeTopicPublisher connection : scribeConnections.values()) {
+  // connection.close();
+  // }
+  // }
 }

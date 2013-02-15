@@ -5,11 +5,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
-
-
 public class ConsumerUtil {
-  
-
 
   public static Date getCurrenDateForTimeZone(String timezone) {
     TimeZone tz = TimeZone.getTimeZone(timezone);
@@ -25,6 +21,4 @@ public class ConsumerUtil {
 
     return cal.getTime();
   }
-  
-
 }

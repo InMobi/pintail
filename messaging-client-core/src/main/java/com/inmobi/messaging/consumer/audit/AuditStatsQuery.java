@@ -292,6 +292,8 @@ public class AuditStatsQuery {
     if (timezone != null)
       calendar.setTimeZone(TimeZone.getTimeZone(timezone));
     calendar.setTime(fromTime);
+    // since audit topic is getting rolled every hour hence starting the
+    // consumer from 1 hour behind
     calendar.add(Calendar.HOUR_OF_DAY, -1);
 
     ClientConfig config = ClientConfig

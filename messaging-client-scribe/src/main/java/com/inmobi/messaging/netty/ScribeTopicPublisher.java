@@ -297,10 +297,6 @@ public class ScribeTopicPublisher {
     }
   }
 
-  public void flush() {
-    drainAll();
-  }
-
   public void close() {
     stopped = true;
     if (senderThread != null) {
@@ -311,7 +307,7 @@ public class ScribeTopicPublisher {
         LOG.info("join on sender Thread interrupted");
       }
     }
-
+    drainAll();
     LOG.info("Closing the channel");
     handler.prepareClose();
     if (thisChannel != null) {

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.Collection;
+import java.util.concurrent.CountDownLatch;
 
 import org.apache.thrift.TDeserializer;
 import org.apache.thrift.TException;
@@ -27,8 +28,8 @@ public class TestPublisher {
     ClientConfig conf = new ClientConfig();
     conf.set(MessagePublisherFactory.PUBLISHER_CLASS_NAME_KEY,
         MockPublisher.class.getName());
-    AbstractMessagePublisher publisher =
-        (AbstractMessagePublisher) MessagePublisherFactory.create(conf);
+    AbstractMessagePublisher publisher = (AbstractMessagePublisher) MessagePublisherFactory
+        .create(conf);
     doTest(publisher);
     Assert.assertFalse(publisher.getMetrics().statEmissionEnabled());
     Assert.assertNull((publisher.getMetrics().getStatsEmitter()));
@@ -37,12 +38,11 @@ public class TestPublisher {
 
   @Test
   public void testLoadFromClasspath() throws IOException {
-    AbstractMessagePublisher publisher =
-        (AbstractMessagePublisher) MessagePublisherFactory.create();
+    AbstractMessagePublisher publisher = (AbstractMessagePublisher) MessagePublisherFactory
+        .create();
     doTest(publisher);
     Assert.assertTrue(publisher.getMetrics().statEmissionEnabled());
-    Assert.assertTrue((
-(MockStatsEmitter) publisher.getMetrics()
+    Assert.assertTrue(((MockStatsEmitter) publisher.getMetrics()
         .getStatsEmitter()).inited);
   }
 
@@ -50,21 +50,19 @@ public class TestPublisher {
   public void testLoadFromFileName() throws IOException {
     URL url = getClass().getClassLoader().getResource(
         MessagePublisherFactory.MESSAGE_CLIENT_CONF_FILE);
-    AbstractMessagePublisher publisher =
-        (AbstractMessagePublisher) MessagePublisherFactory.create(
-            url.getFile());
+    AbstractMessagePublisher publisher = (AbstractMessagePublisher) MessagePublisherFactory
+        .create(url.getFile());
     doTest(publisher);
     Assert.assertTrue(publisher.getMetrics().statEmissionEnabled());
-    Assert.assertTrue((
-        (MockStatsEmitter)publisher.getMetrics().getStatsEmitter()).inited);
+    Assert.assertTrue(((MockStatsEmitter) publisher.getMetrics()
+        .getStatsEmitter()).inited);
   }
 
   @Test
   public void testLoadFromClassName() throws IOException {
     ClientConfig conf = new ClientConfig();
-    AbstractMessagePublisher publisher = 
-      (AbstractMessagePublisher) MessagePublisherFactory.create(
-          conf, MockPublisher.class.getName());
+    AbstractMessagePublisher publisher = (AbstractMessagePublisher) MessagePublisherFactory
+        .create(conf, MockPublisher.class.getName());
     doTest(publisher);
     Assert.assertFalse(publisher.getMetrics().statEmissionEnabled());
     Assert.assertNull((publisher.getMetrics().getStatsEmitter()));
@@ -76,13 +74,12 @@ public class TestPublisher {
     URL url = getClass().getClassLoader().getResource(
         "mondemand-emitter.properties");
     conf.set(MessagePublisherFactory.EMITTER_CONF_FILE_KEY, url.getFile());
-    AbstractMessagePublisher publisher = 
-      (AbstractMessagePublisher) MessagePublisherFactory.create(
-          conf, MockPublisher.class.getName());
+    AbstractMessagePublisher publisher = (AbstractMessagePublisher) MessagePublisherFactory
+        .create(conf, MockPublisher.class.getName());
     doTest(publisher);
     Assert.assertTrue(publisher.getMetrics().statEmissionEnabled());
-    Assert.assertTrue((
-        publisher.getMetrics().getStatsEmitter()) instanceof EmitMondemand);    
+    Assert
+        .assertTrue((publisher.getMetrics().getStatsEmitter()) instanceof EmitMondemand);
   }
 
   @Test
@@ -175,7 +172,7 @@ public class TestPublisher {
     }
     Assert.assertNotNull(th);
     Assert.assertTrue(th instanceof IllegalArgumentException);
-    Message msg = new Message( ByteBuffer.wrap(new byte[5]));
+    Message msg = new Message(ByteBuffer.wrap(new byte[5]));
 
     th = null;
     // publish to null topic
@@ -186,70 +183,79 @@ public class TestPublisher {
     }
     Assert.assertNotNull(th);
     Assert.assertTrue(th instanceof IllegalArgumentException);
-    
+
     // publish the message
     Assert.assertNull(publisher.getStats(topic));
     publisher.publish(topic, msg);
-    Assert.assertEquals(publisher.getStats(topic).getInvocationCount(),
-        1, "invocation count");
-    Assert.assertEquals(publisher.getStats(topic).getSuccessCount(),
-        1, "success count");
+    Assert.assertEquals(publisher.getStats(topic).getInvocationCount(), 1,
+        "invocation count");
+    Assert.assertEquals(publisher.getStats(topic).getSuccessCount(), 1,
+        "success count");
     Assert.assertEquals(publisher.getStats(topic).getUnhandledExceptionCount(),
         0, "unhandledexception count");
     Assert.assertEquals(MockPublisher.getMsg(topic), msg);
     MockPublisher.reset(topic);
-    Assert.assertEquals(publisher.getStatsExposer(topic).getContexts().get(
-        TopicStatsExposer.STATS_TYPE_CONTEXT_NAME),
+    Assert.assertEquals(
+        publisher.getStatsExposer(topic).getContexts()
+            .get(TopicStatsExposer.STATS_TYPE_CONTEXT_NAME),
         TopicStatsExposer.STATS_TYPE);
-    Assert.assertEquals(publisher.getStatsExposer(topic).getContexts().get(
-        TopicStatsExposer.TOPIC_CONTEXT_NAME), topic);
+    Assert.assertEquals(
+        publisher.getStatsExposer(topic).getContexts()
+            .get(TopicStatsExposer.TOPIC_CONTEXT_NAME), topic);
   }
-  
+
   @Test
   public void testMultiplePublisherThreads() throws IOException,
       InterruptedException {
     ClientConfig conf = new ClientConfig();
     conf.set(MessagePublisherFactory.PUBLISHER_CLASS_NAME_KEY,
         MockPublisher.class.getName());
-    AbstractMessagePublisher publisher =
-        (AbstractMessagePublisher) MessagePublisherFactory.create(conf);
+    AbstractMessagePublisher publisher = (AbstractMessagePublisher) MessagePublisherFactory
+        .create(conf);
     String topic = "test";
+    // intializing latch here to ensure all threads run in parallel,without this
+    // testng executes the threads in sequential order`
+    CountDownLatch startLatch = new CountDownLatch(10);
     Assert.assertNull(publisher.getStats(topic));
-    PublishThread p1 = new PublishThread(topic, publisher);
-    PublishThread p2 = new PublishThread(topic, publisher);
+    PublishThread p1 = new PublishThread(startLatch, topic, publisher);
+    PublishThread p2 = new PublishThread(startLatch, topic, publisher);
     p1.start();
     p2.start();
     p1.join();
     p2.join();
-    Assert.assertEquals(publisher.getStats(topic).getInvocationCount(),
-        2, "invocation count");
-    Assert.assertEquals(publisher.getStats(topic).getSuccessCount(),
-        2, "success count");
+    Assert.assertEquals(publisher.getStats(topic).getInvocationCount(), 2,
+        "invocation count");
+    Assert.assertEquals(publisher.getStats(topic).getSuccessCount(), 2,
+        "success count");
     Assert.assertEquals(publisher.getStats(topic).getUnhandledExceptionCount(),
-        0, "unhandledexception count"); 
-    Assert.assertEquals(publisher.getStatsExposer(topic).getContexts().get(
-        TopicStatsExposer.STATS_TYPE_CONTEXT_NAME),
+        0, "unhandledexception count");
+    Assert.assertEquals(
+        publisher.getStatsExposer(topic).getContexts()
+            .get(TopicStatsExposer.STATS_TYPE_CONTEXT_NAME),
         TopicStatsExposer.STATS_TYPE);
-    Assert.assertEquals(publisher.getStatsExposer(topic).getContexts().get(
-        TopicStatsExposer.TOPIC_CONTEXT_NAME), topic);
+    Assert.assertEquals(
+        publisher.getStatsExposer(topic).getContexts()
+            .get(TopicStatsExposer.TOPIC_CONTEXT_NAME), topic);
     Assert.assertFalse(publisher.getMetrics().statEmissionEnabled());
     Assert.assertNull((publisher.getMetrics().getStatsEmitter()));
-    publisher.close();    
+    publisher.close();
   }
 
   class PublishThread extends Thread {
-      
+
     private String topic;
     private AbstractMessagePublisher publisher;
-    
-    PublishThread(String topic,
+    private final CountDownLatch startLatch;
+
+    PublishThread(CountDownLatch startLatch, String topic,
         AbstractMessagePublisher publisher) {
+      this.startLatch = startLatch;
       this.topic = topic;
       this.publisher = publisher;
     }
-      
-    public void run(){
-      Message msg = new Message( ByteBuffer.wrap(new byte[5]));
+
+    public void run() {
+      Message msg = new Message(ByteBuffer.wrap(new byte[5]));
       publisher.publish(topic, msg);
       Assert.assertEquals(MockPublisher.getMsg(topic), msg);
     }

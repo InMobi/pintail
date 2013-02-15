@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +55,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     // TODO: generate headers
     Map<String, String> headers = new HashMap<String, String>();
     headers.put(HEADER_TOPIC, topicName);
-    if (isAuditEnabled) {
+    if (isAuditEnabled && !topicName.equals(AuditUtil.AUDIT_STREAM_TOPIC_NAME)) {
       // Add timstamp to the message
       Long timestamp = new Date().getTime();
       AuditUtil.attachHeaders(m, timestamp);
@@ -63,13 +64,11 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     publish(headers, m);
   }
 
-  protected void flush() {
-    if (isAuditEnabled)
-      auditService.flush();
-
+  protected void initTopic(String topic, TimingAccumulator stats) {
   }
 
-  protected void initTopic(String topic, TimingAccumulator stats) {
+  protected void closeTopic(String topic) {
+
   }
 
   /**
@@ -125,13 +124,19 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
 
   @Override
   public void close() {
-    flush();
-    LOG.info("Closing the stat exposers");
-    for (StatsExposer statsExposer : statsExposers.values()) {
-      statsEmitter.remove(statsExposer);
+
+    LOG.info("Closing the topics and stat exposers");
+    for (Entry<String, TopicStatsExposer> entry : statsExposers.entrySet()) {
+      String topicName = entry.getKey();
+      if (topicName != AuditUtil.AUDIT_STREAM_TOPIC_NAME) {
+        closeTopic(topicName);
+        statsEmitter.remove(entry.getValue());
+      }
     }
     if (isAuditEnabled) {
       auditService.close();
+      closeTopic(AuditUtil.AUDIT_STREAM_TOPIC_NAME);
+      statsEmitter.remove(statsExposers.get(AuditUtil.AUDIT_STREAM_TOPIC_NAME));
     }
   }
 

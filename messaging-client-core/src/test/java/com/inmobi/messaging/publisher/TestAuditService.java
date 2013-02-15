@@ -10,12 +10,12 @@ import com.inmobi.messaging.util.AuditUtil;
 public class TestAuditService {
   private static final byte[] magicbytes = { (byte) 0xAB, (byte) 0xCD,
       (byte) 0xEF };
+
   @Test
   public void testAttachHeaders() {
     Message m = new Message("test data".getBytes());
     Long timestamp = System.currentTimeMillis();
-    AuditUtil.attachHeaders(m,
-        timestamp);
+    AuditUtil.attachHeaders(m, timestamp);
     ByteBuffer buffer = m.getData();
     buffer.rewind();
     int version = buffer.get();
@@ -35,7 +35,5 @@ public class TestAuditService {
     assert (new String(withoutHeaders).equals("test data"));
 
   }
-
-
 
 }

@@ -25,9 +25,8 @@ public class TestMultiplePublisherThreads {
 
   @AfterTest
   public void tearDown() {
+    publisher.close();
     server.stop();
-    // if (publisher != null)
-    // publisher.close();
   }
   
   @Test
@@ -79,7 +78,6 @@ public class TestMultiplePublisherThreads {
       
     public void run(){
         doTest(topic, publisher);
-        publisher.close();
     }
   }
 }

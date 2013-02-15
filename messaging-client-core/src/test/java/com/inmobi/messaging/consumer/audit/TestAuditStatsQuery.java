@@ -36,6 +36,7 @@ public class TestAuditStatsQuery {
   String topic3 = "topic4";
   String topic4 = "topic5";
   String topic5 = "topic6";
+
   @BeforeTest
   public void setup() throws IOException {
     publisher = MessagePublisherFactory
@@ -47,9 +48,6 @@ public class TestAuditStatsQuery {
   public void teardown() {
     ((MockInMemoryPublisher) publisher).reset();
   }
-
-
-
 
   private void generateData(MessagePublisher publisher, String topic,
       String topic1) {
@@ -95,12 +93,10 @@ public class TestAuditStatsQuery {
     assert (sentPublisher == totalData / 2);
 
   }
-  
 
   @Test
   public void testAuditQueryGroupFilter() throws IOException,
-      InterruptedException,
- TException, ParseException {
+      InterruptedException, TException, ParseException {
     assert (publisher instanceof com.inmobi.messaging.publisher.MockInMemoryPublisher);
     generateData(topic, topic1);
     publisher.close();
@@ -117,8 +113,7 @@ public class TestAuditStatsQuery {
     map.put(Column.TIER, "publisher");
     map.put(Column.TOPIC, topic);
     Group grp = query.groupBy.getGroup(map);
-    assert (query.getReceived().size() == 3);// one grp for Audit messages as
-                                             // well
+    assert (query.getReceived().size() == 2);
     assert (query.getReceived().get(grp) == totalData / 2);
     map = new HashMap<Column, String>();
     map.put(Column.TIER, "publisher");
@@ -246,7 +241,5 @@ public class TestAuditStatsQuery {
     int result = grp1.compareTo(grp2);
     assert (result == 1);
   }
-
-
 
 }

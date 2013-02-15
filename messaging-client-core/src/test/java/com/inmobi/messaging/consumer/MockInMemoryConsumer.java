@@ -78,7 +78,4 @@ public class MockInMemoryConsumer extends AbstractMessageConsumer {
     return msg;
   }
 
-
-
-
 }

@@ -25,14 +25,13 @@ import com.inmobi.messaging.util.AuditUtil;
 
 class AuditService {
 
-  private static final String WINDOW_SIZE_KEY = "window.size.sec";
-  private static final String AGGREGATE_WINDOW_KEY = "aggregate.window.sec";
+  public static final String WINDOW_SIZE_KEY = "audit.window.size.sec";
+  public static final String AGGREGATE_WINDOW_KEY = "audit.aggregate.window.sec";
   private static final int DEFAULT_WINDOW_SIZE = 60;
   private static final int DEFAULT_AGGREGATE_WINDOW_SIZE = 60;
   private int windowSize;
   private int aggregateWindowSize;
-  final ConcurrentHashMap<String, AuditCounterAccumulator> topicAccumulatorMap = 
-      new ConcurrentHashMap<String, AuditCounterAccumulator>();
+  final ConcurrentHashMap<String, AuditCounterAccumulator> topicAccumulatorMap = new ConcurrentHashMap<String, AuditCounterAccumulator>();
   private final String tier = "publisher";
   private ScheduledThreadPoolExecutor executor;
   private boolean isInit = false;
@@ -147,14 +146,11 @@ class AuditService {
   }
 
   public synchronized void close() {
-    if (executor != null) {
-      executor.shutdown();
-    }
-  }
-
-  public synchronized void flush() {
     if (worker != null) {
       worker.flush(); // flushing the last audit packet during shutdown
+    }
+    if (executor != null) {
+      executor.shutdown();
     }
   }
 

@@ -9,8 +9,7 @@ import org.apache.commons.logging.LogFactory;
 import com.inmobi.messaging.Message;
 
 public class AuditUtil {
-  static final byte[] magicBytes = { (byte) 0xAB, (byte) 0xCD,
-      (byte) 0xEF };
+  static final byte[] magicBytes = { (byte) 0xAB, (byte) 0xCD, (byte) 0xEF };
   public static final String AUDIT_STREAM_TOPIC_NAME = "_audit";
   private static final byte versions[] = { 1 };
   private static final int currentVersion = 1;
@@ -83,7 +82,7 @@ public class AuditUtil {
     }
     return true;
   }
-  
+
   private static boolean isValidTimestamp(ByteBuffer buffer) {
     long timestamp = buffer.getLong();
     if (timestamp < BASE_TIME) {
@@ -92,7 +91,7 @@ public class AuditUtil {
     }
     return true;
   }
-  
+
   private static boolean isValidSize(ByteBuffer buffer) {
     int messageSize = buffer.getInt();
     if (buffer.limit() != messageSize + HEADER_LENGTH) {
