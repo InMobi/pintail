@@ -136,9 +136,12 @@ public class TestUtil {
   }
 
   public static void assertBuffer(StreamFile file, int fileNum, int startIndex,
-      int numMsgs, PartitionId pid, LinkedBlockingQueue<QueueEntry> buffer)
+      int numMsgs, PartitionId pid, LinkedBlockingQueue<QueueEntry> buffer,
+      boolean isDatabusData)
           throws InterruptedException, IOException {
-  	int fileIndex = (fileNum - 1) * 100 ;
+  	
+  
+    int fileIndex = (fileNum - 1) * 100 ;
     for (int i = startIndex; i < (startIndex + numMsgs); i++) {
       QueueEntry entry = buffer.take();
       Assert.assertEquals(entry.getPartitionId(), pid);
@@ -150,8 +153,14 @@ public class TestUtil {
         Assert.assertEquals(entry.getMessageChkpoint(),                            
             new PartitionCheckpoint(file, i + 1));
       }
-      Assert.assertEquals(new String(entry.getMessage().getData().array()),
+      if (isDatabusData) {
+        Assert.assertEquals(new String(entry.getMessage().getData().array()),
           MessageUtil.constructMessage(fileIndex + i));
+      } else {
+        Assert.assertEquals(MessageUtil.getTextMessage(
+            entry.getMessage().getData().array()),
+            new Text(MessageUtil.constructMessage(fileIndex + i)));
+      }
     }
   }
 

@@ -39,6 +39,7 @@ public abstract class AbstractMessagingDatabusConsumer
   protected ConsumerCheckpoint currentCheckpoint;
   protected long waitTimeForFileCreate;
   protected int bufferSize;
+  protected DataEncodingType dataEncodingType;
   protected int retentionInHours;
   protected int consumerNumber;
   protected int totalConsumers;
@@ -124,11 +125,14 @@ public abstract class AbstractMessagingDatabusConsumer
     // initialize other common configuration
     waitTimeForFileCreate = config.getLong(waitTimeForFileCreateConfig,
         DEFAULT_WAIT_TIME_FOR_FILE_CREATE);
+    dataEncodingType = DataEncodingType.valueOf(
+        config.getString(dataEncodingConfg, DEFAULT_DATA_ENCODING));
 
     // get the retention period of the topic
     retentionInHours = config.getInteger(retentionConfig,
         DEFAULT_RETENTION_HOURS); 
 
+    LOG.debug("Using data encoding type as " + dataEncodingType);
   }
 
   protected boolean isValidConfiguration() {

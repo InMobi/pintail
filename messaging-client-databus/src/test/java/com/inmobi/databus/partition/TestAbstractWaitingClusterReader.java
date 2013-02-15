@@ -12,6 +12,7 @@ import org.testng.Assert;
 
 import com.inmobi.databus.Cluster;
 import com.inmobi.databus.readers.DatabusStreamWaitingReader;
+import com.inmobi.messaging.consumer.databus.DataEncodingType;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
 import com.inmobi.messaging.consumer.util.TestUtil;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
@@ -39,6 +40,7 @@ public abstract class TestAbstractWaitingClusterReader {
   protected final String collectorName = "collector1";
   FileSystem fs;
   String inputFormatClass;
+  DataEncodingType dataEncoding;
   Path streamDir;
   Configuration conf;
   int consumerNumber;
@@ -58,7 +60,7 @@ public abstract class TestAbstractWaitingClusterReader {
     		buffer, streamDir, conf, inputFormatClass,
         DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
             databusFiles[0]),
-        1000, isDatabusData(), prMetrics, false, partitionMinList);     
+        1000, isDatabusData(), dataEncoding, prMetrics, false, partitionMinList);     
 
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
@@ -79,18 +81,21 @@ public abstract class TestAbstractWaitingClusterReader {
     Path[] newDatabusFiles = new Path[3];
     setupFiles(new String[] {newFiles[0]}, newDatabusFiles);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
-        fs0), 1, 0, 100, partitionId, buffer);
+        fs0), 1, 0, 100, partitionId, buffer,
+        dataEncoding.equals(DataEncodingType.BASE64));
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
-        fs1), 2, 0, 50, partitionId, buffer);
+        fs1), 2, 0, 50, partitionId, buffer,
+        dataEncoding.equals(DataEncodingType.BASE64));
     
     while (buffer.remainingCapacity() > 0) {
       Thread.sleep(10);
     }
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
-        fs1), 2, 50, 50, partitionId, buffer);
+        fs1), 2, 50, 50, partitionId, buffer, dataEncoding.equals(
+            DataEncodingType.BASE64));
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(newDatabusFiles[0])), 1, 0, 100, partitionId,
-        buffer);
+        buffer, dataEncoding.equals(DataEncodingType.BASE64));
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(((ClusterReader)preader.getReader())
@@ -99,10 +104,11 @@ public abstract class TestAbstractWaitingClusterReader {
     setupFiles(new String[] {newFiles[1], newFiles[2]},
         newDatabusFiles);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
-        fs.getFileStatus(newDatabusFiles[0])), 1, 0, 100, partitionId, buffer);
+        fs.getFileStatus(newDatabusFiles[0])), 1, 0, 100, partitionId, buffer,
+        dataEncoding.equals(DataEncodingType.BASE64));
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(newDatabusFiles[1])), 2, 0, 100, partitionId,
-        buffer);
+        buffer, dataEncoding.equals(DataEncodingType.BASE64));
     Assert.assertTrue(buffer.isEmpty());    
     preader.close();
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 500);

@@ -41,7 +41,7 @@ public class DatabusRecordReader extends RecordReader<LongWritable, Message> {
   @Override
   public Message getCurrentValue() throws IOException, InterruptedException {
     byte[] line = lineReader.getCurrentValue().getBytes();
-    return DatabusUtil.decodeMessage(line);
+    return DatabusUtil.decodeMessage(line, conf);
   }
 
   @Override

@@ -17,6 +17,7 @@ import com.inmobi.databus.Cluster;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.partition.PartitionReader;
 import com.inmobi.databus.readers.CollectorStreamReader;
+import com.inmobi.messaging.consumer.databus.DataEncodingType;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
 import com.inmobi.messaging.consumer.databus.StreamType;
 import com.inmobi.messaging.consumer.util.DatabusUtil;
@@ -85,14 +86,14 @@ public class TestCurrentFile {
     preader = new PartitionReader(partitionId, null, conf, fs,
         collectorDir, streamsLocalDir, buffer, testStream,
         CollectorStreamReader.getDateFromCollectorFile(currentScribeFile), 1000,
-        1000, prMetrics);
+        1000, DataEncodingType.BASE64, prMetrics);
     preader.start();
     Assert.assertTrue(buffer.isEmpty());
     FSDataOutputStream out = fs.create(
         new Path(collectorDir, currentScribeFile));
     writeMessages(out, 10);
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(
-        currentScribeFile), 4, 0, 10, partitionId, buffer);
+        currentScribeFile), 4, 0, 10, partitionId, buffer, true);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -102,15 +103,15 @@ public class TestCurrentFile {
         CollectorStreamReader.class.getName());
     writeMessages(out, 20);
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(
-        currentScribeFile), 4, 10, 20, partitionId, buffer);
+        currentScribeFile), 4, 10, 20, partitionId, buffer, true);
     writeMessages(out, 20);
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(
-        currentScribeFile), 4, 30, 20, partitionId, buffer);
+        currentScribeFile), 4, 30, 20, partitionId, buffer, true);
     writeMessages(out, 50);
     out.close();
     TestUtil.setUpEmptyFiles(fs, collectorDir, TestUtil.files[5]);
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(
-        currentScribeFile), 4, 50, 50, partitionId, buffer);
+        currentScribeFile), 4, 50, 50, partitionId, buffer, true);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),

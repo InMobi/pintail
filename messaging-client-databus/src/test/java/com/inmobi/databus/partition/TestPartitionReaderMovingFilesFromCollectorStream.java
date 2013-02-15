@@ -17,6 +17,7 @@ import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.partition.PartitionReader;
 import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.databus.readers.LocalStreamCollectorReader;
+import com.inmobi.messaging.consumer.databus.DataEncodingType;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
 import com.inmobi.messaging.consumer.databus.StreamType;
 import com.inmobi.messaging.consumer.util.DatabusUtil;
@@ -74,7 +75,7 @@ public class TestPartitionReaderMovingFilesFromCollectorStream {
     preader = new PartitionReader(partitionId, null, conf, fs,
         collectorDir, streamsLocalDir, buffer,
         testStream, CollectorStreamReader.getDateFromCollectorFile(files[0]),
-        10, 1000, prMetrics);
+        10, 1000, DataEncodingType.BASE64, prMetrics);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -100,9 +101,9 @@ public class TestPartitionReaderMovingFilesFromCollectorStream {
     fs.delete(movedPath, true);
 
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
-        collectorName, files[0]), 1, 0, 100, partitionId, buffer);
+        collectorName, files[0]), 1, 0, 100, partitionId, buffer, true);
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[1]), 2,
-        0, 50, partitionId, buffer);
+        0, 50, partitionId, buffer, true);
 
     while (buffer.remainingCapacity() > 0) {
       Thread.sleep(10);
@@ -111,9 +112,9 @@ public class TestPartitionReaderMovingFilesFromCollectorStream {
         .getReader().getClass().getName(),
         LocalStreamCollectorReader.class.getName());
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[1]), 2,
-        50, 50, partitionId, buffer);
+        50, 50, partitionId, buffer, true);
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
-        collectorName, files[2]), 3, 0, 100, partitionId, buffer);
+        collectorName, files[2]), 3, 0, 100, partitionId, buffer, true);
 
     while (buffer.remainingCapacity() > 0) {
       Thread.sleep(10);
@@ -137,9 +138,9 @@ public class TestPartitionReaderMovingFilesFromCollectorStream {
     fs.delete(new Path(collectorDir, emptyfiles[2]), true);
 
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[3]),
-        4, 0, 100, partitionId, buffer);
+        4, 0, 100, partitionId, buffer, true);
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[4]),
-        5, 0, 50, partitionId, buffer);
+        5, 0, 50, partitionId, buffer, true);
     while (buffer.remainingCapacity() > 0) {
       Thread.sleep(10);
     }
@@ -147,15 +148,15 @@ public class TestPartitionReaderMovingFilesFromCollectorStream {
         getReader().getClass().getName(),
         LocalStreamCollectorReader.class.getName());
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[4]),
-        5, 50, 50, partitionId, buffer);
+        5, 50, 50, partitionId, buffer, true);
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
-        collectorName, files[5]), 6, 0, 100, partitionId, buffer); 
+        collectorName, files[5]), 6, 0, 100, partitionId, buffer, true); 
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
-        collectorName, files[6]), 7, 0, 100, partitionId, buffer); 
+        collectorName, files[6]), 7, 0, 100, partitionId, buffer, true); 
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
-        collectorName, files[7]), 8, 0, 100, partitionId, buffer); 
+        collectorName, files[7]), 8, 0, 100, partitionId, buffer, true); 
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[8]),
-        9, 0, 100, partitionId, buffer);
+        9, 0, 100, partitionId, buffer, true);
     Assert.assertTrue(buffer.isEmpty());
     preader.close();
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 900);

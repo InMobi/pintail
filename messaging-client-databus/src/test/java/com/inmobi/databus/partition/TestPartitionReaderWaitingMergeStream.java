@@ -11,6 +11,7 @@ import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
+import com.inmobi.messaging.consumer.databus.DataEncodingType;
 import com.inmobi.messaging.consumer.databus.StreamType;
 import com.inmobi.messaging.consumer.databus.mapred.DatabusInputFormat;
 import com.inmobi.messaging.consumer.util.DatabusUtil;
@@ -26,6 +27,7 @@ public class TestPartitionReaderWaitingMergeStream
     newFiles = new String[] {TestUtil.files[6],
         TestUtil.files[7], TestUtil.files[8] };
     inputFormatClass = DatabusInputFormat.class.getName();
+    dataEncoding = DataEncodingType.BASE64;
     // setup cluster
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
         testStream, new PartitionId(clusterName, collectorName), files, null,

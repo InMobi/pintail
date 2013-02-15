@@ -159,7 +159,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     String line = builder.toString();
     builder.setLength(0);
     if (line != null) {
-      return DatabusUtil.decodeMessage(line.getBytes());
+      return DatabusUtil.decodeMessage(line.getBytes(), conf);
     } else {
       return null;
     }
