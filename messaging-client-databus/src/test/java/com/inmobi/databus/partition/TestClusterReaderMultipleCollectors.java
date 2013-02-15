@@ -20,7 +20,6 @@ import com.inmobi.databus.Cluster;
 import com.inmobi.databus.files.StreamFile;
 import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.databus.readers.DatabusStreamWaitingReader;
-import com.inmobi.messaging.consumer.databus.DataEncodingType;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
 import com.inmobi.messaging.consumer.databus.StreamType;
 import com.inmobi.messaging.consumer.databus.mapred.DatabusInputFormat;
@@ -86,7 +85,7 @@ public class TestClusterReaderMultipleCollectors {
     preader = new PartitionReader(partitionId, partitionCheckpointList, fs, 
         buffer, streamDir, conf, DatabusInputFormat.class.getCanonicalName(),
         CollectorStreamReader.getDateFromCollectorFile(files[0]), 10, true,
-        DataEncodingType.BASE64, prMetrics, false, partitionMinList);            
+        prMetrics, false, partitionMinList);            
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -182,8 +181,7 @@ public class TestClusterReaderMultipleCollectors {
         fs.getFileStatus(movedPath5)), 50, movedPath5, partitionCheckpointList);
     preader = new PartitionReader(partitionId,  partitionCheckpointList, fs, 
         buffer, streamDir, conf, DatabusInputFormat.class.getCanonicalName(),
-        null, 1000, true, DataEncodingType.BASE64, prMetrics, false, 
-        partitionMinList); 
+        null, 1000, true, prMetrics, false, partitionMinList); 
     preader.start();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath5)), 4, 50, 50, partitionId,
