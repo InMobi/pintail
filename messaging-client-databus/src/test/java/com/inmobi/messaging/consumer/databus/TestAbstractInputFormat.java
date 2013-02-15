@@ -19,7 +19,6 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.TaskAttemptID;
 
 import org.testng.Assert;
-import org.testng.annotations.BeforeTest;
 
 import com.inmobi.databus.Cluster;
 import com.inmobi.messaging.Message;
@@ -48,8 +47,6 @@ public class TestAbstractInputFormat {
     readMessages = new ArrayList<Message>();
     fs = rootDir.getFileSystem(conf);
     defaultConf = new JobConf(new Configuration());
-    defaultConf.set(MessagingConsumerConfig.dataEncodingConfg, 
-        DataEncodingType.BASE64.name());
     dataFiles = new String[] {TestUtil.files[0], TestUtil.files[1] };
     setUpCluster();
     fs.delete(new Path(cluster.getRootDir()), true);

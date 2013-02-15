@@ -76,8 +76,6 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
     super.initializeConfig(config);
     waitTimeForFlush = config.getLong(waitTimeForFlushConfig,
         DEFAULT_WAIT_TIME_FOR_FLUSH);
-    dataEncodingType = DataEncodingType.valueOf(
-        config.getString(dataEncodingConfg, DataEncodingType.BASE64.name()));
     String rootDirsStr = config.getString(databusRootDirsConfig);
     String[] rootDirSplits;
     if (rootDirsStr != null) {
@@ -150,8 +148,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
               partitionsChkPoints.get(id), conf, fs, new Path(streamDir, collector), 
               DatabusUtil.getStreamDir(StreamType.LOCAL, rootDirs[i], topicName),
               buffer, topicName, partitionTimestamp,
-              waitTimeForFlush, waitTimeForFileCreate, dataEncodingType,
-              collectorMetrics));
+              waitTimeForFlush, waitTimeForFileCreate, collectorMetrics));
         }
       } else {
         LOG.info("Creating partition reader for cluster");
@@ -172,8 +169,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
         readers.put(id, new PartitionReader(id,
             partitionCheckpointList, fs, buffer, streamDir, conf,
             DatabusInputFormat.class.getCanonicalName(), partitionTimestamp,
-            waitTimeForFileCreate, true, dataEncodingType, clusterMetrics, 
-            partitionMinList));
+            waitTimeForFileCreate, true, clusterMetrics, partitionMinList));
       }
     }
   }
