@@ -88,8 +88,8 @@ public class TestPublisher {
     ClientConfig conf = new ClientConfig();
     conf.set("publisher.classname",
         "com.inmobi.messaging.publisher.MockInMemoryPublisher");
-    conf.set("window.size.sec", "60");
-    conf.set("aggregate.window.sec", "60");
+    conf.set(AuditService.WINDOW_SIZE_KEY, "60");
+    conf.set(AuditService.AGGREGATE_WINDOW_KEY, "60");
     MessagePublisher publisher = MessagePublisherFactory.create(conf,
         MockInMemoryPublisher.class.getName());
     publisher.publish("topic", new Message("message".getBytes()));
@@ -112,8 +112,8 @@ public class TestPublisher {
     ClientConfig conf = new ClientConfig();
     conf.set("publisher.classname",
         "com.inmobi.messaging.publisher.MockInMemoryPublisher");
-    conf.set("window.size.sec", "60");
-    conf.set("aggregate.window.sec", "5");
+    conf.set(AuditService.WINDOW_SIZE_KEY, "60");
+    conf.set(AuditService.AGGREGATE_WINDOW_KEY, "5");
 
     MessagePublisher publisher = MessagePublisherFactory.create(conf,
         MockInMemoryPublisher.class.getName());
@@ -140,8 +140,8 @@ public class TestPublisher {
     ClientConfig conf = new ClientConfig();
     conf.set("publisher.classname",
         "com.inmobi.messaging.publisher.MockInMemoryPublisher");
-    conf.set("window.size.sec", "60");
-    conf.set("aggregate.window.sec", "60");
+    conf.set(AuditService.WINDOW_SIZE_KEY, "60");
+    conf.set(AuditService.AGGREGATE_WINDOW_KEY, "60");
     conf.set("audit.enabled", "false");
 
     MessagePublisher publisher = MessagePublisherFactory.create(conf,
