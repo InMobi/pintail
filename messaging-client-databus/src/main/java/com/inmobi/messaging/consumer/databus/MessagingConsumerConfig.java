@@ -27,11 +27,6 @@ public interface MessagingConsumerConfig {
       "messaging.consumer.waittime.forfilecreate";
   public static final long DEFAULT_WAIT_TIME_FOR_FILE_CREATE = 1000; //1 second
 
-  public static final String dataEncodingConfg =
-      "messaging.consumer.data.encoding.type";
-  public static final String DEFAULT_DATA_ENCODING = DataEncodingType.NONE
-      .name();
-
   public static final String inputFormatClassNameConfig =
       "messaging.consumer.inputformat.classname";
   public static final String DEFAULT_INPUT_FORMAT_CLASSNAME =

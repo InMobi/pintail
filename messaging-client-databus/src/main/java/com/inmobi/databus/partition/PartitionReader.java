@@ -13,9 +13,7 @@ import org.apache.hadoop.fs.Path;
 
 import com.inmobi.databus.files.StreamFile;
 import com.inmobi.messaging.Message;
-import com.inmobi.messaging.consumer.databus.DataEncodingType;
 import com.inmobi.messaging.consumer.databus.MessageCheckpoint;
-import com.inmobi.messaging.consumer.databus.MessagingConsumerConfig;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
 import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
@@ -38,12 +36,11 @@ public class PartitionReader {
       FileSystem fs, Path collectorDataDir,
       Path streamsLocalDir, BlockingQueue<QueueEntry> buffer, String streamName,
       Date startTime, long waitTimeForFlush,
-      long waitTimeForFileCreate, DataEncodingType dataEncoding,
-      PartitionReaderStatsExposer prMetrics)
+      long waitTimeForFileCreate, PartitionReaderStatsExposer prMetrics)
           throws IOException {
     this(partitionId, partitionCheckpoint, conf, fs, collectorDataDir,
         streamsLocalDir, buffer, streamName, startTime,
-        waitTimeForFlush, waitTimeForFileCreate, dataEncoding, prMetrics, false);
+        waitTimeForFlush, waitTimeForFileCreate, prMetrics, false);
   }
 
   public PartitionReader(PartitionId partitionId,
@@ -51,12 +48,11 @@ public class PartitionReader {
       BlockingQueue<QueueEntry> buffer, Path streamDir,
       Configuration conf, String inputFormatClass,
       Date startTime, long waitTimeForFileCreate, boolean isDatabusData,
-      DataEncodingType dataEncoding, PartitionReaderStatsExposer prMetrics,
-      Set<Integer> partitionMinList)
+      PartitionReaderStatsExposer prMetrics, Set<Integer> partitionMinList)
           throws IOException {
     this(partitionId, partitionCheckpointList, fs, buffer, streamDir,
         conf, inputFormatClass, startTime, waitTimeForFileCreate, isDatabusData,
-        dataEncoding, prMetrics, false, partitionMinList);
+        prMetrics, false, partitionMinList);
   }
 
   PartitionReader(PartitionId partitionId,
@@ -66,11 +62,9 @@ public class PartitionReader {
       Path streamLocalDir, 
       BlockingQueue<QueueEntry> buffer, String streamName, Date startTime,
       long waitTimeForFlush, long waitTimeForFileCreate,
-      DataEncodingType dataEncoding, PartitionReaderStatsExposer prMetrics,
-      boolean noNewFiles)
+      PartitionReaderStatsExposer prMetrics, boolean noNewFiles)
           throws IOException {
     this(partitionId, partitionCheckpoint, buffer, startTime, prMetrics);
-    conf.set(MessagingConsumerConfig.dataEncodingConfg, dataEncoding.name());
     reader = new CollectorReader(partitionId, partitionCheckpoint, fs,
         streamName, collectorDataDir, streamLocalDir, conf,
         startTime, waitTimeForFlush, waitTimeForFileCreate,
@@ -87,11 +81,10 @@ public class PartitionReader {
       BlockingQueue<QueueEntry> buffer, Path streamDir,
       Configuration conf, String inputFormatClass,
       Date startTime, long waitTimeForFileCreate, boolean isDatabusData,
-      DataEncodingType dataEncoding, PartitionReaderStatsExposer prMetrics,
-      boolean noNewFiles, Set<Integer> partitionMinList)
+      PartitionReaderStatsExposer prMetrics, boolean noNewFiles,
+      Set<Integer> partitionMinList)
           throws IOException {
     this(partitionId, partitionCheckpointList, buffer, startTime, prMetrics);
-    conf.set(MessagingConsumerConfig.dataEncodingConfg, dataEncoding.name());
     reader = new ClusterReader(partitionId, partitionCheckpointList,
         fs, streamDir, conf, inputFormatClass, startTime,
         waitTimeForFileCreate, isDatabusData, prMetrics, noNewFiles, 

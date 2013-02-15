@@ -44,7 +44,7 @@ public class DatabusRecordReader implements RecordReader<LongWritable, Message> 
       //TODO:strip headers if any
 
       //decode Base 64
-      DatabusUtil.decodeMessage(this.textValue.getBytes(), conf, value);
+      DatabusUtil.decodeMessage(this.textValue.getBytes(), value);
     }
     return ret;
   }

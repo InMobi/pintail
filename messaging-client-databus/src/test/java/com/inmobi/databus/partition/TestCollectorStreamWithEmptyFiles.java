@@ -15,7 +15,6 @@ import com.inmobi.databus.Cluster;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.partition.PartitionReader;
 import com.inmobi.databus.readers.CollectorStreamReader;
-import com.inmobi.messaging.consumer.databus.DataEncodingType;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
 import com.inmobi.messaging.consumer.databus.StreamType;
 import com.inmobi.messaging.consumer.util.DatabusUtil;
@@ -66,7 +65,7 @@ public class TestCollectorStreamWithEmptyFiles {
     PartitionReader preader = new PartitionReader(partitionId, null, conf,
         fs, collectorDir, streamsLocalDir, buffer, testStream,
         CollectorStreamReader.getDateFromCollectorFile(files[0]), 5, 1000,
-        DataEncodingType.BASE64, prMetrics);
+        prMetrics);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -92,9 +91,9 @@ public class TestCollectorStreamWithEmptyFiles {
     
     TestUtil.setUpCollectorDataFiles(fs, collectorDir, dataFile);
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[0]), 1,
-        0, 100, partitionId, buffer, true);
+        0, 100, partitionId, buffer);
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(dataFile), 1,
-        0, 100, partitionId, buffer, true);
+        0, 100, partitionId, buffer);
     
     // Test the path for current file getting created late.
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -111,7 +110,7 @@ public class TestCollectorStreamWithEmptyFiles {
     Thread.sleep(50);
     TestUtil.setUpCollectorDataFiles(fs, collectorDir, dataFile);
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(dataFile),
-        1, 0, 100, partitionId, buffer, true);
+        1, 0, 100, partitionId, buffer);
     
     //Test the path for next higher entry
     emptyFile = TestUtil.files[5];
@@ -121,7 +120,7 @@ public class TestCollectorStreamWithEmptyFiles {
     fs.delete(new Path(collectorDir, emptyFile), true);
     TestUtil.setUpCollectorDataFiles(fs, collectorDir, dataFile);
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(dataFile), 1,
-        0, 100, partitionId, buffer, true);
+        0, 100, partitionId, buffer);
     Assert.assertTrue(buffer.isEmpty());
     preader.close();
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 400);

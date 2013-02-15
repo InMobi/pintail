@@ -48,8 +48,6 @@ public class TestAbstractInputFormat {
     readMessages = new ArrayList<Message>();
     fs = rootDir.getFileSystem(conf);
     defaultConf = new JobConf(new Configuration());
-    defaultConf.set(MessagingConsumerConfig.dataEncodingConfg, 
-        DataEncodingType.BASE64.name());
     dataFiles = new String[] {TestUtil.files[0], TestUtil.files[1] };
     setUpCluster();
     fs.delete(new Path(cluster.getRootDir()), true);

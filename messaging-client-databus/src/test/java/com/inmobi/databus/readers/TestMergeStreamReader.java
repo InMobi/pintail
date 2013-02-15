@@ -14,8 +14,6 @@ import com.inmobi.databus.Cluster;
 import com.inmobi.databus.partition.PartitionCheckpointList;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.partition.PartitionCheckpoint;
-import com.inmobi.messaging.consumer.databus.DataEncodingType;
-import com.inmobi.messaging.consumer.databus.MessagingConsumerConfig;
 import com.inmobi.messaging.consumer.databus.mapred.DatabusInputFormat;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
@@ -31,8 +29,6 @@ public class TestMergeStreamReader extends TestAbstractDatabusWaitingReader{
         testStream, new PartitionId(clusterName, collectorName), files, null,
         finalFiles, 0, 3);
     conf = cluster.getHadoopConf();
-    conf.set(MessagingConsumerConfig.dataEncodingConfg,
-        DataEncodingType.BASE64.name());
     fs = FileSystem.get(conf);
     streamDir = getStreamsDir();
     inputFormatClass = DatabusInputFormat.class.getCanonicalName();
