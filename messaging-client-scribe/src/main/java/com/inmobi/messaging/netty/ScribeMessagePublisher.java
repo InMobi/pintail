@@ -27,27 +27,30 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher implements
   private int ackQueueSize;
   private int numDrainsOnClose;
 
-  private Map<String, ScribeTopicPublisher> scribeConnections = new
-      HashMap<String, ScribeTopicPublisher>();
+  private Map<String, ScribeTopicPublisher> scribeConnections =
+      new HashMap<String, ScribeTopicPublisher>();
+
   @Override
   public void init(ClientConfig config) throws IOException {
     super.init(config);
-    init(config.getString(hostNameConfig, DEFAULT_HOST),
-        config.getInteger(portConfig, DEFAULT_PORT),
-        config.getInteger(backOffSecondsConfig, DEFAULT_BACKOFF),
-        config.getInteger(timeoutSecondsConfig, DEFAULT_TIMEOUT),
+    init(config.getString(hostNameConfig, DEFAULT_HOST), config.getInteger(
+        portConfig, DEFAULT_PORT), config.getInteger(backOffSecondsConfig,
+        DEFAULT_BACKOFF), config.getInteger(timeoutSecondsConfig,
+        DEFAULT_TIMEOUT),
         config.getBoolean(retryConfig, DEFAULT_ENABLE_RETRIES),
         config.getBoolean(resendAckLostConfig, DEFAULT_RESEND_ACKLOST),
         config.getLong(asyncSenderSleepMillis, DEFAULT_ASYNC_SENDER_SLEEP),
         config.getInteger(messageQueueSizeConfig, DEFAULT_MSG_QUEUE_SIZE),
         config.getInteger(ackQueueSizeConfig, DEFAULT_ACK_QUEUE_SIZE),
-        config.getInteger(drainRetriesOnCloseConfig, DEFAULT_NUM_DRAINS_ONCLOSE)
-        );
+        config
+            .getInteger(drainRetriesOnCloseConfig, DEFAULT_NUM_DRAINS_ONCLOSE));
   }
 
   public void init(String host, int port, int backoffSeconds, int timeout,
       boolean enableRetries, boolean resendOnAckLost, long sleepInterval,
-      int msgQueueSize, int ackQueueSize, int numDrainsOnClose) {
+      int msgQueueSize, int ackQueueSize, int numDrainsOnClose)
+      throws IOException {
+    super.init();
     this.host = host;
     this.port = port;
     this.backoffSeconds = backoffSeconds;
@@ -58,13 +61,12 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher implements
     this.msgQueueSize = msgQueueSize;
     this.ackQueueSize = ackQueueSize;
     this.numDrainsOnClose = numDrainsOnClose;
-    LOG.info("Initialized ScribeMessagePublisher with host:" + host + " port:" +
-        + port + " backoffSeconds:" + backoffSeconds + " timeoutSeconds:"
-        + timeoutSeconds + " enableRetries:" + enableRetries +
-        " resendOnAckLost:" + resendOnAckLost + "asyncSleepInterval:"
-        + asyncSleepInterval + "msgQueueSize:" + msgQueueSize
-        + "ackQueueSize:" + ackQueueSize + "numDrainsOnClose:" 
-        + numDrainsOnClose);
+    LOG.info("Initialized ScribeMessagePublisher with host:" + host + " port:"
+        + +port + " backoffSeconds:" + backoffSeconds + " timeoutSeconds:"
+        + timeoutSeconds + " enableRetries:" + enableRetries
+        + " resendOnAckLost:" + resendOnAckLost + "asyncSleepInterval:"
+        + asyncSleepInterval + "msgQueueSize:" + msgQueueSize + "ackQueueSize:"
+        + ackQueueSize + "numDrainsOnClose:" + numDrainsOnClose);
   }
 
   protected void initTopic(String topic, TimingAccumulator stats) {
@@ -72,7 +74,7 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher implements
     if (scribeConnections.get(topic) == null) {
       ScribeTopicPublisher connection = new ScribeTopicPublisher();
       scribeConnections.put(topic, connection);
-      connection.init(topic, host, port, backoffSeconds, timeoutSeconds,stats,
+      connection.init(topic, host, port, backoffSeconds, timeoutSeconds, stats,
           enableRetries, resendOnAckLost, asyncSleepInterval, msgQueueSize,
           ackQueueSize, numDrainsOnClose);
     }
@@ -84,10 +86,12 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher implements
     scribeConnections.get(topic).publish(m);
   }
 
-  public void close() {
-    for (ScribeTopicPublisher connection : scribeConnections.values()) {
-      connection.close();
-    }
-    super.close();
+  @Override
+  protected void closeTopic(String topicName) {
+    ScribeTopicPublisher scribePublisher = scribeConnections.get(topicName);
+    if (scribePublisher == null)
+      LOG.warn("Close called on topic[" + topicName + "]"
+          + " for which ScribeTopicPublisher doesn't exist");
+    scribePublisher.close();
   }
 }

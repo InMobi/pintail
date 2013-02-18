@@ -7,9 +7,9 @@ import org.apache.hadoop.fs.Path;
 
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.databus.StreamType;
+import com.inmobi.messaging.util.AuditUtil;
 
 public class DatabusUtil {
-
   public static Path getStreamDir(StreamType streamType, Path databusRootDir,
       String streamName) {
     return new Path(getBaseDir(streamType, databusRootDir), streamName);
@@ -24,13 +24,13 @@ public class DatabusUtil {
   public static Path getBaseDir(StreamType streamType, Path databusRootDir) {
     Path baseDir;
     switch (streamType) {
-    case COLLECTOR :
+    case COLLECTOR:
       baseDir = new Path(databusRootDir, "data");
       break;
-    case LOCAL :
+    case LOCAL:
       baseDir = new Path(databusRootDir, "streams_local");
       break;
-    case MERGED :
+    case MERGED:
       baseDir = new Path(databusRootDir, "streams");
       break;
     default:
@@ -49,6 +49,8 @@ public class DatabusUtil {
 
   private static ByteBuffer decodeByteBuffer(byte[] line) {
     byte[] data = Base64.decodeBase64(line);
-    return ByteBuffer.wrap(data);
+    return AuditUtil.removeHeader(data);
+
   }
+
 }

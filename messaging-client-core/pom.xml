@@ -57,6 +57,10 @@
       <artifactId>testng</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+        <groupId>org.apache.thrift</groupId>
+        <artifactId>libthrift</artifactId>
+      </dependency>
   </dependencies>
 
 </project>

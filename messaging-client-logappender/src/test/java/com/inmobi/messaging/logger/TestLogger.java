@@ -12,6 +12,7 @@ import org.testng.annotations.Test;
 
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.publisher.MockPublisher;
+import com.inmobi.messaging.util.AuditUtil;
 
 public class TestLogger {
 
@@ -48,12 +49,16 @@ public class TestLogger {
 
     // test byte[] logging
     logger.info(msg.getData().array());
-    Assert.assertEquals(MockPublisher.getMsg(topic), msg);
+    ByteBuffer returned = AuditUtil.removeHeader(MockPublisher.getMsg(topic)
+        .getData().array());
+    Assert.assertEquals(new Message(returned), msg);
     MockPublisher.reset(topic);
 
     // test String logging
     logger.info(new String(msg.getData().array()));
-    Assert.assertEquals(MockPublisher.getMsg(topic), msg);
+    returned = AuditUtil.removeHeader(MockPublisher.getMsg(topic).getData()
+        .array());
+    Assert.assertEquals(new Message(returned), msg);
     MockPublisher.reset(topic);
 
     // test Object logging. any other kind must be ignored
@@ -66,8 +71,10 @@ public class TestLogger {
     le.category = "xxxx";
     le.message = "massage";
     logger.info(le);
+    returned = AuditUtil.removeHeader(MockPublisher.getMsg(topic).getData()
+        .array());
     TSerializer serializer = new TSerializer();
-    Assert.assertEquals(MockPublisher.getMsg(topic), 
+    Assert.assertEquals(new Message(returned),
         new Message(serializer.serialize(le)));
     MockPublisher.reset(topic);
   }
