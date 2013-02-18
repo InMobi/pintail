@@ -3,12 +3,9 @@ package com.inmobi.messaging.consumer.util;
 import java.nio.ByteBuffer;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
 import com.inmobi.messaging.Message;
-import com.inmobi.messaging.consumer.databus.DataEncodingType;
-import com.inmobi.messaging.consumer.databus.MessagingConsumerConfig;
 import com.inmobi.messaging.consumer.databus.StreamType;
 import com.inmobi.messaging.util.AuditUtil;
 
@@ -27,13 +24,13 @@ public class DatabusUtil {
   public static Path getBaseDir(StreamType streamType, Path databusRootDir) {
     Path baseDir;
     switch (streamType) {
-    case COLLECTOR :
+    case COLLECTOR:
       baseDir = new Path(databusRootDir, "data");
       break;
-    case LOCAL :
+    case LOCAL:
       baseDir = new Path(databusRootDir, "streams_local");
       break;
-    case MERGED :
+    case MERGED:
       baseDir = new Path(databusRootDir, "streams");
       break;
     default:
@@ -42,27 +39,18 @@ public class DatabusUtil {
     return baseDir;
   }
 
-  public static Message decodeMessage(byte[] line, Configuration conf) {
-    return new Message(decodeByteBuffer(line, conf));
+  public static Message decodeMessage(byte[] line) {
+    return new Message(decodeByteBuffer(line));
   }
 
-  public static void decodeMessage(byte[] line, Configuration conf,
-      Message msg) {
-    msg.set(decodeByteBuffer(line, conf));
+  public static void decodeMessage(byte[] line, Message msg) {
+    msg.set(decodeByteBuffer(line));
   }
 
-  private static ByteBuffer decodeByteBuffer(byte[] line, Configuration conf) {
-    DataEncodingType dataEncoding = DataEncodingType.valueOf(
-        conf.get(MessagingConsumerConfig.dataEncodingConfg,
-            MessagingConsumerConfig.DEFAULT_DATA_ENCODING));
-    byte[] data;
-    if (dataEncoding.equals(DataEncodingType.BASE64)) {
-      data = Base64.decodeBase64(line);
-    } else {
-      data = line;
-    }
+  private static ByteBuffer decodeByteBuffer(byte[] line) {
+    byte[] data = Base64.decodeBase64(line);
     return AuditUtil.removeHeader(data);
-  }
 
+  }
 
 }

@@ -24,7 +24,6 @@ import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.partition.PartitionReader;
 import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.databus.readers.DatabusStreamWaitingReader;
-import com.inmobi.messaging.consumer.databus.DataEncodingType;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
 import com.inmobi.messaging.consumer.util.HadoopUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
@@ -80,7 +79,7 @@ public class TestClusterReaderEmptyStream {
         streamDir, conf, inputFormatClass,
         CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[0]), 
         1000,
-        false, DataEncodingType.BASE64, prMetrics, true, partitionMinList);       
+        false, prMetrics, true, partitionMinList);       
     preader.init();
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -96,7 +95,7 @@ public class TestClusterReaderEmptyStream {
             "dummyfile", 0L), 20, partitionCheckpointList);
     preader = new PartitionReader(clusterId, partitionCheckpointList, fs, buffer,
         streamDir, conf, inputFormatClass, null, 
-        1000, false, DataEncodingType.BASE64, prMetrics, true, partitionMinList);
+        1000, false, prMetrics, true, partitionMinList);
     preader.init();
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -114,7 +113,7 @@ public class TestClusterReaderEmptyStream {
         streamDir, conf, inputFormatClass,
         CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[0]), 
         1000,
-        false, DataEncodingType.BASE64, prMetrics, true, partitionMinList); 
+        false, prMetrics, true, partitionMinList); 
     preader.init();
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),

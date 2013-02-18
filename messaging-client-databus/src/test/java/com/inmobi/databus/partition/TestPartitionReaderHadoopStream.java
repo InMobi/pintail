@@ -12,7 +12,6 @@ import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-import com.inmobi.messaging.consumer.databus.DataEncodingType;
 import com.inmobi.messaging.consumer.util.HadoopUtil;
 
 public class TestPartitionReaderHadoopStream extends TestAbstractClusterReader {
@@ -28,7 +27,6 @@ public class TestPartitionReaderHadoopStream extends TestAbstractClusterReader {
         testStream).makeQualified(fs);
     HadoopUtil.setupHadoopCluster(conf, files, null, databusFiles, streamDir);
     inputFormatClass = SequenceFileInputFormat.class.getName();
-    dataEncoding = DataEncodingType.NONE;
     partitionMinList = new TreeSet<Integer>();
     for (int i =0; i < 60; i++) {
       partitionMinList.add(i);
