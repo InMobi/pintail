@@ -28,10 +28,11 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
 
   private static final Logger LOG = LoggerFactory
       .getLogger(AbstractMessagePublisher.class);
-  private Map<String, TopicStatsExposer> statsExposers = new HashMap<String, TopicStatsExposer>();
-  private MessagingClientStatBuilder statsEmitter = new MessagingClientStatBuilder();
+  private Map<String, TopicStatsExposer> statsExposers =
+      new HashMap<String, TopicStatsExposer>();
+  private MessagingClientStatBuilder statsEmitter =
+      new MessagingClientStatBuilder();
   public static final String HEADER_TOPIC = "topic";
-  private static final String AUDIT_ENABLED_KEY = "audit.enabled";
   private boolean isAuditEnabled = true;
   private final AuditService auditService = new AuditService(this);
 
@@ -104,9 +105,9 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
 
   protected void init(ClientConfig config) throws IOException {
     try {
-      String emitterConfig = config
-          .getString(MessagePublisherFactory.EMITTER_CONF_FILE_KEY);
-      isAuditEnabled = config.getBoolean(AUDIT_ENABLED_KEY, true);
+      String emitterConfig =
+          config.getString(MessagePublisherFactory.EMITTER_CONF_FILE_KEY);
+      isAuditEnabled = config.getBoolean(AuditService.AUDIT_ENABLED_KEY, true);
       if (isAuditEnabled)
         auditService.init(config);
       if (emitterConfig == null) {

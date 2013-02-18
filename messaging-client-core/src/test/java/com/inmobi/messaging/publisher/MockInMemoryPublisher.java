@@ -9,7 +9,8 @@ import com.inmobi.messaging.Message;
 
 public class MockInMemoryPublisher extends AbstractMessagePublisher {
 
-  public Map<String, BlockingQueue<Message>> source = new HashMap<String, BlockingQueue<Message>>();
+  public Map<String, BlockingQueue<Message>> source =
+      new HashMap<String, BlockingQueue<Message>>();
 
   @Override
   protected void publish(Map<String, String> headers, Message m) {

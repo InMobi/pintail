@@ -27,7 +27,8 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher implements
   private int ackQueueSize;
   private int numDrainsOnClose;
 
-  private Map<String, ScribeTopicPublisher> scribeConnections = new HashMap<String, ScribeTopicPublisher>();
+  private Map<String, ScribeTopicPublisher> scribeConnections =
+      new HashMap<String, ScribeTopicPublisher>();
 
   @Override
   public void init(ClientConfig config) throws IOException {

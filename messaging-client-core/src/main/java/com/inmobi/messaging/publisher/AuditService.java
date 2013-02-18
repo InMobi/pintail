@@ -26,12 +26,15 @@ import com.inmobi.messaging.util.AuditUtil;
 class AuditService {
 
   public static final String WINDOW_SIZE_KEY = "audit.window.size.sec";
-  public static final String AGGREGATE_WINDOW_KEY = "audit.aggregate.window.sec";
+  public static final String AGGREGATE_WINDOW_KEY =
+      "audit.aggregate.window.sec";
+  public static final String AUDIT_ENABLED_KEY = "audit.enabled";
   private static final int DEFAULT_WINDOW_SIZE = 60;
   private static final int DEFAULT_AGGREGATE_WINDOW_SIZE = 60;
   private int windowSize;
   private int aggregateWindowSize;
-  final ConcurrentHashMap<String, AuditCounterAccumulator> topicAccumulatorMap = new ConcurrentHashMap<String, AuditCounterAccumulator>();
+  final ConcurrentHashMap<String, AuditCounterAccumulator> topicAccumulatorMap =
+      new ConcurrentHashMap<String, AuditCounterAccumulator>();
   private final String tier = "publisher";
   private ScheduledThreadPoolExecutor executor;
   private boolean isInit = false;
@@ -58,7 +61,8 @@ class AuditService {
                                // that during creation of packet no more writes
                                // should occur to previous counters
           if (received.size() == 0 && sent.size() == 0) {
-            LOG.info("Not publishing audit packet as all the metric counters are 0");
+            LOG.info("Not publishing audit packet as all the metric counters are"
+                + " 0");
             return;
           }
           AuditMessage packet = createPacket(topic, received, sent);
@@ -97,8 +101,9 @@ class AuditService {
         finalSent.put(entry.getKey(), entry.getValue().get());
       }
       long currentTime = new Date().getTime();
-      AuditMessage packet = new AuditMessage(currentTime, topic, tier,
-          hostname, windowSize, finalReceived, finalSent, null, null);
+      AuditMessage packet =
+          new AuditMessage(currentTime, topic, tier, hostname, windowSize,
+              finalReceived, finalSent, null, null);
       return packet;
     }
 
@@ -122,13 +127,14 @@ class AuditService {
     if (isInit)
       return;
     windowSize = config.getInteger(WINDOW_SIZE_KEY, DEFAULT_WINDOW_SIZE);
-    aggregateWindowSize = config.getInteger(AGGREGATE_WINDOW_KEY,
-        DEFAULT_AGGREGATE_WINDOW_SIZE);
+    aggregateWindowSize =
+        config.getInteger(AGGREGATE_WINDOW_KEY, DEFAULT_AGGREGATE_WINDOW_SIZE);
     executor = new ScheduledThreadPoolExecutor(1);
     try {
       hostname = InetAddress.getLocalHost().getHostName();
     } catch (UnknownHostException e) {
-      LOG.error("Unable to find the hostanme of the local box,audit packets won't contain hostname");
+      LOG.error("Unable to find the hostanme of the local box,audit packets won'"
+          + "t contain hostname");
       hostname = "";
     }
     worker = new AuditWorker();

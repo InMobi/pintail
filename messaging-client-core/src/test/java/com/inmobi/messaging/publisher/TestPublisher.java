@@ -28,8 +28,8 @@ public class TestPublisher {
     ClientConfig conf = new ClientConfig();
     conf.set(MessagePublisherFactory.PUBLISHER_CLASS_NAME_KEY,
         MockPublisher.class.getName());
-    AbstractMessagePublisher publisher = (AbstractMessagePublisher) MessagePublisherFactory
-        .create(conf);
+    AbstractMessagePublisher publisher =
+        (AbstractMessagePublisher) MessagePublisherFactory.create(conf);
     doTest(publisher);
     Assert.assertFalse(publisher.getMetrics().statEmissionEnabled());
     Assert.assertNull((publisher.getMetrics().getStatsEmitter()));
@@ -38,8 +38,8 @@ public class TestPublisher {
 
   @Test
   public void testLoadFromClasspath() throws IOException {
-    AbstractMessagePublisher publisher = (AbstractMessagePublisher) MessagePublisherFactory
-        .create();
+    AbstractMessagePublisher publisher =
+        (AbstractMessagePublisher) MessagePublisherFactory.create();
     doTest(publisher);
     Assert.assertTrue(publisher.getMetrics().statEmissionEnabled());
     Assert.assertTrue(((MockStatsEmitter) publisher.getMetrics()
@@ -48,10 +48,12 @@ public class TestPublisher {
 
   @Test
   public void testLoadFromFileName() throws IOException {
-    URL url = getClass().getClassLoader().getResource(
-        MessagePublisherFactory.MESSAGE_CLIENT_CONF_FILE);
-    AbstractMessagePublisher publisher = (AbstractMessagePublisher) MessagePublisherFactory
-        .create(url.getFile());
+    URL url =
+        getClass().getClassLoader().getResource(
+            MessagePublisherFactory.MESSAGE_CLIENT_CONF_FILE);
+    AbstractMessagePublisher publisher =
+        (AbstractMessagePublisher) MessagePublisherFactory
+            .create(url.getFile());
     doTest(publisher);
     Assert.assertTrue(publisher.getMetrics().statEmissionEnabled());
     Assert.assertTrue(((MockStatsEmitter) publisher.getMetrics()
@@ -61,8 +63,9 @@ public class TestPublisher {
   @Test
   public void testLoadFromClassName() throws IOException {
     ClientConfig conf = new ClientConfig();
-    AbstractMessagePublisher publisher = (AbstractMessagePublisher) MessagePublisherFactory
-        .create(conf, MockPublisher.class.getName());
+    AbstractMessagePublisher publisher =
+        (AbstractMessagePublisher) MessagePublisherFactory.create(conf,
+            MockPublisher.class.getName());
     doTest(publisher);
     Assert.assertFalse(publisher.getMetrics().statEmissionEnabled());
     Assert.assertNull((publisher.getMetrics().getStatsEmitter()));
@@ -71,11 +74,12 @@ public class TestPublisher {
   @Test
   public void testMondemand() throws IOException {
     ClientConfig conf = new ClientConfig();
-    URL url = getClass().getClassLoader().getResource(
-        "mondemand-emitter.properties");
+    URL url =
+        getClass().getClassLoader().getResource("mondemand-emitter.properties");
     conf.set(MessagePublisherFactory.EMITTER_CONF_FILE_KEY, url.getFile());
-    AbstractMessagePublisher publisher = (AbstractMessagePublisher) MessagePublisherFactory
-        .create(conf, MockPublisher.class.getName());
+    AbstractMessagePublisher publisher =
+        (AbstractMessagePublisher) MessagePublisherFactory.create(conf,
+            MockPublisher.class.getName());
     doTest(publisher);
     Assert.assertTrue(publisher.getMetrics().statEmissionEnabled());
     Assert
@@ -90,14 +94,16 @@ public class TestPublisher {
         "com.inmobi.messaging.publisher.MockInMemoryPublisher");
     conf.set(AuditService.WINDOW_SIZE_KEY, "60");
     conf.set(AuditService.AGGREGATE_WINDOW_KEY, "60");
-    MessagePublisher publisher = MessagePublisherFactory.create(conf,
-        MockInMemoryPublisher.class.getName());
+    MessagePublisher publisher =
+        MessagePublisherFactory.create(conf,
+            MockInMemoryPublisher.class.getName());
     publisher.publish("topic", new Message("message".getBytes()));
     publisher.close();
     conf.set("topic.name", "topic");
     conf.set("consumer.name", "c1");
-    MessageConsumer consumer = MessageConsumerFactory.create(conf,
-        MockInMemoryConsumer.class.getName());
+    MessageConsumer consumer =
+        MessageConsumerFactory.create(conf,
+            MockInMemoryConsumer.class.getName());
     ((MockInMemoryConsumer) consumer)
         .setSource(((MockInMemoryPublisher) (publisher)).source);
     Message m = consumer.next();
@@ -115,14 +121,16 @@ public class TestPublisher {
     conf.set(AuditService.WINDOW_SIZE_KEY, "60");
     conf.set(AuditService.AGGREGATE_WINDOW_KEY, "5");
 
-    MessagePublisher publisher = MessagePublisherFactory.create(conf,
-        MockInMemoryPublisher.class.getName());
+    MessagePublisher publisher =
+        MessagePublisherFactory.create(conf,
+            MockInMemoryPublisher.class.getName());
     publisher.publish("topic", new Message("message".getBytes()));
     publisher.close();
     conf.set("topic.name", AuditUtil.AUDIT_STREAM_TOPIC_NAME);
     conf.set("consumer.name", "c1");
-    MessageConsumer consumer = MessageConsumerFactory.create(conf,
-        MockInMemoryConsumer.class.getName());
+    MessageConsumer consumer =
+        MessageConsumerFactory.create(conf,
+            MockInMemoryConsumer.class.getName());
     ((MockInMemoryConsumer) consumer)
         .setSource(((MockInMemoryPublisher) (publisher)).source);
     Message m = consumer.next();
@@ -142,10 +150,11 @@ public class TestPublisher {
         "com.inmobi.messaging.publisher.MockInMemoryPublisher");
     conf.set(AuditService.WINDOW_SIZE_KEY, "60");
     conf.set(AuditService.AGGREGATE_WINDOW_KEY, "60");
-    conf.set("audit.enabled", "false");
+    conf.set(AuditService.AUDIT_ENABLED_KEY, "false");
 
-    MessagePublisher publisher = MessagePublisherFactory.create(conf,
-        MockInMemoryPublisher.class.getName());
+    MessagePublisher publisher =
+        MessagePublisherFactory.create(conf,
+            MockInMemoryPublisher.class.getName());
     publisher.publish("topic", new Message("message".getBytes()));
     publisher.close();
     assert (!((MockInMemoryPublisher) publisher).source
@@ -210,8 +219,8 @@ public class TestPublisher {
     ClientConfig conf = new ClientConfig();
     conf.set(MessagePublisherFactory.PUBLISHER_CLASS_NAME_KEY,
         MockPublisher.class.getName());
-    AbstractMessagePublisher publisher = (AbstractMessagePublisher) MessagePublisherFactory
-        .create(conf);
+    AbstractMessagePublisher publisher =
+        (AbstractMessagePublisher) MessagePublisherFactory.create(conf);
     String topic = "test";
     // intializing latch here to ensure all threads run in parallel,without this
     // testng executes the threads in sequential order`
