@@ -20,8 +20,8 @@ public class TestLogger {
   public void test() throws TException {
     PropertyConfigurator.configure("src/test/resources/log4j.properties");
     Logger logger = Logger.getLogger("messagingclient");
-    MessageAppender appender = (MessageAppender) logger
-        .getAppender("messagingclient");
+    MessageAppender appender =
+        (MessageAppender) logger.getAppender("messagingclient");
     Assert.assertNull(appender.getConffile());
     doTest(logger, appender);
   }
@@ -31,8 +31,8 @@ public class TestLogger {
     PropertyConfigurator
         .configure("src/test/resources/log4j-with-conf.properties");
     Logger logger = Logger.getLogger("messagingclient");
-    MessageAppender appender = (MessageAppender) logger
-        .getAppender("messagingclient");
+    MessageAppender appender =
+        (MessageAppender) logger.getAppender("messagingclient");
     Assert.assertEquals(appender.getConffile(),
         "src/test/resources/messaging-publisher-conf.properties");
     doTest(logger, appender);
@@ -48,16 +48,18 @@ public class TestLogger {
     MockPublisher.reset(topic);
 
     // test byte[] logging
+    msg = new Message(ByteBuffer.wrap("hello".getBytes()));
     logger.info(msg.getData().array());
-    ByteBuffer returned = AuditUtil.removeHeader(MockPublisher.getMsg(topic)
-        .getData().array());
+    ByteBuffer returned =
+        AuditUtil.removeHeader(MockPublisher.getMsg(topic).getData().array());
     Assert.assertEquals(new Message(returned), msg);
     MockPublisher.reset(topic);
 
     // test String logging
+    msg = new Message(ByteBuffer.wrap("hello".getBytes()));
     logger.info(new String(msg.getData().array()));
-    returned = AuditUtil.removeHeader(MockPublisher.getMsg(topic).getData()
-        .array());
+    returned =
+        AuditUtil.removeHeader(MockPublisher.getMsg(topic).getData().array());
     Assert.assertEquals(new Message(returned), msg);
     MockPublisher.reset(topic);
 
@@ -71,8 +73,8 @@ public class TestLogger {
     le.category = "xxxx";
     le.message = "massage";
     logger.info(le);
-    returned = AuditUtil.removeHeader(MockPublisher.getMsg(topic).getData()
-        .array());
+    returned =
+        AuditUtil.removeHeader(MockPublisher.getMsg(topic).getData().array());
     TSerializer serializer = new TSerializer();
     Assert.assertEquals(new Message(returned),
         new Message(serializer.serialize(le)));
