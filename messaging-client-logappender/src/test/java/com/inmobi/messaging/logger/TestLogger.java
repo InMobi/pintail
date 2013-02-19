@@ -48,6 +48,7 @@ public class TestLogger {
     MockPublisher.reset(topic);
 
     // test byte[] logging
+    msg = new Message(ByteBuffer.wrap("hello".getBytes()));
     logger.info(msg.getData().array());
     ByteBuffer returned =
         AuditUtil.removeHeader(MockPublisher.getMsg(topic).getData().array());
