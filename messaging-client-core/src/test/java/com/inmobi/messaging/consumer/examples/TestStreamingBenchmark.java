@@ -8,7 +8,6 @@ import org.testng.annotations.Test;
 
 import com.inmobi.messaging.consumer.MockConsumer;
 import com.inmobi.messaging.publisher.MockPublisher;
-import com.inmobi.messaging.util.AuditUtil;
 
 public class TestStreamingBenchmark {
 
@@ -41,7 +40,7 @@ public class TestStreamingBenchmark {
     exitcode = StreamingBenchmark.run(args.toArray(new String[0]));
     Assert.assertEquals(exitcode, 0);
 
-    //test producer for wrong number of messages per sec
+    // test producer for wrong number of messages per sec
     args.clear();
     args.add("-producer");
     args.add("test");
@@ -56,7 +55,7 @@ public class TestStreamingBenchmark {
     Assert.assertNotNull(th);
     Assert.assertTrue(th instanceof IllegalArgumentException);
 
-    //test producer for wrong number of total messages
+    // test producer for wrong number of total messages
     args.clear();
     args.add("-producer");
     args.add("test");
@@ -71,7 +70,7 @@ public class TestStreamingBenchmark {
     Assert.assertNotNull(th);
     Assert.assertTrue(th instanceof IllegalArgumentException);
 
-    //test producer for timeout seconds
+    // test producer for timeout seconds
     args.clear();
     args.add("-producer");
     args.add("test");
@@ -124,17 +123,17 @@ public class TestStreamingBenchmark {
     args.add("10000");
     args.add("5");
     args.add(Integer.toString(msgSize));
-    MockPublisher.reset(); 
+    MockPublisher.reset();
     exitcode = StreamingBenchmark.run(args.toArray(new String[0]));
-    String msgRead = StreamingBenchmark.getMessage(MockPublisher.getMsg(topic), false); 
-    String message = new String (AuditUtil.removeHeader(msgRead.getBytes()).array());
-    String[] msg = message.split(StreamingBenchmark.DELIMITER);
+    String msgRead =
+        StreamingBenchmark.getMessage(MockPublisher.getMsg(topic), false);
+    String[] msg = msgRead.split(StreamingBenchmark.DELIMITER);
     Assert.assertEquals(exitcode, 0);
     Assert.assertEquals(msg.length, 3);
     Assert.assertEquals(Long.parseLong(msg[0]), numMessages);
     Assert.assertEquals(msg[2].length(), msgSize);
-    Assert.assertEquals(msg[2], new String(StreamingBenchmark.getMessageBytes(
-        msgSize)));
-    MockPublisher.reset(); 
+    Assert.assertEquals(msg[2],
+        new String(StreamingBenchmark.getMessageBytes(msgSize)));
+    MockPublisher.reset();
   }
 }
