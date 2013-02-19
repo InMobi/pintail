@@ -1,13 +1,16 @@
 package com.inmobi.messaging.consumer.examples;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.MockConsumer;
 import com.inmobi.messaging.publisher.MockPublisher;
+import com.inmobi.messaging.util.AuditUtil;
 
 public class TestStreamingBenchmark {
 
@@ -125,8 +128,10 @@ public class TestStreamingBenchmark {
     args.add(Integer.toString(msgSize));
     MockPublisher.reset();
     exitcode = StreamingBenchmark.run(args.toArray(new String[0]));
-    String msgRead =
-        StreamingBenchmark.getMessage(MockPublisher.getMsg(topic), false);
+    ByteBuffer buffer =
+        AuditUtil.removeHeader(MockPublisher.getMsg(topic).getData().array());
+    Message message = new Message(buffer);
+    String msgRead = StreamingBenchmark.getMessage(message, false);
     String[] msg = msgRead.split(StreamingBenchmark.DELIMITER);
     Assert.assertEquals(exitcode, 0);
     Assert.assertEquals(msg.length, 3);

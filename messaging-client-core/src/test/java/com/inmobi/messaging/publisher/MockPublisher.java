@@ -5,7 +5,6 @@ import java.util.Map;
 
 import com.inmobi.instrumentation.TimingAccumulator.Outcome;
 import com.inmobi.messaging.Message;
-import com.inmobi.messaging.util.AuditUtil;
 
 public class MockPublisher extends AbstractMessagePublisher {
   private static Map<String, Message> msgs = new HashMap<String, Message>();
@@ -19,9 +18,7 @@ public class MockPublisher extends AbstractMessagePublisher {
   }
 
   public static Message getMsg(String topic) {
-    Message m =
-        new Message(AuditUtil.removeHeader(msgs.get(topic).getData().array()));
-    return m;
+    return msgs.get(topic);
   }
 
   @Override
