@@ -11,7 +11,7 @@ import java.util.Map;
 
 import org.apache.thrift.TException;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeTest;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.inmobi.messaging.ClientConfig;
@@ -37,10 +37,11 @@ public class TestAuditStatsQuery {
   String topic4 = "topic5";
   String topic5 = "topic6";
 
-  @BeforeTest
+  @BeforeMethod
   public void setup() throws IOException {
-    publisher = MessagePublisherFactory
-        .create("src/test/resources/mock-publisher.properties");
+    publisher =
+        MessagePublisherFactory
+            .create("src/test/resources/mock-publisher.properties");
 
   }
 
@@ -79,8 +80,9 @@ public class TestAuditStatsQuery {
     assert (publisher instanceof com.inmobi.messaging.publisher.MockInMemoryPublisher);
     generateData(topic, topic1);
     publisher.close();
-    AuditStatsQuery query = new AuditStatsQuery("mock", endTime, startTime,
-        "topic=" + topic1, null, null, "1", null);
+    AuditStatsQuery query =
+        new AuditStatsQuery("mock", endTime, startTime, "topic=" + topic1,
+            null, null, "1", null);
     query.parseAndSetArguments();
     query.timeout = 10;
     MessageConsumer consumer = query.getConsumer(startDate, "mock");
@@ -100,8 +102,9 @@ public class TestAuditStatsQuery {
     assert (publisher instanceof com.inmobi.messaging.publisher.MockInMemoryPublisher);
     generateData(topic, topic1);
     publisher.close();
-    AuditStatsQuery query = new AuditStatsQuery("mock", endTime, startTime,
-        null, "topic,tier", null, "1", null);
+    AuditStatsQuery query =
+        new AuditStatsQuery("mock", endTime, startTime, null, "topic,tier",
+            null, "1", null);
     query.parseAndSetArguments();
     query.timeout = 10;
     MessageConsumer consumer = query.getConsumer(startDate, "mock");
@@ -128,8 +131,9 @@ public class TestAuditStatsQuery {
     assert (publisher instanceof com.inmobi.messaging.publisher.MockInMemoryPublisher);
     generateData(topic, topic1);
     publisher.close();
-    AuditStatsQuery query = new AuditStatsQuery("mock", endTime, startTime,
-        "topic=" + topic1, null, null, "1", null);
+    AuditStatsQuery query =
+        new AuditStatsQuery("mock", endTime, startTime, "topic=" + topic1,
+            null, null, "1", null);
     query.parseAndSetArguments();
 
     Calendar calendar = Calendar.getInstance();
@@ -152,8 +156,9 @@ public class TestAuditStatsQuery {
     assert (publisher instanceof com.inmobi.messaging.publisher.MockInMemoryPublisher);
     generateData(topic, topic1);
     publisher.close();
-    AuditStatsQuery query = new AuditStatsQuery("mock", endTime, startTime,
-        "topic=" + topic1, null, null, "1", null);
+    AuditStatsQuery query =
+        new AuditStatsQuery("mock", endTime, startTime, "topic=" + topic1,
+            null, null, "1", null);
     query.parseAndSetArguments();
     query.timeout = 10;
     query.cutoffTime = 0;
@@ -169,14 +174,15 @@ public class TestAuditStatsQuery {
   @Test
   public void testAuditQueryValidCuttoffTime() throws IOException,
       InterruptedException, TException, ParseException {
-    ClientConfig config = ClientConfig
-        .load("src/test/resources/mock-publisher.properties");
+    ClientConfig config =
+        ClientConfig.load("src/test/resources/mock-publisher.properties");
     publisher = MessagePublisherFactory.create(config);
     assert (publisher instanceof com.inmobi.messaging.publisher.MockInMemoryPublisher);
     generateData(topic2, topic3);
     System.out.println(startTime + " " + endTime);
-    AuditStatsQuery query = new AuditStatsQuery("mock", endTime, startTime,
-        "topic=" + topic2, null, null, "1", null);
+    AuditStatsQuery query =
+        new AuditStatsQuery("mock", endTime, startTime, "topic=" + topic2,
+            null, null, "1", null);
     query.parseAndSetArguments();
     query.timeout = 200;
     query.cutoffTime = 60000;
@@ -199,16 +205,16 @@ public class TestAuditStatsQuery {
   @Test
   public void testAuditQueryMaxMessages() throws IOException,
       InterruptedException, TException, ParseException {
-    ClientConfig config = ClientConfig
-        .load("src/test/resources/mock-publisher.properties");
+    ClientConfig config =
+        ClientConfig.load("src/test/resources/mock-publisher.properties");
     publisher = MessagePublisherFactory.create(config);
     assert (publisher instanceof com.inmobi.messaging.publisher.MockInMemoryPublisher);
     generateData(topic4, topic5);
     // setting very large timeout so that query cuttoff should happen as per max
     // messages
-    AuditStatsQuery query = new AuditStatsQuery("mock", endTime, startTime,
-        "topic=" + topic4, null, "600", "600", null, Tier.PUBLISHER,
-        totalData / 2);
+    AuditStatsQuery query =
+        new AuditStatsQuery("mock", endTime, startTime, "topic=" + topic4,
+            null, "600", "600", null, Tier.PUBLISHER, totalData / 2);
     query.parseAndSetArguments();
     publisher.close();
     query.filter = new Filter("topic=" + topic4);
