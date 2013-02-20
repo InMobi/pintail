@@ -80,5 +80,6 @@ public class CounterClient {
         e.printStackTrace();
       }
     }
+    consumer.close();
   }
 }
