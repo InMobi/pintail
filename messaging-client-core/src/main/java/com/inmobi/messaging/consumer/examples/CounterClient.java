@@ -21,6 +21,16 @@ public class CounterClient {
   static int msgCounter;
   static int markCounter;
   static volatile boolean keepRunnig = true;
+
+  public static void close() throws IOException {
+    if (consumer != null) {
+      consumer.mark();
+      consumer.close();
+      System.out.println("Counter value: " + msgCounter);
+      consumer =  null;
+    }
+  }
+
   public static void main(String[] args) throws Exception {
     final Thread mainThread = Thread.currentThread();
     long timeout = 300;
@@ -31,7 +41,7 @@ public class CounterClient {
     } else if (args.length >= 1) {
       Calendar now = Calendar.getInstance();
       Integer min = Integer.parseInt(args[0]);
-      
+
       if (args.length == 2) {
         timeout = Long.parseLong(args[1]);
       }
@@ -40,7 +50,7 @@ public class CounterClient {
     } else {
       consumer = null;
       System.out.println("Usage: counterclient [<minutes-to-read-from>] " +
-      		"[<time-to-wait-NextMessage>]");
+          "[<time-to-wait-NextMessage>]");
       System.exit(-1);
     }
 
@@ -49,17 +59,14 @@ public class CounterClient {
       public void run() {
         keepRunnig = false;
         try {
-          if (consumer != null) {
-            mainThread.interrupt();
-            consumer.mark();
-            consumer.close();
-            System.out.println("Counter value: " + msgCounter);
-          }
+          mainThread.interrupt();
+          close();
         } catch (IOException e) {
           e.printStackTrace();
         }
       }
     });
+
     while (keepRunnig) {
       try {
         for (int i = 0; i < 1000; i++) {
@@ -80,5 +87,6 @@ public class CounterClient {
         e.printStackTrace();
       }
     }
-  }
+    close();
+  } 
 }
