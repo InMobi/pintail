@@ -103,7 +103,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     return statsExposers.get(topic);
   }
 
-  protected void init(ClientConfig config) throws IOException {
+  protected synchronized void init(ClientConfig config) throws IOException {
     try {
       String emitterConfig =
           config.getString(MessagePublisherFactory.EMITTER_CONF_FILE_KEY);
@@ -124,7 +124,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
   }
 
   @Override
-  public void close() {
+  public synchronized void close() {
 
     LOG.info("Closing the topics and stat exposers");
     for (Entry<String, TopicStatsExposer> entry : statsExposers.entrySet()) {
@@ -141,7 +141,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     }
   }
 
-  protected void init() throws IOException {
+  protected synchronized void init() throws IOException {
     auditService.init();
 
   }
