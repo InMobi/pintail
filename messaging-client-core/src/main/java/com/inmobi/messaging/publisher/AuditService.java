@@ -49,29 +49,39 @@ class AuditService {
 
     @Override
     public void run() {
-      try {
-        LOG.info("Running the AuditWorker");
-        for (Entry<String, AuditCounterAccumulator> entry : topicAccumulatorMap
-            .entrySet()) {
-          String topic = entry.getKey();
-          AuditCounterAccumulator accumulator = entry.getValue();
-          Map<Long, AtomicLong> received = accumulator.getReceived();
-          Map<Long, AtomicLong> sent = accumulator.getSent();
-          accumulator.reset(); // resetting before creating packet to make sure
-                               // that during creation of packet no more writes
-                               // should occur to previous counters
-          if (received.size() == 0 && sent.size() == 0) {
-            LOG.info("Not publishing audit packet as all the metric counters are"
-                + " 0");
-            return;
-          }
-          AuditMessage packet = createPacket(topic, received, sent);
-          publishPacket(packet);
+      // synchronizing on publisher's instance to avoid execution of this block
+      // via 2 threads at same time,this block can be executed via 2 thread
+      // 1)through application's thread when close() is called 2) in
+      // AuditService's thread
 
+      synchronized (publisher) {
+        try {
+          LOG.info("Running the AuditWorker");
+          for (Entry<String, AuditCounterAccumulator> entry : topicAccumulatorMap
+              .entrySet()) {
+            String topic = entry.getKey();
+            AuditCounterAccumulator accumulator = entry.getValue();
+            Map<Long, AtomicLong> received = accumulator.getReceived();
+            Map<Long, AtomicLong> sent = accumulator.getSent();
+            accumulator.reset(); // resetting before creating packet to make
+                                 // sure
+                                 // that during creation of packet no more
+                                 // writes
+                                 // should occur to previous counters
+            if (received.size() == 0 && sent.size() == 0) {
+              LOG.info("Not publishing audit packet as all the metric counters are"
+                  + " 0");
+              return;
+            }
+            AuditMessage packet = createPacket(topic, received, sent);
+            publishPacket(packet);
+
+          }
+        } catch (Throwable e) {// catching general exception so that thread
+                               // should
+                               // not get aborted
+          LOG.error("Error while publishing the audit message", e);
         }
-      } catch (Throwable e) {// catching general exception so that thread should
-                             // not get aborted
-        LOG.error("Error while publishing the audit message", e);
       }
 
     }
@@ -117,13 +127,13 @@ class AuditService {
     this.publisher = publisher;
   }
 
-  public synchronized void init() throws IOException {
+  public void init() throws IOException {
     if (isInit)
       return;
     init(new ClientConfig());
   }
 
-  public synchronized void init(ClientConfig config) throws IOException {
+  public void init(ClientConfig config) throws IOException {
     if (isInit)
       return;
     windowSize = config.getInteger(WINDOW_SIZE_KEY, DEFAULT_WINDOW_SIZE);
@@ -151,9 +161,10 @@ class AuditService {
     return topicAccumulatorMap.get(topic);
   }
 
-  public synchronized void close() {
+  public void close() {
     if (worker != null) {
       worker.flush(); // flushing the last audit packet during shutdown
+      topicAccumulatorMap.clear();
     }
     if (executor != null) {
       executor.shutdown();
