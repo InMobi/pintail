@@ -197,6 +197,14 @@ public class StreamingBenchmark {
       } else {
         now = Calendar.getInstance().getTime();
       }
+      // adding 1 minute to the end time so that when formatter converts it to
+      // minute level granularity we get the ceiling instead of floor;for eg:
+      // messages produced at 2:30:12 would only be considered in audit query
+      // when end time is 2:31 and not 2:30
+      Calendar calendar = Calendar.getInstance();
+      calendar.setTime(now);
+      calendar.add(Calendar.MINUTE, 1);
+      now = calendar.getTime();
       auditEndTime = formatter.format(now);
     }
 
