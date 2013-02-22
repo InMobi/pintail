@@ -115,7 +115,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.12</version>
         <configuration>
-          <argLine>-Xdebug -Xrunjdwp:transport=dt_socket,address=8888,server=y,suspend=n</argLine>
+        <!--  <argLine>-Xdebug -Xrunjdwp:transport=dt_socket,address=8888,server=y,suspend=n</argLine>-->
           <systemPropertyVariables>
             <test.build.data>${test.build.data}</test.build.data>
           </systemPropertyVariables>
