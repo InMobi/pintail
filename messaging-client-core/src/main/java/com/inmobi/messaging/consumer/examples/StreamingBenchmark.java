@@ -201,7 +201,6 @@ public class StreamingBenchmark {
       // minute level granularity we get the ceiling instead of floor;for eg:
       // messages produced at 2:30:12 would only be considered in audit query
       // when end time is 2:31 and not 2:30
-      System.out.println("Adding 1 minute to end time " + now);
       Calendar calendar = Calendar.getInstance();
       calendar.setTime(now);
       calendar.add(Calendar.MINUTE, 1);
