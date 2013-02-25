@@ -23,11 +23,13 @@ public class CounterClient {
   static volatile boolean keepRunnig = true;
 
   public static void close() throws IOException {
-    if (consumer != null) {
-      consumer.mark();
-      consumer.close();
-      System.out.println("Counter value: " + msgCounter);
-      consumer =  null;
+    synchronized (consumer) {
+      if (consumer != null) {
+        consumer.mark();
+        consumer.close();
+        System.out.println("Counter value: " + msgCounter);
+        consumer =  null;
+      }
     }
   }
 
