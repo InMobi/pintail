@@ -21,15 +21,16 @@ public class CounterClient {
   static int msgCounter;
   static int markCounter;
   static volatile boolean keepRunnig = true;
+  static boolean closed = false;
 
-  public static void close() throws IOException {
-    synchronized (consumer) {
+  public synchronized static void close() throws IOException {
+    if (!closed) {
       if (consumer != null) {
         consumer.mark();
         consumer.close();
         System.out.println("Counter value: " + msgCounter);
-        consumer =  null;
       }
+      closed = true;
     }
   }
 
