@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.SequenceFileInputFormat;
@@ -15,7 +17,7 @@ import org.testng.annotations.Test;
 import com.inmobi.messaging.consumer.util.HadoopUtil;
 
 public class TestPartitionReaderHadoopStream extends TestAbstractClusterReader {
-
+  static final Log LOG = LogFactory.getLog(TestPartitionReaderHadoopStream.class);
   @BeforeTest
   public void setup() throws Exception {
     consumerNumber = 1;
@@ -38,6 +40,7 @@ public class TestPartitionReaderHadoopStream extends TestAbstractClusterReader {
 
   @AfterTest
   public void cleanup() throws IOException {
+    LOG.debug("Cleaning up the dir: "+ streamDir.getParent());
     fs.delete(streamDir.getParent(), true);
   }
 

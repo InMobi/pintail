@@ -8,6 +8,8 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -30,7 +32,7 @@ import com.inmobi.messaging.consumer.util.TestUtil;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
 public class TestClusterReaderEmptyStream {
-
+  static final Log LOG = LogFactory.getLog(TestClusterReaderEmptyStream.class);
   private static final String testStream = "testclient";
 
   private LinkedBlockingQueue<QueueEntry> buffer = 
@@ -67,6 +69,7 @@ public class TestClusterReaderEmptyStream {
 
   @AfterTest
   public void cleanup() throws IOException {
+    LOG.debug("Cleaning up the dir: "+ streamDir.getParent());
     fs.delete(streamDir.getParent(), true);
   }
 

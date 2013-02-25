@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -16,6 +18,7 @@ import com.inmobi.messaging.consumer.util.ConsumerUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
 public abstract class TestAbstractDatabusConsumer {
+  static final Log LOG = LogFactory.getLog(TestAbstractDatabusConsumer.class);
 
   int numMessagesPerFile = 100;
   int numDataFiles = 3;
@@ -86,6 +89,7 @@ public abstract class TestAbstractDatabusConsumer {
     testConsumer.close();
     for (Path p : rootDirs) {
       FileSystem fs = p.getFileSystem(conf);
+      LOG.debug("Cleaning up the dir: " + p);
       fs.delete(p, true);
     }
   }
