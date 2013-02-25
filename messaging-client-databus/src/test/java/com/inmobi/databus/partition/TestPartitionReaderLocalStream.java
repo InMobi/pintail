@@ -2,6 +2,8 @@ package com.inmobi.databus.partition;
 
 import java.io.IOException;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.testng.annotations.AfterTest;
@@ -15,6 +17,7 @@ import com.inmobi.messaging.consumer.databus.mapred.DatabusInputFormat;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
 public class TestPartitionReaderLocalStream extends TestAbstractClusterReader {
+  static final Log LOG = LogFactory.getLog(TestPartitionReaderLocalStream.class);
   Cluster cluster;
   @BeforeTest
   public void setup() throws Exception {
@@ -32,6 +35,7 @@ public class TestPartitionReaderLocalStream extends TestAbstractClusterReader {
   @AfterTest
   public void cleanup() throws IOException {
     super.cleanup();
+    LOG.debug("Cleaning up the dir: " + cluster.getRootDir());
     fs.delete(new Path(cluster.getRootDir()), true);
   }
 

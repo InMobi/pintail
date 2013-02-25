@@ -101,6 +101,7 @@ public class TestHadoopConsumerWithPartitionList  {
   public void cleanup() throws IOException {
     FileSystem lfs = FileSystem.getLocal(conf);
     for (Path rootDir : rootDirs) {
+      LOG.debug("Cleaning up the dir: " + rootDir);
       lfs.delete(rootDir.getParent(), true);
     }
   }

@@ -96,6 +96,7 @@ public class TestDatabusInputFormat extends TestAbstractInputFormat {
 
   @AfterTest
   public void cleanUp() throws Exception {
+    LOG.debug("Cleaning up te dir: " + rootDir);
     fs.delete(rootDir, true);
   }
 }

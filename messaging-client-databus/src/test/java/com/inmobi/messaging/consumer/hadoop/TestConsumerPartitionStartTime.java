@@ -121,6 +121,7 @@ public class TestConsumerPartitionStartTime {
   public void cleanup() throws Exception {
     FileSystem lfs = FileSystem.getLocal(conf);
     for (Path rootDir : rootDirs) {
+      LOG.debug("Cleaning up the dir: "+ rootDir.getParent());
       lfs.delete(rootDir.getParent(), true);
     }
   }
