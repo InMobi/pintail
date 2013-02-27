@@ -15,7 +15,8 @@ class Counters {
 }
 
 public class AuditCounterAccumulator {
-  Counters counters = new Counters(new ConcurrentHashMap<Long, AtomicLong>(),
+  private Counters counters = new Counters(
+      new ConcurrentHashMap<Long, AtomicLong>(),
       new ConcurrentHashMap<Long, AtomicLong>());
   private int windowSize;
 
