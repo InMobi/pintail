@@ -61,19 +61,14 @@ class AuditService {
               .entrySet()) {
             String topic = entry.getKey();
             AuditCounterAccumulator accumulator = entry.getValue();
-            Map<Long, AtomicLong> received = accumulator.getReceived();
-            Map<Long, AtomicLong> sent = accumulator.getSent();
-            accumulator.reset(); // resetting before creating packet to make
-                                 // sure
-                                 // that during creation of packet no more
-                                 // writes
-                                 // should occur to previous counters
-            if (received.size() == 0 && sent.size() == 0) {
+            Counters counters = accumulator.getAndReset();
+            if (counters.received.size() == 0 && counters.sent.size() == 0) {
               LOG.info("Not publishing audit packet as all the metric counters are"
                   + " 0");
               return;
             }
-            AuditMessage packet = createPacket(topic, received, sent);
+            AuditMessage packet =
+                createPacket(topic, counters.received, counters.sent);
             publishPacket(packet);
 
           }
@@ -127,13 +122,13 @@ class AuditService {
     this.publisher = publisher;
   }
 
-  public void init() throws IOException {
+  void init() throws IOException {
     if (isInit)
       return;
     init(new ClientConfig());
   }
 
-  public void init(ClientConfig config) throws IOException {
+  void init(ClientConfig config) throws IOException {
     if (isInit)
       return;
     windowSize = config.getInteger(WINDOW_SIZE_KEY, DEFAULT_WINDOW_SIZE);
@@ -154,14 +149,14 @@ class AuditService {
     isInit = true;
   }
 
-  private AuditCounterAccumulator getAccumulator(String topic) {
+  synchronized private AuditCounterAccumulator getAccumulator(String topic) {
     if (!topicAccumulatorMap.containsKey(topic))
       topicAccumulatorMap.putIfAbsent(topic, new AuditCounterAccumulator(
           windowSize));
     return topicAccumulatorMap.get(topic);
   }
 
-  public void close() {
+  synchronized void close() {
     if (worker != null) {
       worker.flush(); // flushing the last audit packet during shutdown
       topicAccumulatorMap.clear();
@@ -171,7 +166,7 @@ class AuditService {
     }
   }
 
-  public void incrementReceived(String topicName, Long timestamp) {
+  void incrementReceived(String topicName, Long timestamp) {
     AuditCounterAccumulator accumulator = getAccumulator(topicName);
     accumulator.incrementReceived(timestamp);
   }
