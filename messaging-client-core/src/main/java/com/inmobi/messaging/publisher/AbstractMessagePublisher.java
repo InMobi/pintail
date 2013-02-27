@@ -136,8 +136,15 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     }
     if (isAuditEnabled) {
       auditService.close();
-      closeTopic(AuditUtil.AUDIT_STREAM_TOPIC_NAME);
-      statsEmitter.remove(statsExposers.get(AuditUtil.AUDIT_STREAM_TOPIC_NAME));
+      // check whether _audit topic exist in statsexposer to ensure that some
+      // messages has been published on _audit.There is a case where publisher
+      // has audit enabled but since no messages were published hence no audit
+      // would have been generated
+      if (statsExposers.containsKey(AuditUtil.AUDIT_STREAM_TOPIC_NAME)) {
+        closeTopic(AuditUtil.AUDIT_STREAM_TOPIC_NAME);
+        statsEmitter.remove(statsExposers
+            .get(AuditUtil.AUDIT_STREAM_TOPIC_NAME));
+      }
     }
   }
 
