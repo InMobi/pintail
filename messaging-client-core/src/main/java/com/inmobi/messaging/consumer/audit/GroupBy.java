@@ -86,7 +86,7 @@ public class GroupBy {
 
   private Set<Column> isSet;
 
-  GroupBy(String input) {
+  public GroupBy(String input) {
     isSet = new HashSet<Column>();
     if (input == null)
       return;

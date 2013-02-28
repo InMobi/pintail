@@ -168,7 +168,11 @@ class AuditService {
 
   void incrementReceived(String topicName, Long timestamp) {
     AuditCounterAccumulator accumulator = getAccumulator(topicName);
+    LOG.debug("Just before incrementing for topic [" + topicName
+        + "] in audit service");
     accumulator.incrementReceived(timestamp);
+    LOG.debug("Just  after incrementing for topic [" + topicName
+        + "] in audit service");
   }
 
 }
