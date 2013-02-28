@@ -40,9 +40,9 @@ public class AuditCounterAccumulator {
     if (!counters.received.containsKey(window)) {
       counters.received.putIfAbsent(window, new AtomicLong(0));
     }
-    LOG.debug("Just before Incrementing" + "] in audit counter accumulator");
+    LOG.debug("Just before Incrementing" + " in audit counter accumulator");
     counters.received.get(window).incrementAndGet();
-    LOG.debug("Just before Incrementing" + "] in audit counter accumulator");
+    LOG.debug("Just after Incrementing" + " in audit counter accumulator");
 
   }
 

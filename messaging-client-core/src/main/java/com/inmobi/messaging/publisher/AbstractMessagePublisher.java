@@ -61,10 +61,10 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
       initTopic(topicName, getStats(topicName));
       if (isAuditEnabled
           && !topicName.equals(AuditUtil.AUDIT_STREAM_TOPIC_NAME)) {
-        LOG.debug("Just before Incremetning for topic [" + topicName
+        LOG.debug("Just before Incrementing for topic [" + topicName
             + "] in publish");
         auditService.incrementReceived(topicName, timestamp);
-        LOG.debug("Just After Incremetning for topic [" + topicName
+        LOG.debug("Just After Incrementing for topic [" + topicName
             + "] in publish");
       }
     }
