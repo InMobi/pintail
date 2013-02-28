@@ -167,7 +167,7 @@ public class TestAuditStatsQuery {
         .setSource(((MockInMemoryPublisher) (publisher)).source);
     query.aggregateStats(consumer);
     Collection<Long> sent = query.getReceived().values();
-    assert (!sent.iterator().hasNext());
+    assert (sent.size() == 1);// only 1st packet would be considered
 
   }
 
