@@ -149,7 +149,7 @@ class AuditService {
     isInit = true;
   }
 
-  synchronized private AuditCounterAccumulator getAccumulator(String topic) {
+  private AuditCounterAccumulator getAccumulator(String topic) {
     if (!topicAccumulatorMap.containsKey(topic))
       topicAccumulatorMap.putIfAbsent(topic, new AuditCounterAccumulator(
           windowSize));
@@ -166,9 +166,13 @@ class AuditService {
     }
   }
 
-  void incrementReceived(String topicName, Long timestamp) {
+  synchronized void incrementReceived(String topicName, Long timestamp) {
     AuditCounterAccumulator accumulator = getAccumulator(topicName);
+    LOG.debug("Just before Incremetning for topic [" + topicName
+        + "] in audit service");
     accumulator.incrementReceived(timestamp);
+    LOG.debug("Just After Incremetning for topic [" + topicName
+        + "] in audit service");
   }
 
 }

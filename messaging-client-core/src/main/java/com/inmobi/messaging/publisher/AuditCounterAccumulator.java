@@ -3,9 +3,12 @@ package com.inmobi.messaging.publisher;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 class Counters {
-  ConcurrentHashMap<Long, AtomicLong> received;
-  ConcurrentHashMap<Long, AtomicLong> sent;
+  volatile ConcurrentHashMap<Long, AtomicLong> received;
+  volatile ConcurrentHashMap<Long, AtomicLong> sent;
 
   Counters(ConcurrentHashMap<Long, AtomicLong> received,
       ConcurrentHashMap<Long, AtomicLong> sent) {
@@ -15,6 +18,8 @@ class Counters {
 }
 
 public class AuditCounterAccumulator {
+  private static final Logger LOG = LoggerFactory
+      .getLogger(AuditCounterAccumulator.class);
   private Counters counters = new Counters(
       new ConcurrentHashMap<Long, AtomicLong>(),
       new ConcurrentHashMap<Long, AtomicLong>());
@@ -35,7 +40,9 @@ public class AuditCounterAccumulator {
     if (!counters.received.containsKey(window)) {
       counters.received.putIfAbsent(window, new AtomicLong(0));
     }
+    LOG.debug("Just before Incrementing" + "] in audit counter accumulator");
     counters.received.get(window).incrementAndGet();
+    LOG.debug("Just before Incrementing" + "] in audit counter accumulator");
 
   }
 
@@ -49,6 +56,7 @@ public class AuditCounterAccumulator {
   }
 
   synchronized Counters getAndReset() {
+    LOG.debug("Resetting the counters");
     Counters returnValue;
     returnValue = new Counters(counters.received, counters.sent);
     counters.received = new ConcurrentHashMap<Long, AtomicLong>();

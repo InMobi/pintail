@@ -45,6 +45,13 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
       throw new IllegalArgumentException("Cannot publish null message");
     }
     // initialization should happen only by one thread
+    Long timestamp = null;
+    if (isAuditEnabled && !topicName.equals(AuditUtil.AUDIT_STREAM_TOPIC_NAME)) {
+      // Add timstamp to the message
+      timestamp = new Date().getTime();
+      AuditUtil.attachHeaders(m, timestamp);
+
+    }
     synchronized (this) {
       if (getStats(topicName) == null) {
         TimingAccumulator stats = new TimingAccumulator();
@@ -52,16 +59,19 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
       }
       getStats(topicName).accumulateInvocation();
       initTopic(topicName, getStats(topicName));
+      if (isAuditEnabled
+          && !topicName.equals(AuditUtil.AUDIT_STREAM_TOPIC_NAME)) {
+        LOG.debug("Just before Incremetning for topic [" + topicName
+            + "] in publish");
+        auditService.incrementReceived(topicName, timestamp);
+        LOG.debug("Just After Incremetning for topic [" + topicName
+            + "] in publish");
+      }
     }
     // TODO: generate headers
     Map<String, String> headers = new HashMap<String, String>();
     headers.put(HEADER_TOPIC, topicName);
-    if (isAuditEnabled && !topicName.equals(AuditUtil.AUDIT_STREAM_TOPIC_NAME)) {
-      // Add timstamp to the message
-      Long timestamp = new Date().getTime();
-      AuditUtil.attachHeaders(m, timestamp);
-      auditService.incrementReceived(topicName, timestamp);
-    }
+
     publish(headers, m);
   }
 
