@@ -120,6 +120,7 @@ public class TestPublisher {
         "com.inmobi.messaging.publisher.MockInMemoryPublisher");
     conf.set(AuditService.WINDOW_SIZE_KEY, "60");
     conf.set(AuditService.AGGREGATE_WINDOW_KEY, "5");
+    conf.set(AbstractMessagePublisher.AUDIT_ENABLED_KEY, "true");
 
     MessagePublisher publisher =
         MessagePublisherFactory.create(conf,
@@ -150,7 +151,7 @@ public class TestPublisher {
         "com.inmobi.messaging.publisher.MockInMemoryPublisher");
     conf.set(AuditService.WINDOW_SIZE_KEY, "60");
     conf.set(AuditService.AGGREGATE_WINDOW_KEY, "60");
-    conf.set(AuditService.AUDIT_ENABLED_KEY, "false");
+    conf.set(AbstractMessagePublisher.AUDIT_ENABLED_KEY, "false");
 
     MessagePublisher publisher =
         MessagePublisherFactory.create(conf,

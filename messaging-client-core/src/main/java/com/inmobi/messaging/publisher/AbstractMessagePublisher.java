@@ -35,6 +35,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
   public static final String HEADER_TOPIC = "topic";
   private boolean isAuditEnabled;
   private final AuditService auditService = new AuditService(this);
+  public static final String AUDIT_ENABLED_KEY = "audit.enabled";
 
   @Override
   public void publish(String topicName, Message m) {
@@ -112,7 +113,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     try {
       String emitterConfig =
           config.getString(MessagePublisherFactory.EMITTER_CONF_FILE_KEY);
-      isAuditEnabled = config.getBoolean(AuditService.AUDIT_ENABLED_KEY, false);
+      isAuditEnabled = config.getBoolean(AUDIT_ENABLED_KEY, false);
       LOG.info("Audit is enabled for this publisher :" + isAuditEnabled);
       if (isAuditEnabled)
         auditService.init(config);

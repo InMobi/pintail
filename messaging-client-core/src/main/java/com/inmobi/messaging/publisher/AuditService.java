@@ -30,7 +30,6 @@ class AuditService {
   public static final String WINDOW_SIZE_KEY = "audit.window.size.sec";
   public static final String AGGREGATE_WINDOW_KEY =
       "audit.aggregate.window.sec";
-  public static final String AUDIT_ENABLED_KEY = "audit.enabled";
   private static final int DEFAULT_WINDOW_SIZE = 60;
   private static final int DEFAULT_AGGREGATE_WINDOW_SIZE = 60;
   private int windowSize;
