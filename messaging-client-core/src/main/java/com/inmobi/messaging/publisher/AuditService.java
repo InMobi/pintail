@@ -89,7 +89,7 @@ class AuditService {
 
     private void publishPacket(AuditMessage packet) {
       try {
-        LOG.debug("Publishing audit packet" + packet);
+        LOG.info("Publishing audit packet" + packet);
         publisher.publish(AuditUtil.AUDIT_STREAM_TOPIC_NAME, new Message(
             ByteBuffer.wrap(serializer.serialize(packet))));
       } catch (TException e) {
@@ -161,11 +161,6 @@ class AuditService {
 
   void incrementReceived(String topicName, Long timestamp) {
     AuditCounterAccumulator accumulator = getAccumulator(topicName);
-
-    LOG.debug("Just before incrementing for topic [" + topicName
-        + "] in audit service");
     accumulator.incrementReceived(timestamp);
-    LOG.debug("Just  after incrementing for topic [" + topicName
-        + "] in audit service");
   }
 }

@@ -33,7 +33,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
   private MessagingClientStatBuilder statsEmitter =
       new MessagingClientStatBuilder();
   public static final String HEADER_TOPIC = "topic";
-  private boolean isAuditEnabled = false;
+  private boolean isAuditEnabled;
   private final AuditService auditService = new AuditService(this);
 
   @Override
@@ -61,11 +61,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
       initTopic(topicName, getStats(topicName));
       if (isAuditEnabled
           && !topicName.equals(AuditUtil.AUDIT_STREAM_TOPIC_NAME)) {
-        LOG.debug("Just before Incrementing for topic [" + topicName
-            + "] in publish");
         auditService.incrementReceived(topicName, timestamp);
-        LOG.debug("Just After Incrementing for topic [" + topicName
-            + "] in publish");
       }
     }
     // TODO: generate headers
@@ -116,7 +112,8 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     try {
       String emitterConfig =
           config.getString(MessagePublisherFactory.EMITTER_CONF_FILE_KEY);
-      isAuditEnabled = config.getBoolean(AuditService.AUDIT_ENABLED_KEY, true);
+      isAuditEnabled = config.getBoolean(AuditService.AUDIT_ENABLED_KEY, false);
+      LOG.info("Audit is enabled for this publisher :" + isAuditEnabled);
       if (isAuditEnabled)
         auditService.init(config);
       if (emitterConfig == null) {

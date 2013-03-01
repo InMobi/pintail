@@ -53,10 +53,7 @@ public class AuditCounterAccumulator {
     if (!counters.received.containsKey(window)) {
       counters.received.put(window, new Long(0));
     }
-    LOG.debug("Just before Incrementing" + " in audit counter accumulator");
     counters.received.put(window, counters.received.get(window) + 1);
-    LOG.debug("Just after Incrementing" + " in audit counter accumulator");
-
   }
 
   void incrementSent(Long timestamp) {
@@ -69,7 +66,6 @@ public class AuditCounterAccumulator {
   }
 
   Counters getAndReset() {
-    LOG.debug("Resetting the counters");
     Counters returnValue;
     returnValue = new Counters(counters.received, counters.sent);
     counters.received = new HashMap<Long, Long>();
