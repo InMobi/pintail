@@ -14,7 +14,7 @@
   <scm>
     <connection>scm:git:https://github.corp.inmobi.com/platform/pintail.git</connection>
     <url>https://github.corp.inmobi.com/platform/pintail</url>
-    <developerConnection>scm:git:https://github.corp.inmobi.com:platform/pintail.git</developerConnection>
+    <developerConnection>scm:git:https://github.corp.inmobi.com/platform/pintail.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
 
