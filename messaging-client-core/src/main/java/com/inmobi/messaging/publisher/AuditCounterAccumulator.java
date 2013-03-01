@@ -21,7 +21,8 @@ public class AuditCounterAccumulator {
   private int windowSize;
 
   class Counters {
-    final private HashMap<Long, Long> received;
+    private HashMap<Long, Long> received;
+    private HashMap<Long, Long> sent;
 
     public Map<Long, Long> getReceived() {
       return received;
@@ -30,8 +31,6 @@ public class AuditCounterAccumulator {
     public Map<Long, Long> getSent() {
       return sent;
     }
-
-    final private HashMap<Long, Long> sent;
 
     Counters(HashMap<Long, Long> received, HashMap<Long, Long> sent) {
       this.received = received;
@@ -73,8 +72,8 @@ public class AuditCounterAccumulator {
     LOG.debug("Resetting the counters");
     Counters returnValue;
     returnValue = new Counters(counters.received, counters.sent);
-    counters.received.clear();
-    counters.sent.clear();
+    counters.received = new HashMap<Long, Long>();
+    counters.sent = new HashMap<Long, Long>();
     return returnValue;
   }
 }
