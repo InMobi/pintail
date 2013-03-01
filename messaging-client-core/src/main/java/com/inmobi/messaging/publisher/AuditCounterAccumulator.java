@@ -42,6 +42,7 @@ public class AuditCounterAccumulator {
     }
     LOG.debug("just before incrementing in audit counter accumulator");
     counters.received.get(window).incrementAndGet();
+    counters.received.put(window, counters.received.get(window));
     LOG.debug("just after incrementing in audit counter accumulator");
 
   }
@@ -52,6 +53,7 @@ public class AuditCounterAccumulator {
       counters.sent.putIfAbsent(window, new AtomicLong(0));
     }
     counters.sent.get(window).incrementAndGet();
+    counters.sent.put(window, counters.sent.get(window));
 
   }
 
