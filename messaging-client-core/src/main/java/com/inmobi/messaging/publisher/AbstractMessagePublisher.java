@@ -33,7 +33,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
   private MessagingClientStatBuilder statsEmitter =
       new MessagingClientStatBuilder();
   public static final String HEADER_TOPIC = "topic";
-  private boolean isAuditEnabled = true;
+  private boolean isAuditEnabled = false;
   private final AuditService auditService = new AuditService(this);
 
   @Override
