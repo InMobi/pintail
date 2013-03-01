@@ -69,7 +69,7 @@ class AuditService {
             if (counters.received.size() == 0 && counters.sent.size() == 0) {
               LOG.info("Not publishing audit packet as all the metric counters are"
                   + " 0");
-              return;
+              continue;
             }
             AuditMessage packet =
                 createPacket(topic, counters.received, counters.sent);
