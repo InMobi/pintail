@@ -46,11 +46,10 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher implements
             .getInteger(drainRetriesOnCloseConfig, DEFAULT_NUM_DRAINS_ONCLOSE));
   }
 
-  public void init(String host, int port, int backoffSeconds, int timeout,
+  private void init(String host, int port, int backoffSeconds, int timeout,
       boolean enableRetries, boolean resendOnAckLost, long sleepInterval,
       int msgQueueSize, int ackQueueSize, int numDrainsOnClose)
       throws IOException {
-    super.init();
     this.host = host;
     this.port = port;
     this.backoffSeconds = backoffSeconds;
@@ -89,9 +88,11 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher implements
   @Override
   protected void closeTopic(String topicName) {
     ScribeTopicPublisher scribePublisher = scribeConnections.get(topicName);
-    if (scribePublisher == null)
+    if (scribePublisher == null) {
       LOG.warn("Close called on topic[" + topicName + "]"
           + " for which ScribeTopicPublisher doesn't exist");
+      return;
+    }
     scribePublisher.close();
   }
 }

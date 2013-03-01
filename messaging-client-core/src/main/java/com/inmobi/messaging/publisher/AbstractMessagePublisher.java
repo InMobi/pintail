@@ -33,8 +33,9 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
   private MessagingClientStatBuilder statsEmitter =
       new MessagingClientStatBuilder();
   public static final String HEADER_TOPIC = "topic";
-  private boolean isAuditEnabled = true;
+  private boolean isAuditEnabled;
   private final AuditService auditService = new AuditService(this);
+  public static final String AUDIT_ENABLED_KEY = "audit.enabled";
 
   @Override
   public void publish(String topicName, Message m) {
@@ -45,6 +46,13 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
       throw new IllegalArgumentException("Cannot publish null message");
     }
     // initialization should happen only by one thread
+    Long timestamp = null;
+    if (isAuditEnabled && !topicName.equals(AuditUtil.AUDIT_STREAM_TOPIC_NAME)) {
+      // Add timstamp to the message
+      timestamp = new Date().getTime();
+      AuditUtil.attachHeaders(m, timestamp);
+
+    }
     synchronized (this) {
       if (getStats(topicName) == null) {
         TimingAccumulator stats = new TimingAccumulator();
@@ -52,16 +60,14 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
       }
       getStats(topicName).accumulateInvocation();
       initTopic(topicName, getStats(topicName));
+      if (isAuditEnabled
+          && !topicName.equals(AuditUtil.AUDIT_STREAM_TOPIC_NAME)) {
+        auditService.incrementReceived(topicName, timestamp);
+      }
     }
     // TODO: generate headers
     Map<String, String> headers = new HashMap<String, String>();
     headers.put(HEADER_TOPIC, topicName);
-    if (isAuditEnabled && !topicName.equals(AuditUtil.AUDIT_STREAM_TOPIC_NAME)) {
-      // Add timstamp to the message
-      Long timestamp = new Date().getTime();
-      AuditUtil.attachHeaders(m, timestamp);
-      auditService.incrementReceived(topicName, timestamp);
-    }
     publish(headers, m);
   }
 
@@ -107,7 +113,8 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     try {
       String emitterConfig =
           config.getString(MessagePublisherFactory.EMITTER_CONF_FILE_KEY);
-      isAuditEnabled = config.getBoolean(AuditService.AUDIT_ENABLED_KEY, true);
+      isAuditEnabled = config.getBoolean(AUDIT_ENABLED_KEY, false);
+      LOG.info("Audit is enabled for this publisher :" + isAuditEnabled);
       if (isAuditEnabled)
         auditService.init(config);
       if (emitterConfig == null) {

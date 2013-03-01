@@ -25,10 +25,6 @@ import com.inmobi.messaging.consumer.MessageConsumerFactory;
 import com.inmobi.messaging.consumer.audit.GroupBy.Group;
 import com.inmobi.messaging.util.AuditUtil;
 
-enum Column {
-  TIER, HOSTNAME, TOPIC
-}
-
 public class AuditStatsQuery {
 
   Map<Group, Long> received;
@@ -50,7 +46,8 @@ public class AuditStatsQuery {
   Date toTime;
   long cutoffTime = 600000;
   long timeout = 60000;
-  private static final String MESSAGE_CLIENT_CONF_FILE = "audit-consumer-conf.properties";
+  private static final String MESSAGE_CLIENT_CONF_FILE =
+      "audit-consumer-conf.properties";
   public static final String ROOT_DIR_KEY = "databus.consumer.rootdirs";
   public static final String CONSUMER_CLASS_KEY = "consumer.classname";
   private boolean isTimeOut = false;
@@ -65,7 +62,8 @@ public class AuditStatsQuery {
   private long messageCount = 0;
   private Tier cutoffTier = null;
   private String timezone;
-  public static final String CONSUMER_CLASSNAME = "com.inmobi.messaging.consumer.databus.DatabusConsumer";
+  public static final String CONSUMER_CLASSNAME =
+      "com.inmobi.messaging.consumer.databus.DatabusConsumer";
   public static final String CONSUMER_NAME = "audit-consumer";
 
   public AuditStatsQuery(String rootDir, String toTimeString,
@@ -236,9 +234,9 @@ public class AuditStatsQuery {
         printUsage();
         System.exit(-1);
       }
-      AuditStatsQuery auditStatsQuery = new AuditStatsQuery(rootDir, toTime,
-          fromTime, filterKeys, groupByKeys, cutoffString, timeoutString,
-          timezone);
+      AuditStatsQuery auditStatsQuery =
+          new AuditStatsQuery(rootDir, toTime, fromTime, filterKeys,
+              groupByKeys, cutoffString, timeoutString, timezone);
       try {
         auditStatsQuery.execute();
       } catch (InterruptedException e) {
@@ -296,8 +294,8 @@ public class AuditStatsQuery {
     // consumer from 1 hour behind
     calendar.add(Calendar.HOUR_OF_DAY, -1);
 
-    ClientConfig config = ClientConfig
-        .loadFromClasspath(MESSAGE_CLIENT_CONF_FILE);
+    ClientConfig config =
+        ClientConfig.loadFromClasspath(MESSAGE_CLIENT_CONF_FILE);
     if (rootDir != null) {
       config.set(ROOT_DIR_KEY, rootDir);
     }
