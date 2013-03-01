@@ -89,9 +89,11 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher implements
   @Override
   protected void closeTopic(String topicName) {
     ScribeTopicPublisher scribePublisher = scribeConnections.get(topicName);
-    if (scribePublisher == null)
+    if (scribePublisher == null) {
       LOG.warn("Close called on topic[" + topicName + "]"
           + " for which ScribeTopicPublisher doesn't exist");
+      return;
+    }
     scribePublisher.close();
   }
 }
