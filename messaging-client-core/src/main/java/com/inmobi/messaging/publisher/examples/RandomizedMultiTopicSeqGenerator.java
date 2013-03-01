@@ -117,8 +117,6 @@ public class RandomizedMultiTopicSeqGenerator {
       total_counters[j] = new Counters();
     }
     for (AbstractMessagePublisher publisher : publishers) {
-      // waitToComplete(publisher, topic1);
-      // waitToComplete(publisher, topic2);
       publisher.close();
       i++;
       Counters counters[] = new Counters[numTopics];
