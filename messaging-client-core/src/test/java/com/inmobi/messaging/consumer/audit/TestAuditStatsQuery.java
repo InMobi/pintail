@@ -180,11 +180,14 @@ public class TestAuditStatsQuery {
         + startTime + "EndTime " + endTime);
     int i = 0;
     while (!((MockInMemoryPublisher) publisher).source
-        .containsKey(AuditUtil.AUDIT_STREAM_TOPIC_NAME) && i < 5) {
+        .containsKey(AuditUtil.AUDIT_STREAM_TOPIC_NAME) && i < 6) {
       Thread.sleep(2500);
       i++;
     }
-    assert (i != 5);// to check whether audit was generated or not
+    assert (((MockInMemoryPublisher) publisher).source
+        .containsKey(AuditUtil.AUDIT_STREAM_TOPIC_NAME));// to check whether
+                                                         // audit was generated
+                                                         // or not
     Date endDate = new Date();
     String endTime = formatter.format(endDate);
     System.out.println("After audit was generated: StartTime " + startTime
