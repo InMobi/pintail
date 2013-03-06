@@ -34,6 +34,7 @@ CLIENT_COUNTER_CLASS="com.inmobi.messaging.consumer.examples.CounterClient"
 CLIENT_MULTITOPIC_SEQGEN_CLASS="com.inmobi.messaging.publisher.examples.MultiTopicSeqGenerator"
 CLIENT_CHECKPOINT_UTIL_CLASS="com.inmobi.messaging.consumer.util.CheckpointUtil"
 CLIENT_AUDIT_QUERY_CLASS="com.inmobi.messaging.consumer.audit.AuditStatsQuery"
+CLIENT_RANDOMIZED_SEQGEN_CLASS="com.inmobi.messaging.publisher.examples.RandomizedMultiTopicSeqGenerator"
 
 ################################
 # functions
@@ -70,6 +71,7 @@ Usage: $0 file <topic> <file> --conf <confdir>
        $0 topicselector <topic> <maxseq> --conf <confdir>
        $0 multithreadseqgen <topic> <maxseq> <no-of-threads> --conf <confdir>
        $0 consoleconsumer --conf <confdir> 
+       $0 randomizedseqgen <topic1> <topic2> <num_of_publishers> <maxSeqPerThread> <number_of_threads>
        $0 benchmark 
           [-producer <topic-name> <no-of-msgs> <no-of-msgs-per-sec> [<timeoutSeconds> <msg-size>]]
           [-consumer <no-of-producers> <no-of-messages> [<timeoutSeconds> <msg-size> <hadoopconsumerflag> <auditTimeout> <timezone>]] --conf <confdir>
@@ -144,6 +146,9 @@ case "$mode" in
     ;;
   audit)
     opt_audit=1
+    ;;
+  randomizedseqgen)
+    opt_randomizedseqgen=1
     ;;
   *)
     error "Unknown or unspecified command '$mode'"
@@ -232,6 +237,8 @@ elif [ -n "$opt_checkpointutil" ] ; then
   run_client $CLIENT_CHECKPOINT_UTIL_CLASS $args
 elif [ -n "$opt_audit" ] ; then
   run_client $CLIENT_AUDIT_QUERY_CLASS $args
+elif [ -n "$opt_randomizedseqgen" ] ; then
+  run_client $CLIENT_RANDOMIZED_SEQGEN_CLASS $args
 else
   error "This message should never appear" 1
 fi
