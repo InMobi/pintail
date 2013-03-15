@@ -38,7 +38,7 @@ public class StreamingBenchmark {
   static int printUsage() {
     System.out.println("Usage: StreamingBenchmark  "
         + " [-producer <topic-name> <no-of-msgs> <no-of-msgs-per-sec>"
-        + " [<timeoutSeconds> <msg-size>]]"
+        + " [<timeoutSeconds> <msg-size> <no-of-threads>]]"
         + " [-consumer <no-of-producers> <no-of-msgs>"
         + " [<timeoutSeconds> <msg-size> <hadoopconsumerflag> "
         + "<auditTimeout> <timezone>]]");
@@ -69,6 +69,7 @@ public class StreamingBenchmark {
     boolean runConsumer = false;
     boolean hadoopConsumer = false;
     int producerTimeout = 0;
+    int numProducerThreads = 1;
     int consumerTimeout = 0;
     int msgSize = 2000;
     String auditStartTime = null;
@@ -93,7 +94,12 @@ public class StreamingBenchmark {
               .println("producerTimeout :" + producerTimeout + " seconds");
           if (args.length > 5 && !args[5].equals("-consumer")) {
             msgSize = Integer.parseInt(args[5]);
-            consumerOptionIndex = 6;
+            if (args.length > 6 && !args[6].equals("-consumer")) {
+              numProducerThreads = Integer.parseInt(args[6]);
+              consumerOptionIndex = 7;
+            } else {
+              consumerOptionIndex = 6; 
+            }
           } else {
             consumerOptionIndex = 5;
           }
@@ -140,7 +146,7 @@ public class StreamingBenchmark {
 
     if (runProducer) {
       System.out.println("Using topic: " + topic);
-      producer = createProducer(topic, maxSent, numMsgsPerSec, msgSize);
+      producer = createProducer(topic, maxSent, numMsgsPerSec, msgSize, numProducerThreads);
       producer.start();
     }
 
@@ -174,7 +180,6 @@ public class StreamingBenchmark {
     if (runProducer) {
       assert (producer != null);
       producer.join(producerTimeout * 1000);
-      System.out.println("Producer thread state:" + producer.getState());
       exitcode = producer.exitcode;
       if (exitcode == FAILED_CODE) {
         System.out.println("Producer FAILED!");
@@ -238,8 +243,8 @@ public class StreamingBenchmark {
   }
 
   static Producer createProducer(String topic, long maxSent,
-      float numMsgsPerSec, int msgSize) throws IOException {
-    return new Producer(topic, maxSent, numMsgsPerSec, msgSize);
+      float numMsgsPerSec, int msgSize, int numThreads) throws IOException {
+    return new Producer(topic, maxSent, numMsgsPerSec, msgSize, numThreads);
   }
 
   static Consumer createConsumer(ClientConfig config, long maxSent,
@@ -254,16 +259,19 @@ public class StreamingBenchmark {
     return new AuditThread(topic, fromTime, toTime, timeout, maxMessages);
   }
 
-  static class Producer extends Thread {
+  static class Producer {
     volatile AbstractMessagePublisher publisher;
     final String topic;
     final long maxSent;
     final long sleepMillis;
     final long numMsgsPerSleepInterval;
+    final int numThreads;
     int exitcode = FAILED_CODE;
     byte[] fixedMsg;
+    ProducerWoker [] workerThreads = null;
 
-    Producer(String topic, long maxSent, float numMsgsPerSec, int msgSize)
+    Producer(String topic, long maxSent, float numMsgsPerSec, int msgSize,
+        int numThreads)
         throws IOException {
       this.topic = topic;
       this.maxSent = maxSent;
@@ -282,39 +290,81 @@ public class StreamingBenchmark {
         numMsgsPerSleepInterval = 1;
       }
       fixedMsg = getMessageBytes(msgSize);
+      this.numThreads = numThreads;
       publisher = (AbstractMessagePublisher) MessagePublisherFactory.create();
+      
+      // create producer workers
+      workerThreads = new ProducerWoker[numThreads];
+      for (int i = 0; i < numThreads; i++) {
+        ProducerWoker worker = new ProducerWoker();
+        workerThreads[i] = worker;
+      }
     }
-
-    @Override
-    public void run() {
-      System.out.println("Producer started!");
-      long msgIndex = 1;
-      boolean sentAll = false;
-      while (true) {
-        for (long j = 0; j < numMsgsPerSleepInterval; j++) {
-          publisher.publish(topic, constructMessage(msgIndex, fixedMsg));
-          if (msgIndex == maxSent) {
-            sentAll = true;
-            break;
-          }
-          msgIndex++;
-        }
-        if (sentAll) {
-          break;
-        }
+    
+    // start producer worker threads
+    public void start() {
+      System.out.println(LogDateFormat.format(System.currentTimeMillis()) + " Producer started!");
+      for (int i = 0; i < numThreads; i++) {
+        workerThreads[i].start();
+      }
+    }
+    
+    public void join(int timeOut) {
+      for (int i = 0; i < numThreads; i++) {
         try {
-          Thread.sleep(sleepMillis);
+          workerThreads[i].join(timeOut);
         } catch (InterruptedException e) {
           e.printStackTrace();
-          return;
         }
       }
+      
       publisher.close();
-      System.out.println("Producer closed");
-      if (publisher.getStats(topic).getSuccessCount() == maxSent) {
+      System.out.println(LogDateFormat.format(System.currentTimeMillis()) + " Producer closed");
+      if (publisher.getStats(topic).getSuccessCount() == maxSent * numThreads) {
         exitcode = 0;
       }
     }
+    
+    private class ProducerWoker extends Thread {
+      @Override
+      public void run() {
+        System.out.println(LogDateFormat.format(System.currentTimeMillis()) + " Producer worker started!");
+        long msgIndex = 1;
+        boolean sentAll = false;
+        long startTime = 0l;
+        long endTime = 0l;
+        long publishTime = 0l;
+        
+        while (true) {
+          for (long j = 0; j < numMsgsPerSleepInterval; j++) {
+            Message m = constructMessage(msgIndex, fixedMsg);
+            
+            startTime = System.currentTimeMillis();
+            publisher.publish(topic, m);
+            endTime = System.currentTimeMillis();
+            publishTime += endTime - startTime;
+            
+            if (msgIndex == maxSent) {
+              sentAll = true;
+              break;
+            }
+            msgIndex++;
+          }
+          if (sentAll) {
+            break;
+          }
+          try {
+            Thread.sleep(sleepMillis);
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+            return;
+          }
+        }
+        
+        System.out.println(LogDateFormat.format(System.currentTimeMillis()) + " Producer worker closed." +
+        " Messages published: " + Long.toString(msgIndex) + " Total publish time (ms): " + Long.toString(publishTime));
+      } // run()
+    } // ProducerWorker
   }
 
   static byte[] getMessageBytes(int msgSize) {
@@ -535,6 +585,8 @@ public class StreamingBenchmark {
           + producer.publisher.getStats(producer.topic).getInFlight());
       sb.append(" SentSuccess:"
           + producer.publisher.getStats(producer.topic).getSuccessCount());
+      sb.append(" Lost:"
+          + producer.publisher.getStats(producer.topic).getLostCount());
       sb.append(" GracefulTerminates:"
           + producer.publisher.getStats(producer.topic).getGracefulTerminates());
       sb.append(" UnhandledExceptions:"
