@@ -1,3 +1,24 @@
+Release 2.0.0
+Bug Fixes and Improvements :
+    10. Change scm section to use https instead of ssh
+
+    9. Fix bug in Auditworker run
+
+    8. Add new randomized seq generator test
+
+    7. Modify counter client to use next with timeout.
+
+    6.skipping the deployment of deb package in mvn deploy
+
+    5. Add closeTopic to close each topic separately
+
+    4. method to pintail for retreiving next message with a specified timeout
+
+    3. Update pom to use inmobi-master-pom
+
+    2. Adding changes in Streaming benchmark to execute audit query as part of consumer
+
+    1. Add Auditing to publisher and consumer 
 Release 1.5.0 
 
 Incompatible Changes:

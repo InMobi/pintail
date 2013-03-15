@@ -21,39 +21,46 @@ public class CounterClient {
   static int msgCounter;
   static int markCounter;
   static volatile boolean keepRunnig = true;
+  static boolean closed = false;
 
-  public static void close() throws IOException {
-    if (consumer != null) {
-      consumer.mark();
-      consumer.close();
-      System.out.println("Counter value: " + msgCounter);
-      consumer =  null;
+  public synchronized static void close() throws IOException {
+    if (!closed) {
+      if (consumer != null) {
+        consumer.mark();
+        consumer.close();
+        System.out.println("Counter value: " + msgCounter);
+      }
+      closed = true;
     }
   }
 
   public static void main(String[] args) throws Exception {
     final Thread mainThread = Thread.currentThread();
     long timeout = 300;
-    if (args.length == 0) {
-      System.out.println("start time is not provided. Starts from the last " +
-          "marked position");
-      consumer = MessageConsumerFactory.create();
-    } else if (args.length >= 1) {
-      Calendar now = Calendar.getInstance();
-      Integer min = Integer.parseInt(args[0]);
-
-      if (args.length == 2) {
+    Integer min = -1;
+    if (args.length <= 2) {
+      if (args.length >= 1) { // 1 or 2
+        min = Integer.parseInt(args[0]);
+      }
+      if (args.length == 2) { // 2
         timeout = Long.parseLong(args[1]);
       }
-      now.add(Calendar.MINUTE, - (min.intValue()));
-      consumer = MessageConsumerFactory.create(now.getTime());
     } else {
       consumer = null;
-      System.out.println("Usage: counterclient [<minutes-to-read-from>] " +
-          "[<time-to-wait-NextMessage>]");
+      System.out.println("Usage: counterclient [<minutes-to-read-from> " +
+          " <time-to-wait-NextMessage>]");
       System.exit(-1);
     }
 
+    if (min != -1) {
+      Calendar now = Calendar.getInstance();
+      now.add(Calendar.MINUTE, - (min.intValue()));
+      consumer = MessageConsumerFactory.create(now.getTime());      
+    } else {
+      System.out.println("start time is not provided. Starts from the last " +
+          "marked position");
+      consumer = MessageConsumerFactory.create();
+    }
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
       public void run() {

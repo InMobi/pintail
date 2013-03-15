@@ -48,6 +48,7 @@ public abstract class TestAbstractClusterReader {
   String inputFormatClass;
 
   public void cleanup() throws IOException {
+    Log.debug("Cleaning up the dir: " + streamDir.getParent());
     fs.delete(streamDir.getParent(), true);
   }
 

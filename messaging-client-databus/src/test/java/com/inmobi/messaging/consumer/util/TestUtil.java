@@ -314,6 +314,7 @@ public class TestUtil {
 
   public static void cleanupCluster(Cluster cluster) throws IOException {
     FileSystem fs = FileSystem.get(cluster.getHadoopConf());
+    LOG.debug("Cleaning up the dir: "+ cluster.getRootDir());
     fs.delete(new Path(cluster.getRootDir()), true);    
   }
 

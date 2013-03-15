@@ -113,6 +113,7 @@ public class TestConsumerPartitionRetention {
   public void cleanup() throws Exception {
     FileSystem lfs = FileSystem.getLocal(conf);
     for (Path rootDir : rootDirs) {
+      LOG.debug("Cleaning Up the dir: " + rootDir.getParent());
       lfs.delete(rootDir.getParent(), true);
     }
   }

@@ -2,6 +2,8 @@ package com.inmobi.messaging.consumer.hadoop;
 
 import java.io.IOException;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -13,7 +15,7 @@ import com.inmobi.messaging.consumer.util.ConsumerUtil;
 import com.inmobi.messaging.consumer.util.HadoopUtil;
 
 public abstract class TestAbstractHadoopConsumer {
-
+  static final Log LOG = LogFactory.getLog(TestAbstractHadoopConsumer.class);
   protected String ck1;
   protected String ck2;
   protected String ck3;
@@ -118,6 +120,7 @@ public abstract class TestAbstractHadoopConsumer {
   public void cleanup() throws IOException {
     FileSystem lfs = FileSystem.getLocal(conf);
     for (Path rootDir : rootDirs) {
+      LOG.debug("Cleaning up the dir: " + rootDir.getParent());
       lfs.delete(rootDir.getParent(), true);
     }
     //Cleanup checkpoint directories, if we don't clean it up will cause tests to be flaky.
@@ -125,6 +128,7 @@ public abstract class TestAbstractHadoopConsumer {
       if (chk != null) {
         Path p = new Path(chk);
         if (lfs.exists(p)) {
+          LOG.debug("Cleaning up the checkpoint dir: " + p);
           lfs.delete(p, true);
         }
       }

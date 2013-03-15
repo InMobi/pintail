@@ -115,6 +115,7 @@ public class TestDatabusInputFormatMapReduce extends TestAbstractInputFormat {
 
   @AfterTest
   public void cleanUp() throws Exception {
+    LOG.debug("Cleaning up the dir: " + rootDir);
     fs.delete(rootDir, true);
   }
 }
