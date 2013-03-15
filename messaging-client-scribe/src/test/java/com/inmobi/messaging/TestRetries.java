@@ -61,8 +61,16 @@ public class TestRetries {
 
       String topic = "retry";
       mb.publish(topic, new Message("mmmm".getBytes()));
-      mb.close();
       TimingAccumulator inspector = mb.getStats(topic);
+      // if retry is disabled, ensure that message is acked before closing
+      // the publisher.
+      if (!enableRetries) {
+        while (inspector.getInFlight() != 0) {
+          Thread.sleep(1);
+        }
+      }
+      mb.close();
+      
       System.out.println("testEnableRetries:" + enableRetries + " stats:" 
           + inspector);
       assertEquals(inspector.getInFlight(), 0,

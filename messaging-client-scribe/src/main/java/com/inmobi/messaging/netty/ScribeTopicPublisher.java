@@ -3,6 +3,7 @@ package com.inmobi.messaging.netty;
 import java.net.InetSocketAddress;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -40,6 +41,8 @@ public class ScribeTopicPublisher {
   private boolean reconnectionInProgress = false;
   private boolean enabledRetries = true;
   private int numDrainsOnClose = 10;
+  // Reentrant lock used to synchronize sending messages from send queue.
+  private final ReentrantLock sendLock = new ReentrantLock();
 
   /**
    * This is meant to be a way for async callbacks to set the channel on a
@@ -105,7 +108,10 @@ public class ScribeTopicPublisher {
     this.sleepInterval = sleepInterval;
 
     this.toBeSent = new LinkedBlockingQueue<Message>(msgQueueSize);
-    this.toBeAcked = new LinkedBlockingQueue<Message>(ackQueueSize);
+    // create ack queue only if retry is enabled
+    if (enableRetries) {
+      this.toBeAcked = new LinkedBlockingQueue<Message>(ackQueueSize);
+    }
     this.numDrainsOnClose = numDrainsOnClose;
 
     bootstrap = new ClientBootstrap(NettyEventCore.getInstance().getFactory());
@@ -129,43 +135,63 @@ public class ScribeTopicPublisher {
 
   protected void publish(Message m) {
     addToSend(m);
-    trySending();
+    trySending(true);
   }
 
   private void addToSend(Message m) {
-    synchronized (toBeSent) {
-      if (toBeSent.remainingCapacity() == 0) {
-        LOG.warn("Messages to be sent Queue is full," +
-            " dropping the message");
-        stats.accumulateOutcomeWithDelta(Outcome.LOST, 0);
-        return;
-      }
-      toBeSent.add(m);
+    if (!toBeSent.offer(m)) {
+      LOG.warn("Messages to be sent Queue is full," +
+          " dropping the message");
+      stats.accumulateOutcomeWithDelta(Outcome.LOST, 0);
     }
   }
 
-  private boolean isSendQueueEmpty() {
-    synchronized (toBeSent) {
-      return toBeSent.isEmpty();
-    }
+  boolean isSendQueueEmpty() {
+    return toBeSent.size() == 0;
   }
 
   boolean isAckQueueEmpty() {
-    synchronized (toBeAcked) {
-      return toBeAcked.isEmpty();
-    }
+    return (!enabledRetries || toBeAcked.size() == 0);
   }
 
-  void trySending() {
+  void trySending(boolean tryLock) {
     if (isSendQueueEmpty()) {
       return;
     }
     if (isChannelConnected()) {
       if (isChannelWritable()) {
-        synchronized (toBeSent) {
-          while (toBeSent.peek() != null && send(toBeSent.peek())) {
-            toBeSent.remove();
+        // if tryLock is true, then acquire tryLock else acquire lock
+        if (!tryLock) {
+          sendLock.lock();
+        } else {
+          // if tryLock fails, then return. The assumption is that the thread
+          // that has already acquired lock will try to send all messages.
+          if (!sendLock.tryLock()) {
+            return;
           }
+        }
+        
+        try {
+          Message m = null;
+          while ((m = toBeSent.peek()) != null) {
+            // Add this message to ack queue before writing the message.
+            // Also add a clone of this message to ack queue.
+            if (enabledRetries && (toBeAcked.remainingCapacity() == 0 ||
+                !toBeAcked.offer(m.clone()))) {
+              LOG.info("Could not send earlier messages successfully, not" +
+                  " sending right now.");
+              return;
+            }
+            // write the current message
+            ScribeBites.publish(thisChannel, topic, m);
+            // remove the message from sent queue
+            toBeSent.poll();
+            // check if the next message can be written immediately
+            if (!isChannelWritable())
+              return;
+          }
+        } finally {
+          sendLock.unlock();
         }
       }
     } else {
@@ -173,25 +199,11 @@ public class ScribeTopicPublisher {
     }
   }
 
-  private boolean send(Message m) {
-    synchronized (toBeAcked) {
-      if (toBeAcked.remainingCapacity() > 0) {
-        toBeAcked.add(m.clone());
-        ScribeBites.publish(thisChannel, topic, m);
-        return true;
-      } else {
-        LOG.info("Could not send earlier messages successfully, not" +
-            " sending right now.");
-      }
-    }
-    return false;
-  }
-
   private class AsyncSender implements Runnable {
     @Override
     public void run() {
       while (!stopped && !Thread.interrupted()) {
-        trySending();
+        trySending(false);
         try {
           Thread.sleep(sleepInterval);
         } catch (InterruptedException ie) {
@@ -233,7 +245,7 @@ public class ScribeTopicPublisher {
     LOG.info("Draining all the messages");
     int numRetries = 0;
     while (true) {
-      trySending();
+      trySending(false);
       if (isSendQueueEmpty() && isAckQueueEmpty()) {
         break;
       }
@@ -262,38 +274,31 @@ public class ScribeTopicPublisher {
     reconnectionInProgress = false;
   }
 
-  synchronized void emptyAckQueue() {
+  void emptyAckQueue() {
+    if (!enabledRetries)
+      return;
+    
     if (resendOnAckLost) {
-      // make removing from ack queue and adding back to send queue atomic, by
-      // locking tobeSent queue first and then, toBeAcked queue.
-      synchronized (toBeSent) {
-        synchronized (toBeAcked) {
-          toBeSent.addAll(toBeAcked);
-          toBeAcked.clear();
-        }
+      Message m = null;
+      while ((m = toBeAcked.poll()) != null) {
+        toBeSent.offer(m);
       }
     } else {
-      synchronized (toBeAcked) {
-        if (!toBeAcked.isEmpty()) {
-          LOG.warn("Emptying ack queue of size:" + toBeAcked.size());
-        }
-        while (!toBeAcked.isEmpty()) {
-          toBeAcked.remove();
-          stats.accumulateOutcomeWithDelta(Outcome.GRACEFUL_FAILURE, 0);
-        }
+      if (toBeAcked.size() > 0) {
+        LOG.warn("Emptying ack queue of size:" + toBeAcked.size());
+      }
+      while (toBeAcked.poll() != null) {
+        stats.accumulateOutcomeWithDelta(Outcome.GRACEFUL_FAILURE, 0);
       }
     }
   }
 
-  synchronized void emptyMsgQueue() {
-    synchronized (toBeSent) {
-      if (!toBeSent.isEmpty()) {
-        LOG.warn("Emptying message queue of size:" + toBeSent.size());
-      }
-      while (!toBeSent.isEmpty()) {
-        toBeSent.remove();
-        stats.accumulateOutcomeWithDelta(Outcome.LOST, 0);
-      }
+  void emptyMsgQueue() {
+    if (toBeSent.size() > 0) {
+      LOG.warn("Emptying message queue of size:" + toBeSent.size());
+    }
+    while (toBeSent.poll() != null) {
+      stats.accumulateOutcomeWithDelta(Outcome.LOST, 0);
     }
   }
 
@@ -318,30 +323,28 @@ public class ScribeTopicPublisher {
   }
 
   void ack(ResultCode success) {
-    Message m = null;
-    // make removing from ack queue and adding back to send queue atomic, by
-    // locking tobeSent queue first and then, toBeAcked queue.
-    synchronized (toBeSent) {
-      synchronized (toBeAcked) {
-        if (!toBeAcked.isEmpty()) {
-          m = toBeAcked.remove();
-        }
-        if (success.getValue() == 0) {
-          stats.accumulateOutcomeWithDelta(Outcome.SUCCESS, 0);
+    // first check the result code. If it is success, then increment the
+    // success counter and remove the message from ack queue, if configured
+    if (success.getValue() == 0) {
+      if (enabledRetries) {
+        toBeAcked.poll();
+      }
+      stats.accumulateOutcomeWithDelta(Outcome.SUCCESS, 0);
+    } else {
+      // else if it is try later, then remove the message from ack queue 
+      // and add to send queue
+      if (enabledRetries) {
+        LOG.info("Could not send the message successfully, resending");
+        Message m = toBeAcked.poll();
+        if (m != null) {
+          addToSend(m);
+          stats.accumulateOutcomeWithDelta(Outcome.RETRY, 0);
         } else {
-          if (enabledRetries) {
-            LOG.info("Could not send the message successfully, resending");
-            if (m != null) {
-              addToSend(m);
-              stats.accumulateOutcomeWithDelta(Outcome.RETRY, 0);
-            } else {
-              LOG.info("Could not send, as acked messaged not found");
-            }
-          } else {
-            LOG.warn("Could not send the message successfully. Got TRY_LATER");
-            stats.accumulateOutcomeWithDelta(Outcome.GRACEFUL_FAILURE, 0);
-          }
+          LOG.info("Could not send, as acked message not found");
         }
+      } else {
+        LOG.warn("Could not send the message successfully. Got TRY_LATER");
+        stats.accumulateOutcomeWithDelta(Outcome.GRACEFUL_FAILURE, 0);
       }
     }
   }
