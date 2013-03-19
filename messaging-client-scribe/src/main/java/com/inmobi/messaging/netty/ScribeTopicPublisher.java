@@ -138,12 +138,14 @@ public class ScribeTopicPublisher {
     trySending(true);
   }
 
-  private void addToSend(Message m) {
+  private boolean addToSend(Message m) {
     if (!toBeSent.offer(m)) {
       LOG.warn("Messages to be sent Queue is full," +
           " dropping the message");
       stats.accumulateOutcomeWithDelta(Outcome.LOST, 0);
+      return false;
     }
+    return true;
   }
 
   boolean isSendQueueEmpty() {
@@ -180,7 +182,7 @@ public class ScribeTopicPublisher {
                 !toBeAcked.offer(m.clone()))) {
               LOG.info("Could not send earlier messages successfully, not" +
                   " sending right now.");
-              return;
+              break;
             }
             // write the current message
             ScribeBites.publish(thisChannel, topic, m);
@@ -188,7 +190,7 @@ public class ScribeTopicPublisher {
             toBeSent.poll();
             // check if the next message can be written immediately
             if (!isChannelWritable())
-              return;
+              break;
           }
         } finally {
           sendLock.unlock();
@@ -281,7 +283,7 @@ public class ScribeTopicPublisher {
     if (resendOnAckLost) {
       Message m = null;
       while ((m = toBeAcked.poll()) != null) {
-        toBeSent.offer(m);
+        addToSend(m);
       }
     } else {
       if (toBeAcked.size() > 0) {
@@ -337,8 +339,11 @@ public class ScribeTopicPublisher {
         LOG.info("Could not send the message successfully, resending");
         Message m = toBeAcked.poll();
         if (m != null) {
-          addToSend(m);
-          stats.accumulateOutcomeWithDelta(Outcome.RETRY, 0);
+          // If the message gets added to send queue, then increment the retry
+          // count. Else the lost count will get incremented if add fails.
+          if (addToSend(m)) {
+            stats.accumulateOutcomeWithDelta(Outcome.RETRY, 0);
+          }
         } else {
           LOG.info("Could not send, as acked message not found");
         }
