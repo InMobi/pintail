@@ -36,16 +36,8 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
   private boolean isAuditEnabled;
   private final AuditService auditService = new AuditService(this);
   public static final String AUDIT_ENABLED_KEY = "audit.enabled";
-  private volatile boolean isPublisherClosed = false;
+  private volatile boolean closing = false;
   
-  public boolean isPublisherClosed() {
-    return isPublisherClosed;
-  }
-
-  private void setPublisherClosed(boolean closed) {
-    this.isPublisherClosed = closed;
-  }
-
   @Override
   public void publish(String topicName, Message m) {
     if (topicName == null) {
@@ -59,7 +51,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
         throw new IllegalArgumentException("publish cannot happen on " +
         		AuditUtil.AUDIT_STREAM_TOPIC_NAME + "topic");
     }
-    if (isPublisherClosed()) {
+    if (closing) {
       throw new IllegalStateException("publish cannot happen on closed " +
       		"publisher");
     }
@@ -154,9 +146,8 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
 
   @Override
   public synchronized void close() {
-
+    closing = true;
     LOG.info("Closing the topics and stat exposers");
-    setPublisherClosed(true);
     for (Entry<String, TopicStatsExposer> entry : statsExposers.entrySet()) {
       String topicName = entry.getKey();
       if (topicName != AuditUtil.AUDIT_STREAM_TOPIC_NAME) {

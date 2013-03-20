@@ -229,6 +229,7 @@ public class TestPublisher {
         MockPublisher.class.getName());
     AbstractMessagePublisher publisher =
         (AbstractMessagePublisher) MessagePublisherFactory.create(conf);
+    publisher.publish("sample-topic", new Message("msg".getBytes()));
     publisher.close();
     publisher.publish("sample-topic", new Message("messages".getBytes()));
   }
