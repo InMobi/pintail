@@ -45,9 +45,20 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     if (m == null) {
       throw new IllegalArgumentException("Cannot publish null message");
     }
+    publish(topicName, m, false);
+  }
+  
+  void publish(String topicName, Message m,
+      boolean isPublishedByAuditService) {
+    if (!isPublishedByAuditService && 
+        topicName.equals(AuditUtil.AUDIT_STREAM_TOPIC_NAME)) {
+        // ensure that external publisher users don't write message on _audit topic
+        throw new IllegalStateException("publish cannot happen on _audit " +
+            "topic");
+    }
     // initialization should happen only by one thread
     Long timestamp = null;
-    if (isAuditEnabled && !topicName.equals(AuditUtil.AUDIT_STREAM_TOPIC_NAME)) {
+    if (!isPublishedByAuditService) {
       // Add timstamp to the message
       timestamp = new Date().getTime();
       AuditUtil.attachHeaders(m, timestamp);
@@ -60,8 +71,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
       }
       getStats(topicName).accumulateInvocation();
       initTopic(topicName, getStats(topicName));
-      if (isAuditEnabled
-          && !topicName.equals(AuditUtil.AUDIT_STREAM_TOPIC_NAME)) {
+      if (!isPublishedByAuditService && isAuditEnabled) {
         auditService.incrementReceived(topicName, timestamp);
       }
     }
