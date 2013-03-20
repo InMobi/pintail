@@ -90,7 +90,7 @@ class AuditService {
       try {
         LOG.info("Publishing audit packet" + packet);
         publisher.publish(AuditUtil.AUDIT_STREAM_TOPIC_NAME, new Message(
-            ByteBuffer.wrap(serializer.serialize(packet))));
+            ByteBuffer.wrap(serializer.serialize(packet))), true);
       } catch (TException e) {
         LOG.error("Error while serializing the audit packet " + packet, e);
       }
