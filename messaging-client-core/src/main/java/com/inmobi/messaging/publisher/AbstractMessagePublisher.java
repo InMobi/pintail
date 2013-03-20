@@ -45,25 +45,24 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     if (m == null) {
       throw new IllegalArgumentException("Cannot publish null message");
     }
+    if (topicName.equals(AuditUtil.AUDIT_STREAM_TOPIC_NAME)) {
+        // ensure that external publisher users don't write message on _audit topic
+        throw new IllegalStateException("publish cannot happen on _audit " +
+            "topic");
+    }
     publish(topicName, m, false);
   }
   
   void publish(String topicName, Message m,
       boolean isPublishedByAuditService) {
-    if (!isPublishedByAuditService && 
-        topicName.equals(AuditUtil.AUDIT_STREAM_TOPIC_NAME)) {
-        // ensure that external publisher users don't write message on _audit topic
-        throw new IllegalStateException("publish cannot happen on _audit " +
-            "topic");
-    }
-    // initialization should happen only by one thread
     Long timestamp = null;
-    if (!isPublishedByAuditService) {
+    if (!isPublishedByAuditService && isAuditEnabled) {
       // Add timstamp to the message
       timestamp = new Date().getTime();
       AuditUtil.attachHeaders(m, timestamp);
 
     }
+    // initialization should happen only by one thread
     synchronized (this) {
       if (getStats(topicName) == null) {
         TimingAccumulator stats = new TimingAccumulator();
