@@ -221,6 +221,17 @@ public class TestPublisher {
     }
     Assert.assertTrue(th instanceof IllegalArgumentException);
   }
+  
+  @Test (expectedExceptions = {IllegalStateException.class})
+  public void testPublishAfterClose() throws IOException {
+    ClientConfig conf = new ClientConfig();
+    conf.set(MessagePublisherFactory.PUBLISHER_CLASS_NAME_KEY,
+        MockPublisher.class.getName());
+    AbstractMessagePublisher publisher =
+        (AbstractMessagePublisher) MessagePublisherFactory.create(conf);
+    publisher.close();
+    publisher.publish("sample-topic", new Message("messages".getBytes()));
+  }
 
   @Test
   public void testMultiplePublisherThreads() throws IOException,
