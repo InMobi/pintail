@@ -47,8 +47,8 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     }
     if (topicName.equals(AuditUtil.AUDIT_STREAM_TOPIC_NAME)) {
         // ensure that external publisher users don't write message on _audit topic
-        throw new IllegalStateException("publish cannot happen on _audit " +
-            "topic");
+        throw new IllegalArgumentException("publish cannot happen on " +
+        		AuditUtil.AUDIT_STREAM_TOPIC_NAME + "topic");
     }
     publish(topicName, m, false);
   }
