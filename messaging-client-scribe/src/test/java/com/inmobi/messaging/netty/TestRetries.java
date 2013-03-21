@@ -140,16 +140,16 @@ public class TestRetries {
       tserver = new NtMultiServer(new ScribeSlackOnce(), port);
       tserver.start();
 
-      int timeoutSeconds = 20;
+      int timeoutSeconds = 200;
       ScribeMessagePublisher mb = TestServerStarter.createPublisher(port,
           timeoutSeconds, 1, true, resendOnAckLost);
 
       String topic = "resend";
-      // publish a message and stop the server
-      // ack will be lost for the above message. then start the server again
+      // publish a message and suggest reconnect to the server
+      // ack will be lost for the message.
       mb.publish(topic, new Message("mmmm".getBytes()));
       mb.getTopicPublisher(topic).suggestReconnect();
-      Thread.sleep(500);
+      Thread.sleep(100);
       mb.publish(topic, new Message("mmmm".getBytes()));
       mb.close();
       TimingAccumulator inspector = mb.getStats(topic);
