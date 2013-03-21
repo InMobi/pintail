@@ -95,4 +95,8 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher implements
     }
     scribePublisher.close();
   }
+
+  ScribeTopicPublisher getTopicPublisher(String topicName) {
+    return scribeConnections.get(topicName);
+  }
 }

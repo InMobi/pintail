@@ -239,7 +239,7 @@ public class ScribeTopicPublisher {
     return true;
   }
 
-  private void suggestReconnect() {
+  void suggestReconnect() {
     handler.scheduleReconnect();
   }
 
