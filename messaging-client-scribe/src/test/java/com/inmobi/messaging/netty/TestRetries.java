@@ -1,4 +1,4 @@
-package com.inmobi.messaging;
+package com.inmobi.messaging.netty;
 
 import static org.testng.Assert.assertEquals;
 
@@ -8,8 +8,11 @@ import org.testng.annotations.Test;
 import random.pkg.NtMultiServer;
 import random.pkg.ScribeAlternateTryLater;
 import random.pkg.ScribeAlwaysTryAgain;
+import random.pkg.ScribeSlackOnce;
 
 import com.inmobi.instrumentation.TimingAccumulator;
+import com.inmobi.messaging.Message;
+import com.inmobi.messaging.TestServerStarter;
 import com.inmobi.messaging.netty.ScribeMessagePublisher;
 
 public class TestRetries {
@@ -61,8 +64,16 @@ public class TestRetries {
 
       String topic = "retry";
       mb.publish(topic, new Message("mmmm".getBytes()));
-      mb.close();
       TimingAccumulator inspector = mb.getStats(topic);
+      // if retry is disabled, ensure that message is acked before closing
+      // the publisher.
+      if (!enableRetries) {
+        while (inspector.getInFlight() != 0) {
+          Thread.sleep(1);
+        }
+      }
+      mb.close();
+      
       System.out.println("testEnableRetries:" + enableRetries + " stats:" 
           + inspector);
       assertEquals(inspector.getInFlight(), 0,
@@ -114,5 +125,49 @@ public class TestRetries {
       tserver.stop();
     }
     System.out.println("TestRetries.testAlwaysTryAgain done");
+  }
+
+  @Test
+  public void testResendOnAckLost() throws Exception {
+    testResendOnAckLost(true);
+    testResendOnAckLost(false);
+  }
+  
+  public void testResendOnAckLost(boolean resendOnAckLost) throws Exception {
+    NtMultiServer tserver = null;
+    try {
+      int port = 7904;
+      tserver = new NtMultiServer(new ScribeSlackOnce(), port);
+      tserver.start();
+
+      int timeoutSeconds = 200;
+      ScribeMessagePublisher mb = TestServerStarter.createPublisher(port,
+          timeoutSeconds, 1, true, resendOnAckLost);
+
+      String topic = "resend";
+      // publish a message and suggest reconnect to the server
+      // ack will be lost for the message.
+      mb.publish(topic, new Message("mmmm".getBytes()));
+      mb.getTopicPublisher(topic).suggestReconnect();
+      Thread.sleep(100);
+      mb.publish(topic, new Message("mmmm".getBytes()));
+      mb.close();
+      TimingAccumulator inspector = mb.getStats(topic);
+      System.out.println("testResendOnAckLost " + resendOnAckLost + " stats:" 
+        + inspector.toString());
+      assertEquals(inspector.getInFlight(), 0,
+          "ensure not considered midflight");
+      if (resendOnAckLost) {
+        assertEquals(inspector.getSuccessCount(), 2,
+            "success not incremented");
+      } else {
+        assertEquals(inspector.getSuccessCount(), 1,
+            "success not incremented");
+        assertEquals(inspector.getGracefulTerminates(), 1,
+            "Graceful terminates not incremented");
+      }
+    } finally {
+      tserver.stop();
+    }
   }
 }

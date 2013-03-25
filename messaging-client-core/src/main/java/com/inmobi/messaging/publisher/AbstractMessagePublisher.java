@@ -36,7 +36,8 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
   private boolean isAuditEnabled;
   private final AuditService auditService = new AuditService(this);
   public static final String AUDIT_ENABLED_KEY = "audit.enabled";
-
+  private volatile boolean closing = false;
+  
   @Override
   public void publish(String topicName, Message m) {
     if (topicName == null) {
@@ -45,14 +46,28 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     if (m == null) {
       throw new IllegalArgumentException("Cannot publish null message");
     }
-    // initialization should happen only by one thread
+    if (topicName.equals(AuditUtil.AUDIT_STREAM_TOPIC_NAME)) {
+        // ensure that external publisher users don't write message on _audit topic
+        throw new IllegalArgumentException("publish cannot happen on " +
+        		AuditUtil.AUDIT_STREAM_TOPIC_NAME + "topic");
+    }
+    if (closing) {
+      throw new IllegalStateException("publish cannot happen on closed " +
+      		"publisher");
+    }
+    publish(topicName, m, false);
+  }
+  
+  void publish(String topicName, Message m,
+      boolean isPublishedByAuditService) {
     Long timestamp = null;
-    if (isAuditEnabled && !topicName.equals(AuditUtil.AUDIT_STREAM_TOPIC_NAME)) {
+    if (!isPublishedByAuditService && isAuditEnabled) {
       // Add timstamp to the message
       timestamp = new Date().getTime();
       AuditUtil.attachHeaders(m, timestamp);
 
     }
+    // initialization should happen only by one thread
     synchronized (this) {
       if (getStats(topicName) == null) {
         TimingAccumulator stats = new TimingAccumulator();
@@ -60,8 +75,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
       }
       getStats(topicName).accumulateInvocation();
       initTopic(topicName, getStats(topicName));
-      if (isAuditEnabled
-          && !topicName.equals(AuditUtil.AUDIT_STREAM_TOPIC_NAME)) {
+      if (!isPublishedByAuditService && isAuditEnabled) {
         auditService.incrementReceived(topicName, timestamp);
       }
     }
@@ -132,7 +146,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
 
   @Override
   public synchronized void close() {
-
+    closing = true;
     LOG.info("Closing the topics and stat exposers");
     for (Entry<String, TopicStatsExposer> entry : statsExposers.entrySet()) {
       String topicName = entry.getKey();

@@ -212,6 +212,26 @@ public class TestPublisher {
     Assert.assertEquals(
         publisher.getStatsExposer(topic).getContexts()
             .get(TopicStatsExposer.TOPIC_CONTEXT_NAME), topic);
+    th = null;
+    // publishing to audit topic
+    try {
+      publisher.publish(AuditUtil.AUDIT_STREAM_TOPIC_NAME, msg);
+    } catch(Throwable t) {
+      th = t;
+    }
+    Assert.assertTrue(th instanceof IllegalArgumentException);
+  }
+  
+  @Test (expectedExceptions = {IllegalStateException.class})
+  public void testPublishAfterClose() throws IOException {
+    ClientConfig conf = new ClientConfig();
+    conf.set(MessagePublisherFactory.PUBLISHER_CLASS_NAME_KEY,
+        MockPublisher.class.getName());
+    AbstractMessagePublisher publisher =
+        (AbstractMessagePublisher) MessagePublisherFactory.create(conf);
+    publisher.publish("sample-topic", new Message("msg".getBytes()));
+    publisher.close();
+    publisher.publish("sample-topic", new Message("messages".getBytes()));
   }
 
   @Test
