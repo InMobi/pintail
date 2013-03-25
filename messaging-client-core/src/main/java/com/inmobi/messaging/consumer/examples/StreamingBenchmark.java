@@ -16,6 +16,7 @@ import java.util.TreeMap;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.hadoop.io.Text;
 
+import com.inmobi.instrumentation.TimingAccumulator;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.MessageConsumer;
@@ -180,6 +181,7 @@ public class StreamingBenchmark {
     if (runProducer) {
       assert (producer != null);
       producer.join(producerTimeout * 1000);
+      System.out.println("Producer thread state: " + producer.getState());
       exitcode = producer.exitcode;
       if (exitcode == FAILED_CODE) {
         System.out.println("Producer FAILED!");
@@ -259,7 +261,7 @@ public class StreamingBenchmark {
     return new AuditThread(topic, fromTime, toTime, timeout, maxMessages);
   }
 
-  static class Producer {
+  static class Producer extends Thread {
     volatile AbstractMessagePublisher publisher;
     final String topic;
     final long maxSent;
@@ -301,26 +303,28 @@ public class StreamingBenchmark {
       }
     }
     
-    // start producer worker threads
-    public void start() {
+    @Override
+    public void run() {
       System.out.println(LogDateFormat.format(System.currentTimeMillis()) + " Producer started!");
+      // start producer worker threads
       for (int i = 0; i < numThreads; i++) {
         workerThreads[i].start();
       }
-    }
-    
-    public void join(int timeOut) {
+      
+      // wait for worker threads to join
       for (int i = 0; i < numThreads; i++) {
         try {
-          workerThreads[i].join(timeOut);
+          workerThreads[i].join();
         } catch (InterruptedException e) {
           e.printStackTrace();
         }
       }
       
+      // it is safe to close the publisher since all workers threads have finished by now.
       publisher.close();
       System.out.println(LogDateFormat.format(System.currentTimeMillis()) + " Producer closed");
-      if (publisher.getStats(topic).getSuccessCount() == maxSent * numThreads) {
+      TimingAccumulator stats = publisher.getStats(topic);
+      if (stats != null && stats.getSuccessCount() == maxSent * numThreads) {
         exitcode = 0;
       }
     }
@@ -579,19 +583,17 @@ public class StreamingBenchmark {
     }
 
     void constructProducerString(StringBuffer sb) {
-      sb.append(" Invocations:"
-          + producer.publisher.getStats(producer.topic).getInvocationCount());
-      sb.append(" Inflight:"
-          + producer.publisher.getStats(producer.topic).getInFlight());
-      sb.append(" SentSuccess:"
-          + producer.publisher.getStats(producer.topic).getSuccessCount());
-      sb.append(" Lost:"
-          + producer.publisher.getStats(producer.topic).getLostCount());
-      sb.append(" GracefulTerminates:"
-          + producer.publisher.getStats(producer.topic).getGracefulTerminates());
-      sb.append(" UnhandledExceptions:"
-          + producer.publisher.getStats(producer.topic)
-              .getUnhandledExceptionCount());
+      // check whether TimingAccumulator is created for this topic
+      TimingAccumulator stats = producer.publisher.getStats(producer.topic);
+      if (stats == null)
+        return;
+      
+      sb.append(" Invocations:" + stats.getInvocationCount());
+      sb.append(" Inflight:" + stats.getInFlight());
+      sb.append(" SentSuccess:" + stats.getSuccessCount());
+      sb.append(" Lost:" + stats.getLostCount());
+      sb.append(" GracefulTerminates:" + stats.getGracefulTerminates());
+      sb.append(" UnhandledExceptions:" + stats.getUnhandledExceptionCount());
     }
 
     void constructConsumerString(StringBuffer sb) {
