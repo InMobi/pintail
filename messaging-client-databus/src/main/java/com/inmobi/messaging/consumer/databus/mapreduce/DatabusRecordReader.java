@@ -1,7 +1,6 @@
 package com.inmobi.messaging.consumer.databus.mapreduce;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
