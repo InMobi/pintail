@@ -150,9 +150,6 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
 
   protected Message readRawLine() throws IOException {
     if (recordReader != null) {
-      if (!needsSerialize) {
-        msgValue = recordReader.createValue();
-      }
       boolean ret = recordReader.next(msgKey, msgValue);
       if (ret) {
         if (needsSerialize) {

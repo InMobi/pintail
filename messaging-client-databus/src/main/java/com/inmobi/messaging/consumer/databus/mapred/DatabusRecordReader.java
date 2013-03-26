@@ -41,10 +41,12 @@ public class DatabusRecordReader implements RecordReader<LongWritable, Message> 
     textValue.clear();
     boolean ret = lineReader.next(key, this.textValue);
     if (ret) {
-      //TODO:strip headers if any
-
+      // get the byte array corresponding to the value read
+      int length = textValue.getLength();
+      byte[] msg = new byte[length];
+      System.arraycopy(textValue.getBytes(), 0, msg, 0, length);
       //decode Base 64
-      DatabusUtil.decodeMessage(this.textValue.getBytes(), value);
+      DatabusUtil.decodeMessage(msg, value);
     }
     return ret;
   }
