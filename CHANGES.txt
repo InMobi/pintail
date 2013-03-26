@@ -1,3 +1,19 @@
+Release 2.1.0
+
+    7. Add test for resend on acklost
+
+    6. publish cannot happen on closed publisher
+
+    5. private publish for audit
+
+    4. upgraded to cdh3u5
+
+    3. Remove unnecessary synchronizations in scribe topic publisher to reduce publish latency
+
+    2. Add multi-threaded support in Streaming Benchmark producer
+
+    1. changes to execute randomized seq generator in m-client
+
 Release 2.0.0
 Bug Fixes and Improvements :
     10. Change scm section to use https instead of ssh
