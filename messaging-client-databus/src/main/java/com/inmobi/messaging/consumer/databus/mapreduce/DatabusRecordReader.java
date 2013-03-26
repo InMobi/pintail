@@ -1,9 +1,11 @@
 package com.inmobi.messaging.consumer.databus.mapreduce;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
@@ -40,8 +42,12 @@ public class DatabusRecordReader extends RecordReader<LongWritable, Message> {
 
   @Override
   public Message getCurrentValue() throws IOException, InterruptedException {
-    byte[] line = lineReader.getCurrentValue().getBytes();
-    return DatabusUtil.decodeMessage(line);
+    Text text = lineReader.getCurrentValue();
+    byte[] line = text.getBytes();
+    int length = text.getLength();
+    byte[] msg = new byte[length];
+    System.arraycopy(line, 0, msg, 0, length);
+    return DatabusUtil.decodeMessage(msg);
   }
 
   @Override
