@@ -19,11 +19,8 @@ public class MessageUtil {
   public static String constructMessage(int index) {
     StringBuffer str = new StringBuffer();
     // message length should be more than 65
-    str.append(index);
-    str.append("Message");
-    for (int i = 0; i < 100-index; i++) {
-      str.append("A");
-    }
+    str.append(index).append(
+        "Message-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
     return str.toString();
   }
 
