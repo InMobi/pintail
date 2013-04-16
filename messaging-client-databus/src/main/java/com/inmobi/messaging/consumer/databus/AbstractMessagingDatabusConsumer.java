@@ -40,6 +40,7 @@ public abstract class AbstractMessagingDatabusConsumer
   protected ConsumerCheckpoint currentCheckpoint;
   protected long waitTimeForFileCreate;
   protected int bufferSize;
+  protected String retentionInHours;
   protected int consumerNumber;
   protected int totalConsumers;
   protected Set<Integer> partitionMinList;
@@ -126,7 +127,16 @@ public abstract class AbstractMessagingDatabusConsumer
     waitTimeForFileCreate = config.getLong(waitTimeForFileCreateConfig,
         DEFAULT_WAIT_TIME_FOR_FILE_CREATE);
 
+    // get the retention period of the topic
+    retentionInHours = config.getString(retentionConfig);
+
     relativeStartTimeStr = config.getString(relativeStartTimeConfig);
+
+    if (relativeStartTimeConfig == null && retentionInHours!= null) {
+      LOG.warn("retentionConfig is deprecated");
+      int minutes = (Integer.parseInt(retentionInHours)) * 60;
+      relativeStartTimeStr = String.valueOf(minutes);
+    }
 
   }
 
