@@ -15,7 +15,6 @@ import org.apache.hadoop.fs.Path;
 
 import com.inmobi.databus.files.HadoopStreamFile;
 import com.inmobi.databus.readers.DatabusStreamWaitingReader;
-import com.inmobi.messaging.consumer.databus.StreamType;
 
 public class HadoopUtil {
   static final Log LOG = LogFactory.getLog(HadoopUtil.class);
