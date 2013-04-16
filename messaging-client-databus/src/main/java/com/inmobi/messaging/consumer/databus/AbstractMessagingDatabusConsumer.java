@@ -40,10 +40,10 @@ public abstract class AbstractMessagingDatabusConsumer
   protected ConsumerCheckpoint currentCheckpoint;
   protected long waitTimeForFileCreate;
   protected int bufferSize;
-  protected int retentionInHours;
   protected int consumerNumber;
   protected int totalConsumers;
   protected Set<Integer> partitionMinList;
+  protected String relativeStartTimeStr;
 
   @Override
   protected void init(ClientConfig config) throws IOException {
@@ -126,9 +126,7 @@ public abstract class AbstractMessagingDatabusConsumer
     waitTimeForFileCreate = config.getLong(waitTimeForFileCreateConfig,
         DEFAULT_WAIT_TIME_FOR_FILE_CREATE);
 
-    // get the retention period of the topic
-    retentionInHours = config.getInteger(retentionConfig,
-        DEFAULT_RETENTION_HOURS); 
+    relativeStartTimeStr = config.getString(relativeStartTimeConfig);
 
   }
 
