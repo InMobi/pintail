@@ -74,12 +74,8 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
       ((CheckpointList)currentCheckpoint).preaprePartitionCheckPointList(id, 
           partitionCheckpointList);   
 
-      // calculate the allowed start time
-      long currentMillis = System.currentTimeMillis();
-      Date allowedStartTime = new Date(currentMillis - 
-          (retentionInHours * ONE_HOUR_IN_MILLIS));
       Date partitionTimestamp = getPartitionTimestamp(id,
-          partitionCheckpointList, allowedStartTime);
+          partitionCheckpointList);
       PartitionReaderStatsExposer clusterMetrics = 
           new PartitionReaderStatsExposer(topicName, consumerName, id.toString(), 
               consumerNumber);

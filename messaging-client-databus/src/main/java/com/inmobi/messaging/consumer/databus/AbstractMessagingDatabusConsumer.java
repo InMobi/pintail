@@ -29,7 +29,7 @@ public abstract class AbstractMessagingDatabusConsumer
     extends AbstractMessageConsumer implements MessagingConsumerConfig {
   protected static final Log LOG = LogFactory.getLog(
       AbstractMessagingDatabusConsumer.class);
-  protected static final long ONE_HOUR_IN_MILLIS = 1 * 60 * 60 * 1000;
+  protected static final long ONE_MINUTE_IN_MILLIS = 1 * 60 * 1000;
 
   protected BlockingQueue<QueueEntry> buffer;
 
@@ -188,27 +188,45 @@ public abstract class AbstractMessagingDatabusConsumer
 
   protected abstract void createPartitionReaders() throws IOException;
 
-  protected Date getPartitionTimestamp(PartitionId id, MessageCheckpoint pck,
-      Date allowedStartTime) {
-    Date partitionTimestamp = startTime; 
-    if (startTime == null && (pck == null || pck.isNULL())) {
-      LOG.info("There is no startTime passed and no checkpoint exists" +
-          " for the partition: " + id + " starting from the start" +
-          " of the stream.");
-      partitionTimestamp = allowedStartTime;
-    } else if (startTime != null && startTime.before(allowedStartTime)) {
-      LOG.info("Start time passed is before the start of the stream," +
-          " starting from the start of the stream.");
-      partitionTimestamp = allowedStartTime;
+  protected Date getPartitionTimestamp(PartitionId id, MessageCheckpoint pck) {
+    Date partitionTimestamp = null;
+    if (isCheckpointExists(pck)) {
+      LOG.info("Checkpoint exists..Starting from the checkpoint");
+      partitionTimestamp = null;
+    } else if (relativeStartTimeStr != null) {
+      partitionTimestamp = findStartTimeStamp(relativeStartTimeStr);
+      LOG.info("checkpoint does not exists and relative start time is provided" +
+          "started from relative start time" + partitionTimestamp);
+    } else if (startTime != null) {
+      partitionTimestamp = startTime;
+      LOG.info("there is no checkpoint and no relative start time is provided" +
+          "starting from absolute start time" + partitionTimestamp);
     } else {
-      LOG.info("Creating partition with timestamp: " + partitionTimestamp
-          + " checkpoint:" + pck);
+      try {
+        throw new Exception("please provide at least one of the consumer " +
+            "start up option in the configuration: "
+            + "1. checkpoint "+ "2. relative start time " +
+            "3. absolute start time");
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
     return partitionTimestamp;
   }
 
   protected String getChkpointKey() {
     return consumerName + "_" + topicName;
+  }
+
+  public boolean isCheckpointExists(MessageCheckpoint pck) {
+    return !(pck == null || pck.isNULL());
+  }
+
+  protected Date findStartTimeStamp(String relativeStartTimeStr) {
+    long currentMillis = System.currentTimeMillis();
+    long relativeStartTime = Long.parseLong(relativeStartTimeStr);
+    return new Date(currentMillis -
+        (relativeStartTime * ONE_MINUTE_IN_MILLIS));
   }
 
   @Override
