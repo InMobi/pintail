@@ -1,6 +1,9 @@
 package com.inmobi.messaging.consumer;
 
+import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
@@ -35,6 +38,17 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
   protected Date startTime;
   private BaseMessageConsumerStatsExposer metrics;
   private MessagingClientStatBuilder statsEmitter = new MessagingClientStatBuilder();
+
+  public static String minDirFormatStr = "yyyy" + File.separator + "MM" +
+      File.separator + "dd" + File.separator + "HH" + File.separator +"mm";
+
+  public static final ThreadLocal<DateFormat> minDirFormat =
+      new ThreadLocal<DateFormat>() {
+    @Override
+    protected SimpleDateFormat initialValue() {
+      return new SimpleDateFormat(minDirFormatStr);
+    }
+  };
 
   /**
    * Initialize the consumer with passed configuration object
@@ -166,6 +180,19 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
    */
   public AbstractMessagingClientStatsExposer getMetrics() {
     return metrics;
+  }
+
+  public static Date getDateFromString(String absoluteStartTime) {
+    if (absoluteStartTime != null) {
+      String dateString = absoluteStartTime.substring(0,
+          minDirFormatStr.length());
+      try {
+        return minDirFormat.get().parse(dateString);
+      } catch (java.text.ParseException e) {
+        e.printStackTrace();
+      }
+    }
+    return null;
   }
 
   /**

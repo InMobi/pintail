@@ -21,6 +21,8 @@ public class MessageConsumerFactory {
   public static final String CONSUMER_NAME_KEY = "consumer.name";
   public static final String EMITTER_CONF_FILE_KEY = 
       "consumer.statemitter.filename";
+  public static final String ABSOLUTE_START_TIME =
+      "messaging.consumer.absolute.starttime";
 
   /**
    * Creates concrete class extending {@link AbstractMessageConsumer} given by
@@ -152,7 +154,10 @@ public class MessageConsumerFactory {
    */
   public static MessageConsumer create(ClientConfig config,
       String consumerClassName) throws IOException {
-    return create(config, consumerClassName, null);
+    String absoluteStartTimeStr = config.getString(ABSOLUTE_START_TIME);
+    Date absoluteStartTime = AbstractMessageConsumer.getDateFromString(
+        absoluteStartTimeStr);
+    return create(config, consumerClassName, absoluteStartTime);
   }
 
   /**
