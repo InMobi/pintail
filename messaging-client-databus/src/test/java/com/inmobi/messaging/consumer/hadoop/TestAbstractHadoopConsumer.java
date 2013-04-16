@@ -23,6 +23,7 @@ public abstract class TestAbstractHadoopConsumer {
   protected String ck4;
   protected String ck5;
   protected String ck6;
+  protected String ck7;
 
   int numMessagesPerFile = 100;
   int numDataFiles;
@@ -35,7 +36,7 @@ public abstract class TestAbstractHadoopConsumer {
   protected String[] suffixDirs;
   protected String consumerName;
   protected Path[] rootDirs;
-  protected String[] chkDirs = new String[]{ck1, ck2, ck3, ck4, ck5, ck6};
+  protected String[] chkDirs = new String[]{ck1, ck2, ck3, ck4, ck5, ck6, ck7};
   Path[][] finalPaths;
   Configuration conf;
   protected final String relativeStartTime = "20";
@@ -130,6 +131,18 @@ public abstract class TestAbstractHadoopConsumer {
     ConsumerUtil.assertMessages(config, testStream, consumerName, 3,
       numSuffixDirs,
       numDataFiles, numMessagesPerFile, true);
+  }
+
+  public void testConsumerStartUp() throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(HadoopConsumerConfig.rootDirsConfig,
+        rootDirs[0].toString());
+    config.set(HadoopConsumerConfig.checkpointDirConfig, ck7);
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        relativeStartTime);
+    ConsumerUtil.testConsumerStartUp(config, testStream, consumerName, true,
+        DatabusStreamWaitingReader.
+        getDateFromStreamDir(rootDirs[0], finalPaths[0][1]), rootDirs[0]);
   }
 
   public void cleanup() throws IOException {

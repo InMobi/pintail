@@ -19,6 +19,7 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
   private String ck3 = "/tmp/test/databustest2/checkpoint1";
   private String ck4 = "/tmp/test/databustest2/checkpoint2";
   private String ck5 = "/tmp/test/databustest2/checkpoint3";
+  private String ck6 = "/tmp/test/databustest2/checkpoint4";
 
   ClientConfig loadConfig() {
     return ClientConfig.loadFromClasspath(
@@ -87,6 +88,20 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
     config.set(MessagingConsumerConfig.relativeStartTimeConfig,
         relativeStartTime);
     assertMessages(config, 3, 1);
+  }
+
+  @Test
+  public void testConsumerStartUp() throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+        rootDirs[0].toUri().toString());
+    config.set(DatabusConsumerConfig.checkpointDirConfig, ck6);
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        relativeStartTime);
+    ConsumerUtil.testConsumerStartUp(config, testStream,
+        consumerName, false,
+        CollectorStreamReader.getDateFromCollectorFile(dataFiles[1]),
+        rootDirs[0]);
   }
 
   @AfterTest
