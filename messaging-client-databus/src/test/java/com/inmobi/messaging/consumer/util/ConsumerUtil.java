@@ -539,4 +539,51 @@ public class ConsumerUtil {
     Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
         consumer.getMetrics())).getNumMessagesConsumed(),89);
   }
+
+  public static void testConsumerWithConfiguredStartTime(ClientConfig config,
+      boolean hadoop) throws Exception {
+    AbstractMessagingDatabusConsumer consumer;
+    if (!hadoop) {
+      consumer = (DatabusConsumer) MessageConsumerFactory.create(config);
+    } else {
+      consumer = (HadoopConsumer) MessageConsumerFactory.create(config);
+    }
+    int i;
+    for (i = 100; i < 200; i++) {
+      Message msg = consumer.next();
+      System.out.println("CCCCCCCCCC "+ getMessage(msg.getData().array(), hadoop));
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    consumer.mark();
+    for (i = 200; i < 220; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    consumer.reset();
+    for (i = 200; i < 300; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    consumer.close();
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMarkCalls(), 1);
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumResetCalls(), 1);
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMessagesConsumed(), 220);
+  }
+
+  public static void testConsumerWithFutureStartTime(ClientConfig config)
+      throws Exception {
+    Throwable th = null;
+    try {
+      MessageConsumerFactory.create(config);
+    } catch (Throwable e) {
+      th = e;
+    }
+    Assert.assertTrue(th instanceof IllegalArgumentException);
+  }
 }

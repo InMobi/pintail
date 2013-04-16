@@ -1,6 +1,9 @@
 package com.inmobi.messaging.consumer.databus;
 
 import java.io.IOException;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
@@ -8,6 +11,7 @@ import org.testng.annotations.Test;
 
 import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.messaging.ClientConfig;
+import com.inmobi.messaging.consumer.AbstractMessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
 import com.inmobi.messaging.consumer.util.ConsumerUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
@@ -102,6 +106,35 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
         consumerName, false,
         CollectorStreamReader.getDateFromCollectorFile(dataFiles[1]),
         rootDirs[0]);
+  }
+
+  @Test
+  public void testConsumerWithConfiguredStartTime() throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+        rootDirs[0].toUri().toString());
+    Date absoluteStartTime = CollectorStreamReader.
+        getDateFromCollectorFile(dataFiles[1]);
+    config.set(MessageConsumerFactory.ABSOLUTE_START_TIME,
+        AbstractMessageConsumer.minDirFormat.get().format(absoluteStartTime));
+    ConsumerUtil.testConsumerWithConfiguredStartTime(config, false);
+  }
+
+  @Test
+  public void testConsumerWithFutureStartTime() throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+        rootDirs[0].toUri().toString());
+    Date absoluteStartTime = CollectorStreamReader.
+        getDateFromCollectorFile(dataFiles[1]);
+    // created a future time stamp
+    Calendar cal = new GregorianCalendar();
+    cal.setTime(absoluteStartTime);
+    cal.add(Calendar.HOUR, 2);
+
+    config.set(MessageConsumerFactory.ABSOLUTE_START_TIME,
+        AbstractMessageConsumer.minDirFormat.get().format(cal.getTime()));
+    ConsumerUtil.testConsumerWithFutureStartTime(config);
   }
 
   @AfterTest

@@ -1,6 +1,9 @@
 package com.inmobi.messaging.consumer.hadoop;
 
 import java.io.IOException;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -8,9 +11,14 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.testng.Assert;
+import org.testng.annotations.Test;
 
+import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 import com.inmobi.messaging.ClientConfig;
+import com.inmobi.messaging.consumer.AbstractMessageConsumer;
+import com.inmobi.messaging.consumer.MessageConsumerFactory;
+import com.inmobi.messaging.consumer.databus.DatabusConsumerConfig;
 import com.inmobi.messaging.consumer.databus.MessagingConsumerConfig;
 import com.inmobi.messaging.consumer.util.ConsumerUtil;
 import com.inmobi.messaging.consumer.util.HadoopUtil;
@@ -24,6 +32,7 @@ public abstract class TestAbstractHadoopConsumer {
   protected String ck5;
   protected String ck6;
   protected String ck7;
+  protected String ck8;
 
   int numMessagesPerFile = 100;
   int numDataFiles;
@@ -36,7 +45,8 @@ public abstract class TestAbstractHadoopConsumer {
   protected String[] suffixDirs;
   protected String consumerName;
   protected Path[] rootDirs;
-  protected String[] chkDirs = new String[]{ck1, ck2, ck3, ck4, ck5, ck6, ck7};
+  protected String[] chkDirs = new String[]{ck1, ck2, ck3, ck4, ck5, ck6, ck7,
+      ck8};
   Path[][] finalPaths;
   Configuration conf;
   protected final String relativeStartTime = "20";
@@ -143,6 +153,34 @@ public abstract class TestAbstractHadoopConsumer {
     ConsumerUtil.testConsumerStartUp(config, testStream, consumerName, true,
         DatabusStreamWaitingReader.
         getDateFromStreamDir(rootDirs[0], finalPaths[0][1]), rootDirs[0]);
+  }
+
+  public void testConsumerWithConfiguredStartTime() throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(HadoopConsumerConfig.rootDirsConfig,
+        rootDirs[0].toUri().toString());
+    config.set(HadoopConsumerConfig.checkpointDirConfig, ck8);
+    Date absoluteStartTime = DatabusStreamWaitingReader.
+        getDateFromStreamDir(rootDirs[0], finalPaths[0][1]);
+    config.set(MessageConsumerFactory.ABSOLUTE_START_TIME,
+        AbstractMessageConsumer.minDirFormat.get().format(absoluteStartTime));
+    ConsumerUtil.testConsumerWithConfiguredStartTime(config, true);
+  }
+
+  public void testConsumerWithFutureStartTime() throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+        rootDirs[0].toUri().toString());
+    Date absoluteStartTime = DatabusStreamWaitingReader.
+        getDateFromStreamDir(rootDirs[0], finalPaths[0][1]);
+    // created a future time stamp
+    Calendar cal = new GregorianCalendar();
+    cal.setTime(absoluteStartTime);
+    cal.add(Calendar.HOUR, 2);
+
+    config.set(MessageConsumerFactory.ABSOLUTE_START_TIME,
+        AbstractMessageConsumer.minDirFormat.get().format(cal.getTime()));
+    ConsumerUtil.testConsumerWithFutureStartTime(config);
   }
 
   public void cleanup() throws IOException {
