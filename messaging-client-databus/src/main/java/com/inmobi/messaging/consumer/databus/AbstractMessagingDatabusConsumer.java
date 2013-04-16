@@ -132,7 +132,7 @@ public abstract class AbstractMessagingDatabusConsumer
 
     relativeStartTimeStr = config.getString(relativeStartTimeConfig);
 
-    if (relativeStartTimeConfig == null && retentionInHours!= null) {
+    if (relativeStartTimeStr == null && retentionInHours!= null) {
       LOG.warn("retentionConfig is deprecated");
       int minutes = (Integer.parseInt(retentionInHours)) * 60;
       relativeStartTimeStr = String.valueOf(minutes);
