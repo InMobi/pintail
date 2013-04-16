@@ -11,6 +11,7 @@ import org.testng.Assert;
 
 import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 import com.inmobi.messaging.ClientConfig;
+import com.inmobi.messaging.consumer.databus.MessagingConsumerConfig;
 import com.inmobi.messaging.consumer.util.ConsumerUtil;
 import com.inmobi.messaging.consumer.util.HadoopUtil;
 
@@ -21,6 +22,7 @@ public abstract class TestAbstractHadoopConsumer {
   protected String ck3;
   protected String ck4;
   protected String ck5;
+  protected String ck6;
 
   int numMessagesPerFile = 100;
   int numDataFiles;
@@ -33,16 +35,16 @@ public abstract class TestAbstractHadoopConsumer {
   protected String[] suffixDirs;
   protected String consumerName;
   protected Path[] rootDirs;
-  protected String[] chkDirs = new String[]{ck1, ck2, ck3, ck4, ck5};
+  protected String[] chkDirs = new String[]{ck1, ck2, ck3, ck4, ck5, ck6};
   Path[][] finalPaths;
   Configuration conf;
-  ClientConfig config;
+  protected final String relativeStartTime = "20";
 
   abstract ClientConfig loadConfig();
 
   public void setup() throws Exception {
     // setup 
-    config = loadConfig();
+    ClientConfig config = loadConfig();
     testConsumer = new HadoopConsumer();
     testConsumer.initializeConfig(config);
 
@@ -62,14 +64,18 @@ public abstract class TestAbstractHadoopConsumer {
   }
 
   public void testMarkAndReset() throws Exception {
+    ClientConfig config = loadConfig();
     config.set(HadoopConsumerConfig.checkpointDirConfig, ck1);
     config.set(HadoopConsumerConfig.rootDirsConfig,
       rootDirs[0].toString());
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        relativeStartTime);
     ConsumerUtil.testMarkAndReset(config, testStream, consumerName, true);
   }
   
   public void testTimeoutStats() throws Exception {
-    config.set(HadoopConsumerConfig.checkpointDirConfig, ck1);
+    ClientConfig config = loadConfig();
+    config.set(HadoopConsumerConfig.checkpointDirConfig, ck6);
     config.set(HadoopConsumerConfig.rootDirsConfig,
       rootDirs[0].toString());
     ConsumerUtil.testTimeoutStats(config, testStream, consumerName, 
@@ -78,6 +84,7 @@ public abstract class TestAbstractHadoopConsumer {
   }
 
   public void testMarkAndResetWithStartTime() throws Exception {
+    ClientConfig config = loadConfig();
     config.set(HadoopConsumerConfig.checkpointDirConfig, ck2);
     config.set(HadoopConsumerConfig.rootDirsConfig,
       rootDirs[0].toString());
@@ -87,10 +94,13 @@ public abstract class TestAbstractHadoopConsumer {
   }
 
   public void testSuffixDirs() throws Exception {
+    ClientConfig config = loadConfig();
     config.set(HadoopConsumerConfig.rootDirsConfig,
       rootDirs[0].toString());
     config.set(HadoopConsumerConfig.checkpointDirConfig,
       ck3);
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        relativeStartTime);
     ConsumerUtil.assertMessages(config, testStream, consumerName, 1,
       numSuffixDirs,
       numDataFiles, numMessagesPerFile, true);
@@ -98,20 +108,25 @@ public abstract class TestAbstractHadoopConsumer {
 
 
   public void testMultipleClusters() throws Exception {
+    ClientConfig config = loadConfig();
     config.set(HadoopConsumerConfig.rootDirsConfig,
       rootDirs[0].toString() + "," + rootDirs[1].toString());
     config.set(HadoopConsumerConfig.checkpointDirConfig,
       ck4);
-
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        relativeStartTime);
     ConsumerUtil.assertMessages(config, testStream, consumerName, 2,
       numSuffixDirs,
       numDataFiles, numMessagesPerFile, true);
   }
 
   public void testMultipleClusters2() throws Exception {
+    ClientConfig config = loadConfig();
     config.set(HadoopConsumerConfig.rootDirsConfig, rootDirs[0].toString()
       + "," + rootDirs[1] + "," + rootDirs[2]);
     config.set(HadoopConsumerConfig.checkpointDirConfig, ck5);
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        relativeStartTime);
     ConsumerUtil.assertMessages(config, testStream, consumerName, 3,
       numSuffixDirs,
       numDataFiles, numMessagesPerFile, true);

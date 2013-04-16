@@ -49,7 +49,9 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
     ClientConfig config = loadConfig();
     config.set(DatabusConsumerConfig.databusRootDirsConfig,
         rootDirs[0].toUri().toString());
-    config.set(DatabusConsumerConfig.checkpointDirConfig, ck1);
+    config.set(DatabusConsumerConfig.checkpointDirConfig, ck5);
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        relativeStartTime);
     ConsumerUtil.testMarkAndReset(config, testStream, consumerName, false);
   }
 
@@ -70,6 +72,8 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
         rootDirs[0].toUri().toString() + "," + rootDirs[1].toUri().toString());
     config.set(DatabusConsumerConfig.checkpointDirConfig,
         ck3);
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        relativeStartTime);
     assertMessages(config, 2, 1);
   }
 
@@ -80,6 +84,8 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
         rootDirs[0].toString() + "," + rootDirs[1].toString() + "," + 
         rootDirs[2].toString());
     config.set(DatabusConsumerConfig.checkpointDirConfig, ck4);
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        relativeStartTime);
     assertMessages(config, 3, 1);
   }
 

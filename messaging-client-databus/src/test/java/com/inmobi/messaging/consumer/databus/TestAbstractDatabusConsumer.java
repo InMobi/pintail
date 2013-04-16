@@ -1,6 +1,7 @@
 package com.inmobi.messaging.consumer.databus;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -13,7 +14,9 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
 import com.inmobi.databus.Cluster;
+import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.messaging.ClientConfig;
+import com.inmobi.messaging.consumer.AbstractMessageConsumer;
 import com.inmobi.messaging.consumer.util.ConsumerUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
@@ -28,6 +31,7 @@ public abstract class TestAbstractDatabusConsumer {
   protected String[] dataFiles;
   protected String consumerName;
   Path[] rootDirs;
+  protected final String relativeStartTime = "20";
   Configuration conf = new Configuration();
 
   public void setup(int numFileToMove) throws Exception {

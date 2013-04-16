@@ -24,6 +24,7 @@ public class TestHadoopConsumer extends TestAbstractHadoopConsumer {
     ck3 = "/tmp/test/hadoop/1/checkpoint3";
     ck4 = "/tmp/test/hadoop/2/checkpoint1";
     ck5 = "/tmp/test/hadoop/2/checkpoint2";
+    ck6 = "/tmp/test/hadoop/2/checkpoint3";
     super.setup();
     Assert.assertEquals(rootDirs.length, 3);
   }
