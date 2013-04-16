@@ -298,6 +298,17 @@ public class ConsumerUtil {
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
+    consumer.close();
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMessagesConsumed(), 250);
+    consumer = createConsumer(hadoop);
+    consumer.init(streamName, consumerName, absoluteStartTime, config);
+    // consumer starts consumes messages from the checkpoint
+    for (i = 120; i < 240; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
     consumer.mark();
     ConsumerCheckpoint temp = consumer.getCurrentCheckpoint();
     Map<PartitionId, PartitionCheckpoint> lastCheckpoint = new
@@ -312,7 +323,7 @@ public class ConsumerUtil {
     }
     consumer.close();
     Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
-        consumer.getMetrics())).getNumMessagesConsumed(), 270);
+        consumer.getMetrics())).getNumMessagesConsumed(), 140);
 
     consumer = createConsumer(hadoop);
     if (!hadoop) {
@@ -551,7 +562,6 @@ public class ConsumerUtil {
     int i;
     for (i = 100; i < 200; i++) {
       Message msg = consumer.next();
-      System.out.println("CCCCCCCCCC "+ getMessage(msg.getData().array(), hadoop));
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
@@ -577,6 +587,17 @@ public class ConsumerUtil {
   }
 
   public static void testConsumerWithFutureStartTime(ClientConfig config)
+      throws Exception {
+    Throwable th = null;
+    try {
+      MessageConsumerFactory.create(config);
+    } catch (Throwable e) {
+      th = e;
+    }
+    Assert.assertTrue(th instanceof IllegalArgumentException);
+  }
+ 
+  public static void testConsumerWithoutConfiguredOptions(ClientConfig config)
       throws Exception {
     Throwable th = null;
     try {

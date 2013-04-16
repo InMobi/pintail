@@ -24,6 +24,8 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
   private String ck4 = "/tmp/test/databustest2/checkpoint2";
   private String ck5 = "/tmp/test/databustest2/checkpoint3";
   private String ck6 = "/tmp/test/databustest2/checkpoint4";
+  private String ck7 = "/tmp/test/databustest2/checkpoint5";
+  private String ck8 = "/tmp/test/databustest2/checkpoint6";
 
   ClientConfig loadConfig() {
     return ClientConfig.loadFromClasspath(
@@ -113,6 +115,7 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
     ClientConfig config = loadConfig();
     config.set(DatabusConsumerConfig.databusRootDirsConfig,
         rootDirs[0].toUri().toString());
+    config.set(DatabusConsumerConfig.checkpointDirConfig, ck7);
     Date absoluteStartTime = CollectorStreamReader.
         getDateFromCollectorFile(dataFiles[1]);
     config.set(MessageConsumerFactory.ABSOLUTE_START_TIME,
@@ -135,6 +138,15 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
     config.set(MessageConsumerFactory.ABSOLUTE_START_TIME,
         AbstractMessageConsumer.minDirFormat.get().format(cal.getTime()));
     ConsumerUtil.testConsumerWithFutureStartTime(config);
+  }
+
+  @Test
+  public void testConsumerWithoutConfiguredOptions() throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+        rootDirs[0].toUri().toString());
+    config.set(DatabusConsumerConfig.checkpointDirConfig, ck8);
+    ConsumerUtil.testConsumerWithoutConfiguredOptions(config);
   }
 
   @AfterTest
