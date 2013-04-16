@@ -179,16 +179,17 @@ public abstract class AbstractMessagingDatabusConsumer
     return entry.getMessage();
   }
 
-  protected synchronized void start() throws IOException {
+  protected synchronized void start() throws Exception {
     createPartitionReaders();
     for (PartitionReader reader : readers.values()) {
       reader.start();
     }
   }
 
-  protected abstract void createPartitionReaders() throws IOException;
+  protected abstract void createPartitionReaders() throws Exception;
 
-  protected Date getPartitionTimestamp(PartitionId id, MessageCheckpoint pck) {
+  protected Date getPartitionTimestamp(PartitionId id, MessageCheckpoint pck)
+      throws Exception {
     Date partitionTimestamp = null;
     if (isCheckpointExists(pck)) {
       LOG.info("Checkpoint exists..Starting from the checkpoint");
@@ -202,14 +203,10 @@ public abstract class AbstractMessagingDatabusConsumer
       LOG.info("there is no checkpoint and no relative start time is provided" +
           "starting from absolute start time" + partitionTimestamp);
     } else {
-      try {
-        throw new Exception("please provide at least one of the consumer " +
-            "start up option in the configuration: "
-            + "1. checkpoint "+ "2. relative start time " +
-            "3. absolute start time");
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
+      throw new Exception("please provide at least one of the consumer " +
+          "start up option in the configuration: "
+          + "1. existing checkpoint "+ "2. relative start time " +
+          "3. absolute start time");
     }
     return partitionTimestamp;
   }
@@ -230,7 +227,7 @@ public abstract class AbstractMessagingDatabusConsumer
   }
 
   @Override
-  protected void doReset() throws IOException {
+  protected void doReset() throws Exception {
     // restart the service, consumer will start streaming from the last saved
     // checkpoint
     close();

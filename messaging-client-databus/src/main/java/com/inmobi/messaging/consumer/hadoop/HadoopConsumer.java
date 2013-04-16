@@ -59,7 +59,7 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
         DEFAULT_INPUT_FORMAT_CLASSNAME);
   }
 
-  protected void createPartitionReaders() throws IOException {
+  protected void createPartitionReaders() throws Exception {
     for (int i= 0; i < clusterNames.length; i++) {
       String clusterName = clusterNames[i];
       LOG.debug("Creating partition reader for cluster:" + clusterName);

@@ -65,7 +65,7 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
 
   protected abstract void doMark() throws IOException;
 
-  protected abstract void doReset() throws IOException;
+  protected abstract void doReset() throws Exception;
 
   protected abstract Message getNext() throws InterruptedException;
 
@@ -96,7 +96,7 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
     }
   }
 
-  public synchronized void reset() throws IOException {
+  public synchronized void reset() throws Exception {
     if (isMarkSupported()) {
       doReset();
       metrics.incrementResetCalls();
@@ -189,7 +189,8 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
       try {
         return minDirFormat.get().parse(dateString);
       } catch (java.text.ParseException e) {
-        e.printStackTrace();
+        throw new IllegalArgumentException("Incorrect format of startTime" +
+            " passed" + e);
       }
     }
     return null;

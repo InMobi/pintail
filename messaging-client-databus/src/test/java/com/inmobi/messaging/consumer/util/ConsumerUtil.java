@@ -55,7 +55,7 @@ public class ConsumerUtil {
   public static void assertMessages(ClientConfig config, String streamName,
       String consumerName, int numClusters, int numCollectors, int numDataFiles,
       int numMessagesPerFile, boolean hadoop)
-          throws IOException, InterruptedException {
+          throws Exception {
     int numCounters = numClusters * numCollectors;
     int totalMessages = numCounters * numDataFiles * numMessagesPerFile;
     int[] counter = new int[numCounters];

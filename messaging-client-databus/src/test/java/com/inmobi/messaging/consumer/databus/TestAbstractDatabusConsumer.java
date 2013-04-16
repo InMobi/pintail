@@ -79,7 +79,7 @@ public abstract class TestAbstractDatabusConsumer {
 
   void assertMessages(
       ClientConfig config, int numClusters, int numCollectors) 
-      throws IOException, InterruptedException {
+      throws Exception {
     ConsumerUtil.assertMessages(config, testStream, consumerName, numClusters,
         numCollectors,
         numDataFiles, 100, false);
