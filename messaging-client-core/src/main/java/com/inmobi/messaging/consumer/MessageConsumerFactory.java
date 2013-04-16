@@ -200,7 +200,11 @@ public class MessageConsumerFactory {
       String consumerClassName,
       String topicName,
       String consumerName) throws IOException {
-    return create(config, consumerClassName, topicName, consumerName, null);
+    String absoluteStartTimeStr = config.getString(ABSOLUTE_START_TIME);
+    Date absoluteStartTime = AbstractMessageConsumer.getDateFromString(
+        absoluteStartTimeStr);
+    return create(config, consumerClassName, topicName, consumerName,
+        absoluteStartTime);
   }
 
   /**
