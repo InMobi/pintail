@@ -607,4 +607,31 @@ public class ConsumerUtil {
     }
     Assert.assertTrue(th instanceof IllegalArgumentException);
   }
+
+  public static void testConsumerWithRetentionPeriod(ClientConfig config,
+      String streamName, String consumerName, boolean hadoop)
+          throws Exception {
+    AbstractMessagingDatabusConsumer consumer = createConsumer(hadoop);
+    consumer.init(streamName, consumerName, null, config);
+    int i;
+    for (i = 0; i < 200; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    consumer.mark();
+    consumer.close();
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMessagesConsumed(), 200);
+    consumer = createConsumer(hadoop);
+    consumer.init(streamName, consumerName, null, config);
+    for (i = 200; i < 300; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    consumer.close();
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMessagesConsumed(), 100);
+  }
 }

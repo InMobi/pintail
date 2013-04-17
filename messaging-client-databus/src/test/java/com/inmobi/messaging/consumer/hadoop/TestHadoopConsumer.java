@@ -28,6 +28,7 @@ public class TestHadoopConsumer extends TestAbstractHadoopConsumer {
     ck7 = "/tmp/test/hadoop/2/checkpoint4";
     ck8 = "/tmp/test/hadoop/2/checkpoint5";
     ck9 = "/tmp/test/hadoop/2/checkpoint6";
+    ck10 = "/tmp/test/hadoop/2/checkpoint7";
     super.setup();
     Assert.assertEquals(rootDirs.length, 3);
   }
@@ -75,7 +76,12 @@ public class TestHadoopConsumer extends TestAbstractHadoopConsumer {
   @Test
   public void testConsumerWithoutConfiguredOptions() throws Exception {
     super.testConsumerWithoutConfiguredOptions();
-  } 
+  }
+
+  @Test
+  public void testConsumerWithRetentionPeriod() throws Exception {
+    super.testConsumerWithRetentionPeriod();
+  }
 
   @AfterTest
   public void cleanup() throws IOException {

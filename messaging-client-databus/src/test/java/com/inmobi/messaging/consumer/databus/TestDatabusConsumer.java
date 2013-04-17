@@ -26,6 +26,7 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
   private String ck6 = "/tmp/test/databustest2/checkpoint4";
   private String ck7 = "/tmp/test/databustest2/checkpoint5";
   private String ck8 = "/tmp/test/databustest2/checkpoint6";
+  private String ck9 = "/tmp/test/databustest2/checkpoint7";
 
   ClientConfig loadConfig() {
     return ClientConfig.loadFromClasspath(
@@ -147,6 +148,17 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
         rootDirs[0].toUri().toString());
     config.set(DatabusConsumerConfig.checkpointDirConfig, ck8);
     ConsumerUtil.testConsumerWithoutConfiguredOptions(config);
+  }
+
+  @Test
+  public void testConsumerWithRetentionPeriod() throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+        rootDirs[0].toUri().toString());
+    config.set(DatabusConsumerConfig.checkpointDirConfig, ck9);
+    config.set(DatabusConsumerConfig.retentionConfig, "1");
+    ConsumerUtil.testConsumerWithRetentionPeriod(config, testStream,
+        consumerName, false);
   }
 
   @AfterTest
