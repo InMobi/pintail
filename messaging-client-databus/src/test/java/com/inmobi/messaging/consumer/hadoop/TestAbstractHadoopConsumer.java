@@ -35,6 +35,7 @@ public abstract class TestAbstractHadoopConsumer {
   protected String ck8;
   protected String ck9;
   protected String ck10;
+  protected String ck11;
 
   int numMessagesPerFile = 100;
   int numDataFiles;
@@ -48,7 +49,7 @@ public abstract class TestAbstractHadoopConsumer {
   protected String consumerName;
   protected Path[] rootDirs;
   protected String[] chkDirs = new String[]{ck1, ck2, ck3, ck4, ck5, ck6, ck7,
-      ck8, ck9, ck10};
+      ck8, ck9, ck10, ck11};
   Path[][] finalPaths;
   Configuration conf;
   protected final String relativeStartTime = "20";
@@ -171,7 +172,7 @@ public abstract class TestAbstractHadoopConsumer {
 
   public void testConsumerWithFutureStartTime() throws Exception {
     ClientConfig config = loadConfig();
-    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+    config.set(HadoopConsumerConfig.rootDirsConfig,
         rootDirs[0].toString());
     Date absoluteStartTime = DatabusStreamWaitingReader.
         getDateFromStreamDir(rootDirs[0], finalPaths[0][1]);
@@ -189,7 +190,7 @@ public abstract class TestAbstractHadoopConsumer {
     ClientConfig config = loadConfig();
     config.set(HadoopConsumerConfig.rootDirsConfig,
         rootDirs[0].toString());
-    config.set(DatabusConsumerConfig.checkpointDirConfig, ck9);
+    config.set(HadoopConsumerConfig.checkpointDirConfig, ck9);
     ConsumerUtil.testConsumerWithoutConfiguredOptions(config);
   }
 
@@ -201,6 +202,27 @@ public abstract class TestAbstractHadoopConsumer {
     config.set(HadoopConsumerConfig.retentionConfig, "1");
     ConsumerUtil.testConsumerWithRetentionPeriod(config, testStream,
         consumerName, true);
+  }
+
+  /*
+   *  setting retention period as 0 hours and relative time is 20 minutes.
+   *  Consumer should start consume the messages from 20 minutes beyond the 
+   *  current time
+   */
+  public void testConsumerWithRelativeAndRetention() throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(HadoopConsumerConfig.rootDirsConfig,
+        rootDirs[0].toString());
+    config.set(HadoopConsumerConfig.checkpointDirConfig, ck11);
+    config.set(HadoopConsumerConfig.retentionConfig, "0");
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        relativeStartTime);
+    Date absoluteStartTime = DatabusStreamWaitingReader.
+        getDateFromStreamDir(rootDirs[0], finalPaths[0][1]);
+    config.set(MessageConsumerFactory.ABSOLUTE_START_TIME,
+        AbstractMessageConsumer.minDirFormat.get().format(absoluteStartTime));
+    ConsumerUtil.testConsumerWithRelativeAndRetention(config, testStream,
+        consumerName, absoluteStartTime, true);
   }
 
   public void cleanup() throws IOException {

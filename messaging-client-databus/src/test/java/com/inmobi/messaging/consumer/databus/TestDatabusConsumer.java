@@ -27,6 +27,7 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
   private String ck7 = "/tmp/test/databustest2/checkpoint5";
   private String ck8 = "/tmp/test/databustest2/checkpoint6";
   private String ck9 = "/tmp/test/databustest2/checkpoint7";
+  private String ck10 = "/tmp/test/databustest2/checkpoint7";
 
   ClientConfig loadConfig() {
     return ClientConfig.loadFromClasspath(
@@ -156,9 +157,31 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
     config.set(DatabusConsumerConfig.databusRootDirsConfig,
         rootDirs[0].toUri().toString());
     config.set(DatabusConsumerConfig.checkpointDirConfig, ck9);
-    config.set(DatabusConsumerConfig.retentionConfig, "1");
+    config.set(MessagingConsumerConfig.retentionConfig, "1");
     ConsumerUtil.testConsumerWithRetentionPeriod(config, testStream,
         consumerName, false);
+  }
+
+  /*
+   *  setting retention period as 0 hours and relative time is 20 minutes.
+   *  Consumer should start consume the messages from 20 minutes beyond the
+   *  current time
+   */
+  @Test
+  public void testConsumerWithRelativeAndRetention() throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+        rootDirs[0].toUri().toString());
+    config.set(DatabusConsumerConfig.checkpointDirConfig, ck10);
+    config.set(DatabusConsumerConfig.retentionConfig, "0");
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        relativeStartTime);
+    Date absoluteStartTime = CollectorStreamReader.
+        getDateFromCollectorFile(dataFiles[1]);
+    config.set(MessageConsumerFactory.ABSOLUTE_START_TIME,
+        AbstractMessageConsumer.minDirFormat.get().format(absoluteStartTime));
+    ConsumerUtil.testConsumerWithRelativeAndRetention(config, testStream,
+        consumerName, absoluteStartTime, false);
   }
 
   @AfterTest
