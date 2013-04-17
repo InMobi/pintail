@@ -48,7 +48,7 @@ public class TestRetries {
   @Test
   public void testEnableRetries() throws Exception {
     testEnableRetries(true, 7902);
-    testEnableRetries(false, 7904);
+    testEnableRetries(false, 7902);
   }
 
   public void testEnableRetries(boolean enableRetries, int port)
@@ -149,7 +149,7 @@ public class TestRetries {
       // ack will be lost for the message.
       mb.publish(topic, new Message("mmmm".getBytes()));
       mb.getTopicPublisher(topic).suggestReconnect();
-      Thread.sleep(100);
+      Thread.sleep(1000);
       mb.publish(topic, new Message("mmmm".getBytes()));
       mb.close();
       TimingAccumulator inspector = mb.getStats(topic);
