@@ -648,4 +648,20 @@ public class ConsumerUtil {
     Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
         consumer.getMetrics())).getNumMessagesConsumed(), 300);
   }
+
+  public static void testConsumerWithAbsoluteStartTimeAndRetention(
+      ClientConfig config, String streamName, String consumerName,
+      Date startTime, boolean hadoop)
+          throws Exception {
+    AbstractMessagingDatabusConsumer consumer = createConsumer(hadoop);
+    consumer.init(streamName, consumerName, startTime, config);
+    int i;
+    for (i = 0; i < 300; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMessagesConsumed(), 300);
+  }
 }

@@ -88,6 +88,11 @@ public class TestHadoopConsumer extends TestAbstractHadoopConsumer {
     super.testConsumerWithRelativeAndRetention();
   }
 
+  @Test
+  public void testConsumerWithAbsoluteStartTimeAndRetention() throws Exception {
+    super.testConsumerWithAbsoluteStartTimeAndRetention();
+  }
+
   @AfterTest
   public void cleanup() throws IOException {
     super.cleanup();

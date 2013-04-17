@@ -225,6 +225,20 @@ public abstract class TestAbstractHadoopConsumer {
         consumerName, absoluteStartTime, true);
   }
 
+  public void testConsumerWithAbsoluteStartTimeAndRetention()
+      throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(HadoopConsumerConfig.rootDirsConfig,
+        rootDirs[0].toString());
+    config.set(HadoopConsumerConfig.retentionConfig, "1");
+    Date absoluteStartTime = DatabusStreamWaitingReader.
+        getDateFromStreamDir(rootDirs[0], finalPaths[0][1]);
+    config.set(MessageConsumerFactory.ABSOLUTE_START_TIME,
+        AbstractMessageConsumer.minDirFormat.get().format(absoluteStartTime));
+    ConsumerUtil.testConsumerWithAbsoluteStartTimeAndRetention(config,
+        testStream, consumerName, absoluteStartTime, true);
+  }
+
   public void cleanup() throws IOException {
     FileSystem lfs = FileSystem.getLocal(conf);
     for (Path rootDir : rootDirs) {

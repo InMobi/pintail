@@ -184,6 +184,21 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
         consumerName, absoluteStartTime, false);
   }
 
+  @Test
+  public void testConsumerWithAbsoluteStartTimeAndRetention()
+      throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+        rootDirs[0].toUri().toString());
+    config.set(DatabusConsumerConfig.retentionConfig, "1");
+    Date absoluteStartTime = CollectorStreamReader.
+        getDateFromCollectorFile(dataFiles[1]);
+    config.set(MessageConsumerFactory.ABSOLUTE_START_TIME,
+        AbstractMessageConsumer.minDirFormat.get().format(absoluteStartTime));
+    ConsumerUtil.testConsumerWithAbsoluteStartTimeAndRetention(config,
+        testStream, consumerName, absoluteStartTime, false);
+  }
+
   @AfterTest
   public void cleanup() throws IOException {
     super.cleanup();
