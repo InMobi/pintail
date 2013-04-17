@@ -210,13 +210,12 @@ public abstract class TestAbstractHadoopConsumer {
    *  current time
    */
   public void testConsumerWithRelativeAndRetention() throws Exception {
-    ClientConfig config = loadConfig();
+    ClientConfig config = ClientConfig.loadFromClasspath(
+        "messaging-consumer-hadoop-conf-relative.properties");
     config.set(HadoopConsumerConfig.rootDirsConfig,
         rootDirs[0].toString());
     config.set(HadoopConsumerConfig.checkpointDirConfig, ck11);
     config.set(HadoopConsumerConfig.retentionConfig, "0");
-    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
-        relativeStartTime);
     Date absoluteStartTime = DatabusStreamWaitingReader.
         getDateFromStreamDir(rootDirs[0], finalPaths[0][1]);
     config.set(MessageConsumerFactory.ABSOLUTE_START_TIME,
