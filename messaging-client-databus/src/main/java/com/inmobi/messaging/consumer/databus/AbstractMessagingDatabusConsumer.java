@@ -213,10 +213,10 @@ public abstract class AbstractMessagingDatabusConsumer
       LOG.info("there is no checkpoint and no relative start time is provided" +
           "starting from absolute start time" + partitionTimestamp);
     } else {
-      throw new Exception("please provide at least one of the consumer " +
-          "start up option in the configuration: "
-          + "1. existing checkpoint "+ "2. relative start time " +
-          "3. absolute start time");
+      throw new Exception("please provide at least one of the mandary " +
+          "start-up options in the configuration to start the consumer: "
+          + "1. provide a checkpoint dir path which has the existing checkpoint"+
+          " 2. relative start time " + "3. absolute start time");
     }
     return partitionTimestamp;
   }
@@ -243,8 +243,6 @@ public abstract class AbstractMessagingDatabusConsumer
     close();
     currentCheckpoint.read(checkpointProvider, getChkpointKey());
     LOG.info("Resetting to checkpoint:" + currentCheckpoint);
-    // reset to last marked position, ignore start time
-    startTime = null;
     buffer = new LinkedBlockingQueue<QueueEntry>(bufferSize);
     start();
   }

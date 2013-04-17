@@ -39,9 +39,6 @@ public interface MessagingConsumerConfig {
   public static final String relativeStartTimeConfig =
       "messaging.consumer.relative.starttime.inminutes";
 
-  public static final String absoluteStartTimeConfig =
-      "messaging.consumer.absolute.starttime";
-
   public static final String hadoopConfigFileKey =
       "messaging.consumer.hadoop.conf";
 
