@@ -344,7 +344,6 @@ public class ConsumerUtil {
 
     // consumer starts from absolute start time
     consumer.init(streamName, consumerName, absoluteStartTime, config);
-    System.out.println("CCCCCCCCCCC read");
     for (i = 100; i < 300; i++) {
       Message msg = consumer.next();
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
