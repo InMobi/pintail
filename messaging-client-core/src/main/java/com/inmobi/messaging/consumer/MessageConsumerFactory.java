@@ -236,11 +236,13 @@ public class MessageConsumerFactory {
       throw new RuntimeException("Could not create consumer with null consumer"
           + " name");
     }
+    if (startTime != null) {
+      config.set(ABSOLUTE_START_TIME,
+          AbstractMessageConsumer.minDirFormat.get().format(startTime));
+    }
     config.set(CONSUMER_CLASS_NAME_KEY, consumerClassName);
     config.set(TOPIC_NAME_KEY, topicName);
     config.set(CONSUMER_NAME_KEY, consumerName);
-    config.set(ABSOLUTE_START_TIME,
-        AbstractMessageConsumer.minDirFormat.get().format(startTime));
     consumer.init(topicName, consumerName, startTime, config);
     return consumer;
   }
