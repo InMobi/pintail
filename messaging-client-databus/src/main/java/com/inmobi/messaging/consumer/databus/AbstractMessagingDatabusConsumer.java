@@ -133,8 +133,8 @@ public abstract class AbstractMessagingDatabusConsumer
     relativeStartTimeStr = config.getString(relativeStartTimeConfig);
 
     if (relativeStartTimeStr == null && retentionInHours!= null) {
-      LOG.warn("retentionConfig is deprecated. "+ "Use relative startTime" +
-          " instead");
+      LOG.warn("messaging.consumer.topic.retention.inhours is deprecated." +
+          " Use messaging.consumer.relative.starttime.inminutes instead");
       int minutes = (Integer.parseInt(retentionInHours)) * 60;
       relativeStartTimeStr = String.valueOf(minutes);
     }
@@ -190,17 +190,17 @@ public abstract class AbstractMessagingDatabusConsumer
     return entry.getMessage();
   }
 
-  protected synchronized void start() throws Exception {
+  protected synchronized void start() throws IOException {
     createPartitionReaders();
     for (PartitionReader reader : readers.values()) {
       reader.start();
     }
   }
 
-  protected abstract void createPartitionReaders() throws Exception;
+  protected abstract void createPartitionReaders() throws IOException;
 
   protected Date getPartitionTimestamp(PartitionId id, MessageCheckpoint pck)
-      throws Exception {
+      throws IOException {
     Date partitionTimestamp = null;
     if (isCheckpointExists(pck)) {
       LOG.info("Checkpoint exists..Starting from the checkpoint");
@@ -214,10 +214,9 @@ public abstract class AbstractMessagingDatabusConsumer
       LOG.info("there is no checkpoint and no relative start time is provided" +
           "starting from absolute start time" + partitionTimestamp);
     } else {
-      throw new Exception("please provide at least one of the mandary " +
-          "start-up options in the configuration to start the consumer: "
-          + "1. provide a checkpoint dir path which has the existing checkpoint"+
-          " 2. relative start time " + "3. absolute start time");
+      throw new IllegalArgumentException("Invalid configuration to start" +
+          " the consumer. " + "provide a checkpoint path or relative startTime" +
+          " or absolute startTime ");
     }
     return partitionTimestamp;
   }
@@ -238,7 +237,7 @@ public abstract class AbstractMessagingDatabusConsumer
   }
 
   @Override
-  protected void doReset() throws Exception {
+  protected void doReset() throws IOException {
     // restart the service, consumer will start streaming from the last saved
     // checkpoint
     close();

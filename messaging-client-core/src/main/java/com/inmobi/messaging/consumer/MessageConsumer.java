@@ -49,11 +49,10 @@ public interface MessageConsumer {
 
   /**
    * Reset to last the marked position
-   * 
+   * @throws IOException TODO
    * @throws IOException 
-   * @throws Exception 
    */
-  public void reset() throws Exception;
+  public void reset() throws IOException;
 
   /**
    * Close and cleanup all resources such as connection, file handles etc.

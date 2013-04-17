@@ -292,7 +292,7 @@ public class ConsumerUtil {
           MessageUtil.constructMessage(i));
     }
     consumer.reset();
-    // consumer starts consumes messages from the checkpoint
+    // consumer starts consuming messages from the checkpoint
     for (i = 120; i < 240; i++) {
       Message msg = consumer.next();
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
@@ -303,7 +303,7 @@ public class ConsumerUtil {
         consumer.getMetrics())).getNumMessagesConsumed(), 250);
     consumer = createConsumer(hadoop);
     consumer.init(streamName, consumerName, absoluteStartTime, config);
-    // consumer starts consumes messages from the checkpoint
+    // consumer starts consuming messages from the checkpoint
     for (i = 120; i < 240; i++) {
       Message msg = consumer.next();
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),

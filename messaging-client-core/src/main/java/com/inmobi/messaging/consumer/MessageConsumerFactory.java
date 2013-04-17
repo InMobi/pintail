@@ -239,6 +239,8 @@ public class MessageConsumerFactory {
     config.set(CONSUMER_CLASS_NAME_KEY, consumerClassName);
     config.set(TOPIC_NAME_KEY, topicName);
     config.set(CONSUMER_NAME_KEY, consumerName);
+    config.set(ABSOLUTE_START_TIME,
+        AbstractMessageConsumer.minDirFormat.get().format(startTime));
     consumer.init(topicName, consumerName, startTime, config);
     return consumer;
   }
