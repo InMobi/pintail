@@ -117,6 +117,7 @@
         <version>2.12</version>
         <configuration>
         <!--  <argLine>-Xdebug -Xrunjdwp:transport=dt_socket,address=8888,server=y,suspend=n</argLine>-->
+          <argLine>-Djava.security.krb5.realm= -Djava.security.krb5.kdc=</argLine>
           <systemPropertyVariables>
             <test.build.data>${test.build.data}</test.build.data>
           </systemPropertyVariables>
