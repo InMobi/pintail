@@ -215,7 +215,7 @@ public abstract class AbstractMessagingDatabusConsumer
           "starting from absolute start time" + partitionTimestamp);
     } else {
       throw new IllegalArgumentException("Invalid configuration to start" +
-          " the consumer. " + "provide a checkpoint path or relative startTime" +
+          " the consumer. " + "provide a checkpoint or relative startTime" +
           " or absolute startTime ");
     }
     return partitionTimestamp;
