@@ -24,6 +24,13 @@ public class TestHadoopConsumer extends TestAbstractHadoopConsumer {
     ck3 = "/tmp/test/hadoop/1/checkpoint3";
     ck4 = "/tmp/test/hadoop/2/checkpoint1";
     ck5 = "/tmp/test/hadoop/2/checkpoint2";
+    ck6 = "/tmp/test/hadoop/2/checkpoint3";
+    ck7 = "/tmp/test/hadoop/2/checkpoint4";
+    ck8 = "/tmp/test/hadoop/2/checkpoint5";
+    ck9 = "/tmp/test/hadoop/2/checkpoint6";
+    ck10 = "/tmp/test/hadoop/2/checkpoint7";
+    ck11 = "/tmp/test/hadoop/2/checkpoint8";
+    ck12 = "/tmp/test/hadoop/2/checkpoint9";
     super.setup();
     Assert.assertEquals(rootDirs.length, 3);
   }
@@ -52,7 +59,42 @@ public class TestHadoopConsumer extends TestAbstractHadoopConsumer {
   public void testTimeoutStats() throws Exception {
     super.testTimeoutStats();
   }
- 
+
+  @Test
+  public void testConsumerStartUp() throws Exception {
+    super.testConsumerStartUp();
+  }
+
+  @Test
+  public void testConsumerWithConfiguredStartTime() throws Exception {
+    super.testConsumerWithConfiguredStartTime();
+  }
+
+  @Test
+  public void testConsumerWithFutureStartTime() throws Exception {
+    super.testConsumerWithFutureStartTime();
+  }
+
+  @Test
+  public void testConsumerWithoutConfiguredOptions() throws Exception {
+    super.testConsumerWithoutConfiguredOptions();
+  }
+
+  @Test
+  public void testConsumerWithRetentionPeriod() throws Exception {
+    super.testConsumerWithRetentionPeriod();
+  }
+
+  @Test
+  public void testConsumerWithRelativeAndRetention() throws Exception {
+    super.testConsumerWithRelativeAndRetention();
+  }
+
+  @Test
+  public void testConsumerWithAbsoluteStartTimeAndRetention() throws Exception {
+    super.testConsumerWithAbsoluteStartTimeAndRetention();
+  }
+
   @AfterTest
   public void cleanup() throws IOException {
     super.cleanup();

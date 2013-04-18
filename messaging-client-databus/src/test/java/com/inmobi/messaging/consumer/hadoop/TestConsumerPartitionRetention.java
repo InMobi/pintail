@@ -19,6 +19,7 @@ import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.util.HadoopUtil;
 import com.inmobi.messaging.consumer.util.MessageUtil;
+import com.inmobi.messaging.consumer.databus.MessagingConsumerConfig;
 import com.inmobi.messaging.consumer.hadoop.HadoopConsumer;
 
 public class TestConsumerPartitionRetention {
@@ -75,7 +76,10 @@ public class TestConsumerPartitionRetention {
 
   @Test
   public void testWithRetentionPeriod() throws Exception {
-
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        "20");
+    secondconfig.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        "20");
     consumer.init(streamName, consumerName, null, config);
     LOG.info("topicname is" + streamName + consumer.getTopicName());
     Assert.assertEquals(consumer.getTopicName(), streamName);

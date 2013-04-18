@@ -116,12 +116,6 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
   }
 
   protected void createPartitionReaders() throws IOException {
-
-    // calculate the allowed start time
-    long currentMillis = System.currentTimeMillis();
-    Date allowedStartTime = new Date(currentMillis - 
-        (retentionInHours * ONE_HOUR_IN_MILLIS));
-
     for (int i = 0; i < rootDirs.length; i++) {
       LOG.debug("Creating partition readers for rootDir:" + rootDirs[i]);
       FileSystem fs = rootDirs[i].getFileSystem(conf);
@@ -138,7 +132,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
             partitionsChkPoints.put(id, null);
           }
           Date partitionTimestamp = getPartitionTimestamp(id,
-              partitionsChkPoints.get(id), allowedStartTime);
+              partitionsChkPoints.get(id));
           LOG.debug("Creating partition " + id);
           PartitionReaderStatsExposer collectorMetrics = new 
               CollectorReaderStatsExposer(topicName, consumerName,
@@ -160,7 +154,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
         ((CheckpointList)currentCheckpoint).preaprePartitionCheckPointList(id, 
             partitionCheckpointList);
         Date partitionTimestamp = getPartitionTimestamp(id,
-            partitionCheckpointList, allowedStartTime);
+            partitionCheckpointList);
         LOG.debug("Creating partition " + id);
         PartitionReaderStatsExposer clusterMetrics = 
             new PartitionReaderStatsExposer(topicName, consumerName,

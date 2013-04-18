@@ -49,7 +49,6 @@ public interface MessageConsumer {
 
   /**
    * Reset to last the marked position
-   * 
    * @throws IOException 
    */
   public void reset() throws IOException;

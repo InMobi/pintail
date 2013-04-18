@@ -1,6 +1,9 @@
 package com.inmobi.messaging.consumer.hadoop;
 
 import java.io.IOException;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -8,9 +11,15 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.testng.Assert;
+import org.testng.annotations.Test;
 
+import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 import com.inmobi.messaging.ClientConfig;
+import com.inmobi.messaging.consumer.AbstractMessageConsumer;
+import com.inmobi.messaging.consumer.MessageConsumerFactory;
+import com.inmobi.messaging.consumer.databus.DatabusConsumerConfig;
+import com.inmobi.messaging.consumer.databus.MessagingConsumerConfig;
 import com.inmobi.messaging.consumer.util.ConsumerUtil;
 import com.inmobi.messaging.consumer.util.HadoopUtil;
 
@@ -21,6 +30,13 @@ public abstract class TestAbstractHadoopConsumer {
   protected String ck3;
   protected String ck4;
   protected String ck5;
+  protected String ck6;
+  protected String ck7;
+  protected String ck8;
+  protected String ck9;
+  protected String ck10;
+  protected String ck11;
+  protected String ck12;
 
   int numMessagesPerFile = 100;
   int numDataFiles;
@@ -33,16 +49,17 @@ public abstract class TestAbstractHadoopConsumer {
   protected String[] suffixDirs;
   protected String consumerName;
   protected Path[] rootDirs;
-  protected String[] chkDirs = new String[]{ck1, ck2, ck3, ck4, ck5};
+  protected String[] chkDirs = new String[]{ck1, ck2, ck3, ck4, ck5, ck6, ck7,
+      ck8, ck9, ck10, ck11, ck12};
   Path[][] finalPaths;
   Configuration conf;
-  ClientConfig config;
+  protected final String relativeStartTime = "20";
 
   abstract ClientConfig loadConfig();
 
   public void setup() throws Exception {
     // setup 
-    config = loadConfig();
+    ClientConfig config = loadConfig();
     testConsumer = new HadoopConsumer();
     testConsumer.initializeConfig(config);
 
@@ -62,14 +79,18 @@ public abstract class TestAbstractHadoopConsumer {
   }
 
   public void testMarkAndReset() throws Exception {
+    ClientConfig config = loadConfig();
     config.set(HadoopConsumerConfig.checkpointDirConfig, ck1);
     config.set(HadoopConsumerConfig.rootDirsConfig,
       rootDirs[0].toString());
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        relativeStartTime);
     ConsumerUtil.testMarkAndReset(config, testStream, consumerName, true);
   }
   
   public void testTimeoutStats() throws Exception {
-    config.set(HadoopConsumerConfig.checkpointDirConfig, ck1);
+    ClientConfig config = loadConfig();
+    config.set(HadoopConsumerConfig.checkpointDirConfig, ck6);
     config.set(HadoopConsumerConfig.rootDirsConfig,
       rootDirs[0].toString());
     ConsumerUtil.testTimeoutStats(config, testStream, consumerName, 
@@ -78,6 +99,7 @@ public abstract class TestAbstractHadoopConsumer {
   }
 
   public void testMarkAndResetWithStartTime() throws Exception {
+    ClientConfig config = loadConfig();
     config.set(HadoopConsumerConfig.checkpointDirConfig, ck2);
     config.set(HadoopConsumerConfig.rootDirsConfig,
       rootDirs[0].toString());
@@ -87,10 +109,13 @@ public abstract class TestAbstractHadoopConsumer {
   }
 
   public void testSuffixDirs() throws Exception {
+    ClientConfig config = loadConfig();
     config.set(HadoopConsumerConfig.rootDirsConfig,
       rootDirs[0].toString());
     config.set(HadoopConsumerConfig.checkpointDirConfig,
       ck3);
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        relativeStartTime);
     ConsumerUtil.assertMessages(config, testStream, consumerName, 1,
       numSuffixDirs,
       numDataFiles, numMessagesPerFile, true);
@@ -98,23 +123,121 @@ public abstract class TestAbstractHadoopConsumer {
 
 
   public void testMultipleClusters() throws Exception {
+    ClientConfig config = loadConfig();
     config.set(HadoopConsumerConfig.rootDirsConfig,
       rootDirs[0].toString() + "," + rootDirs[1].toString());
     config.set(HadoopConsumerConfig.checkpointDirConfig,
       ck4);
-
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        relativeStartTime);
     ConsumerUtil.assertMessages(config, testStream, consumerName, 2,
       numSuffixDirs,
       numDataFiles, numMessagesPerFile, true);
   }
 
   public void testMultipleClusters2() throws Exception {
+    ClientConfig config = loadConfig();
     config.set(HadoopConsumerConfig.rootDirsConfig, rootDirs[0].toString()
       + "," + rootDirs[1] + "," + rootDirs[2]);
     config.set(HadoopConsumerConfig.checkpointDirConfig, ck5);
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        relativeStartTime);
     ConsumerUtil.assertMessages(config, testStream, consumerName, 3,
       numSuffixDirs,
       numDataFiles, numMessagesPerFile, true);
+  }
+
+  public void testConsumerStartUp() throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(HadoopConsumerConfig.rootDirsConfig,
+        rootDirs[0].toString());
+    config.set(HadoopConsumerConfig.checkpointDirConfig, ck7);
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        relativeStartTime);
+    ConsumerUtil.testConsumerStartUp(config, testStream, consumerName, true,
+        DatabusStreamWaitingReader.
+        getDateFromStreamDir(rootDirs[0], finalPaths[0][1]), rootDirs[0]);
+  }
+
+  public void testConsumerWithConfiguredStartTime() throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(HadoopConsumerConfig.rootDirsConfig,
+        rootDirs[0].toString());
+    config.set(HadoopConsumerConfig.checkpointDirConfig, ck8);
+    Date absoluteStartTime = DatabusStreamWaitingReader.
+        getDateFromStreamDir(rootDirs[0], finalPaths[0][1]);
+    config.set(MessageConsumerFactory.ABSOLUTE_START_TIME,
+        AbstractMessageConsumer.minDirFormat.get().format(absoluteStartTime));
+    ConsumerUtil.testConsumerWithConfiguredStartTime(config, true);
+  }
+
+  public void testConsumerWithFutureStartTime() throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(HadoopConsumerConfig.rootDirsConfig,
+        rootDirs[0].toString());
+    Date absoluteStartTime = DatabusStreamWaitingReader.
+        getDateFromStreamDir(rootDirs[0], finalPaths[0][1]);
+    // created a future time stamp
+    Calendar cal = new GregorianCalendar();
+    cal.setTime(absoluteStartTime);
+    cal.add(Calendar.HOUR, 2);
+
+    config.set(MessageConsumerFactory.ABSOLUTE_START_TIME,
+        AbstractMessageConsumer.minDirFormat.get().format(cal.getTime()));
+    ConsumerUtil.testConsumerWithFutureStartTime(config);
+  }
+
+  public void testConsumerWithoutConfiguredOptions() throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(HadoopConsumerConfig.rootDirsConfig,
+        rootDirs[0].toString());
+    config.set(HadoopConsumerConfig.checkpointDirConfig, ck9);
+    ConsumerUtil.testConsumerWithoutConfiguredOptions(config);
+  }
+
+  public void testConsumerWithRetentionPeriod() throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(HadoopConsumerConfig.rootDirsConfig,
+        rootDirs[0].toString());
+    config.set(HadoopConsumerConfig.checkpointDirConfig, ck10);
+    config.set(HadoopConsumerConfig.retentionConfig, "1");
+    ConsumerUtil.testConsumerWithRetentionPeriod(config, testStream,
+        consumerName, true);
+  }
+
+  /*
+   *  setting retention period as 0 hours and relative time is 20 minutes.
+   *  Consumer should start consume the messages from 20 minutes beyond the 
+   *  current time
+   */
+  public void testConsumerWithRelativeAndRetention() throws Exception {
+    ClientConfig config = ClientConfig.loadFromClasspath(
+        "messaging-consumer-hadoop-conf-relative.properties");
+    config.set(HadoopConsumerConfig.rootDirsConfig,
+        rootDirs[0].toString());
+    config.set(HadoopConsumerConfig.checkpointDirConfig, ck11);
+    config.set(HadoopConsumerConfig.retentionConfig, "0");
+    Date absoluteStartTime = DatabusStreamWaitingReader.
+        getDateFromStreamDir(rootDirs[0], finalPaths[0][1]);
+    config.set(MessageConsumerFactory.ABSOLUTE_START_TIME,
+        AbstractMessageConsumer.minDirFormat.get().format(absoluteStartTime));
+    ConsumerUtil.testConsumerWithRelativeAndRetention(config, testStream,
+        consumerName, absoluteStartTime, true);
+  }
+
+  public void testConsumerWithAbsoluteStartTimeAndRetention()
+      throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(HadoopConsumerConfig.rootDirsConfig,
+        rootDirs[0].toString());
+    config.set(HadoopConsumerConfig.checkpointDirConfig, ck12);
+    config.set(HadoopConsumerConfig.retentionConfig, "1");
+    Date absoluteStartTime = DatabusStreamWaitingReader.
+        getDateFromStreamDir(rootDirs[0], finalPaths[0][1]);
+    config.set(MessageConsumerFactory.ABSOLUTE_START_TIME,
+        AbstractMessageConsumer.minDirFormat.get().format(absoluteStartTime));
+    ConsumerUtil.testConsumerWithAbsoluteStartTimeAndRetention(config,
+        testStream, consumerName, absoluteStartTime, true);
   }
 
   public void cleanup() throws IOException {

@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.hadoop.fs.Path;
 import org.testng.Assert;
 
 import com.inmobi.databus.partition.PartitionCheckpoint;
@@ -14,12 +15,15 @@ import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.BaseMessageConsumerStatsExposer;
+import com.inmobi.messaging.consumer.MessageConsumerFactory;
 import com.inmobi.messaging.consumer.databus.AbstractMessagingDatabusConsumer;
 import com.inmobi.messaging.consumer.databus.Checkpoint;
 import com.inmobi.messaging.consumer.databus.CheckpointList;
 import com.inmobi.messaging.consumer.databus.ConsumerCheckpoint;
 import com.inmobi.messaging.consumer.databus.DatabusConsumer;
+import com.inmobi.messaging.consumer.databus.DatabusConsumerConfig;
 import com.inmobi.messaging.consumer.hadoop.HadoopConsumer;
+import com.inmobi.messaging.consumer.hadoop.HadoopConsumerConfig;
 
 public class ConsumerUtil {
 
@@ -55,7 +59,7 @@ public class ConsumerUtil {
   public static void assertMessages(ClientConfig config, String streamName,
       String consumerName, int numClusters, int numCollectors, int numDataFiles,
       int numMessagesPerFile, boolean hadoop)
-          throws IOException, InterruptedException {
+          throws Exception {
     int numCounters = numClusters * numCollectors;
     int totalMessages = numCounters * numDataFiles * numMessagesPerFile;
     int[] counter = new int[numCounters];
@@ -264,7 +268,92 @@ public class ConsumerUtil {
     Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
         consumer.getMetrics())).getNumMessagesConsumed(), 60); 
   }
-  
+
+  public static void testConsumerStartUp(ClientConfig config,
+      String streamName, String consumerName, boolean hadoop,
+      Date absoluteStartTime, Path rootDir)
+          throws Exception {
+    AbstractMessagingDatabusConsumer consumer = createConsumer(hadoop);
+    // consumer config has both relative start time and absolute start time
+    consumer.init(streamName, consumerName, absoluteStartTime, config);
+    Assert.assertEquals(consumer.getTopicName(), streamName);
+    Assert.assertEquals(consumer.getConsumerName(), consumerName);
+    // consumer is starting from relative start time
+    int i;
+    for (i = 0; i < 120; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    consumer.mark();
+    for (i = 120; i < 130; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    consumer.reset();
+    // consumer starts consuming messages from the checkpoint
+    for (i = 120; i < 240; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    consumer.close();
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMessagesConsumed(), 250);
+    consumer = createConsumer(hadoop);
+    consumer.init(streamName, consumerName, absoluteStartTime, config);
+    // consumer starts consuming messages from the checkpoint
+    for (i = 120; i < 240; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    consumer.mark();
+    ConsumerCheckpoint temp = consumer.getCurrentCheckpoint();
+    Map<PartitionId, PartitionCheckpoint> lastCheckpoint = new
+        HashMap<PartitionId, PartitionCheckpoint>();
+    Map<Integer, Checkpoint> checkpointMap = new HashMap<Integer, Checkpoint>();
+    //create consumer checkpoint
+    createCheckpointList(temp, checkpointMap, lastCheckpoint, consumer);
+    for (i = 240; i < 260; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    consumer.close();
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMessagesConsumed(), 140);
+
+    consumer = createConsumer(hadoop);
+    if (!hadoop) {
+      config = ClientConfig.loadFromClasspath(
+          MessageConsumerFactory.MESSAGE_CLIENT_CONF_FILE);
+      config.set(DatabusConsumer.checkpointDirConfig,
+          "/tmp/test/randaom-checkpoint/databus");
+      config.set(DatabusConsumerConfig.databusRootDirsConfig,
+          rootDir.toUri().toString());
+    } else {
+      config = ClientConfig.loadFromClasspath(
+          "messaging-consumer-hadoop-conf.properties");
+      config.set(HadoopConsumer.checkpointDirConfig,
+          "/tmp/test/randaom-checkpoint/hadoop");
+      config.set(HadoopConsumerConfig.rootDirsConfig,
+          rootDir.toString());
+    }
+
+    // consumer starts from absolute start time
+    consumer.init(streamName, consumerName, absoluteStartTime, config);
+    for (i = 100; i < 300; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    consumer.close();
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMessagesConsumed(), 200);
+  }
+
   public static void testTimeoutStats(ClientConfig config, String streamName,
       String consumerName, Date startTime, boolean hadoop) 
           throws Exception {
@@ -459,5 +548,120 @@ public class ConsumerUtil {
         secondConsumer.getMetrics())).getNumResetCalls(), 1);
     Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
         consumer.getMetrics())).getNumMessagesConsumed(),89);
+  }
+
+  public static void testConsumerWithConfiguredStartTime(ClientConfig config,
+      boolean hadoop) throws Exception {
+    AbstractMessagingDatabusConsumer consumer;
+    if (!hadoop) {
+      consumer = (DatabusConsumer) MessageConsumerFactory.create(config);
+    } else {
+      consumer = (HadoopConsumer) MessageConsumerFactory.create(config);
+    }
+    int i;
+    for (i = 100; i < 200; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    consumer.mark();
+    for (i = 200; i < 220; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    consumer.reset();
+    for (i = 200; i < 300; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    consumer.close();
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMarkCalls(), 1);
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumResetCalls(), 1);
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMessagesConsumed(), 220);
+  }
+
+  public static void testConsumerWithFutureStartTime(ClientConfig config)
+      throws Exception {
+    Throwable th = null;
+    try {
+      MessageConsumerFactory.create(config);
+    } catch (Throwable e) {
+      th = e;
+    }
+    Assert.assertTrue(th instanceof IllegalArgumentException);
+  }
+ 
+  public static void testConsumerWithoutConfiguredOptions(ClientConfig config)
+      throws Exception {
+    Throwable th = null;
+    try {
+      MessageConsumerFactory.create(config);
+    } catch (Throwable e) {
+      th = e;
+    }
+    Assert.assertTrue(th instanceof IllegalArgumentException);
+  }
+
+  public static void testConsumerWithRetentionPeriod(ClientConfig config,
+      String streamName, String consumerName, boolean hadoop)
+          throws Exception {
+    AbstractMessagingDatabusConsumer consumer = createConsumer(hadoop);
+    consumer.init(streamName, consumerName, null, config);
+    int i;
+    for (i = 0; i < 200; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    consumer.mark();
+    consumer.close();
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMessagesConsumed(), 200);
+    consumer = createConsumer(hadoop);
+    consumer.init(streamName, consumerName, null, config);
+    for (i = 200; i < 300; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    consumer.close();
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMessagesConsumed(), 100);
+  }
+
+  public static void testConsumerWithRelativeAndRetention(ClientConfig config,
+      String streamName, String consumerName, Date startTime, boolean hadoop)
+          throws Exception {
+    AbstractMessagingDatabusConsumer consumer = createConsumer(hadoop);
+    consumer.init(streamName, consumerName, startTime, config);
+    int i;
+    for (i = 0; i < 300; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMessagesConsumed(), 300);
+  }
+
+  public static void testConsumerWithAbsoluteStartTimeAndRetention(
+      ClientConfig config, String streamName, String consumerName,
+      Date startTime, boolean hadoop)
+          throws Exception {
+    AbstractMessagingDatabusConsumer consumer = createConsumer(hadoop);
+    consumer.init(streamName, consumerName, startTime, config);
+    int i;
+    for (i = 0; i < 300; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMessagesConsumed(), 300);
   }
 }

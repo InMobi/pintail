@@ -29,7 +29,7 @@ public abstract class AbstractMessagingDatabusConsumer
     extends AbstractMessageConsumer implements MessagingConsumerConfig {
   protected static final Log LOG = LogFactory.getLog(
       AbstractMessagingDatabusConsumer.class);
-  protected static final long ONE_HOUR_IN_MILLIS = 1 * 60 * 60 * 1000;
+  protected static final long ONE_MINUTE_IN_MILLIS = 1 * 60 * 1000;
 
   protected BlockingQueue<QueueEntry> buffer;
 
@@ -40,10 +40,11 @@ public abstract class AbstractMessagingDatabusConsumer
   protected ConsumerCheckpoint currentCheckpoint;
   protected long waitTimeForFileCreate;
   protected int bufferSize;
-  protected int retentionInHours;
+  protected String retentionInHours;
   protected int consumerNumber;
   protected int totalConsumers;
   protected Set<Integer> partitionMinList;
+  protected String relativeStartTimeStr;
 
   @Override
   protected void init(ClientConfig config) throws IOException {
@@ -127,8 +128,16 @@ public abstract class AbstractMessagingDatabusConsumer
         DEFAULT_WAIT_TIME_FOR_FILE_CREATE);
 
     // get the retention period of the topic
-    retentionInHours = config.getInteger(retentionConfig,
-        DEFAULT_RETENTION_HOURS); 
+    retentionInHours = config.getString(retentionConfig);
+
+    relativeStartTimeStr = config.getString(relativeStartTimeConfig);
+
+    if (relativeStartTimeStr == null && retentionInHours!= null) {
+      LOG.warn(retentionConfig  + " is deprecated." +
+          " Use " + relativeStartTimeConfig + " instead");
+      int minutes = (Integer.parseInt(retentionInHours)) * 60;
+      relativeStartTimeStr = String.valueOf(minutes);
+    }
 
   }
 
@@ -190,27 +199,41 @@ public abstract class AbstractMessagingDatabusConsumer
 
   protected abstract void createPartitionReaders() throws IOException;
 
-  protected Date getPartitionTimestamp(PartitionId id, MessageCheckpoint pck,
-      Date allowedStartTime) {
-    Date partitionTimestamp = startTime; 
-    if (startTime == null && (pck == null || pck.isNULL())) {
-      LOG.info("There is no startTime passed and no checkpoint exists" +
-          " for the partition: " + id + " starting from the start" +
-          " of the stream.");
-      partitionTimestamp = allowedStartTime;
-    } else if (startTime != null && startTime.before(allowedStartTime)) {
-      LOG.info("Start time passed is before the start of the stream," +
-          " starting from the start of the stream.");
-      partitionTimestamp = allowedStartTime;
+  protected Date getPartitionTimestamp(PartitionId id, MessageCheckpoint pck)
+      throws IOException {
+    Date partitionTimestamp = null;
+    if (isCheckpointExists(pck)) {
+      LOG.info("Checkpoint exists..Starting from the checkpoint");
+      partitionTimestamp = null;
+    } else if (relativeStartTimeStr != null) {
+      partitionTimestamp = findStartTimeStamp(relativeStartTimeStr);
+      LOG.info("checkpoint does not exists and relative start time is provided" +
+          "started from relative start time" + partitionTimestamp);
+    } else if (startTime != null) {
+      partitionTimestamp = startTime;
+      LOG.info("there is no checkpoint and no relative start time is provided" +
+          "starting from absolute start time" + partitionTimestamp);
     } else {
-      LOG.info("Creating partition with timestamp: " + partitionTimestamp
-          + " checkpoint:" + pck);
+      throw new IllegalArgumentException("Invalid configuration to start" +
+          " the consumer. " + "provide a checkpoint or relative startTime" +
+          " or absolute startTime ");
     }
     return partitionTimestamp;
   }
 
   protected String getChkpointKey() {
     return consumerName + "_" + topicName;
+  }
+
+  public boolean isCheckpointExists(MessageCheckpoint pck) {
+    return !(pck == null || pck.isNULL());
+  }
+
+  protected Date findStartTimeStamp(String relativeStartTimeStr) {
+    long currentMillis = System.currentTimeMillis();
+    long relativeStartTime = Long.parseLong(relativeStartTimeStr);
+    return new Date(currentMillis -
+        (relativeStartTime * ONE_MINUTE_IN_MILLIS));
   }
 
   @Override
@@ -220,8 +243,6 @@ public abstract class AbstractMessagingDatabusConsumer
     close();
     currentCheckpoint.read(checkpointProvider, getChkpointKey());
     LOG.info("Resetting to checkpoint:" + currentCheckpoint);
-    // reset to last marked position, ignore start time
-    startTime = null;
     buffer = new LinkedBlockingQueue<QueueEntry>(bufferSize);
     start();
   }

@@ -38,6 +38,8 @@ public class TestDatabusConsumerMultipleCollectors
         "/tmp/test/databustest4/checkpoint1");
     config.set(DatabusConsumerConfig.databusStreamType,
         StreamType.MERGED.name());
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        relativeStartTime);
     assertMessages(config, 1, 2);
   }
 
@@ -50,6 +52,8 @@ public class TestDatabusConsumerMultipleCollectors
         "/tmp/test/databustest6/checkpoint1");
     config.set(DatabusConsumerConfig.databusStreamType,
         StreamType.MERGED.name());
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        relativeStartTime);
     Throwable th = null;
     try {
       DatabusConsumer consumer = new DatabusConsumer();
@@ -70,6 +74,8 @@ public class TestDatabusConsumerMultipleCollectors
         "/tmp/test/databustest4/checkpoint2");
     config.set(DatabusConsumerConfig.databusStreamType,
         StreamType.LOCAL.name());
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        relativeStartTime);
     assertMessages(config, 1, 2);
   }
 
@@ -82,6 +88,8 @@ public class TestDatabusConsumerMultipleCollectors
         "/tmp/test/databustest5/checkpoint1");
     config.set(DatabusConsumerConfig.databusStreamType,
         StreamType.LOCAL.name());
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        relativeStartTime);
     assertMessages(config, 2, 2);
   }
 
@@ -95,6 +103,8 @@ public class TestDatabusConsumerMultipleCollectors
         "/tmp/test/databustest5/checkpoint2");
     config.set(DatabusConsumerConfig.databusStreamType,
         StreamType.LOCAL.name());
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        relativeStartTime);
     assertMessages(config, 3, 2);
   }
 
@@ -107,6 +117,8 @@ public class TestDatabusConsumerMultipleCollectors
         "/tmp/test/databustest4/checkpoint3");
     config.set(DatabusConsumerConfig.databusStreamType,
         StreamType.COLLECTOR.name());
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        relativeStartTime);
     ConsumerUtil.assertMessages(config, testStream, consumerName, 1, 2, 4, 100,
         false);
   }
@@ -120,6 +132,8 @@ public class TestDatabusConsumerMultipleCollectors
         "/tmp/test/databustest5/checkpoint3");
     config.set(DatabusConsumerConfig.databusStreamType,
         StreamType.COLLECTOR.name());
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        relativeStartTime);
     ConsumerUtil.assertMessages(config, testStream, consumerName, 2, 2, 4, 100,
         false);
   }
@@ -134,6 +148,8 @@ public class TestDatabusConsumerMultipleCollectors
         "/tmp/test/databustest5/checkpoint4");
     config.set(DatabusConsumerConfig.databusStreamType,
         StreamType.COLLECTOR.name());
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        relativeStartTime);
     ConsumerUtil.assertMessages(config, testStream, consumerName, 3, 2, 4, 100,
         false);
   }

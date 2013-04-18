@@ -32,9 +32,12 @@ public interface MessagingConsumerConfig {
   public static final String DEFAULT_INPUT_FORMAT_CLASSNAME =
       TextInputFormat.class.getCanonicalName();
 
+  @Deprecated
   public static final String retentionConfig =
       "messaging.consumer.topic.retention.inhours";
-  public static final int DEFAULT_RETENTION_HOURS = 24;
+
+  public static final String relativeStartTimeConfig =
+      "messaging.consumer.relative.starttime.inminutes";
 
   public static final String hadoopConfigFileKey =
       "messaging.consumer.hadoop.conf";

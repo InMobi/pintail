@@ -45,6 +45,8 @@ public class TestDatabusConsumerWithFailover extends
     ClientConfig config1 = loadConfig(), config2 = loadConfig();
     config1.set(DatabusConsumerConfig.databusRootDirsConfig,
         rootDirs[0].toString());
+    config1.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        relativeStartTime);
     config2.set(DatabusConsumerConfig.databusRootDirsConfig,
         rootDirs[1].toString());
     config1.set(DatabusConsumerConfig.checkpointDirConfig,
@@ -55,6 +57,8 @@ public class TestDatabusConsumerWithFailover extends
         StreamType.LOCAL.name());
     config2.set(DatabusConsumerConfig.databusStreamType,
         StreamType.LOCAL.name());
+    config2.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        relativeStartTime);
     assertMessages(config1, config2);
   }
 
@@ -63,6 +67,8 @@ public class TestDatabusConsumerWithFailover extends
     ClientConfig config1 = loadConfig(), config2 = loadConfig();
     config1.set(DatabusConsumerConfig.databusRootDirsConfig,
         rootDirs[0].toString());
+    config1.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        relativeStartTime);
     config2.set(DatabusConsumerConfig.databusRootDirsConfig,
         rootDirs[1].toString());
     config1.set(DatabusConsumerConfig.checkpointDirConfig,
@@ -73,6 +79,8 @@ public class TestDatabusConsumerWithFailover extends
         StreamType.MERGED.name());
     config2.set(DatabusConsumerConfig.databusStreamType,
         StreamType.MERGED.name());
+    config2.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        relativeStartTime);
     assertMessages(config1, config2);
   }
 

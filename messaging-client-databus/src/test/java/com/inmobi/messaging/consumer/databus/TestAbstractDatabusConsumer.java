@@ -28,6 +28,7 @@ public abstract class TestAbstractDatabusConsumer {
   protected String[] dataFiles;
   protected String consumerName;
   Path[] rootDirs;
+  protected final String relativeStartTime = "20";
   Configuration conf = new Configuration();
 
   public void setup(int numFileToMove) throws Exception {
@@ -79,7 +80,7 @@ public abstract class TestAbstractDatabusConsumer {
 
   void assertMessages(
       ClientConfig config, int numClusters, int numCollectors) 
-      throws IOException, InterruptedException {
+      throws Exception {
     ConsumerUtil.assertMessages(config, testStream, consumerName, numClusters,
         numCollectors,
         numDataFiles, 100, false);

@@ -1,9 +1,6 @@
 package com.inmobi.messaging.consumer.hadoop;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -17,12 +14,8 @@ import org.testng.annotations.Test;
 
 import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 import com.inmobi.messaging.ClientConfig;
-import com.inmobi.messaging.Message;
-import com.inmobi.messaging.consumer.BaseMessageConsumerStatsExposer;
-import com.inmobi.messaging.consumer.databus.AbstractMessagingDatabusConsumer;
 import com.inmobi.messaging.consumer.util.ConsumerUtil;
 import com.inmobi.messaging.consumer.util.HadoopUtil;
-import com.inmobi.messaging.consumer.util.MessageUtil;
 
 public class TestHadoopConsumerWithPartitionList  {
   protected static final Log LOG = LogFactory.getLog(
