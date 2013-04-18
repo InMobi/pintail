@@ -27,7 +27,8 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
   private String ck7 = "/tmp/test/databustest2/checkpoint5";
   private String ck8 = "/tmp/test/databustest2/checkpoint6";
   private String ck9 = "/tmp/test/databustest2/checkpoint7";
-  private String ck10 = "/tmp/test/databustest2/checkpoint7";
+  private String ck10 = "/tmp/test/databustest2/checkpoint8";
+  private String ck11 = "/tmp/test/databustest2/checkpoint9";
 
   ClientConfig loadConfig() {
     return ClientConfig.loadFromClasspath(
@@ -195,6 +196,7 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
         getDateFromCollectorFile(dataFiles[1]);
     config.set(MessageConsumerFactory.ABSOLUTE_START_TIME,
         AbstractMessageConsumer.minDirFormat.get().format(absoluteStartTime));
+    config.set(DatabusConsumerConfig.checkpointDirConfig, ck11);
     ConsumerUtil.testConsumerWithAbsoluteStartTimeAndRetention(config,
         testStream, consumerName, absoluteStartTime, false);
   }

@@ -36,6 +36,7 @@ public abstract class TestAbstractHadoopConsumer {
   protected String ck9;
   protected String ck10;
   protected String ck11;
+  protected String ck12;
 
   int numMessagesPerFile = 100;
   int numDataFiles;
@@ -49,7 +50,7 @@ public abstract class TestAbstractHadoopConsumer {
   protected String consumerName;
   protected Path[] rootDirs;
   protected String[] chkDirs = new String[]{ck1, ck2, ck3, ck4, ck5, ck6, ck7,
-      ck8, ck9, ck10, ck11};
+      ck8, ck9, ck10, ck11, ck12};
   Path[][] finalPaths;
   Configuration conf;
   protected final String relativeStartTime = "20";
@@ -229,6 +230,7 @@ public abstract class TestAbstractHadoopConsumer {
     ClientConfig config = loadConfig();
     config.set(HadoopConsumerConfig.rootDirsConfig,
         rootDirs[0].toString());
+    config.set(HadoopConsumerConfig.checkpointDirConfig, ck12);
     config.set(HadoopConsumerConfig.retentionConfig, "1");
     Date absoluteStartTime = DatabusStreamWaitingReader.
         getDateFromStreamDir(rootDirs[0], finalPaths[0][1]);
