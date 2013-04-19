@@ -110,13 +110,13 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       LOG.info("Initializing partition reader's current file");
       cReader.build();
 
-      if (startTime != null) {
-        lReader.build(startTime);
-        initializeCurrentFileFromTimeStamp(startTime);
-      } else if (partitionCheckpoint != null) {
-          lReader.build(LocalStreamCollectorReader.getBuildTimestamp(
+      if (partitionCheckpoint != null) {
+        lReader.build(LocalStreamCollectorReader.getBuildTimestamp(
             streamName, partitionId.getCollector(), partitionCheckpoint));
         initializeCurrentFileFromCheckpoint();
+      } else if (startTime != null) {
+        lReader.build(startTime);
+        initializeCurrentFileFromTimeStamp(startTime);
       } else {
         LOG.info("Would never reach here");
       }
