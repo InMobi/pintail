@@ -45,6 +45,7 @@ public abstract class AbstractMessagingDatabusConsumer
   protected int totalConsumers;
   protected Set<Integer> partitionMinList;
   protected String relativeStartTimeStr;
+  protected Date stopDate;
 
   @Override
   protected void init(ClientConfig config) throws IOException {
@@ -139,6 +140,8 @@ public abstract class AbstractMessagingDatabusConsumer
       relativeStartTimeStr = String.valueOf(minutes);
     }
 
+    String stopDateStr = config.getString(stopDateConfig);
+    stopDate = getDateFromString(stopDateStr);
   }
 
   protected boolean isValidConfiguration() {
