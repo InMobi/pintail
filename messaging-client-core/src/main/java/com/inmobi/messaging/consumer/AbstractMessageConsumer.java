@@ -182,16 +182,16 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
     return metrics;
   }
 
-  public static Date getDateFromString(String absoluteStartTime) {
-    if (absoluteStartTime != null) {
-      String dateString = absoluteStartTime.substring(0,
+  public static Date getDateFromString(String timeStamp) {
+    if (timeStamp != null) {
+      String dateString = timeStamp.substring(0,
           minDirFormatStr.length());
       try {
         return minDirFormat.get().parse(dateString);
       } catch (java.text.ParseException e) {
-        throw new IllegalArgumentException("Incorrect format of startTime" +
-            " passed " + " absolute startTime should be in this format: " + 
-            minDirFormatStr);
+        throw new IllegalArgumentException("Incorrect format of " +
+            "startTime/stopDate passed " +  " Absolute startTime/stopDate " +
+            "should be in this format: " +  minDirFormatStr);
       }
     }
     return null;
