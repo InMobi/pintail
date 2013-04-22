@@ -221,7 +221,18 @@ public abstract class AbstractMessagingDatabusConsumer
           " the consumer. " + "provide a checkpoint or relative startTime" +
           " or absolute startTime ");
     }
+    //check whether the given stop date is before/after the start time
+    isValidStopDate(partitionTimestamp);
     return partitionTimestamp;
+  }
+
+  public void isValidStopDate(Date partitionTimestamp) {
+    if (partitionTimestamp != null) {
+      if (stopDate != null && stopDate.before(partitionTimestamp)) {
+        throw new IllegalArgumentException("Invaild stop date is provided. " +
+            "Provide a stop date after start time");
+      }
+    }
   }
 
   protected String getChkpointKey() {
