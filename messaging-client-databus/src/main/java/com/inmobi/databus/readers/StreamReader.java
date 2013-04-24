@@ -32,6 +32,7 @@ public abstract class StreamReader<T extends StreamFile> {
   protected Path streamDir;
   protected final PartitionReaderStatsExposer metrics;
   private FileMap<T> fileMap;
+  protected volatile boolean closedStatus = false;
 
   protected StreamReader(PartitionId partitionId, FileSystem fs, 
       Path streamDir, long waitTimeForCreate,
@@ -344,5 +345,13 @@ public abstract class StreamReader<T extends StreamFile> {
 
   protected FileStatus getFileMapValue(StreamFile streamFile) {
     return fileMap.getValue(streamFile);
+  }
+
+  public void setCloseStatusOfReader(boolean closedStatus) {
+    this.closedStatus = closedStatus;
+  }
+
+  public boolean isStopped() {
+    return closedStatus;
   }
 }

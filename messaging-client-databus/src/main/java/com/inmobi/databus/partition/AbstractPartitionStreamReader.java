@@ -47,4 +47,8 @@ public abstract class AbstractPartitionStreamReader implements
     return reader.readLine();
   }
 
+  public boolean isStopped() {
+    return reader.isStopped();
+  }
+
 }

@@ -12,7 +12,9 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
 import com.inmobi.databus.files.StreamFile;
+import com.inmobi.messaging.EOFMessage;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.MessageBase;
 import com.inmobi.messaging.consumer.databus.MessageCheckpoint;
 import com.inmobi.messaging.consumer.databus.MessagingConsumerConfig;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
@@ -197,6 +199,10 @@ public class PartitionReader {
           " and lineNum:" + reader.getCurrentLineNum());
       while (!stopped) {
         Message msg = reader.readLine();
+        if (reader.isStopped()) {
+          EOFMessage eofMessage = new EOFMessage();
+          buffer.put(new QueueEntry(eofMessage, partitionId, null));
+        }
         if (msg != null) {
           // add the data to queue
           MessageCheckpoint checkpoint = reader.getMessageCheckpoint();
