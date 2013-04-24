@@ -236,10 +236,12 @@ public class LocalStreamCollectorReader extends
   @Override
   protected void isStopDateBeyondCurrentTimeStamp(FileStatus nextFile)
       throws IOException {
-    Date CurrentTimeStamp = getDateFromDatabusStreamFile(streamName,
-        nextFile.getPath().getName());
-    if (stopDate != null && stopDate.before(CurrentTimeStamp)) {
-      setCloseStatusOfReader(true);
+    if (stopDate != null) {
+      Date CurrentTimeStamp = getDateFromDatabusStreamFile(streamName,
+          nextFile.getPath().getName());
+      if (stopDate.before(CurrentTimeStamp)) {
+        setCloseStatusOfReader(true);
+      }
     }
   }
 

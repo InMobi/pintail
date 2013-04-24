@@ -343,10 +343,12 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   @Override
   protected void isStopDateBeyondCurrentTimeStamp(FileStatus nextFile)
       throws IOException {
-    Date currentTimeStamp = getDateFromCollectorFile(
-        nextFile.getPath().getName());
-    if (stopDate != null && stopDate.before(currentTimeStamp)) {
-      setCloseStatusOfReader(true);
+    if (stopDate != null) {
+      Date currentTimeStamp = getDateFromCollectorFile(
+          nextFile.getPath().getName());
+      if (stopDate.before(currentTimeStamp)) {
+        setCloseStatusOfReader(true);
+      }
     }
   }
 }
