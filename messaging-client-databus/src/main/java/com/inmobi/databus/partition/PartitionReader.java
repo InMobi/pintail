@@ -37,11 +37,11 @@ public class PartitionReader {
       FileSystem fs, Path collectorDataDir,
       Path streamsLocalDir, BlockingQueue<QueueEntry> buffer, String streamName,
       Date startTime, long waitTimeForFlush,
-      long waitTimeForFileCreate, PartitionReaderStatsExposer prMetrics)
+      long waitTimeForFileCreate, PartitionReaderStatsExposer prMetrics, Date stopDate)
           throws IOException {
     this(partitionId, partitionCheckpoint, conf, fs, collectorDataDir,
         streamsLocalDir, buffer, streamName, startTime,
-        waitTimeForFlush, waitTimeForFileCreate, prMetrics, false);
+        waitTimeForFlush, waitTimeForFileCreate, prMetrics, false, stopDate);
   }
 
   public PartitionReader(PartitionId partitionId,
@@ -49,11 +49,12 @@ public class PartitionReader {
       BlockingQueue<QueueEntry> buffer, Path streamDir,
       Configuration conf, String inputFormatClass,
       Date startTime, long waitTimeForFileCreate, boolean isDatabusData,
-      PartitionReaderStatsExposer prMetrics, Set<Integer> partitionMinList)
+      PartitionReaderStatsExposer prMetrics, Set<Integer> partitionMinList,
+      Date stopDate)
           throws IOException {
     this(partitionId, partitionCheckpointList, fs, buffer, streamDir,
         conf, inputFormatClass, startTime, waitTimeForFileCreate, isDatabusData,
-        prMetrics, false, partitionMinList);
+        prMetrics, false, partitionMinList, stopDate);
   }
 
   PartitionReader(PartitionId partitionId,
@@ -63,13 +64,13 @@ public class PartitionReader {
       Path streamLocalDir, 
       BlockingQueue<QueueEntry> buffer, String streamName, Date startTime,
       long waitTimeForFlush, long waitTimeForFileCreate,
-      PartitionReaderStatsExposer prMetrics, boolean noNewFiles)
+      PartitionReaderStatsExposer prMetrics, boolean noNewFiles, Date stopDate)
           throws IOException {
     this(partitionId, partitionCheckpoint, buffer, startTime, prMetrics);
     reader = new CollectorReader(partitionId, partitionCheckpoint, fs,
         streamName, collectorDataDir, streamLocalDir, conf,
         startTime, waitTimeForFlush, waitTimeForFileCreate,
-        ((CollectorReaderStatsExposer)prMetrics), noNewFiles);
+        ((CollectorReaderStatsExposer)prMetrics), noNewFiles, stopDate);
     // initialize cluster and its directories
     LOG.info("Partition reader initialized with partitionId:" + partitionId +
         " checkPoint:" + partitionCheckpoint +  
@@ -83,13 +84,13 @@ public class PartitionReader {
       Configuration conf, String inputFormatClass,
       Date startTime, long waitTimeForFileCreate, boolean isDatabusData,
       PartitionReaderStatsExposer prMetrics, boolean noNewFiles,
-      Set<Integer> partitionMinList)
+      Set<Integer> partitionMinList, Date stopDate)
           throws IOException {
     this(partitionId, partitionCheckpointList, buffer, startTime, prMetrics);
     reader = new ClusterReader(partitionId, partitionCheckpointList,
         fs, streamDir, conf, inputFormatClass, startTime,
         waitTimeForFileCreate, isDatabusData, prMetrics, noNewFiles, 
-        partitionMinList);
+        partitionMinList, stopDate);
     // initialize cluster and its directories
     LOG.info("Partition reader initialized with partitionId:" + partitionId +
         " checkPoint:" + partitionCheckpointList +  

@@ -35,7 +35,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       Configuration conf,
       Date startTime, long waitTimeForFlush,
       long waitTimeForFileCreate, CollectorReaderStatsExposer metrics,
-      boolean noNewFiles)
+      boolean noNewFiles, Date stopDate)
           throws IOException {
     this.partitionId = partitionId;
     this.startTime = startTime;

@@ -32,7 +32,7 @@ public class ClusterReader extends AbstractPartitionStreamReader {
       Path streamDir, Configuration conf, String inputFormatClass,
       Date startTime, long waitTimeForFileCreate, boolean isDatabusData,
       PartitionReaderStatsExposer metrics, boolean noNewFiles,
-      Set<Integer> partitionMinList)
+      Set<Integer> partitionMinList, Date stopDate)
           throws IOException {
     this.startTime = startTime;
     this.streamDir = streamDir;

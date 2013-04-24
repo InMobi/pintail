@@ -85,7 +85,7 @@ public class TestClusterReaderMultipleCollectors {
     preader = new PartitionReader(partitionId, partitionCheckpointList, fs, 
         buffer, streamDir, conf, DatabusInputFormat.class.getCanonicalName(),
         CollectorStreamReader.getDateFromCollectorFile(files[0]), 10, true,
-        prMetrics, false, partitionMinList);            
+        prMetrics, false, partitionMinList, null);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -181,7 +181,7 @@ public class TestClusterReaderMultipleCollectors {
         fs.getFileStatus(movedPath5)), 50, movedPath5, partitionCheckpointList);
     preader = new PartitionReader(partitionId,  partitionCheckpointList, fs, 
         buffer, streamDir, conf, DatabusInputFormat.class.getCanonicalName(),
-        null, 1000, true, prMetrics, false, partitionMinList); 
+        null, 1000, true, prMetrics, false, partitionMinList, null);
     preader.start();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath5)), 4, 50, 50, partitionId,
