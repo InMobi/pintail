@@ -34,11 +34,13 @@ public class LocalStreamCollectorReader extends
   
   public LocalStreamCollectorReader(PartitionId partitionId, 
       FileSystem fs, String streamName, Path streamDir, Configuration conf,
-      long waitTimeForFileCreate, CollectorReaderStatsExposer metrics)
+      long waitTimeForFileCreate, CollectorReaderStatsExposer metrics,
+      Date stopDate)
           throws IOException {
     super(partitionId, fs, streamDir,
         DatabusInputFormat.class.getCanonicalName(), conf, waitTimeForFileCreate,
         metrics, false);
+    this.stopDate = stopDate;
     this.streamName = streamName;
     this.collector = partitionId.getCollector();
   }
@@ -216,6 +218,16 @@ public class LocalStreamCollectorReader extends
       String collectorFileName) {
     return new DatabusStreamFile(collector,
         CollectorFile.create(collectorFileName), "gz");  
+  }
+
+  @Override
+  protected void isStopDateBeyondCurrentTimeStamp(FileStatus nextFile)
+      throws IOException {
+    Date CurrentTimeStamp = getDateFromDatabusStreamFile(streamName,
+        nextFile.getPath().getName());
+    if (stopDate != null && stopDate.before(CurrentTimeStamp)) {
+      setCloseStatusOfReader(true);
+    }
   }
 
 }

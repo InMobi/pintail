@@ -43,10 +43,10 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     this.partitionCheckpoint = partitionCheckpoint;
     this.metrics = metrics;
     lReader = new LocalStreamCollectorReader(partitionId,  fs, streamName,
-        streamsLocalDir, conf, waitTimeForFileCreate, metrics);
+        streamsLocalDir, conf, waitTimeForFileCreate, metrics, stopDate);
     cReader = new CollectorStreamReader(partitionId, fs, streamName,
         collectorDir, waitTimeForFlush, waitTimeForFileCreate, metrics,
-        conf, noNewFiles);
+        conf, noNewFiles, stopDate);
   }
 
   private void initializeCurrentFileFromTimeStamp(Date timestamp)

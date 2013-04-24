@@ -47,6 +47,7 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
   private Object msgValue;
   private ByteArrayOutputStream baos = new ByteArrayOutputStream();
   private boolean needsSerialize;
+  protected Date stopDate;
 
   protected DatabusStreamReader(PartitionId partitionId, FileSystem fs,
       Path streamDir, String inputFormatClass,

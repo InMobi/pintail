@@ -34,7 +34,6 @@ public class DatabusStreamWaitingReader
   private PartitionCheckpointList partitionCheckpointList;
   private boolean movedToNext;
   private int prevMin;
-  private Date stopDate;
 
   public DatabusStreamWaitingReader(PartitionId partitionId, FileSystem fs,
       Path streamDir,  String inputFormatClass, Configuration conf,
@@ -207,6 +206,7 @@ public class DatabusStreamWaitingReader
     boolean readFromCheckpoint = false;
     FileStatus fileToRead = nextFile;
     if (currentMin != now.get(Calendar.MINUTE)) {
+      checkStopDateBeyondCurrentTimeStamp(date);
       //We are moving to next file, set the flags so that Message checkpoints 
       //can be populated.
       movedToNext = true;
@@ -236,7 +236,17 @@ public class DatabusStreamWaitingReader
     this.currentFile = fileToRead;
     setIterator();
     return !readFromCheckpoint;
-  }  
+  }
+
+  public void checkStopDateBeyondCurrentTimeStamp(Date date) {
+    /*
+     * check the stopDate with current time stamp. Set the reader status as
+     * "closing" if stopDate is beyond current timestamp
+     */
+    if (stopDate != null && stopDate.before(date)) {
+      setCloseStatusOfReader(true);
+    }
+  }
 
   private void updatePartitionCheckpointList(int prevMin) {
     Map<Integer, PartitionCheckpoint> pckList = partitionCheckpointList.
@@ -375,5 +385,10 @@ public class DatabusStreamWaitingReader
 
   public int getCurrentMin() {
     return this.currentMin;
+  }
+
+  @Override
+  protected void isStopDateBeyondCurrentTimeStamp(FileStatus nextFile)
+      throws IOException {
   }
 }

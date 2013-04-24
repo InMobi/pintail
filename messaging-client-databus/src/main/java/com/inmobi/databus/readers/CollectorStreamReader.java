@@ -41,17 +41,19 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   private Configuration conf;
   private StringBuilder builder = new StringBuilder();
   private boolean isS3Fs = false;
+  protected final Date stopDate;
 
   public CollectorStreamReader(PartitionId partitionId,
       FileSystem fs, String streamName, Path streamDir,
       long waitTimeForFlush,
       long waitTimeForCreate, CollectorReaderStatsExposer metrics,
-      Configuration conf, boolean noNewFiles) throws IOException {
+      Configuration conf, boolean noNewFiles, Date stopDate) throws IOException {
     super(partitionId, fs, streamDir, waitTimeForCreate, metrics, noNewFiles);
     this.streamName = streamName;
     this.waitTimeForFlush = waitTimeForFlush;
     this.collectorMetrics = (CollectorReaderStatsExposer)(this.metrics);
     this.conf = conf;
+    this.stopDate = stopDate;
     LOG.info("Collector reader initialized with partitionId:" + partitionId +
         " streamDir:" + streamDir + 
         " waitTimeForFlush:" + waitTimeForFlush +
@@ -329,5 +331,15 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
 
   public static CollectorFile getCollectorFile(String fileName) {
     return CollectorFile.create(fileName);
+  }
+
+  @Override
+  protected void isStopDateBeyondCurrentTimeStamp(FileStatus nextFile)
+      throws IOException {
+    Date currentTimeStamp = getDateFromCollectorFile(
+        nextFile.getPath().getName());
+    if (stopDate != null && stopDate.before(currentTimeStamp)) {
+      setCloseStatusOfReader(true);
+    }
   }
 }

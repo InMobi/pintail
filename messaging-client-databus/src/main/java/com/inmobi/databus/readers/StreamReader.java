@@ -50,6 +50,7 @@ public abstract class StreamReader<T extends StreamFile> {
   public boolean prepareMoveToNext(FileStatus currentFile, FileStatus nextFile)
       throws IOException {
     this.currentFile = nextFile;
+    isStopDateBeyondCurrentTimeStamp(nextFile);
     return true;
   }
 
@@ -179,6 +180,9 @@ public abstract class StreamReader<T extends StreamFile> {
   protected abstract T getStreamFile(Date timestamp);
 
   protected abstract T getStreamFile(FileStatus status);
+
+  protected abstract void isStopDateBeyondCurrentTimeStamp(FileStatus nextFile)
+      throws IOException;
 
   /** 
    * Returns null when reached end of stream 
