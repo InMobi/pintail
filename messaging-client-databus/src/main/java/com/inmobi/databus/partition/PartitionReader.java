@@ -202,6 +202,8 @@ public class PartitionReader {
         if (reader.isStopped()) {
           EOFMessage eofMessage = new EOFMessage();
           buffer.put(new QueueEntry(eofMessage, partitionId, null));
+          // close the reader if reader's status is "closing"
+          close();
         }
         if (msg != null) {
           // add the data to queue
