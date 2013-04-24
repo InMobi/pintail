@@ -50,12 +50,22 @@ public class LocalStreamCollectorReader extends
     Calendar current = Calendar.getInstance();
     Date now = current.getTime();
     current.setTime(buildTimestamp);
+    boolean breakListing = false;
     while (current.getTime().before(now)) {
       Path hhDir =  getHourDirPath(streamDir, current.getTime());
       int hour = current.get(Calendar.HOUR_OF_DAY);
       if (fs.exists(hhDir)) {
         while (current.getTime().before(now) && 
             hour  == current.get(Calendar.HOUR_OF_DAY)) {
+          /*
+           * stop the file listing if stop date is beyond current time
+           */
+          if (stopDate != null && stopDate.before(current.getTime())) {
+            LOG.info("Reached stopDate. Not listing after" +
+                " the stop date");
+            breakListing = true;
+            break;
+          }
           Path dir = getMinuteDirPath(streamDir, current.getTime());
           // Move the current minute to next minute
           current.add(Calendar.MINUTE, 1);
@@ -66,6 +76,9 @@ public class LocalStreamCollectorReader extends
         LOG.info("Hour directory " + hhDir + " does not exist");
         current.add(Calendar.HOUR_OF_DAY, 1);
         current.set(Calendar.MINUTE, 0);
+      }
+      if (breakListing) {
+        break;
       }
     }
   }

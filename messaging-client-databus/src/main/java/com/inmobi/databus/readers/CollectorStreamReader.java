@@ -92,6 +92,13 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
             return;
           }
           for (FileStatus file : fileStatuses) {
+            if (stopDate != null) {
+              Date currentTimeStamp = getDateFromCollectorFile(
+                  file.getPath().getName());
+              if (stopDate.before(currentTimeStamp)) {
+                continue;
+              }
+            }
             addPath(file);
           }
         } else {

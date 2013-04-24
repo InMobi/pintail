@@ -142,18 +142,18 @@ public class DatabusStreamWaitingReader
       if (fs.exists(hhDir)) {
         while (current.getTime().before(now) && 
             hour  == current.get(Calendar.HOUR_OF_DAY)) {
-          Path dir = getMinuteDirPath(streamDir, current.getTime());
-          int min = current.get(Calendar.MINUTE);
-          Date currenTimestamp = current.getTime();
           /*
            * stop the file listing if stop date is beyond current time.
            */
           if (stopDate != null && stopDate.before(current.getTime())) {
-            LOG.info("Reached stopDate of file listing. Not looking after" +
+            LOG.info("Reached stopDate. Not listing from after" +
                 " the stop date");
             breakListing = true;
             break;
           }
+          Path dir = getMinuteDirPath(streamDir, current.getTime());
+          int min = current.get(Calendar.MINUTE);
+          Date currenTimestamp = current.getTime();
           current.add(Calendar.MINUTE, 1);
           if (fs.exists(dir)) {
             // Move the current minute to next minute

@@ -27,6 +27,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   private LocalStreamCollectorReader lReader;
   private CollectorStreamReader cReader;
   private final CollectorReaderStatsExposer metrics;
+  private Date stopDate;
 
   CollectorReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, FileSystem fs,
@@ -41,6 +42,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     this.startTime = startTime;
     this.streamName = streamName;
     this.partitionCheckpoint = partitionCheckpoint;
+    this.stopDate = stopDate;
     this.metrics = metrics;
     lReader = new LocalStreamCollectorReader(partitionId,  fs, streamName,
         streamsLocalDir, conf, waitTimeForFileCreate, metrics, stopDate);
@@ -114,7 +116,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
         lReader.build(startTime);
         initializeCurrentFileFromTimeStamp(startTime);
       } else if (partitionCheckpoint != null) {
-          lReader.build(LocalStreamCollectorReader.getBuildTimestamp(
+        lReader.build(LocalStreamCollectorReader.getBuildTimestamp(
             streamName, partitionId.getCollector(), partitionCheckpoint));
         initializeCurrentFileFromCheckpoint();
       } else {
