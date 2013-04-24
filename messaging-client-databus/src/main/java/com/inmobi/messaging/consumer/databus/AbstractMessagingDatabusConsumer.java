@@ -23,6 +23,7 @@ import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.AbstractMessageConsumer;
+import com.inmobi.messaging.consumer.EndOfStreamException;
 import com.inmobi.messaging.metrics.DatabusConsumerStatsExposer;
 
 public abstract class AbstractMessagingDatabusConsumer 
@@ -46,6 +47,7 @@ public abstract class AbstractMessagingDatabusConsumer
   protected Set<Integer> partitionMinList;
   protected String relativeStartTimeStr;
   protected Date stopDate;
+  private int closedReadercount;
 
   @Override
   protected void init(ClientConfig config) throws IOException {
@@ -142,6 +144,8 @@ public abstract class AbstractMessagingDatabusConsumer
 
     String stopDateStr = config.getString(stopDateConfig);
     stopDate = getDateFromString(stopDateStr);
+
+    closedReadercount = 0;
   }
 
   protected boolean isValidConfiguration() {
@@ -170,10 +174,20 @@ public abstract class AbstractMessagingDatabusConsumer
 
   @Override
   protected Message getNext() throws InterruptedException {
-    QueueEntry entry;
-    entry = buffer.take();
+    QueueEntry entry = null;
+    for (int i = 0; i < readers.size(); i++) {
+      entry = buffer.take();
+      if (entry.getMessage() instanceof Message) {
+        break;
+      } else { // if (entry.getMessage() instanceof EOFMessage)
+        closedReadercount++;
+        if (closedReadercount == readers.size()) {
+          throw new EndOfStreamException();
+        }
+      }
+    }
     setMessageCheckpoint(entry);
-    return entry.getMessage();
+    return (Message)entry.getMessage();
   }
 
   private void setMessageCheckpoint(QueueEntry entry) {
@@ -184,13 +198,23 @@ public abstract class AbstractMessagingDatabusConsumer
   @Override
   protected Message getNext(long timeout, TimeUnit timeunit) 
       throws InterruptedException {
-    QueueEntry entry;
-    entry = buffer.poll(timeout, timeunit);
-    if (entry == null) {
-      return null;
+    QueueEntry entry = null;
+    for (int i =0; i < readers.size(); i++) {
+      entry = buffer.poll(timeout, timeunit);
+      if (entry == null) {
+        return null;
+      }
+      if (entry.getMessage() instanceof Message) {
+        break;
+      } else { // if (entry.getMessage() instanceof EOFMessage)
+        closedReadercount++;
+        if (closedReadercount == readers.size()) {
+          throw new EndOfStreamException();
+        }
+      }
     }
     setMessageCheckpoint(entry);
-    return entry.getMessage();
+    return (Message)entry.getMessage();
   }
 
   protected synchronized void start() throws IOException {
