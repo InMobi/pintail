@@ -108,6 +108,25 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     }
   }
 
+  /*
+   * throw an Exception if given a stop date is beyond the checkpoint.
+   */
+  public void isValidStopDate() throws IOException {
+    String fileName = partitionCheckpoint.getFileName();
+    Date currentTimeStamp = null;
+    if (fileName.endsWith(".gz")) {
+      currentTimeStamp = LocalStreamCollectorReader.
+          getDateFromCheckpointPath(fileName); 
+    } else {
+      currentTimeStamp = CollectorStreamReader.getDateFromCollectorFile(
+          fileName);
+    }
+    if (stopDate.before(currentTimeStamp)) {
+      throw new IllegalArgumentException("Invalid stopDate is provided " +
+          "i.e. stop date is beyond the checkpoint ");
+    }
+  }
+
   public void initializeCurrentFile() throws IOException, InterruptedException {
       LOG.info("Initializing partition reader's current file");
       cReader.build();
@@ -116,6 +135,9 @@ public class CollectorReader extends AbstractPartitionStreamReader {
         lReader.build(startTime);
         initializeCurrentFileFromTimeStamp(startTime);
       } else if (partitionCheckpoint != null) {
+        if (stopDate != null) {
+          isValidStopDate();
+        }
         lReader.build(LocalStreamCollectorReader.getBuildTimestamp(
             streamName, partitionId.getCollector(), partitionCheckpoint));
         initializeCurrentFileFromCheckpoint();
