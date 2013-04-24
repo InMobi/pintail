@@ -25,6 +25,7 @@ public class ClusterReader extends AbstractPartitionStreamReader {
   private final PartitionCheckpointList partitionCheckpointList;
   private final Date startTime;
   private final Path streamDir;
+  private final Date stopDate;
   private final boolean isDatabusData;
 
   ClusterReader(PartitionId partitionId,
@@ -35,6 +36,7 @@ public class ClusterReader extends AbstractPartitionStreamReader {
       Set<Integer> partitionMinList, Date stopDate)
           throws IOException {
     this.startTime = startTime;
+    this.stopDate = stopDate;
     this.streamDir = streamDir;
     //create an empty partition checkpoint list if the start time is not null
     if (startTime != null) {
@@ -93,7 +95,8 @@ public class ClusterReader extends AbstractPartitionStreamReader {
     LOG.info("Initializing partition reader's current file");
     PartitionCheckpoint partitionCheckpoint = null;
     if (partitionCheckpointList != null) {
-      partitionCheckpoint = findLeastPartitionCheckPointTime(partitionCheckpointList);
+      partitionCheckpoint = findLeastPartitionCheckPointTime(
+          partitionCheckpointList);
     } 
 
     if (startTime != null) {
@@ -106,6 +109,8 @@ public class ClusterReader extends AbstractPartitionStreamReader {
       ((DatabusStreamWaitingReader)reader).build(
           DatabusStreamWaitingReader.getBuildTimestamp(streamDir,
               partitionCheckpoint));
+      // check whether the given stop date is beyond the checkpoint
+      isStopDateBeyondCheckpoint(partitionCheckpoint);
       if (!reader.isEmpty()) {
         // if the partition checkpoint is completed checkpoint
         //(i.e. line number is -1) then it has to start from the next checkpoint.
@@ -123,6 +128,17 @@ public class ClusterReader extends AbstractPartitionStreamReader {
     }
     LOG.info("Intialized currentFile:" + reader.getCurrentFile() +
         " currentLineNum:" + reader.getCurrentLineNum());
+  }
+
+  private void isStopDateBeyondCheckpoint(
+      PartitionCheckpoint partitionCheckpoint) throws IOException {
+    String currentFile = partitionCheckpoint.getFileName();
+    Date currentTimeStamp = DatabusStreamWaitingReader.
+        getDateFromCheckpointPath(currentFile);
+    if (stopDate != null && stopDate.before(currentTimeStamp)) {
+      throw new IllegalArgumentException("Invalid stopDate is provided " +
+          "i.e. stop date is beyond the checkpoint ");
+    }
   }
 
   @Override
