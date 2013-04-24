@@ -34,17 +34,19 @@ public class DatabusStreamWaitingReader
   private PartitionCheckpointList partitionCheckpointList;
   private boolean movedToNext;
   private int prevMin;
+  private Date stopDate;
 
   public DatabusStreamWaitingReader(PartitionId partitionId, FileSystem fs,
       Path streamDir,  String inputFormatClass, Configuration conf,
       long waitTimeForFileCreate, PartitionReaderStatsExposer metrics,
       boolean noNewFiles, Set<Integer> partitionMinList, 
-      PartitionCheckpointList partitionCheckpointList)
+      PartitionCheckpointList partitionCheckpointList, Date stopDate)
           throws IOException {
     super(partitionId, fs, streamDir, inputFormatClass, conf,
         waitTimeForFileCreate, metrics, noNewFiles);
     this.partitionCheckpointList = partitionCheckpointList;
     this.partitionMinList = partitionMinList; 
+    this.stopDate = stopDate;
     currentMin = -1;
   }
 
@@ -112,9 +114,20 @@ public class DatabusStreamWaitingReader
     if (currentFile != null) {
       LOG.debug("CurrentFile:" + getCurrentFile() + " currentLineNum:" +
           currentLineNum);
+      // check whether the given stop date is beyond checkpoint
+      isStopDateBeyondCheckpoint();
       setIterator();
     }
     return currentFile != null;
+  }
+
+  public void isStopDateBeyondCheckpoint() {
+    Date currentTimeStamp = getDateFromStreamDir(streamDir,
+        currentFile.getPath().getParent());
+    if (stopDate != null && stopDate.before(currentTimeStamp)) {
+      throw new IllegalArgumentException("Invalid stopDate is provided " +
+          "i.e. stop date is beyond the checkpoint ");
+    }
   }
 
   @Override

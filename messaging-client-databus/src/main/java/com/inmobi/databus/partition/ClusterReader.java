@@ -49,7 +49,7 @@ public class ClusterReader extends AbstractPartitionStreamReader {
 
     reader = new DatabusStreamWaitingReader(partitionId, fs, streamDir,
         inputFormatClass, conf, waitTimeForFileCreate, metrics, noNewFiles,
-        partitionMinList, partitionCheckpointList);
+        partitionMinList, partitionCheckpointList, stopDate);
   }
 
   /*
