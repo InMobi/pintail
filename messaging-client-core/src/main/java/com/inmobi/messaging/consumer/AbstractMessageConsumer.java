@@ -67,19 +67,21 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
 
   protected abstract void doReset() throws IOException;
 
-  protected abstract Message getNext() throws InterruptedException;
+  protected abstract Message getNext()
+      throws InterruptedException, EndOfStreamException;
 
   protected abstract Message getNext(long timeout, TimeUnit timeunit)
-      throws InterruptedException;
+      throws InterruptedException, EndOfStreamException;
 
-  public synchronized Message next() throws InterruptedException {
+  public synchronized Message next()
+      throws InterruptedException, EndOfStreamException {
     Message msg = getNext();
     metrics.incrementMessagesConsumed();
     return msg;
   }
 
   public synchronized Message next(long timeout, TimeUnit timeunit)
-      throws InterruptedException {
+      throws InterruptedException, EndOfStreamException {
     Message msg = getNext(timeout, timeunit);
     if (msg != null) {
       metrics.incrementMessagesConsumed();

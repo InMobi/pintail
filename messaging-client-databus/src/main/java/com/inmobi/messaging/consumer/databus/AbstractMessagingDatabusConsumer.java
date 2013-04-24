@@ -173,7 +173,8 @@ public abstract class AbstractMessagingDatabusConsumer
   
 
   @Override
-  protected Message getNext() throws InterruptedException {
+  protected Message getNext()
+      throws InterruptedException, EndOfStreamException {
     QueueEntry entry = null;
     for (int i = 0; i < readers.size(); i++) {
       entry = buffer.take();
@@ -197,7 +198,7 @@ public abstract class AbstractMessagingDatabusConsumer
   
   @Override
   protected Message getNext(long timeout, TimeUnit timeunit) 
-      throws InterruptedException {
+      throws InterruptedException, EndOfStreamException {
     QueueEntry entry = null;
     for (int i =0; i < readers.size(); i++) {
       entry = buffer.poll(timeout, timeunit);

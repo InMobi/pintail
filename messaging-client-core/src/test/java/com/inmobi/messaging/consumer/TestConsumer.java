@@ -127,7 +127,8 @@ public class TestConsumer {
   }
 
   @Test
-  public void testStartTime() throws IOException, InterruptedException {
+  public void testStartTime()
+      throws IOException, InterruptedException, EndOfStreamException {
     AbstractMessageConsumer consumer = 
       (AbstractMessageConsumer) MessageConsumerFactory.create(
           new ClientConfig(), MockConsumer.class.getName(), "test",
@@ -136,7 +137,8 @@ public class TestConsumer {
   }
 
   private void doTest(AbstractMessageConsumer consumer, Date startTime,
-      boolean statsEnabled, boolean isMondemand) throws InterruptedException {
+      boolean statsEnabled, boolean isMondemand)
+          throws InterruptedException, EndOfStreamException {
     Assert.assertTrue(consumer instanceof MockConsumer);
     Assert.assertFalse(consumer.isMarkSupported());
     Assert.assertTrue(((MockConsumer)consumer).initedConf);
