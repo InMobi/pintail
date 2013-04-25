@@ -154,18 +154,6 @@ public abstract class TestAbstractClusterReader {
     Assert.assertEquals(preader.getCurrentFile().toString(),
         getDateStringFromPath(databusFiles[0].toString()));
 
-    //Read from checkpoint and startTime is beyond the stream
-    initializePartitionCheckpointList();
-    prepareCheckpoint(DatabusStreamWaitingReader.getHadoopStreamFile(
-        fs.getFileStatus(databusFiles[1])), 20, databusFiles[1], 
-        partitionCheckpointList);
-    preader = new PartitionReader(partitionId, partitionCheckpointList, fs, 
-        buffer, streamDir, conf, inputFormatClass, cal.getTime(), 1000,
-        isDatabusData(), prMetrics, partitionMinList);
-    preader.init();
-    Assert.assertEquals(preader.getCurrentFile().toString(),
-        getDateStringFromPath(databusFiles[1].toString()));
-
     //Read from startTime after the stream
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         databusFiles[2].getParent()));
@@ -183,7 +171,7 @@ public abstract class TestAbstractClusterReader {
         DatabusStreamWaitingReader.class.getName());
     Assert.assertNull(preader.getCurrentFile());
 
-    //Read from checkpoint, with startTime after the stream
+    //Read from checkpoint which does not exist, with startTime after the stream
     preader = new PartitionReader(partitionId, partitionCheckpointList, fs, 
         buffer, streamDir, conf, inputFormatClass, cal.getTime(), 1000,
         isDatabusData(), prMetrics, true, partitionMinList);
@@ -195,7 +183,7 @@ public abstract class TestAbstractClusterReader {
         .getReader().getClass().getName(),
         DatabusStreamWaitingReader.class.getName());
     Assert.assertEquals(preader.getCurrentFile().toString(),
-        getDateStringFromPath(databusFiles[1].toString()));
+        getDateStringFromPath(databusFiles[0].toString()));
   }
 
   public void testReadFromStart() throws Exception {
