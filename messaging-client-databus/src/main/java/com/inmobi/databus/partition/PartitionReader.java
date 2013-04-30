@@ -148,7 +148,6 @@ public class PartitionReader {
           }
         }
       }
-
     };
     thread = new Thread(runnable, this.partitionId.toString());
     LOG.info("Starting thread " + thread.getName());
@@ -200,8 +199,7 @@ public class PartitionReader {
       while (!stopped) {
         Message msg = reader.readLine();
         if (reader.isStopped()) {
-          EOFMessage eofMessage = new EOFMessage();
-          buffer.put(new QueueEntry(eofMessage, partitionId, null));
+          putEOFMessageInBuffer();
           // close the reader if reader's status is "closing"
           close();
         }
@@ -212,6 +210,11 @@ public class PartitionReader {
           prMetrics.incrementMessagesAddedToBuffer();
         } else {
           LOG.info("No stream to read");
+          if (reader.isListingStopped()) {
+            putEOFMessageInBuffer();
+            // close the reader if reader's status is "closing"
+            close();
+          }
           return;
         }
       }
@@ -228,6 +231,11 @@ public class PartitionReader {
         prMetrics.incrementHandledExceptions();
       }
     }
+  }
+
+  public void putEOFMessageInBuffer() throws InterruptedException {
+    EOFMessage eofMessage = new EOFMessage();
+    buffer.put(new QueueEntry(eofMessage, partitionId, null));
   }
 
   public PartitionReaderStatsExposer getStatsExposer() {

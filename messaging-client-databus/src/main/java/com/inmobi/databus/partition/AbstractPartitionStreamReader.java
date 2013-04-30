@@ -51,4 +51,8 @@ public abstract class AbstractPartitionStreamReader implements
     return reader.isStopped();
   }
 
+  public boolean isListingStopped() {
+    return reader.isListingStopped();
+  }
+
 }

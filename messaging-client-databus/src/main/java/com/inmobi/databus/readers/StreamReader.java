@@ -34,6 +34,8 @@ public abstract class StreamReader<T extends StreamFile> {
   private FileMap<T> fileMap;
   protected volatile boolean closedStatus = false;
 
+  private boolean listingStopped = false;
+
   protected StreamReader(PartitionId partitionId, FileSystem fs, 
       Path streamDir, long waitTimeForCreate,
       PartitionReaderStatsExposer metrics, boolean noNewFiles)
@@ -357,5 +359,13 @@ public abstract class StreamReader<T extends StreamFile> {
 
   public boolean isStopped() {
     return closedStatus;
+  }
+
+  public void stopListing(boolean listingStopped) {
+    this.listingStopped = listingStopped;
+  }
+
+  public boolean isListingStopped() {
+    return listingStopped;
   }
 }

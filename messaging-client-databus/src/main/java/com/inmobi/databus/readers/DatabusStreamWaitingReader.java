@@ -1,6 +1,7 @@
 package com.inmobi.databus.readers;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
@@ -34,6 +35,8 @@ public class DatabusStreamWaitingReader
   private PartitionCheckpointList partitionCheckpointList;
   private boolean movedToNext;
   private int prevMin;
+
+  private boolean listedTillStopDate = false;
 
   public DatabusStreamWaitingReader(PartitionId partitionId, FileSystem fs,
       Path streamDir,  String inputFormatClass, Configuration conf,
@@ -145,9 +148,7 @@ public class DatabusStreamWaitingReader
           /*
            * stop the file listing if stop date is beyond current time.
            */
-          if (stopDate != null && stopDate.before(current.getTime())) {
-            LOG.info("Reached stopDate. Not listing from after" +
-                " the stop date");
+          if (isStopDateReached(current)) {
             breakListing = true;
             break;
           }
@@ -166,10 +167,12 @@ public class DatabusStreamWaitingReader
               } else {
                 LOG.info("Reached end of file listing. Not looking at the last" +
                     " minute directory:" + dir);
-                breakListing = true;
-                break;
+                if (isStopDateReached(current)) {
+                  breakListing = true;
+                  break;
+                }
               }
-            } 
+            }
           }
         } 
       } else {
@@ -190,6 +193,17 @@ public class DatabusStreamWaitingReader
       cal.setTime(currentDate);
       currentMin = cal.get(Calendar.MINUTE);
     }
+  }
+
+  private boolean isStopDateReached(Calendar current) {
+    if (stopDate != null && stopDate.before(current.getTime())) {
+      LOG.info("Reached stopDate. Not listing from after" +
+          " the stop date ");
+      listedTillStopDate = true;
+      stopListing(true);
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -311,7 +325,11 @@ public class DatabusStreamWaitingReader
           if (noNewFiles) {
             // this boolean check is only for tests 
             return null;
-          } 
+          }
+          if (listedTillStopDate) {
+            LOG.info("read all files till stop date");
+            break;
+          }
           LOG.info("Could not find next file");
           startFromNextHigher(currentFile);
           LOG.info("Reading from next higher file "+ getCurrentFile());

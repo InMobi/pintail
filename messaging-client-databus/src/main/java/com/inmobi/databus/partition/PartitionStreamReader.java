@@ -25,4 +25,6 @@ public interface PartitionStreamReader {
   MessageCheckpoint getMessageCheckpoint();
 
   boolean isStopped();
+
+  boolean isListingStopped();
 }

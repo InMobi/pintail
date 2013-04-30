@@ -58,7 +58,8 @@ public abstract class TestAbstractWaitingClusterReader {
     		buffer, streamDir, conf, inputFormatClass,
         DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
             databusFiles[0]),
-        1000, isDatabusData(), prMetrics, false, partitionMinList, null);
+        1000, isDatabusData(), prMetrics, false, partitionMinList,
+        null);
 
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
