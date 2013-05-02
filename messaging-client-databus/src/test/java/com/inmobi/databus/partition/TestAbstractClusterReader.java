@@ -9,10 +9,12 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.mortbay.log.Log;
 import org.testng.Assert;
 
 import com.inmobi.databus.files.StreamFile;
@@ -26,6 +28,8 @@ import com.inmobi.messaging.consumer.util.TestUtil;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
 public abstract class TestAbstractClusterReader {
+  private static final Log LOG = LogFactory.getLog(
+      TestAbstractClusterReader.class);
   protected static final String testStream = "testclient";
   protected static final String clusterName = "testCluster";
   protected PartitionId partitionId = new PartitionId(clusterName, null);
@@ -48,7 +52,7 @@ public abstract class TestAbstractClusterReader {
   String inputFormatClass;
 
   public void cleanup() throws IOException {
-    Log.debug("Cleaning up the dir: " + streamDir.getParent());
+    LOG.debug("Cleaning up the dir: " + streamDir.getParent());
     fs.delete(streamDir.getParent(), true);
   }
 
@@ -474,8 +478,7 @@ public abstract class TestAbstractClusterReader {
 
     for (int i =0; i < 1; i++) {
       Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
-          databusFiles[i].getParent()) ; 
-      Log.info("date is " + date);
+          databusFiles[i].getParent());
       Calendar current = Calendar.getInstance();
       current.setTime(date);
       partitionMinList.add(current.get(Calendar.MINUTE));
@@ -520,10 +523,9 @@ public abstract class TestAbstractClusterReader {
     partitionMinList = new TreeSet<Integer>();
     initializePartitionCheckpointList();
 
-    for (int i =0; i < 3; i++) {
+    for (int i = 0; i < 3; i++) {
       Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
-          databusFiles[i].getParent()) ; 
-      Log.info("date is " + date);
+          databusFiles[i].getParent());
       Calendar current = Calendar.getInstance();
       current.setTime(date);
       partitionMinList.add(current.get(Calendar.MINUTE));
@@ -573,10 +575,9 @@ public abstract class TestAbstractClusterReader {
   public void testReadFromCheckpointSomeMinutes()  throws Exception {
     partitionMinList = new TreeSet<Integer>();
     initializePartitionCheckpointList();
-    for (int i =0; i < 3; i++) {
+    for (int i = 0; i < 3; i++) {
       Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
-          databusFiles[i].getParent()) ; 
-      Log.info("date is " + date);
+          databusFiles[i].getParent());
       Calendar current = Calendar.getInstance();
       current.setTime(date);
       partitionMinList.add(current.get(Calendar.MINUTE));
@@ -639,10 +640,9 @@ public abstract class TestAbstractClusterReader {
     partitionMinList = new TreeSet<Integer>();
     initializePartitionCheckpointList();
 
-    for (int i =0; i < 3; i++) {
+    for (int i = 0; i < 3; i++) {
       Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
-          databusFiles[i].getParent()) ; 
-      Log.info("date is " + date);
+          databusFiles[i].getParent());
       Calendar current = Calendar.getInstance();
       current.setTime(date);
       partitionMinList.add(current.get(Calendar.MINUTE));
@@ -698,10 +698,9 @@ public abstract class TestAbstractClusterReader {
     partitionMinList = new TreeSet<Integer>();
     initializePartitionCheckpointList();
 
-    for (int i =0; i < 3; i++) {
+    for (int i = 0; i < 3; i++) {
       Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
-          databusFiles[i].getParent()); 
-      Log.info("date is " + date);
+          databusFiles[i].getParent());
       Calendar current = Calendar.getInstance();
       current.setTime(date);
       partitionMinList.add(current.get(Calendar.MINUTE));
@@ -753,10 +752,9 @@ public abstract class TestAbstractClusterReader {
   public void testReadFromTwoCompleteCheckpoint() throws Exception {
     partitionMinList = new TreeSet<Integer>();
     initializePartitionCheckpointList();
-    for (int i =0; i < 3; i++) {
+    for (int i = 0; i < 3; i++) {
       Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
-          databusFiles[i].getParent()) ; 
-      Log.info("date is " + date);
+          databusFiles[i].getParent());
       Calendar current = Calendar.getInstance();
       current.setTime(date);
       partitionMinList.add(current.get(Calendar.MINUTE));
@@ -807,8 +805,7 @@ public abstract class TestAbstractClusterReader {
     initializePartitionCheckpointList();
     for (int i = 0; i < 3; i++) {
       Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
-          databusFiles[i].getParent()) ; 
-      Log.info("date is " + date);
+          databusFiles[i].getParent());
       Calendar current = Calendar.getInstance();
       current.setTime(date);
       partitionMinList.add(current.get(Calendar.MINUTE));
@@ -868,10 +865,9 @@ public abstract class TestAbstractClusterReader {
     partitionMinList = new TreeSet<Integer>();
     initializePartitionCheckpointList();
 
-    for (int i =0; i < 3; i++) {
+    for (int i = 0; i < 3; i++) {
       Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
-          databusFiles[i].getParent()); 
-      Log.info("date is " + date);
+          databusFiles[i].getParent());
       Calendar current = Calendar.getInstance();
       current.setTime(date);
       partitionMinList.add(current.get(Calendar.MINUTE));
