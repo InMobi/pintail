@@ -39,16 +39,6 @@
       <groupId>com.inmobi.databus</groupId>
       <artifactId>databus-core</artifactId>
       <version>${databus.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.apache.ftpserver</groupId>
-          <artifactId>ftpserver-core</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.ftpserver</groupId>
-          <artifactId>ftpserver-deprecated</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.inmobi.databus</groupId>
