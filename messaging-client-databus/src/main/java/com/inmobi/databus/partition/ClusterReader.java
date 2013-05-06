@@ -38,12 +38,6 @@ public class ClusterReader extends AbstractPartitionStreamReader {
     this.startTime = startTime;
     this.stopDate = stopDate;
     this.streamDir = streamDir;
-    //create an empty partition checkpoint list if the start time is not null
-    if (startTime != null) {
-      Map<Integer, PartitionCheckpoint> startPckList;
-      startPckList = new HashMap<Integer, PartitionCheckpoint>();
-      partitionCheckpointList = new PartitionCheckpointList(startPckList);
-    }
     this.partitionCheckpointList = partitionCheckpointList;
     this.isDatabusData = isDatabusData;
 
@@ -99,13 +93,7 @@ public class ClusterReader extends AbstractPartitionStreamReader {
           partitionCheckpointList);
     } 
 
-    if (startTime != null) {
-      ((DatabusStreamWaitingReader)reader).build(startTime);
-      if (!reader.initializeCurrentFile(startTime)) {
-        LOG.debug("Did not find the file associated with timestamp");
-        reader.startFromTimestmp(startTime);
-      }
-    } else if (partitionCheckpoint != null) {
+    if (partitionCheckpoint != null) {
       ((DatabusStreamWaitingReader)reader).build(
           DatabusStreamWaitingReader.getBuildTimestamp(streamDir,
               partitionCheckpoint));
@@ -122,6 +110,12 @@ public class ClusterReader extends AbstractPartitionStreamReader {
         }
       } else {
         reader.startFromBegining();
+      }
+    } else if (startTime != null) {
+      ((DatabusStreamWaitingReader)reader).build(startTime);
+      if (!reader.initializeCurrentFile(startTime)) {
+        LOG.debug("Did not find the file associated with timestamp");
+        reader.startFromTimestmp(startTime);
       }
     } else {
       LOG.info("Would never reach here");

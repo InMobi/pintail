@@ -1,7 +1,5 @@
 package com.inmobi.messaging.consumer.examples;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
@@ -12,9 +10,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-
-import org.apache.commons.codec.binary.Base64;
-import org.apache.hadoop.io.Text;
 
 import com.inmobi.instrumentation.TimingAccumulator;
 import com.inmobi.messaging.ClientConfig;
@@ -391,17 +386,7 @@ public class StreamingBenchmark {
   static String getMessage(Message msg, boolean hadoopConsumer)
       throws IOException {
     byte[] data = msg.getData().array();
-    if (!hadoopConsumer) {
-      return new String(data);
-    } else {
-      Text text = new Text();
-      ByteArrayInputStream bais = new ByteArrayInputStream(data);
-      text.readFields(new DataInputStream(bais));
-      byte[] decoded = Base64.decodeBase64(text.getBytes());
-      byte[] byteArray = AuditUtil.removeHeader(decoded).array();
-
-      return new String(byteArray);
-    }
+    return new String(data);
   }
 
   static class Consumer extends Thread {
