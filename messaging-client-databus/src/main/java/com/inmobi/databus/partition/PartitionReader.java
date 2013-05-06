@@ -133,6 +133,7 @@ public class PartitionReader {
           } catch (Throwable e) {
             LOG.warn("Error in run", e);
             prMetrics.incrementHandledExceptions();
+            // throw new IllegalArgumentException("Error in run" + e);
           }
           long finishTime = System.currentTimeMillis();
           LOG.debug("Execution took ms : " + (finishTime - startTime));

@@ -231,6 +231,13 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
             return null;
           }
         } else {
+          if (stopDate != null) {
+            Date currentTimeStamp = CollectorStreamReader.
+                getDateFromCollectorFile(getCurrentFile().getName());
+            if (!stopDate.after(currentTimeStamp)) {
+              return line;
+            }
+          }
           waitForFlushAndReOpen();
           LOG.info("Reading from the same file after reopen");
         }

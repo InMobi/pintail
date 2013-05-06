@@ -31,6 +31,7 @@ public class LocalStreamCollectorReader extends
       LocalStreamCollectorReader.class);
 
   private final String collector;
+  private boolean stopListing = false;
   
   public LocalStreamCollectorReader(PartitionId partitionId, 
       FileSystem fs, String streamName, Path streamDir, Configuration conf,
@@ -43,6 +44,33 @@ public class LocalStreamCollectorReader extends
     this.stopDate = stopDate;
     this.streamName = streamName;
     this.collector = partitionId.getCollector();
+  }
+
+  protected void doRecursiveListing(Path dir, PathFilter pathFilter,
+      FileMap<DatabusStreamFile> fmap) throws IOException {
+    FileStatus[] fileStatuses = fs.listStatus(dir, pathFilter);
+    if (fileStatuses == null || fileStatuses.length == 0) {
+      LOG.debug("No files in directory:" + dir);
+    } else {
+      for (FileStatus file : fileStatuses) {
+        if (file.isDir()) {
+          doRecursiveListing(file.getPath(), pathFilter, fmap);
+        } else {
+          try {
+            Date currentTimeStamp = LocalStreamCollectorReader.
+                getDateFromStreamFile(streamName, file.getPath().getName());
+            if (stopDate != null && stopDate.before(currentTimeStamp)) {
+              LOG.info("stop date is beyond the file time stamp ");
+              stopListing = true;
+            } else {
+              fmap.addPath(file);
+            }
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+        }
+      }
+    }
   }
 
   protected void buildListing(FileMap<DatabusStreamFile> fmap, PathFilter pathFilter)
@@ -60,16 +88,20 @@ public class LocalStreamCollectorReader extends
           /*
            * stop the file listing if stop date is beyond current time
            */
-          if (stopDate != null && stopDate.before(current.getTime())) {
+          /*if (stopDate != null && stopDate.before(current.getTime())) {
             LOG.info("Reached stopDate. Not listing after" +
                 " the stop date");
             breakListing = true;
             break;
-          }
+          }*/
           Path dir = getMinuteDirPath(streamDir, current.getTime());
           // Move the current minute to next minute
           current.add(Calendar.MINUTE, 1);
           doRecursiveListing(dir, pathFilter, fmap);
+          if (stopListing) {
+            breakListing = true;
+            break;
+          }
         } 
       } else {
         // go to next hour
