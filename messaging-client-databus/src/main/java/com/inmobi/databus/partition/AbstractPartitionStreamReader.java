@@ -46,13 +46,4 @@ public abstract class AbstractPartitionStreamReader implements
   public Message readLine() throws IOException, InterruptedException {
     return reader.readLine();
   }
-
-  public boolean isStopped() {
-    return reader.isStopped();
-  }
-
-  public boolean isListingStopped() {
-    return reader.isListingStopped();
-  }
-
 }

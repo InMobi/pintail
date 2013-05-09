@@ -32,13 +32,13 @@ public abstract class StreamReader<T extends StreamFile> {
   protected Path streamDir;
   protected final PartitionReaderStatsExposer metrics;
   private FileMap<T> fileMap;
-  protected volatile boolean closedStatus = false;
+  protected Date stopDate;
 
   private boolean listingStopped = false;
 
   protected StreamReader(PartitionId partitionId, FileSystem fs, 
       Path streamDir, long waitTimeForCreate,
-      PartitionReaderStatsExposer metrics, boolean noNewFiles)
+      PartitionReaderStatsExposer metrics, boolean noNewFiles, Date stopDate)
           throws IOException {
     this.partitionId = partitionId;
     this.fs = fs;
@@ -46,13 +46,13 @@ public abstract class StreamReader<T extends StreamFile> {
     this.waitTimeForCreate = waitTimeForCreate;
     this.metrics = metrics;
     this.noNewFiles = noNewFiles;
+    this.stopDate = stopDate;
     this.fileMap = createFileMap();
   }
   
   public boolean prepareMoveToNext(FileStatus currentFile, FileStatus nextFile)
       throws IOException {
     this.currentFile = nextFile;
-    isStopDateBeyondCurrentTimeStamp(nextFile);
     return true;
   }
 
@@ -182,9 +182,6 @@ public abstract class StreamReader<T extends StreamFile> {
   protected abstract T getStreamFile(Date timestamp);
 
   protected abstract T getStreamFile(FileStatus status);
-
-  protected abstract void isStopDateBeyondCurrentTimeStamp(FileStatus nextFile)
-      throws IOException;
 
   /** 
    * Returns null when reached end of stream 
@@ -353,19 +350,15 @@ public abstract class StreamReader<T extends StreamFile> {
     return fileMap.getValue(streamFile);
   }
 
-  public void setCloseStatusOfReader(boolean closedStatus) {
-    this.closedStatus = closedStatus;
-  }
-
   public boolean isStopped() {
-    return closedStatus;
+    return listingStopped;
   }
 
-  public void stopListing(boolean listingStopped) {
-    this.listingStopped = listingStopped;
+  protected void stopListing() {
+    this.listingStopped = true;
   }
 
-  public boolean isListingStopped() {
+  protected boolean isListingStopped() {
     return listingStopped;
   }
 }

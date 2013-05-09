@@ -23,8 +23,4 @@ public interface PartitionStreamReader {
   void close() throws IOException;
   
   MessageCheckpoint getMessageCheckpoint();
-
-  boolean isStopped();
-
-  boolean isListingStopped();
 }

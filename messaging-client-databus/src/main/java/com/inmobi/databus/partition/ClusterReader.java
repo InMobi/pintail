@@ -2,7 +2,6 @@ package com.inmobi.databus.partition;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Collection;
@@ -25,7 +24,6 @@ public class ClusterReader extends AbstractPartitionStreamReader {
   private final PartitionCheckpointList partitionCheckpointList;
   private final Date startTime;
   private final Path streamDir;
-  private final Date stopDate;
   private final boolean isDatabusData;
 
   ClusterReader(PartitionId partitionId,
@@ -36,7 +34,6 @@ public class ClusterReader extends AbstractPartitionStreamReader {
       Set<Integer> partitionMinList, Date stopDate)
           throws IOException {
     this.startTime = startTime;
-    this.stopDate = stopDate;
     this.streamDir = streamDir;
     this.partitionCheckpointList = partitionCheckpointList;
     this.isDatabusData = isDatabusData;
@@ -97,8 +94,6 @@ public class ClusterReader extends AbstractPartitionStreamReader {
       ((DatabusStreamWaitingReader)reader).build(
           DatabusStreamWaitingReader.getBuildTimestamp(streamDir,
               partitionCheckpoint));
-      // check whether the given stop date is beyond the checkpoint
-      isStopDateBeyondCheckpoint(partitionCheckpoint);
       if (!reader.isEmpty()) {
         // if the partition checkpoint is completed checkpoint
         //(i.e. line number is -1) then it has to start from the next checkpoint.
@@ -122,17 +117,6 @@ public class ClusterReader extends AbstractPartitionStreamReader {
     }
     LOG.info("Intialized currentFile:" + reader.getCurrentFile() +
         " currentLineNum:" + reader.getCurrentLineNum());
-  }
-
-  private void isStopDateBeyondCheckpoint(
-      PartitionCheckpoint partitionCheckpoint) throws IOException {
-    String currentFile = partitionCheckpoint.getFileName();
-    Date currentTimeStamp = DatabusStreamWaitingReader.
-        getDateFromCheckpointPath(currentFile);
-    if (stopDate != null && stopDate.before(currentTimeStamp)) {
-      throw new IllegalArgumentException("Invalid stopDate is provided " +
-          "i.e. stop date is beyond the checkpoint ");
-    }
   }
 
   @Override

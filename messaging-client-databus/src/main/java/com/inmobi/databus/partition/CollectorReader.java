@@ -108,50 +108,22 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     }
   }
 
-  private boolean isLocalStreamFile(String fileName) {
-    if (fileName.endsWith(".gz")) {
-      return true;
-    }
-    return false;
-  }
-
-  /*
-   * throw an Exception if given a stop date is beyond the checkpoint.
-   */
-  public void isValidStopDate() throws IOException {
-    String fileName = partitionCheckpoint.getFileName();
-    Date currentTimeStamp = null;
-    if (isLocalStreamFile(fileName)) {
-      fileName = CollectorStreamReader.getCollectorFileName(streamName, fileName);
-    }
-    currentTimeStamp = CollectorStreamReader.getDateFromCollectorFile(
-        fileName);
-
-    if (stopDate.before(currentTimeStamp)) {
-      throw new IllegalArgumentException("Invalid stopDate is provided " +
-          "i.e. stop date is beyond the checkpoint ");
-    }
-  }
-
   public void initializeCurrentFile() throws IOException, InterruptedException {
-      LOG.info("Initializing partition reader's current file");
-      cReader.build();
+    LOG.info("Initializing partition reader's current file");
+    cReader.build();
 
-      if (partitionCheckpoint != null) {
-        if (stopDate != null) {
-          isValidStopDate();
-        }
-        lReader.build(LocalStreamCollectorReader.getBuildTimestamp(
-            streamName, partitionId.getCollector(), partitionCheckpoint));
-        initializeCurrentFileFromCheckpoint();
-      } else if (startTime != null) {
-        lReader.build(startTime);
-        initializeCurrentFileFromTimeStamp(startTime);
-      } else {
-        LOG.info("Would never reach here");
-      }
-      LOG.info("Intialized currentFile:" + reader.getCurrentFile() +
-          " currentLineNum:" + reader.getCurrentLineNum());
+    if (partitionCheckpoint != null) {
+      lReader.build(LocalStreamCollectorReader.getBuildTimestamp(
+          streamName, partitionId.getCollector(), partitionCheckpoint));
+      initializeCurrentFileFromCheckpoint();
+    } else if (startTime != null) {
+      lReader.build(startTime);
+      initializeCurrentFileFromTimeStamp(startTime);
+    } else {
+      LOG.info("Would never reach here");
+    }
+    LOG.info("Intialized currentFile:" + reader.getCurrentFile() +
+        " currentLineNum:" + reader.getCurrentLineNum());
   }
 
   public Message readLine() throws IOException, InterruptedException {
@@ -161,21 +133,17 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       if (closed) {
         return line;
       }
+      if (stopDate != null) {
+        if (reader.isStopped()) {
+          return null;
+        }
+      }
+
       if (reader == lReader) {
         lReader.closeStream();
         LOG.info("Switching to collector stream as we reached end of" +
             " stream on local stream");
         LOG.info("current file:" + reader.getCurrentFile());
-        if (stopDate != null) {
-          String currentCollectorFile = CollectorStreamReader.
-              getCollectorFileName(streamName, reader.getCurrentFile().getName());
-          Date currentTimeStamp = CollectorStreamReader.
-              getDateFromCollectorFile(currentCollectorFile);
-          if (stopDate.before(currentTimeStamp) || currentTimeStamp.equals(stopDate)) {
-            reader.stopListing(true);
-            return line;
-          }
-        }
         cReader.startFromNextHigher(
             CollectorStreamReader.getCollectorFileName(
                 streamName,
@@ -186,14 +154,6 @@ public class CollectorReader extends AbstractPartitionStreamReader {
         assert (reader == cReader);
         cReader.closeStream();
         LOG.info("Looking for current file in local stream");
-        if (stopDate != null) {
-          Date currentTimeStamp = CollectorStreamReader.
-              getDateFromCollectorFile(reader.getCurrentFile().getName());
-          if (stopDate.equals(currentTimeStamp) || stopDate.before(currentTimeStamp)) {
-            reader.stopListing(true);
-            return line;
-          }
-        }
         lReader.build(CollectorStreamReader.getDateFromCollectorFile(
             reader.getCurrentFile().getName()));
         if (!lReader.setCurrentFile(
@@ -213,10 +173,10 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     }
     return line;
   }
-  
+
   @Override
   public MessageCheckpoint getMessageCheckpoint() {
-  	return new PartitionCheckpoint(reader.getCurrentStreamFile(),
-  			reader.getCurrentLineNum());
+    return new PartitionCheckpoint(reader.getCurrentStreamFile(),
+        reader.getCurrentLineNum());
   }
 }

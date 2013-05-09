@@ -41,19 +41,18 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   private Configuration conf;
   private StringBuilder builder = new StringBuilder();
   private boolean isS3Fs = false;
-  protected final Date stopDate;
-
+  private boolean hasReadTillStopDate = false;
+  
   public CollectorStreamReader(PartitionId partitionId,
       FileSystem fs, String streamName, Path streamDir,
       long waitTimeForFlush,
       long waitTimeForCreate, CollectorReaderStatsExposer metrics,
       Configuration conf, boolean noNewFiles, Date stopDate) throws IOException {
-    super(partitionId, fs, streamDir, waitTimeForCreate, metrics, noNewFiles);
+    super(partitionId, fs, streamDir, waitTimeForCreate, metrics, noNewFiles, stopDate);
     this.streamName = streamName;
     this.waitTimeForFlush = waitTimeForFlush;
     this.collectorMetrics = (CollectorReaderStatsExposer)(this.metrics);
     this.conf = conf;
-    this.stopDate = stopDate;
     LOG.info("Collector reader initialized with partitionId:" + partitionId +
         " streamDir:" + streamDir + 
         " waitTimeForFlush:" + waitTimeForFlush +
@@ -96,6 +95,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
               Date currentTimeStamp = getDateFromCollectorFile(
                   file.getPath().getName());
               if (stopDate.before(currentTimeStamp)) {
+                stopListing();
                 continue;
               }
             }
@@ -227,19 +227,21 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
             startFromNextHigherAndOpen(getCurrentFile().getName());
             LOG.info("Reading from the next higher file");
           } else {
+            if (isListingStopped()) {
+              hasReadTillStopDate = true;
+              return null;
+            }
             LOG.info("Current file would have been moved to Local Stream");
             return null;
           }
         } else {
-          if (stopDate != null) {
-            Date currentTimeStamp = CollectorStreamReader.
-                getDateFromCollectorFile(getCurrentFile().getName());
-            if (!stopDate.after(currentTimeStamp)) {
-              return line;
-            }
+          if (!isListingStopped()) {
+            waitForFlushAndReOpen();
+            LOG.info("Reading from the same file after reopen");
+          } else {
+            hasReadTillStopDate = true;
+            return null;
           }
-          waitForFlushAndReOpen();
-          LOG.info("Reading from the same file after reopen");
         }
       } else {
         if (moveToNext) {
@@ -348,14 +350,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   }
 
   @Override
-  protected void isStopDateBeyondCurrentTimeStamp(FileStatus nextFile)
-      throws IOException {
-    if (stopDate != null) {
-      Date currentTimeStamp = getDateFromCollectorFile(
-          nextFile.getPath().getName());
-      if (stopDate.before(currentTimeStamp)) {
-        setCloseStatusOfReader(true);
-      }
-    }
+  public boolean isStopped() {
+    return hasReadTillStopDate;
   }
 }

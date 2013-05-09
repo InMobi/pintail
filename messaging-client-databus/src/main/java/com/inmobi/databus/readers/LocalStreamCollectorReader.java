@@ -23,7 +23,7 @@ import com.inmobi.messaging.consumer.databus.mapred.DatabusInputFormat;
 import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 
 public class LocalStreamCollectorReader extends 
-    DatabusStreamReader<DatabusStreamFile> {
+DatabusStreamReader<DatabusStreamFile> {
 
   protected final String streamName;
 
@@ -31,8 +31,7 @@ public class LocalStreamCollectorReader extends
       LocalStreamCollectorReader.class);
 
   private final String collector;
-  private boolean stopListing = false;
-  
+
   public LocalStreamCollectorReader(PartitionId partitionId, 
       FileSystem fs, String streamName, Path streamDir, Configuration conf,
       long waitTimeForFileCreate, CollectorReaderStatsExposer metrics,
@@ -40,12 +39,13 @@ public class LocalStreamCollectorReader extends
           throws IOException {
     super(partitionId, fs, streamDir,
         DatabusInputFormat.class.getCanonicalName(), conf, waitTimeForFileCreate,
-        metrics, false);
+        metrics, false, stopDate);
     this.stopDate = stopDate;
     this.streamName = streamName;
     this.collector = partitionId.getCollector();
   }
 
+  @Override
   protected void doRecursiveListing(Path dir, PathFilter pathFilter,
       FileMap<DatabusStreamFile> fmap) throws IOException {
     FileStatus[] fileStatuses = fs.listStatus(dir, pathFilter);
@@ -61,7 +61,7 @@ public class LocalStreamCollectorReader extends
                 getDateFromStreamFile(streamName, file.getPath().getName());
             if (stopDate != null && stopDate.before(currentTimeStamp)) {
               LOG.info("stop date is beyond the file time stamp ");
-              stopListing = true;
+              stopListing();
             } else {
               fmap.addPath(file);
             }
@@ -85,23 +85,14 @@ public class LocalStreamCollectorReader extends
       if (fs.exists(hhDir)) {
         while (current.getTime().before(now) && 
             hour  == current.get(Calendar.HOUR_OF_DAY)) {
-          /*
-           * stop the file listing if stop date is beyond current time
-           */
-          /*if (stopDate != null && stopDate.before(current.getTime())) {
-            LOG.info("Reached stopDate. Not listing after" +
-                " the stop date");
-            breakListing = true;
-            break;
-          }*/
           Path dir = getMinuteDirPath(streamDir, current.getTime());
-          // Move the current minute to next minute
-          current.add(Calendar.MINUTE, 1);
-          doRecursiveListing(dir, pathFilter, fmap);
-          if (stopListing) {
+          if (isListingStopped()) {
             breakListing = true;
             break;
           }
+          // Move the current minute to next minute
+          current.add(Calendar.MINUTE, 1);
+          doRecursiveListing(dir, pathFilter, fmap);          
         } 
       } else {
         // go to next hour
@@ -126,41 +117,41 @@ public class LocalStreamCollectorReader extends
 
   public FileMap<DatabusStreamFile> createFileMap() throws IOException {
     return new FileMap<DatabusStreamFile>() {
-    @Override
-    protected void buildList() throws IOException {
-      buildListing(this, pathFilter);
-    }
-    
-    @Override
-    protected TreeMap<DatabusStreamFile, FileStatus> createFilesMap() {
-      return new TreeMap<DatabusStreamFile, FileStatus>();
-    }
+      @Override
+      protected void buildList() throws IOException {
+        buildListing(this, pathFilter);
+      }
 
-    @Override
-    protected DatabusStreamFile getStreamFile(String fileName) {
-      return DatabusStreamFile.create(streamName, fileName);
-    }
+      @Override
+      protected TreeMap<DatabusStreamFile, FileStatus> createFilesMap() {
+        return new TreeMap<DatabusStreamFile, FileStatus>();
+      }
 
-    @Override
-    protected DatabusStreamFile getStreamFile(FileStatus file) {
-      return DatabusStreamFile.create(streamName, file.getPath().getName());
-    }
+      @Override
+      protected DatabusStreamFile getStreamFile(String fileName) {
+        return DatabusStreamFile.create(streamName, fileName);
+      }
 
-    @Override
-    protected PathFilter createPathFilter() {
-      return new PathFilter() {
-        @Override
-        public boolean accept(Path p) {
-          if (p.getName().startsWith(collector)) {
-            return true;
-          }
-          return false;
-        }          
-      };
-    }
+      @Override
+      protected DatabusStreamFile getStreamFile(FileStatus file) {
+        return DatabusStreamFile.create(streamName, file.getPath().getName());
+      }
+
+      @Override
+      protected PathFilter createPathFilter() {
+        return new PathFilter() {
+          @Override
+          public boolean accept(Path p) {
+            if (p.getName().startsWith(collector)) {
+              return true;
+            }
+            return false;
+          }          
+        };
+      }
     };
   }
-  
+
   public Message readLine() throws IOException {
     Message line = readNextLine();
     while (line == null) { // reached end of file
@@ -172,7 +163,7 @@ public class LocalStreamCollectorReader extends
       if (!nextFile()) { // reached end of file list
         LOG.info("could not find next file. Rebuilding");
         build(getDateFromDatabusStreamFile(streamName,
-        getCurrentFile().getName()));
+            getCurrentFile().getName()));
         if (!setIterator()) {
           LOG.info("Could not find current file in the stream");
           // set current file to next higher entry
@@ -263,18 +254,6 @@ public class LocalStreamCollectorReader extends
       String collectorFileName) {
     return new DatabusStreamFile(collector,
         CollectorFile.create(collectorFileName), "gz");  
-  }
-
-  @Override
-  protected void isStopDateBeyondCurrentTimeStamp(FileStatus nextFile)
-      throws IOException {
-    if (stopDate != null) {
-      Date CurrentTimeStamp = getDateFromDatabusStreamFile(streamName,
-          nextFile.getPath().getName());
-      if (stopDate.before(CurrentTimeStamp)) {
-        setCloseStatusOfReader(true);
-      }
-    }
   }
 
 }

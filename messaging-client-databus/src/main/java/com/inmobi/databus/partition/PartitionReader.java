@@ -199,11 +199,6 @@ public class PartitionReader {
           " and lineNum:" + reader.getCurrentLineNum());
       while (!stopped) {
         Message msg = reader.readLine();
-        if (reader.isStopped()) {
-          putEOFMessageInBuffer();
-          // close the reader if reader's status is "closing"
-          close();
-        }
         if (msg != null) {
           // add the data to queue
           MessageCheckpoint checkpoint = reader.getMessageCheckpoint();
@@ -211,11 +206,9 @@ public class PartitionReader {
           prMetrics.incrementMessagesAddedToBuffer();
         } else {
           LOG.info("No stream to read");
-          if (reader.isListingStopped()) {
-            putEOFMessageInBuffer();
-            // close the reader if reader's status is "closing"
-            close();
-          }
+          putEOFMessageInBuffer();
+          // close the reader if reader's status is "closing"
+          close();
           return;
         }
       }

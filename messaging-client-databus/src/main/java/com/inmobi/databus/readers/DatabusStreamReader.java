@@ -47,14 +47,13 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
   private Object msgValue;
   private ByteArrayOutputStream baos = new ByteArrayOutputStream();
   private boolean needsSerialize;
-  protected Date stopDate;
 
   protected DatabusStreamReader(PartitionId partitionId, FileSystem fs,
       Path streamDir, String inputFormatClass,
       Configuration conf, long waitTimeForFileCreate,
-      PartitionReaderStatsExposer metrics, boolean noNewFiles)
+      PartitionReaderStatsExposer metrics, boolean noNewFiles, Date stopDate)
           throws IOException {
-    super(partitionId, fs, streamDir, waitTimeForFileCreate, metrics, noNewFiles);
+    super(partitionId, fs, streamDir, waitTimeForFileCreate, metrics, noNewFiles, stopDate);
     this.conf = conf;
     try {
       input = (InputFormat<Object, Object>) ReflectionUtils.newInstance(
