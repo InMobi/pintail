@@ -23,7 +23,7 @@ import com.inmobi.messaging.consumer.databus.mapred.DatabusInputFormat;
 import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 
 public class LocalStreamCollectorReader extends 
-DatabusStreamReader<DatabusStreamFile> {
+    DatabusStreamReader<DatabusStreamFile> {
 
   protected final String streamName;
 
@@ -92,7 +92,7 @@ DatabusStreamReader<DatabusStreamFile> {
           }
           // Move the current minute to next minute
           current.add(Calendar.MINUTE, 1);
-          doRecursiveListing(dir, pathFilter, fmap);          
+          doRecursiveListing(dir, pathFilter, fmap);
         } 
       } else {
         // go to next hour

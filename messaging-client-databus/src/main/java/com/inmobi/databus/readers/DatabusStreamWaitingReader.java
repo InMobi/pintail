@@ -24,7 +24,7 @@ import com.inmobi.messaging.Message;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
 public class DatabusStreamWaitingReader 
-extends DatabusStreamReader<HadoopStreamFile> {
+    extends DatabusStreamReader<HadoopStreamFile> {
 
   private static final Log LOG = LogFactory.getLog(
       DatabusStreamWaitingReader.class);
@@ -113,19 +113,9 @@ extends DatabusStreamReader<HadoopStreamFile> {
     if (currentFile != null) {
       LOG.debug("CurrentFile:" + getCurrentFile() + " currentLineNum:" +
           currentLineNum);
-      // check whether the given stop date is beyond checkpoint
       setIterator();
     }
     return currentFile != null;
-  }
-
-  public void isStopDateBeyondCheckpoint() {
-    Date currentTimeStamp = getDateFromStreamDir(streamDir,
-        currentFile.getPath().getParent());
-    if (stopDate != null && stopDate.before(currentTimeStamp)) {
-      throw new IllegalArgumentException("Invalid stopDate is provided " +
-          "i.e. stop date is beyond the checkpoint ");
-    }
   }
 
   @Override
@@ -281,7 +271,7 @@ extends DatabusStreamReader<HadoopStreamFile> {
 
   private void waitForNextFileCreation(FileStatus file)
       throws IOException, InterruptedException {
-    while (!closed && !setNextHigherAndOpen(file)) {
+    while (!closed && !setNextHigherAndOpen(file) && !hasReadFully()) {
       LOG.info("Waiting for next file creation");
       waitForFileCreate();
       build();
@@ -306,7 +296,7 @@ extends DatabusStreamReader<HadoopStreamFile> {
             // this boolean check is only for tests 
             return null;
           }
-          if (isListingStopped()) {
+          if (hasReadFully()) {
             LOG.info("read all files till stop date");
             break;
           }

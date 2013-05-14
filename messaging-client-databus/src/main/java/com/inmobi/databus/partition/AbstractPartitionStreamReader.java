@@ -46,4 +46,5 @@ public abstract class AbstractPartitionStreamReader implements
   public Message readLine() throws IOException, InterruptedException {
     return reader.readLine();
   }
+
 }

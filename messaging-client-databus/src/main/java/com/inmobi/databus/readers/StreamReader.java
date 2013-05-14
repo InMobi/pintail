@@ -314,7 +314,7 @@ public abstract class StreamReader<T extends StreamFile> {
 
   private void waitForNextFileCreation() throws IOException,
       InterruptedException {
-    while (!closed && !initFromStart()) {
+    while (!closed && !initFromStart() && !hasReadFully()) {
       LOG.info("Waiting for next file creation");
       waitForFileCreate();
       build();
@@ -323,7 +323,7 @@ public abstract class StreamReader<T extends StreamFile> {
 
   private void waitForNextFileCreation(Date timestamp) throws IOException,
       InterruptedException {
-    while (!closed && !initializeCurrentFile(timestamp)) {
+    while (!closed && !initializeCurrentFile(timestamp) && !hasReadFully()) {
       LOG.info("Waiting for next file creation");
       waitForFileCreate();
       build();
@@ -360,5 +360,26 @@ public abstract class StreamReader<T extends StreamFile> {
 
   protected boolean isListingStopped() {
     return listingStopped;
+  }
+
+  protected boolean hasReadFully() {
+    if (isListingStopped()) {
+      if (fileMap.isEmpty()) {
+        return true;
+      }
+      if (setIterator()) {
+        if (getCurrentFile().equals(fileMap.getLastFile().getPath())) {
+          // current file the last file in fileMap
+          return true;
+        }
+      } else {
+        // could not file current file in filemap 
+        // and filemap does not contain files higher than the current file
+        if (fileMap.getHigherValue(currentFile) == null) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }

@@ -41,8 +41,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   private Configuration conf;
   private StringBuilder builder = new StringBuilder();
   private boolean isS3Fs = false;
-  private boolean hasReadTillStopDate = false;
-  
+
   public CollectorStreamReader(PartitionId partitionId,
       FileSystem fs, String streamName, Path streamDir,
       long waitTimeForFlush,
@@ -219,7 +218,11 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
         if (noNewFiles) {
           // this boolean check is only for tests 
           return null;
-        } 
+        }
+        if (hasReadFully()) {
+          LOG.info("read all files till stop date");
+          break;
+        }
         if (!setIterator()) {
           LOG.info("Could not find current file in the stream");
           if (isWithinStream(getCurrentFile().getName())) {
@@ -227,21 +230,12 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
             startFromNextHigherAndOpen(getCurrentFile().getName());
             LOG.info("Reading from the next higher file");
           } else {
-            if (isListingStopped()) {
-              hasReadTillStopDate = true;
-              return null;
-            }
             LOG.info("Current file would have been moved to Local Stream");
             return null;
           }
         } else {
-          if (!isListingStopped()) {
-            waitForFlushAndReOpen();
-            LOG.info("Reading from the same file after reopen");
-          } else {
-            hasReadTillStopDate = true;
-            return null;
-          }
+          waitForFlushAndReOpen();
+          LOG.info("Reading from the same file after reopen");
         }
       } else {
         if (moveToNext) {
@@ -295,7 +289,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
 
   private void waitForNextFileCreation(String fileName) 
       throws IOException, InterruptedException {
-    while (!closed && !setNextHigher(fileName)) {
+    while (!closed && !setNextHigher(fileName) && !hasReadFully()) {
       LOG.info("Waiting for next file creation");
       waitForFileCreate();
       build();
@@ -347,10 +341,5 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
 
   public static CollectorFile getCollectorFile(String fileName) {
     return CollectorFile.create(fileName);
-  }
-
-  @Override
-  public boolean isStopped() {
-    return hasReadTillStopDate;
   }
 }

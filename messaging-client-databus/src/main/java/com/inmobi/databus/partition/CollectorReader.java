@@ -133,10 +133,8 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       if (closed) {
         return line;
       }
-      if (stopDate != null) {
-        if (reader.isStopped()) {
-          return null;
-        }
+      if (stopDate != null && reader.isStopped()) {
+        return null;
       }
 
       if (reader == lReader) {
