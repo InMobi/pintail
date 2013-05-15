@@ -14,13 +14,17 @@ public class Tuple {
   private Map<LatencyColumns, Long> latencyCountMap;
 
   public Tuple(String hostname, String tier, String cluster, Date timestamp,
-      String topic,
-               Map<LatencyColumns, Long> latencyCountMap) {
+               String topic) {
+    this(hostname, tier, cluster, timestamp, topic, null);
+  }
+
+  public Tuple(String hostname, String tier, String cluster, Date timestamp,
+               String topic, Map<LatencyColumns, Long> latencyCountMap) {
     this.hostname = hostname;
     this.tier = tier;
+    this.topic = topic;
     this.cluster = cluster;
     this.timestamp = timestamp;
-    this.topic = topic;
     this.latencyCountMap = latencyCountMap;
   }
 
@@ -77,6 +81,10 @@ public class Tuple {
     return tier;
   }
 
+  public String getTopic() {
+    return topic;
+  }
+
   public String getCluster() {
     return cluster;
   }
@@ -87,10 +95,6 @@ public class Tuple {
 
   public String getHostname() {
     return hostname;
-  }
-
-  public String getTopic() {
-    return topic;
   }
 
   public Map<LatencyColumns, Long> getLatencyCountMap() {
@@ -104,7 +108,7 @@ public class Tuple {
   @Override
   public String toString() {
     return "Tuple{" +
-        "name='" + hostname + '\'' +
+        "hostname='" + hostname + '\'' +
         ", tier='" + tier + '\'' +
         ", cluster='" + cluster + '\'' +
         ", timestamp=" + timestamp +
