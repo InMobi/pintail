@@ -70,14 +70,12 @@ public class AuditDBHelper implements AuditDBConstants {
             "" + HOSTNAME + " = ? and " + TIER + " = ? and " + TOPIC +
             " = ? and " + CLUSTER + " " +
             "= ? and " + TIMESTAMP + " = ? ";
-
+    PreparedStatement selectPreparedStatement = null, insertPreparedStatement =
+        null, updatePreparedStatement = null;
     try {
-      PreparedStatement selectPreparedStatement =
-          connection.prepareStatement(selectstatement);
-      PreparedStatement insertPreparedStatement =
-          connection.prepareStatement(insertStatement);
-      PreparedStatement updatePreparedStatement =
-          connection.prepareStatement(updateStatement);
+      selectPreparedStatement = connection.prepareStatement(selectstatement);
+      insertPreparedStatement = connection.prepareStatement(insertStatement);
+      updatePreparedStatement = connection.prepareStatement(updateStatement);
       for (Tuple tuple : tupleList) {
         selectPreparedStatement.setLong(1, tuple.getTimestamp().getTime());
         selectPreparedStatement.setString(2, tuple.getHostname());
@@ -144,12 +142,11 @@ public class AuditDBHelper implements AuditDBConstants {
       LOG.error("SQLException thrown ", e);
     } finally {
       try {
-        if (rs != null) {
-          rs.close();
-        }
-        if (connection != null) {
-          connection.close();
-        }
+        rs.close();
+        selectPreparedStatement.close();
+        insertPreparedStatement.close();
+        updatePreparedStatement.close();
+        connection.close();
       } catch (SQLException e) {
         LOG.warn("Exception while closing ", e);
       }
@@ -176,9 +173,9 @@ public class AuditDBHelper implements AuditDBConstants {
     for (int i = 0; i < filter.getFilters().size(); i++) {
       statement += " and ? = ?";
     }
+    PreparedStatement preparedstatement = null;
     try {
-      PreparedStatement preparedstatement =
-          connection.prepareStatement(statement);
+      preparedstatement = connection.prepareStatement(statement);
       preparedstatement.setLong(1, fromDate.getTime());
       preparedstatement.setLong(2, toDate.getTime());
       int index = 3;
@@ -226,12 +223,9 @@ public class AuditDBHelper implements AuditDBConstants {
       LOG.error("SQLException encountered", e);
     } finally {
       try {
-        if (rs != null) {
-          rs.close();
-        }
-        if (connection != null) {
-          connection.close();
-        }
+        rs.close();
+        preparedstatement.close();
+        connection.close();
       } catch (SQLException e) {
         LOG.warn("Exception while closing ", e);
       }
