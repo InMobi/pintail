@@ -14,14 +14,12 @@ public class Tuple {
   private Map<LatencyColumns, Long> latencyCountMap;
 
   public Tuple(String hostname, String tier, String cluster, Date timestamp,
-      String topic,
-               Map<LatencyColumns, Long> latencyCountMap) {
+      String topic) {
     this.hostname = hostname;
     this.tier = tier;
     this.cluster = cluster;
     this.timestamp = timestamp;
     this.topic = topic;
-    this.latencyCountMap = latencyCountMap;
   }
 
   @Override
@@ -75,6 +73,22 @@ public class Tuple {
 
   public String getTier() {
     return tier;
+  }
+
+  public long getSent() {
+    return sent;
+  }
+
+  public void setSent(long sent) {
+    this.sent = sent;
+  }
+
+  public long getReceived() {
+    return received;
+  }
+
+  public void setReceived(long received) {
+    this.received = received;
   }
 
   public String getCluster() {
