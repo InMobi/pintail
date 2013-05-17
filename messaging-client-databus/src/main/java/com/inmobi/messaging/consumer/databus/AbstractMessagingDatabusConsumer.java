@@ -235,15 +235,15 @@ public abstract class AbstractMessagingDatabusConsumer
       partitionTimestamp = null;
     } else if (relativeStartTimeStr != null) {
       partitionTimestamp = findStartTimeStamp(relativeStartTimeStr);
-      LOG.info("checkpoint does not exists and relative start time is provided" +
-          "started from relative start time" + partitionTimestamp);
+      LOG.info("Checkpoint does not exists and relative start time is provided. " +
+          "Started from relative start time" + partitionTimestamp);
     } else if (startTime != null) {
       partitionTimestamp = startTime;
-      LOG.info("there is no checkpoint and no relative start time is provided" +
-          "starting from absolute start time" + partitionTimestamp);
+      LOG.info("There is no checkpoint and no relative start time is provided." +
+          " Starting from absolute start time" + partitionTimestamp);
     } else {
       throw new IllegalArgumentException("Invalid configuration to start" +
-          " the consumer. " + "provide a checkpoint or relative startTime" +
+          " the consumer. " + "Provide a checkpoint or relative startTime" +
           " or absolute startTime ");
     }
     //check whether the given stop date is before/after the start time
