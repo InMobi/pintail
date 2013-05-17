@@ -12,23 +12,22 @@ import java.sql.*;
 import java.util.*;
 import java.util.Date;
 
-public class AuditDBHelper implements AuditDBConstants {
+public class AuditDBHelper {
 
   private static final String DB_TABLE_CONF_FILE = "db-table-conf.properties";
   private static final Log LOG = LogFactory.getLog(AuditDBHelper.class);
 
-  private static Connection getConnection() {
-    ClientConfig config = ClientConfig.loadFromClasspath(DB_TABLE_CONF_FILE);
+  private static Connection getConnection(String url, String username,
+                                          String password) {
     try {
-      Class.forName("com.mysql.jdbc.Driver").newInstance();
+      DriverManager.registerDriver(new com.mysql.jdbc.Driver());
     } catch (Exception e) {
-      LOG.error("Exception while loading jdbc driver ", e);
+      LOG.error("Exception while registering jdbc driver ", e);
     }
     Connection connection = null;
     try {
-      connection = DriverManager
-          .getConnection("jdbc:mysql://" + config.getString(DB_URL),
-              config.getString(DB_USERNAME), config.getString(DB_PASSWORD));
+      connection = DriverManager.getConnection("jdbc:mysql://" + url,
+          username, password);
       connection.setAutoCommit(false);
     } catch (SQLException e) {
       LOG.error("Exception while creating db connection ", e);
@@ -36,27 +35,32 @@ public class AuditDBHelper implements AuditDBConstants {
     return connection;
   }
 
-  public static void update(List<Tuple> tupleList) {
+  public static boolean update(Set<Tuple> tupleSet, String confFileName) {
+
+    ClientConfig config;
+    if (confFileName == null || confFileName.isEmpty())
+      config = ClientConfig.loadFromClasspath(DB_TABLE_CONF_FILE);
+    else
+      config = ClientConfig.loadFromClasspath(confFileName);
+
     LOG.info("Connecting to DB ...");
-    Connection connection = getConnection();
+    Connection connection = getConnection(config.getString(AuditDBConstants
+        .DB_URL), config.getString(AuditDBConstants.DB_USERNAME),
+        config.getString(AuditDBConstants.DB_PASSWORD));
     if (connection == null) {
-      return;
+      LOG.info("Connection not initialized returning ...");
+      return false;
     }
     LOG.info("Connected to DB");
+
     ResultSet rs = null;
-    String selectstatement = "select * from " + TABLE_NAME + " where " +
-        "" + TIMESTAMP + " = ? and " + HOSTNAME + " = ? and " + TOPIC +
-        " = ? and " + TIER + " = ? and " + CLUSTER + " = ?";
-    String columnList = "", valueList = "";
-    for (LatencyColumns latencyColumn : LatencyColumns.values()) {
-      columnList += ", " + latencyColumn.toString();
-      valueList += ", ?";
-    }
-    String insertStatement =
-        "insert into " + TABLE_NAME + " (" + TIMESTAMP + ", " +
-            HOSTNAME + ", " + TIER + ", " + TOPIC + ", " + CLUSTER +
-            columnList + ") values (?, ?, " +
-            ", ?, ?" + valueList + ")";
+    String selectstatement =
+        "select * from " + AuditDBConstants.TABLE_NAME + " where " +
+            AuditDBConstants.TIMESTAMP + " = ? and " +
+            AuditDBConstants.HOSTNAME + " = ? and " + AuditDBConstants.TOPIC +
+            " = ? and " + AuditDBConstants.TIER + " = ? and " +
+            AuditDBConstants.CLUSTER + " = ?";
+    String columnString = "";
     String setString = "";
     for (int i = 0; i < LatencyColumns.values().length; i++) {
       if (setString.isEmpty()) {
@@ -64,19 +68,27 @@ public class AuditDBHelper implements AuditDBConstants {
       } else {
         setString += " and ?= ?";
       }
+      columnString += ", ?";
     }
+    String insertStatement =
+        "insert into " + AuditDBConstants.TABLE_NAME + " " + "(" +
+            AuditDBConstants.TIMESTAMP + "," + AuditDBConstants.HOSTNAME +
+            ", " + AuditDBConstants.TIER + ", " +
+            "" + AuditDBConstants.TOPIC + ", " + AuditDBConstants.CLUSTER +
+            columnString + ") values (?, ?, ?, ?, ?" + columnString + ")";
     String updateStatement =
-        "update " + TABLE_NAME + " set " + setString + " where " +
-            "" + HOSTNAME + " = ? and " + TIER + " = ? and " + TOPIC +
-            " = ? and " + CLUSTER + " " +
-            "= ? and " + TIMESTAMP + " = ? ";
+        "update " + AuditDBConstants.TABLE_NAME + " set " + setString +
+            " where " + AuditDBConstants.HOSTNAME + " = ? and " +
+            AuditDBConstants.TIER + " = ? and " + AuditDBConstants.TOPIC +
+            " = ? and " + AuditDBConstants.CLUSTER + " = ? and " +
+            AuditDBConstants.TIMESTAMP + " = ? ";
     PreparedStatement selectPreparedStatement = null, insertPreparedStatement =
         null, updatePreparedStatement = null;
     try {
       selectPreparedStatement = connection.prepareStatement(selectstatement);
       insertPreparedStatement = connection.prepareStatement(insertStatement);
       updatePreparedStatement = connection.prepareStatement(updateStatement);
-      for (Tuple tuple : tupleList) {
+      for (Tuple tuple : tupleSet) {
         selectPreparedStatement.setLong(1, tuple.getTimestamp().getTime());
         selectPreparedStatement.setString(2, tuple.getHostname());
         selectPreparedStatement.setString(3, tuple.getTopic());
@@ -85,16 +97,17 @@ public class AuditDBHelper implements AuditDBConstants {
         rs = selectPreparedStatement.executeQuery();
         if (rs.next()) {
           Map<LatencyColumns, Long> latencyCountMap =
-              new TreeMap<LatencyColumns, Long>();
+              new HashMap<LatencyColumns, Long>();
           latencyCountMap.putAll(tuple.getLatencyCountMap());
           for (LatencyColumns latencyColumn : LatencyColumns.values()) {
-            Long prevVal = latencyCountMap.get(latencyColumn);
-            if (prevVal != null) {
-              latencyCountMap.put(latencyColumn,
-                  rs.getLong(latencyColumn.toString()) + prevVal);
+            Long currentVal = latencyCountMap.get(latencyColumn);
+            Long prevVal = rs.getLong(latencyColumn.toString());
+            if (prevVal == null) {
+              latencyCountMap.put(latencyColumn, 0l);
+            } else if (currentVal == null) {
+              latencyCountMap.put(latencyColumn, prevVal);
             } else {
-              latencyCountMap
-                  .put(latencyColumn, rs.getLong(latencyColumn.toString()));
+              latencyCountMap.put(latencyColumn, currentVal + prevVal);
             }
           }
           int index = 1;
@@ -123,13 +136,15 @@ public class AuditDBHelper implements AuditDBConstants {
           insertPreparedStatement.setString(3, tuple.getTier());
           insertPreparedStatement.setString(4, tuple.getTopic());
           insertPreparedStatement.setString(5, tuple.getCluster());
-          Map<LatencyColumns, Long> latencyCountMap =
-              new TreeMap<LatencyColumns, Long>();
-          latencyCountMap.putAll(tuple.getLatencyCountMap());
-          int index = 6;
-          for (Map.Entry<LatencyColumns, Long> entry : latencyCountMap
-              .entrySet()) {
-            insertPreparedStatement.setLong(index, entry.getValue());
+          Map<LatencyColumns, Long> latencyCountMap = tuple
+              .getLatencyCountMap();
+          int index = 6, numberColumns = LatencyColumns.values().length;
+          for( LatencyColumns latencyColumn : LatencyColumns.values()) {
+            insertPreparedStatement.setString(index, latencyColumn.toString());
+            Long count = latencyCountMap.get(latencyColumn);
+            if (count == null)
+              count = 0l;
+            insertPreparedStatement.setLong(index+numberColumns, count);
             index++;
           }
           insertPreparedStatement.addBatch();
@@ -140,6 +155,7 @@ public class AuditDBHelper implements AuditDBConstants {
       connection.commit();
     } catch (SQLException e) {
       LOG.error("SQLException thrown ", e);
+      return false;
     } finally {
       try {
         rs.close();
@@ -151,25 +167,38 @@ public class AuditDBHelper implements AuditDBConstants {
         LOG.warn("Exception while closing ", e);
       }
     }
+    return true;
   }
 
-  public static List<Tuple> retrieve(Date toDate, Date fromDate,
-                                     Filter filter) {
-    List<Tuple> tupleList = new ArrayList<Tuple>();
+  public static Set<Tuple> retrieve(Date toDate, Date fromDate,
+                                     Filter filter, String confFileName) {
+    Set<Tuple> tupleSet = new HashSet<Tuple>();
+
+    ClientConfig config;
+    if (confFileName == null || confFileName.isEmpty())
+      config = ClientConfig.loadFromClasspath(DB_TABLE_CONF_FILE);
+    else
+      config = ClientConfig.loadFromClasspath(confFileName);
+
     LOG.info("Connecting to DB ...");
-    Connection connection = getConnection();
+    Connection connection = getConnection(config.getString(AuditDBConstants
+        .DB_URL), config.getString(AuditDBConstants.DB_USERNAME),
+        config.getString(AuditDBConstants.DB_PASSWORD));
     if (connection == null) {
+      LOG.info("Connection not initialized returning ...");
       return null;
     }
     LOG.info("Connected to DB");
+
     ResultSet rs = null;
     String hostname = filter.getFilters().get(Column.HOSTNAME);
     String tier = filter.getFilters().get(Column.TIER);
     String topic = filter.getFilters().get(Column.TOPIC);
     String cluster = filter.getFilters().get(Column.CLUSTER);
     String statement =
-        "select * from " + TABLE_NAME + " where " + TIMESTAMP + " >= ?" +
-            " and " + TIMESTAMP + " <= ?";
+        "select * from " + AuditDBConstants.TABLE_NAME + " where " +
+            AuditDBConstants.TIMESTAMP + " >= ? and " +
+            AuditDBConstants.TIMESTAMP + " <= ?";
     for (int i = 0; i < filter.getFilters().size(); i++) {
       statement += " and ? = ?";
     }
@@ -180,25 +209,25 @@ public class AuditDBHelper implements AuditDBConstants {
       preparedstatement.setLong(2, toDate.getTime());
       int index = 3;
       if (hostname != null || !hostname.isEmpty()) {
-        preparedstatement.setString(index, HOSTNAME);
+        preparedstatement.setString(index, AuditDBConstants.HOSTNAME);
         index++;
         preparedstatement.setString(index, hostname);
         index++;
       }
       if (tier != null || !tier.isEmpty()) {
-        preparedstatement.setString(index, TIER);
+        preparedstatement.setString(index, AuditDBConstants.TIER);
         index++;
         preparedstatement.setString(index, tier);
         index++;
       }
       if (topic != null || !topic.isEmpty()) {
-        preparedstatement.setString(index, TOPIC);
+        preparedstatement.setString(index, AuditDBConstants.TOPIC);
         index++;
         preparedstatement.setString(index, topic);
         index++;
       }
       if (cluster != null || !cluster.isEmpty()) {
-        preparedstatement.setString(index, CLUSTER);
+        preparedstatement.setString(index, AuditDBConstants.CLUSTER);
         index++;
         preparedstatement.setString(index, cluster);
         index++;
@@ -206,9 +235,11 @@ public class AuditDBHelper implements AuditDBConstants {
       LOG.info("Prepared statement is " + preparedstatement.toString());
       rs = preparedstatement.executeQuery();
       while (rs.next()) {
-        Tuple tuple = new Tuple(rs.getString(HOSTNAME), rs.getString(TIER),
-            rs.getString(CLUSTER), rs.getTimestamp(TIMESTAMP),
-            rs.getString(TOPIC));
+        Tuple tuple = new Tuple(rs.getString(AuditDBConstants.HOSTNAME),
+            rs.getString(AuditDBConstants.TIER),
+            rs.getString(AuditDBConstants.CLUSTER),
+            rs.getTimestamp(AuditDBConstants.TIMESTAMP),
+            rs.getString(AuditDBConstants.TOPIC));
         Map<LatencyColumns, Long> latencyCountMap =
             new TreeMap<LatencyColumns, Long>();
         for (LatencyColumns latencyColumn : LatencyColumns.values()) {
@@ -216,7 +247,7 @@ public class AuditDBHelper implements AuditDBConstants {
               .put(latencyColumn, rs.getLong(latencyColumn.toString()));
         }
         tuple.setLatencyCountMap(latencyCountMap);
-        tupleList.add(tuple);
+        tupleSet.add(tuple);
       }
       connection.commit();
     } catch (SQLException e) {
@@ -230,6 +261,6 @@ public class AuditDBHelper implements AuditDBConstants {
         LOG.warn("Exception while closing ", e);
       }
     }
-    return tupleList;
+    return tupleSet;
   }
 }
