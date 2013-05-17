@@ -762,13 +762,13 @@ public class ConsumerUtil {
     Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
         consumer.getMetrics())).getNumMessagesConsumed(), 140);
     consumer.init(streamName, consumerName, startTime, config);
-    for (i = 20; i < 300; i++) {
+    for (i = 20; i < 200; i++) {
       Message msg = consumer.next();
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
     Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
-        consumer.getMetrics())).getNumMessagesConsumed(), 280);
+        consumer.getMetrics())).getNumMessagesConsumed(), 180);
     Throwable th = null;
     try {
       consumer.next();

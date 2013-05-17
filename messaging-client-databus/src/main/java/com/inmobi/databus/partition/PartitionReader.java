@@ -14,9 +14,7 @@ import org.apache.hadoop.fs.Path;
 import com.inmobi.databus.files.StreamFile;
 import com.inmobi.messaging.EOFMessage;
 import com.inmobi.messaging.Message;
-import com.inmobi.messaging.MessageBase;
 import com.inmobi.messaging.consumer.databus.MessageCheckpoint;
-import com.inmobi.messaging.consumer.databus.MessagingConsumerConfig;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
 import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
@@ -133,7 +131,6 @@ public class PartitionReader {
           } catch (Throwable e) {
             LOG.warn("Error in run", e);
             prMetrics.incrementHandledExceptions();
-            // throw new IllegalArgumentException("Error in run" + e);
           }
           long finishTime = System.currentTimeMillis();
           LOG.debug("Execution took ms : " + (finishTime - startTime));
@@ -194,10 +191,11 @@ public class PartitionReader {
   void execute() {
     assert (reader != null);
     try {
-      reader.openStream();
+      boolean closeReader = false;
+      closeReader = !(reader.openStream());
       LOG.info("Reading file " + reader.getCurrentFile() + 
           " and lineNum:" + reader.getCurrentLineNum());
-      while (!stopped) {
+      while (!stopped && !closeReader) {
         Message msg = reader.readLine();
         if (msg != null) {
           // add the data to queue
@@ -205,12 +203,15 @@ public class PartitionReader {
           buffer.put(new QueueEntry(msg, partitionId, checkpoint));
           prMetrics.incrementMessagesAddedToBuffer();
         } else {
-          LOG.info("No stream to read");
-          putEOFMessageInBuffer();
-          // close the reader if reader's status is "closing"
-          close();
-          return;
+          closeReader = true;
         }
+      }
+      if (closeReader) {
+        LOG.info("No stream to read");
+        putEOFMessageInBuffer();
+        // close the reader if reader's status is "closing"
+        close();
+        return;
       }
     } catch (InterruptedException ie) {
       LOG.info("Interrupted while reading stream", ie);

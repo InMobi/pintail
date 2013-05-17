@@ -22,6 +22,7 @@ import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.partition.PartitionReader;
 import com.inmobi.databus.readers.DatabusStreamWaitingReader;
+import com.inmobi.messaging.EOFMessage;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
 import com.inmobi.messaging.consumer.util.HadoopUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
@@ -217,6 +218,7 @@ public abstract class TestAbstractClusterReader {
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 0, 100, partitionId,
         buffer, isDatabusData());
+    Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -257,6 +259,7 @@ public abstract class TestAbstractClusterReader {
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 0, 100, partitionId,
         buffer, isDatabusData());
+    Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -306,6 +309,7 @@ public abstract class TestAbstractClusterReader {
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 0, 100, partitionId,
         buffer, isDatabusData());
+    Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -346,6 +350,7 @@ public abstract class TestAbstractClusterReader {
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 0, 100, partitionId,
         buffer, isDatabusData());
+    Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -387,6 +392,7 @@ public abstract class TestAbstractClusterReader {
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 0, 100, partitionId,
         buffer, isDatabusData());
+    Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -430,6 +436,7 @@ public abstract class TestAbstractClusterReader {
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 0, 100, partitionId,
         buffer, isDatabusData());
+    Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -504,7 +511,7 @@ public abstract class TestAbstractClusterReader {
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[0])), 1, 20, 80, partitionId,
         buffer, isDatabusData());
-
+    Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -557,7 +564,8 @@ public abstract class TestAbstractClusterReader {
         buffer, isDatabusData());
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 20, 80, partitionId,
-        buffer, isDatabusData()); 
+        buffer, isDatabusData());
+    Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -616,6 +624,7 @@ public abstract class TestAbstractClusterReader {
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 20, 80, partitionId,
         buffer, isDatabusData());
+    Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -734,7 +743,8 @@ public abstract class TestAbstractClusterReader {
         buffer, isDatabusData());
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 20, 80, partitionId,
-        buffer, isDatabusData()); 
+        buffer, isDatabusData());
+    Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -782,6 +792,7 @@ public abstract class TestAbstractClusterReader {
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 0, 100, partitionId,
         buffer, isDatabusData());
+    Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -841,6 +852,7 @@ public abstract class TestAbstractClusterReader {
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 20, 80, partitionId,
         buffer, isDatabusData());
+    Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -905,7 +917,8 @@ public abstract class TestAbstractClusterReader {
         buffer, isDatabusData());
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 20, 80, partitionId,
-        buffer, isDatabusData()); 
+        buffer, isDatabusData());
+    Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),

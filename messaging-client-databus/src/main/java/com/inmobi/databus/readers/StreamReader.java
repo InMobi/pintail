@@ -56,8 +56,8 @@ public abstract class StreamReader<T extends StreamFile> {
     return true;
   }
 
-  public void openStream() throws IOException {
-    openCurrentFile(false);
+  public boolean openStream() throws IOException {
+    return openCurrentFile(false);
   }
 
   public void closeStream() throws IOException {
@@ -79,7 +79,7 @@ public abstract class StreamReader<T extends StreamFile> {
     return fileMap.setIterator(currentFile);
   }
 
-  protected abstract void openCurrentFile(boolean next) throws IOException;
+  protected abstract boolean openCurrentFile(boolean next) throws IOException;
   
   protected abstract void closeCurrentFile() throws IOException; 
   protected void initCurrentFile() {
@@ -351,7 +351,7 @@ public abstract class StreamReader<T extends StreamFile> {
   }
 
   public boolean isStopped() {
-    return listingStopped;
+    return hasReadFully();
   }
 
   protected void stopListing() {

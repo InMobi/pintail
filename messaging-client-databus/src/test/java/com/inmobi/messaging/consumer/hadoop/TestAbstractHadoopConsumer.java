@@ -287,7 +287,7 @@ public abstract class TestAbstractHadoopConsumer {
     config.set(MessageConsumerFactory.ABSOLUTE_START_TIME,
         AbstractMessageConsumer.minDirFormat.get().format(absoluteStartTime));
     Date stopDate = DatabusStreamWaitingReader.
-        getDateFromStreamDir(rootDirs[0], finalPaths[0][2]);
+        getDateFromStreamDir(rootDirs[0], finalPaths[0][1]);
     config.set(HadoopConsumerConfig.stopDateConfig,
         AbstractMessageConsumer.minDirFormat.get().format(stopDate));
     ConsumerUtil.testConsumerWithStopTime(config,

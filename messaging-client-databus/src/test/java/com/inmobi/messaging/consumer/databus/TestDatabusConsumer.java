@@ -248,7 +248,7 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
     config.set(MessageConsumerFactory.ABSOLUTE_START_TIME,
         AbstractMessageConsumer.minDirFormat.get().format(absoluteStartTime));
     config.set(DatabusConsumerConfig.checkpointDirConfig, ck14);
-    Date stopDate = CollectorStreamReader.getDateFromCollectorFile(dataFiles[2]);
+    Date stopDate = CollectorStreamReader.getDateFromCollectorFile(dataFiles[1]);
     config.set(DatabusConsumerConfig.stopDateConfig,
         AbstractMessageConsumer.minDirFormat.get().format(stopDate));
     ConsumerUtil.testConsumerWithStopTime(config,

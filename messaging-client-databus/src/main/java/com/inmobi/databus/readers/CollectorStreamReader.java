@@ -127,8 +127,11 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     sameStream = false;
   }
 
-  protected void openCurrentFile(boolean next) throws IOException {
+  protected boolean openCurrentFile(boolean next) throws IOException {
     closeCurrentFile();
+    if (getCurrentFile() == null) {
+      return false;
+    }
     if (next) {
       resetCurrentFileSettings();
     } 
@@ -142,6 +145,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     } else {
       LOG.info("CurrentFile:" + getCurrentFile() + " does not exist");
     }
+    return true;
   }
 
   protected synchronized void closeCurrentFile() throws IOException {

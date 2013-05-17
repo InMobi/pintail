@@ -28,6 +28,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   private CollectorStreamReader cReader;
   private final CollectorReaderStatsExposer metrics;
   private Date stopDate;
+  private boolean noNewFiles;
 
   CollectorReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, FileSystem fs,
@@ -44,6 +45,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     this.partitionCheckpoint = partitionCheckpoint;
     this.stopDate = stopDate;
     this.metrics = metrics;
+    this.noNewFiles = noNewFiles;
     lReader = new LocalStreamCollectorReader(partitionId,  fs, streamName,
         streamsLocalDir, conf, waitTimeForFileCreate, metrics, stopDate);
     cReader = new CollectorStreamReader(partitionId, fs, streamName,
@@ -129,14 +131,13 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   public Message readLine() throws IOException, InterruptedException {
     assert (reader != null);
     Message line = super.readLine();
-    if (line == null) {
+    while (line == null) {
       if (closed) {
         return line;
       }
       if (stopDate != null && reader.isStopped()) {
         return null;
       }
-
       if (reader == lReader) {
         lReader.closeStream();
         LOG.info("Switching to collector stream as we reached end of" +
@@ -167,6 +168,15 @@ public class CollectorReader extends AbstractPartitionStreamReader {
           reader = lReader;
           metrics.incrementSwitchesFromCollectorToLocal();
         }
+      }
+      boolean ret = reader.openStream();
+      if (ret) {
+        line = super.readLine();
+        if (line == null && noNewFiles) {
+          return null;
+        }
+      } else {
+        return null;
       }
     }
     return line;
