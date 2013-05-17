@@ -73,9 +73,8 @@ public class PartitionReader {
         ((CollectorReaderStatsExposer)prMetrics), noNewFiles, stopDate);
     // initialize cluster and its directories
     LOG.info("Partition reader initialized with partitionId:" + partitionId +
-        " checkPoint:" + partitionCheckpoint +  
-        " startTime:" + startTime +
-        " currentReader:" + reader);
+    " checkPoint:" + partitionCheckpoint + " startTime:" + startTime
+        + " stopTime:" + stopDate + " currentReader:" + reader);
   }
 
   PartitionReader(PartitionId partitionId,
