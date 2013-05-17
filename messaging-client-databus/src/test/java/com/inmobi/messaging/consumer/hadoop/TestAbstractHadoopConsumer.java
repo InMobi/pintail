@@ -40,6 +40,7 @@ public abstract class TestAbstractHadoopConsumer {
   protected String ck13;
   protected String ck14;
   protected String ck15;
+  protected String ck16;
 
   int numMessagesPerFile = 100;
   int numDataFiles;
@@ -53,7 +54,7 @@ public abstract class TestAbstractHadoopConsumer {
   protected String consumerName;
   protected Path[] rootDirs;
   protected String[] chkDirs = new String[]{ck1, ck2, ck3, ck4, ck5, ck6, ck7,
-      ck8, ck9, ck10, ck11, ck12, ck13, ck14, ck15};
+      ck8, ck9, ck10, ck11, ck12, ck13, ck14, ck15, ck16};
   Path[][] finalPaths;
   Configuration conf;
   protected final String relativeStartTime = "20";
@@ -292,6 +293,25 @@ public abstract class TestAbstractHadoopConsumer {
         AbstractMessageConsumer.minDirFormat.get().format(stopDate));
     ConsumerUtil.testConsumerWithStopTime(config,
         testStream, consumerName, absoluteStartTime, true, stopDate);
+  }
+
+  public void testConsumerWithStopTimeBeyondCheckpoint() throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(HadoopConsumerConfig.rootDirsConfig,
+        rootDirs[0].toString());
+    config.set(HadoopConsumerConfig.checkpointDirConfig, ck16);
+    Date absoluteStartTime = DatabusStreamWaitingReader.
+        getDateFromStreamDir(rootDirs[0], finalPaths[0][0]);
+    config.set(MessageConsumerFactory.ABSOLUTE_START_TIME,
+        AbstractMessageConsumer.minDirFormat.get().format(absoluteStartTime));
+    Date stopDate = DatabusStreamWaitingReader.
+        getDateFromStreamDir(rootDirs[0], finalPaths[0][1]);
+    Date stopDateForCheckpoint = DatabusStreamWaitingReader.
+        getDateFromStreamDir(rootDirs[0], finalPaths[0][0]);
+    config.set(HadoopConsumerConfig.stopDateConfig,
+        AbstractMessageConsumer.minDirFormat.get().format(stopDate));
+    ConsumerUtil.testConsumerWithStopTimeBeyondCheckpoint(config,
+        testStream, consumerName, absoluteStartTime, true, stopDateForCheckpoint);
   }
 
   public void cleanup() throws IOException {

@@ -32,6 +32,7 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
   private String ck12 = "/tmp/test/databustest2/checkpoint10";
   private String ck13 = "/tmp/test/databustest2/checkpoint11";
   private String ck14 = "/tmp/test/databustest2/checkpoint12";
+  private String ck15 = "/tmp/test/databustest2/checkpoint13";
 
   ClientConfig loadConfig() {
     return ClientConfig.loadFromClasspath(
@@ -253,6 +254,25 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
         AbstractMessageConsumer.minDirFormat.get().format(stopDate));
     ConsumerUtil.testConsumerWithStopTime(config,
         testStream, consumerName, absoluteStartTime, false, stopDate);
+  }
+  
+  //@Test
+  public void testConsumerWithStopTimeBeyondCheckpoint() throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+        rootDirs[0].toUri().toString());
+    Date absoluteStartTime = CollectorStreamReader.
+        getDateFromCollectorFile(dataFiles[0]);
+    config.set(MessageConsumerFactory.ABSOLUTE_START_TIME,
+        AbstractMessageConsumer.minDirFormat.get().format(absoluteStartTime));
+    config.set(DatabusConsumerConfig.checkpointDirConfig, ck15);
+    Date stopDate = CollectorStreamReader.getDateFromCollectorFile(dataFiles[1]);
+    Date stopDateForCheckpoint = CollectorStreamReader.
+        getDateFromCollectorFile(dataFiles[0]);
+    config.set(DatabusConsumerConfig.stopDateConfig,
+        AbstractMessageConsumer.minDirFormat.get().format(stopDate));
+    ConsumerUtil.testConsumerWithStopTimeBeyondCheckpoint(config,
+        testStream, consumerName, absoluteStartTime, false, stopDateForCheckpoint);
   }
 
   @AfterTest

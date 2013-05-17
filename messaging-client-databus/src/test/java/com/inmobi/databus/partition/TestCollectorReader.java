@@ -1,6 +1,8 @@
 package com.inmobi.databus.partition;
 
 import java.io.IOException;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.hadoop.conf.Configuration;
@@ -422,6 +424,44 @@ public class TestCollectorReader {
     Assert.assertEquals(prMetrics.getSwitchesFromCollectorToLocal(), 0);
     Assert.assertEquals(prMetrics.getSwitchesFromLocalToCollector(), 1);
     Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
+  }
+  
+  @Test
+  public void testReadFromCheckpointWithCollectorFileNameWithStopTime()
+      throws Exception {
+    CollectorReaderStatsExposer prMetrics = new CollectorReaderStatsExposer(
+        testStream, "c1", partitionId.toString(), consumerNumber);
+    Date stopDate = CollectorStreamReader.getDateFromCollectorFile(files[0]);
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(stopDate);
+    cal.add(Calendar.HOUR_OF_DAY, -2);
+    System.out.println("Stop date " + stopDate + " " + cal.getTime());
+    preader = new PartitionReader(partitionId, new PartitionCheckpoint(
+        CollectorStreamReader.getCollectorFile(files[1]), 20), conf, fs,
+        collectorDir, streamsLocalDir, buffer, testStream, null,
+        10, 1000, prMetrics, true,
+        cal.getTime());
+    preader.init();
+    Assert.assertTrue(buffer.isEmpty());
+    preader.execute();
+    Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
+  }
+  
+  @Test
+  public void testReadFromCheckpointWithStopTime()
+      throws Exception {
+    CollectorReaderStatsExposer prMetrics = new CollectorReaderStatsExposer(
+        testStream, "c1", partitionId.toString(), consumerNumber);
+    Date stopDate = CollectorStreamReader.getDateFromCollectorFile(files[0]);
+    preader = new PartitionReader(partitionId, new PartitionCheckpoint(
+        CollectorStreamReader.getCollectorFile(files[1]), 20), conf, fs,
+        collectorDir, streamsLocalDir, buffer, testStream, null,
+        10, 1000, prMetrics, true,
+        stopDate);
+    preader.init();
+    Assert.assertTrue(buffer.isEmpty());
+    preader.execute();
+    Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
   }
 
   @Test
