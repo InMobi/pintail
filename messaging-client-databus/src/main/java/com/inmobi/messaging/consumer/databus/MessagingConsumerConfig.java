@@ -40,7 +40,7 @@ public interface MessagingConsumerConfig {
       "messaging.consumer.relative.starttime.inminutes";
 
   public static final String stopDateConfig =
-      "messaging.consumer.stopdate";
+      "messaging.consumer.absolute.stopdate";
 
   public static final String hadoopConfigFileKey =
       "messaging.consumer.hadoop.conf";
