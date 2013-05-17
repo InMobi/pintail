@@ -55,7 +55,7 @@ public class SampleTestConsumer extends MockConsumer {
 
 
   @Override
-  protected Message getNext() throws InterruptedException {
+  protected Message getNext() throws InterruptedException, EndOfStreamException {
     return new Message(messages.take());
     
   }

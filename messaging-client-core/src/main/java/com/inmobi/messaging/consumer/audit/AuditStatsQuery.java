@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import com.inmobi.audit.thrift.AuditMessage;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.consumer.EndOfStreamException;
 import com.inmobi.messaging.consumer.MessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
 import com.inmobi.messaging.consumer.audit.GroupBy.Group;
@@ -99,7 +100,7 @@ public class AuditStatsQuery {
   }
 
   void aggregateStats(MessageConsumer consumer) throws InterruptedException,
-      TException, ParseException, IOException {
+      TException, ParseException, IOException, EndOfStreamException {
     Message message = null;
     TDeserializer deserialize = new TDeserializer();
     AuditMessage packet;
@@ -159,7 +160,7 @@ public class AuditStatsQuery {
   }
 
   public void execute() throws ParseException, IOException,
-      InterruptedException, TException {
+      InterruptedException, TException, EndOfStreamException {
     try {
       parseAndSetArguments();
       aggregateStats(consumer);

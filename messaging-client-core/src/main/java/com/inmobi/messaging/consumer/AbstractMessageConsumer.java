@@ -67,19 +67,21 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
 
   protected abstract void doReset() throws IOException;
 
-  protected abstract Message getNext() throws InterruptedException;
+  protected abstract Message getNext()
+      throws InterruptedException, EndOfStreamException;
 
   protected abstract Message getNext(long timeout, TimeUnit timeunit)
-      throws InterruptedException;
+      throws InterruptedException, EndOfStreamException;
 
-  public synchronized Message next() throws InterruptedException {
+  public synchronized Message next()
+      throws InterruptedException, EndOfStreamException {
     Message msg = getNext();
     metrics.incrementMessagesConsumed();
     return msg;
   }
 
   public synchronized Message next(long timeout, TimeUnit timeunit)
-      throws InterruptedException {
+      throws InterruptedException, EndOfStreamException {
     Message msg = getNext(timeout, timeunit);
     if (msg != null) {
       metrics.incrementMessagesConsumed();
@@ -182,16 +184,16 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
     return metrics;
   }
 
-  public static Date getDateFromString(String absoluteStartTime) {
-    if (absoluteStartTime != null) {
-      String dateString = absoluteStartTime.substring(0,
+  public static Date getDateFromString(String timeStamp) {
+    if (timeStamp != null) {
+      String dateString = timeStamp.substring(0,
           minDirFormatStr.length());
       try {
         return minDirFormat.get().parse(dateString);
       } catch (java.text.ParseException e) {
-        throw new IllegalArgumentException("Incorrect format of startTime" +
-            " passed " + " absolute startTime should be in this format: " + 
-            minDirFormatStr);
+        throw new IllegalArgumentException("Incorrect format of " +
+            "startTime/stopDate passed " +  " Absolute startTime/stopDate " +
+            "should be in this format: " +  minDirFormatStr);
       }
     }
     return null;

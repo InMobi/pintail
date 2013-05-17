@@ -18,18 +18,19 @@ public interface MessageConsumer {
    * stream
    * 
    * @return {@link Message} object
-   * 
    * @throws InterruptedException 
+   * @throws EndOfStreamException TODO
    */
-  public Message next() throws InterruptedException;
+  public Message next() throws InterruptedException, EndOfStreamException;
   
   /**
    * Reads the next message if it is available with in the specified timeout.
    * Otherwise returns null
    * @throws InterruptedException
+   * @throws EndOfStreamException TODO
    */
   public Message next(long timeout, TimeUnit timeunit) 
-      throws InterruptedException;
+      throws InterruptedException, EndOfStreamException;
 
   /**
    * Tells if this interface supports <code>mark</code> and <code>reset</code>

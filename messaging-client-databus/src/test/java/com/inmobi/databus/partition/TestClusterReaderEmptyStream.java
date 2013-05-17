@@ -82,7 +82,7 @@ public class TestClusterReaderEmptyStream {
         streamDir, conf, inputFormatClass,
         CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[0]), 
         1000,
-        false, prMetrics, true, partitionMinList);       
+        false, prMetrics, true, partitionMinList, null);
     preader.init();
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -98,7 +98,7 @@ public class TestClusterReaderEmptyStream {
             "dummyfile", 0L), 20, partitionCheckpointList);
     preader = new PartitionReader(clusterId, partitionCheckpointList, fs, buffer,
         streamDir, conf, inputFormatClass, null, 
-        1000, false, prMetrics, true, partitionMinList);
+        1000, false, prMetrics, true, partitionMinList, null);
     preader.init();
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -116,7 +116,7 @@ public class TestClusterReaderEmptyStream {
         streamDir, conf, inputFormatClass,
         CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[0]), 
         1000,
-        false, prMetrics, true, partitionMinList); 
+        false, prMetrics, true, partitionMinList, null);
     preader.init();
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),

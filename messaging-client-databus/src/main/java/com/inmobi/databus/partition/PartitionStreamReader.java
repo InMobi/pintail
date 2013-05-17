@@ -14,7 +14,7 @@ public interface PartitionStreamReader {
   
   long getCurrentLineNum();
 
-  void openStream() throws IOException;
+  boolean openStream() throws IOException;
   
   Message readLine() throws IOException, InterruptedException;
   

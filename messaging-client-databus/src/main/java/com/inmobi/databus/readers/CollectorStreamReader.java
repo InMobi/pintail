@@ -46,8 +46,8 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
       FileSystem fs, String streamName, Path streamDir,
       long waitTimeForFlush,
       long waitTimeForCreate, CollectorReaderStatsExposer metrics,
-      Configuration conf, boolean noNewFiles) throws IOException {
-    super(partitionId, fs, streamDir, waitTimeForCreate, metrics, noNewFiles);
+      Configuration conf, boolean noNewFiles, Date stopDate) throws IOException {
+    super(partitionId, fs, streamDir, waitTimeForCreate, metrics, noNewFiles, stopDate);
     this.streamName = streamName;
     this.waitTimeForFlush = waitTimeForFlush;
     this.collectorMetrics = (CollectorReaderStatsExposer)(this.metrics);
@@ -90,6 +90,14 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
             return;
           }
           for (FileStatus file : fileStatuses) {
+            if (stopDate != null) {
+              Date currentTimeStamp = getDateFromCollectorFile(
+                  file.getPath().getName());
+              if (stopDate.before(currentTimeStamp)) {
+                stopListing();
+                continue;
+              }
+            }
             addPath(file);
           }
         } else {
@@ -119,8 +127,11 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     sameStream = false;
   }
 
-  protected void openCurrentFile(boolean next) throws IOException {
+  protected boolean openCurrentFile(boolean next) throws IOException {
     closeCurrentFile();
+    if (getCurrentFile() == null) {
+      return false;
+    }
     if (next) {
       resetCurrentFileSettings();
     } 
@@ -134,6 +145,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     } else {
       LOG.info("CurrentFile:" + getCurrentFile() + " does not exist");
     }
+    return true;
   }
 
   protected synchronized void closeCurrentFile() throws IOException {
@@ -210,7 +222,11 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
         if (noNewFiles) {
           // this boolean check is only for tests 
           return null;
-        } 
+        }
+        if (hasReadFully()) {
+          LOG.info("read all files till stop date");
+          break;
+        }
         if (!setIterator()) {
           LOG.info("Could not find current file in the stream");
           if (isWithinStream(getCurrentFile().getName())) {
@@ -277,7 +293,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
 
   private void waitForNextFileCreation(String fileName) 
       throws IOException, InterruptedException {
-    while (!closed && !setNextHigher(fileName)) {
+    while (!closed && !setNextHigher(fileName) && !hasReadFully()) {
       LOG.info("Waiting for next file creation");
       waitForFileCreate();
       build();

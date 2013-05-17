@@ -39,12 +39,13 @@ public class DatabusStreamWaitingReader
       Path streamDir,  String inputFormatClass, Configuration conf,
       long waitTimeForFileCreate, PartitionReaderStatsExposer metrics,
       boolean noNewFiles, Set<Integer> partitionMinList, 
-      PartitionCheckpointList partitionCheckpointList)
+      PartitionCheckpointList partitionCheckpointList, Date stopDate)
           throws IOException {
     super(partitionId, fs, streamDir, inputFormatClass, conf,
-        waitTimeForFileCreate, metrics, noNewFiles);
+        waitTimeForFileCreate, metrics, noNewFiles, stopDate);
     this.partitionCheckpointList = partitionCheckpointList;
     this.partitionMinList = partitionMinList; 
+    this.stopDate = stopDate;
     currentMin = -1;
   }
 
@@ -130,6 +131,11 @@ public class DatabusStreamWaitingReader
       if (fs.exists(hhDir)) {
         while (current.getTime().before(now) && 
             hour  == current.get(Calendar.HOUR_OF_DAY)) {
+          // stop the file listing if stop date is beyond current time.
+          if (checkAndSetStopDateReached(current)) {
+            breakListing = true;
+            break;
+          }
           Path dir = getMinuteDirPath(streamDir, current.getTime());
           int min = current.get(Calendar.MINUTE);
           Date currenTimestamp = current.getTime();
@@ -148,7 +154,7 @@ public class DatabusStreamWaitingReader
                 breakListing = true;
                 break;
               }
-            } 
+            }
           }
         } 
       } else {
@@ -169,6 +175,16 @@ public class DatabusStreamWaitingReader
       cal.setTime(currentDate);
       currentMin = cal.get(Calendar.MINUTE);
     }
+  }
+
+  private boolean checkAndSetStopDateReached(Calendar current) {
+    if (stopDate != null && stopDate.before(current.getTime())) {
+      LOG.info("Reached stopDate. Not listing from after" +
+          " the stop date ");
+      stopListing();
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -223,7 +239,7 @@ public class DatabusStreamWaitingReader
     this.currentFile = fileToRead;
     setIterator();
     return !readFromCheckpoint;
-  }  
+  }
 
   private void updatePartitionCheckpointList(int prevMin) {
     Map<Integer, PartitionCheckpoint> pckList = partitionCheckpointList.
@@ -255,7 +271,7 @@ public class DatabusStreamWaitingReader
 
   private void waitForNextFileCreation(FileStatus file)
       throws IOException, InterruptedException {
-    while (!closed && !setNextHigherAndOpen(file)) {
+    while (!closed && !setNextHigherAndOpen(file) && !hasReadFully()) {
       LOG.info("Waiting for next file creation");
       waitForFileCreate();
       build();
@@ -279,7 +295,11 @@ public class DatabusStreamWaitingReader
           if (noNewFiles) {
             // this boolean check is only for tests 
             return null;
-          } 
+          }
+          if (hasReadFully()) {
+            LOG.info("read all files till stop date");
+            break;
+          }
           LOG.info("Could not find next file");
           startFromNextHigher(currentFile);
           LOG.info("Reading from next higher file "+ getCurrentFile());

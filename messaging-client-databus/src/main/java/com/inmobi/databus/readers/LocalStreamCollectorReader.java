@@ -31,16 +31,46 @@ public class LocalStreamCollectorReader extends
       LocalStreamCollectorReader.class);
 
   private final String collector;
-  
+
   public LocalStreamCollectorReader(PartitionId partitionId, 
       FileSystem fs, String streamName, Path streamDir, Configuration conf,
-      long waitTimeForFileCreate, CollectorReaderStatsExposer metrics)
+      long waitTimeForFileCreate, CollectorReaderStatsExposer metrics,
+      Date stopDate)
           throws IOException {
     super(partitionId, fs, streamDir,
         DatabusInputFormat.class.getCanonicalName(), conf, waitTimeForFileCreate,
-        metrics, false);
+        metrics, false, stopDate);
+    this.stopDate = stopDate;
     this.streamName = streamName;
     this.collector = partitionId.getCollector();
+  }
+
+  @Override
+  protected void doRecursiveListing(Path dir, PathFilter pathFilter,
+      FileMap<DatabusStreamFile> fmap) throws IOException {
+    FileStatus[] fileStatuses = fs.listStatus(dir, pathFilter);
+    if (fileStatuses == null || fileStatuses.length == 0) {
+      LOG.debug("No files in directory:" + dir);
+    } else {
+      for (FileStatus file : fileStatuses) {
+        if (file.isDir()) {
+          doRecursiveListing(file.getPath(), pathFilter, fmap);
+        } else {
+          try {
+            Date currentTimeStamp = LocalStreamCollectorReader.
+                getDateFromStreamFile(streamName, file.getPath().getName());
+            if (stopDate != null && stopDate.before(currentTimeStamp)) {
+              LOG.info("stop date is beyond the file time stamp ");
+              stopListing();
+            } else {
+              fmap.addPath(file);
+            }
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+        }
+      }
+    }
   }
 
   protected void buildListing(FileMap<DatabusStreamFile> fmap, PathFilter pathFilter)
@@ -48,6 +78,7 @@ public class LocalStreamCollectorReader extends
     Calendar current = Calendar.getInstance();
     Date now = current.getTime();
     current.setTime(buildTimestamp);
+    boolean breakListing = false;
     while (current.getTime().before(now)) {
       Path hhDir =  getHourDirPath(streamDir, current.getTime());
       int hour = current.get(Calendar.HOUR_OF_DAY);
@@ -55,6 +86,10 @@ public class LocalStreamCollectorReader extends
         while (current.getTime().before(now) && 
             hour  == current.get(Calendar.HOUR_OF_DAY)) {
           Path dir = getMinuteDirPath(streamDir, current.getTime());
+          if (isListingStopped()) {
+            breakListing = true;
+            break;
+          }
           // Move the current minute to next minute
           current.add(Calendar.MINUTE, 1);
           doRecursiveListing(dir, pathFilter, fmap);
@@ -64,6 +99,9 @@ public class LocalStreamCollectorReader extends
         LOG.info("Hour directory " + hhDir + " does not exist");
         current.add(Calendar.HOUR_OF_DAY, 1);
         current.set(Calendar.MINUTE, 0);
+      }
+      if (breakListing) {
+        break;
       }
     }
   }
@@ -79,41 +117,41 @@ public class LocalStreamCollectorReader extends
 
   public FileMap<DatabusStreamFile> createFileMap() throws IOException {
     return new FileMap<DatabusStreamFile>() {
-    @Override
-    protected void buildList() throws IOException {
-      buildListing(this, pathFilter);
-    }
-    
-    @Override
-    protected TreeMap<DatabusStreamFile, FileStatus> createFilesMap() {
-      return new TreeMap<DatabusStreamFile, FileStatus>();
-    }
+      @Override
+      protected void buildList() throws IOException {
+        buildListing(this, pathFilter);
+      }
 
-    @Override
-    protected DatabusStreamFile getStreamFile(String fileName) {
-      return DatabusStreamFile.create(streamName, fileName);
-    }
+      @Override
+      protected TreeMap<DatabusStreamFile, FileStatus> createFilesMap() {
+        return new TreeMap<DatabusStreamFile, FileStatus>();
+      }
 
-    @Override
-    protected DatabusStreamFile getStreamFile(FileStatus file) {
-      return DatabusStreamFile.create(streamName, file.getPath().getName());
-    }
+      @Override
+      protected DatabusStreamFile getStreamFile(String fileName) {
+        return DatabusStreamFile.create(streamName, fileName);
+      }
 
-    @Override
-    protected PathFilter createPathFilter() {
-      return new PathFilter() {
-        @Override
-        public boolean accept(Path p) {
-          if (p.getName().startsWith(collector)) {
-            return true;
-          }
-          return false;
-        }          
-      };
-    }
+      @Override
+      protected DatabusStreamFile getStreamFile(FileStatus file) {
+        return DatabusStreamFile.create(streamName, file.getPath().getName());
+      }
+
+      @Override
+      protected PathFilter createPathFilter() {
+        return new PathFilter() {
+          @Override
+          public boolean accept(Path p) {
+            if (p.getName().startsWith(collector)) {
+              return true;
+            }
+            return false;
+          }          
+        };
+      }
     };
   }
-  
+
   public Message readLine() throws IOException {
     Message line = readNextLine();
     while (line == null) { // reached end of file
@@ -125,7 +163,7 @@ public class LocalStreamCollectorReader extends
       if (!nextFile()) { // reached end of file list
         LOG.info("could not find next file. Rebuilding");
         build(getDateFromDatabusStreamFile(streamName,
-        getCurrentFile().getName()));
+            getCurrentFile().getName()));
         if (!setIterator()) {
           LOG.info("Could not find current file in the stream");
           // set current file to next higher entry

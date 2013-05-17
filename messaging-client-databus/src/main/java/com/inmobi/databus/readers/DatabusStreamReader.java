@@ -51,9 +51,9 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
   protected DatabusStreamReader(PartitionId partitionId, FileSystem fs,
       Path streamDir, String inputFormatClass,
       Configuration conf, long waitTimeForFileCreate,
-      PartitionReaderStatsExposer metrics, boolean noNewFiles)
+      PartitionReaderStatsExposer metrics, boolean noNewFiles, Date stopDate)
           throws IOException {
-    super(partitionId, fs, streamDir, waitTimeForFileCreate, metrics, noNewFiles);
+    super(partitionId, fs, streamDir, waitTimeForFileCreate, metrics, noNewFiles, stopDate);
     this.conf = conf;
     try {
       input = (InputFormat<Object, Object>) ReflectionUtils.newInstance(
@@ -109,8 +109,11 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
     return ret;
   }
 
-  protected void openCurrentFile(boolean next) throws IOException {
+  protected boolean openCurrentFile(boolean next) throws IOException {
     closeCurrentFile();
+    if (getCurrentFile() == null) {
+      return false;
+    }
     if (next) {
       resetCurrentFileSettings();
     }
@@ -138,6 +141,7 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
     } catch (FileNotFoundException fnfe) {
       LOG.info("CurrentFile:" + getCurrentFile() + " does not exist");
     }
+    return true;
   }
 
   protected synchronized void closeCurrentFile() throws IOException {
