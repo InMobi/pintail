@@ -199,6 +199,11 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
     return null;
   }
 
+  public static String getStringFromDate(Date date) {
+    DateFormat formatter = new SimpleDateFormat(minDirFormatStr);
+    return formatter.format(date);
+  }
+
   /**
    * Add statsExposer to the emitter.
    * 
