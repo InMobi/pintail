@@ -49,7 +49,7 @@ public abstract class StreamReader<T extends StreamFile> {
     this.stopDate = stopDate;
     this.fileMap = createFileMap();
   }
-  
+
   public boolean prepareMoveToNext(FileStatus currentFile, FileStatus nextFile)
       throws IOException {
     this.currentFile = nextFile;
@@ -80,7 +80,7 @@ public abstract class StreamReader<T extends StreamFile> {
   }
 
   protected abstract boolean openCurrentFile(boolean next) throws IOException;
-  
+
   protected abstract void closeCurrentFile() throws IOException; 
   protected void initCurrentFile() {
     currentFile = null;
@@ -286,8 +286,8 @@ public abstract class StreamReader<T extends StreamFile> {
     }
   }
 
-  public void startFromTimestmp(Date timestamp) throws IOException,
-      InterruptedException {
+  public void startFromTimestmp(Date timestamp)
+      throws IOException, InterruptedException {
     if (!initializeCurrentFile(timestamp)) {
       if (noNewFiles) {
         // this boolean check is only for tests 
@@ -313,7 +313,7 @@ public abstract class StreamReader<T extends StreamFile> {
   }
 
   private void waitForNextFileCreation() throws IOException,
-      InterruptedException {
+  InterruptedException {
     while (!closed && !initFromStart() && !hasReadFully()) {
       LOG.info("Waiting for next file creation");
       waitForFileCreate();
@@ -321,8 +321,8 @@ public abstract class StreamReader<T extends StreamFile> {
     }
   }
 
-  private void waitForNextFileCreation(Date timestamp) throws IOException,
-      InterruptedException {
+  private void waitForNextFileCreation(Date timestamp)
+      throws IOException, InterruptedException {
     while (!closed && !initializeCurrentFile(timestamp) && !hasReadFully()) {
       LOG.info("Waiting for next file creation");
       waitForFileCreate();
@@ -337,13 +337,13 @@ public abstract class StreamReader<T extends StreamFile> {
   public boolean isBeforeStream(String fileName) throws IOException {
     return fileMap.isBefore(fileName);
   }
-  
+
   protected boolean isWithinStream(String fileName) throws IOException {
     return fileMap.isWithin(fileName);
   }
-  
+
   protected FileStatus getFirstFileInStream() {
-  	return fileMap.getFirstFile();
+    return fileMap.getFirstFile();
   }
 
   protected FileStatus getFileMapValue(StreamFile streamFile) {
@@ -365,6 +365,9 @@ public abstract class StreamReader<T extends StreamFile> {
   protected boolean hasReadFully() {
     if (isListingStopped()) {
       if (fileMap.isEmpty()) {
+        return true;
+      }
+      if (currentFile == null) {
         return true;
       }
       if (setIterator()) {

@@ -192,9 +192,15 @@ public class PartitionReader {
     assert (reader != null);
     try {
       boolean closeReader = false;
-      closeReader = !(reader.openStream());
-      LOG.info("Reading file " + reader.getCurrentFile() + 
-          " and lineNum:" + reader.getCurrentLineNum());
+      if (reader.shouldBeClosed()) {
+        closeReader = true;
+      } else {
+        closeReader = !(reader.openStream());
+      }
+      if (!closeReader) {
+        LOG.info("Reading file " + reader.getCurrentFile() + 
+            " and lineNum:" + reader.getCurrentLineNum());
+      }
       while (!stopped && !closeReader) {
         Message msg = reader.readLine();
         if (msg != null) {

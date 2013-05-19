@@ -30,6 +30,8 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   private Date stopDate;
   private boolean noNewFiles;
 
+  private boolean shouldBeClosed = false;
+
   CollectorReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, FileSystem fs,
       String streamName,
@@ -72,6 +74,8 @@ public class CollectorReader extends AbstractPartitionStreamReader {
           DatabusStreamFile.create(streamName, localStreamFileName),
           partitionCheckpoint.getLineNum()))) {
         reader = lReader;
+      } else if (lReader.isStopped()) {
+        shouldBeClosed  = true;
       } else {
         throw new IllegalArgumentException(error);
       } 
@@ -83,12 +87,18 @@ public class CollectorReader extends AbstractPartitionStreamReader {
         if (!reader.initFromStart()) {
           throw new IllegalArgumentException(error);
         }
+      } else if (cReader.isStopped()) {
+        shouldBeClosed  = true;
       } else {
         throw new IllegalArgumentException(error);
       }
     } else {
-      reader = cReader;
-      cReader.startFromBegining();
+      if (lReader.isStopped() || cReader.isStopped()) {
+        shouldBeClosed = true;
+      } else {
+        reader = cReader;
+        cReader.startFromBegining();
+      }
     }
   }
 
@@ -124,8 +134,8 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     } else {
       LOG.info("Would never reach here");
     }
-    LOG.info("Intialized currentFile:" + reader.getCurrentFile() +
-        " currentLineNum:" + reader.getCurrentLineNum());
+    /*LOG.info("Intialized currentFile:" + reader.getCurrentFile() +
+        " currentLineNum:" + reader.getCurrentLineNum());*/
   }
 
   public Message readLine() throws IOException, InterruptedException {
@@ -186,5 +196,10 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   public MessageCheckpoint getMessageCheckpoint() {
     return new PartitionCheckpoint(reader.getCurrentStreamFile(),
         reader.getCurrentLineNum());
+  }
+
+  @Override
+  public boolean shouldBeClosed() {
+    return shouldBeClosed;
   }
 }

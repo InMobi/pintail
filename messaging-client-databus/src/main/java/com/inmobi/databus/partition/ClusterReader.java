@@ -138,4 +138,9 @@ public class ClusterReader extends AbstractPartitionStreamReader {
     }
     return consumerPartitionCheckPoint;
   }
+
+  @Override
+  public boolean shouldBeClosed() {
+    return false;
+  }
 }
