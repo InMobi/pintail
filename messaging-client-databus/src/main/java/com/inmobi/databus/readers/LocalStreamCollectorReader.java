@@ -60,7 +60,8 @@ public class LocalStreamCollectorReader extends
             Date currentTimeStamp = LocalStreamCollectorReader.
                 getDateFromStreamFile(streamName, file.getPath().getName());
             if (stopDate != null && stopDate.before(currentTimeStamp)) {
-              LOG.info("stop date is beyond the file time stamp ");
+              LOG.info("stopTime [ " + stopDate + " ] " + "is beyond the" +
+                  " current file timestamp [ " + currentTimeStamp +" ]");
               stopListing();
             } else {
               fmap.addPath(file);
