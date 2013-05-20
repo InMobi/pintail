@@ -5,6 +5,7 @@ import com.inmobi.messaging.consumer.audit.Column;
 import com.inmobi.messaging.consumer.audit.Filter;
 import com.inmobi.messaging.consumer.audit.LatencyColumns;
 import com.inmobi.messaging.consumer.audit.Tuple;
+import com.mysql.jdbc.Driver;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -20,7 +21,7 @@ public class AuditDBHelper {
   private static Connection getConnection(String url, String username,
                                           String password) {
     try {
-      DriverManager.registerDriver(new com.mysql.jdbc.Driver());
+      DriverManager.registerDriver(new Driver());
     } catch (Exception e) {
       LOG.error("Exception while registering jdbc driver ", e);
     }
