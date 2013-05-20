@@ -35,12 +35,12 @@ public class LocalStreamCollectorReader extends
   public LocalStreamCollectorReader(PartitionId partitionId, 
       FileSystem fs, String streamName, Path streamDir, Configuration conf,
       long waitTimeForFileCreate, CollectorReaderStatsExposer metrics,
-      Date stopDate)
+      Date stopTime)
           throws IOException {
     super(partitionId, fs, streamDir,
         DatabusInputFormat.class.getCanonicalName(), conf, waitTimeForFileCreate,
-        metrics, false, stopDate);
-    this.stopDate = stopDate;
+        metrics, false, stopTime);
+    this.stopTime = stopTime;
     this.streamName = streamName;
     this.collector = partitionId.getCollector();
   }
@@ -59,8 +59,8 @@ public class LocalStreamCollectorReader extends
           try {
             Date currentTimeStamp = LocalStreamCollectorReader.
                 getDateFromStreamFile(streamName, file.getPath().getName());
-            if (stopDate != null && stopDate.before(currentTimeStamp)) {
-              LOG.info("stopTime [ " + stopDate + " ] " + "is beyond the" +
+            if (stopTime != null && stopTime.before(currentTimeStamp)) {
+              LOG.info("stopTime [ " + stopTime + " ] " + "is beyond the" +
                   " current file timestamp [ " + currentTimeStamp +" ]");
               stopListing();
             } else {

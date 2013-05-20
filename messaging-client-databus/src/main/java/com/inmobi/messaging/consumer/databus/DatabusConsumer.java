@@ -143,7 +143,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
               DatabusUtil.getStreamDir(StreamType.LOCAL, rootDirs[i], topicName),
               buffer, topicName, partitionTimestamp,
               waitTimeForFlush, waitTimeForFileCreate, collectorMetrics,
-              stopDate));
+              stopTime));
         }
       } else {
         LOG.info("Creating partition reader for cluster");
@@ -165,7 +165,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
             partitionCheckpointList, fs, buffer, streamDir, conf,
             DatabusInputFormat.class.getCanonicalName(), partitionTimestamp,
             waitTimeForFileCreate, true, clusterMetrics, partitionMinList,
-            stopDate));
+            stopTime));
       }
     }
   }

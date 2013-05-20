@@ -32,13 +32,13 @@ public abstract class StreamReader<T extends StreamFile> {
   protected Path streamDir;
   protected final PartitionReaderStatsExposer metrics;
   private FileMap<T> fileMap;
-  protected Date stopDate;
+  protected Date stopTime;
 
   private boolean listingStopped = false;
 
   protected StreamReader(PartitionId partitionId, FileSystem fs, 
       Path streamDir, long waitTimeForCreate,
-      PartitionReaderStatsExposer metrics, boolean noNewFiles, Date stopDate)
+      PartitionReaderStatsExposer metrics, boolean noNewFiles, Date stopTime)
           throws IOException {
     this.partitionId = partitionId;
     this.fs = fs;
@@ -46,7 +46,7 @@ public abstract class StreamReader<T extends StreamFile> {
     this.waitTimeForCreate = waitTimeForCreate;
     this.metrics = metrics;
     this.noNewFiles = noNewFiles;
-    this.stopDate = stopDate;
+    this.stopTime = stopTime;
     this.fileMap = createFileMap();
   }
 

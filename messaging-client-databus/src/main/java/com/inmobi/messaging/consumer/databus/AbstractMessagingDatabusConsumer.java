@@ -46,7 +46,7 @@ public abstract class AbstractMessagingDatabusConsumer
   protected int totalConsumers;
   protected Set<Integer> partitionMinList;
   protected String relativeStartTimeStr;
-  protected Date stopDate;
+  protected Date stopTime;
   private int closedReadercount;
 
   @Override
@@ -142,8 +142,8 @@ public abstract class AbstractMessagingDatabusConsumer
       relativeStartTimeStr = String.valueOf(minutes);
     }
 
-    String stopDateStr = config.getString(stopDateConfig);
-    stopDate = getDateFromString(stopDateStr);
+    String stopTimeStr = config.getString(stopDateConfig);
+    stopTime = getDateFromString(stopTimeStr);
 
     closedReadercount = 0;
   }
@@ -253,9 +253,9 @@ public abstract class AbstractMessagingDatabusConsumer
 
   public void isValidStopDate(Date partitionTimestamp) {
     if (partitionTimestamp != null) {
-      if (stopDate != null && stopDate.before(partitionTimestamp)) {
-        throw new IllegalArgumentException("Invaild stop date is provided. " +
-            "Provide a stop date after start time");
+      if (stopTime != null && stopTime.before(partitionTimestamp)) {
+        throw new IllegalArgumentException("Provided stopTime is beyond" +
+            " the startTime." + "Provide a valid stopTime");
       }
     }
   }

@@ -27,7 +27,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   private LocalStreamCollectorReader lReader;
   private CollectorStreamReader cReader;
   private final CollectorReaderStatsExposer metrics;
-  private Date stopDate;
+  private Date stopTime;
   private boolean noNewFiles;
 
   private boolean shouldBeClosed = false;
@@ -39,20 +39,20 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       Configuration conf,
       Date startTime, long waitTimeForFlush,
       long waitTimeForFileCreate, CollectorReaderStatsExposer metrics,
-      boolean noNewFiles, Date stopDate)
+      boolean noNewFiles, Date stopTime)
           throws IOException {
     this.partitionId = partitionId;
     this.startTime = startTime;
     this.streamName = streamName;
     this.partitionCheckpoint = partitionCheckpoint;
-    this.stopDate = stopDate;
+    this.stopTime = stopTime;
     this.metrics = metrics;
     this.noNewFiles = noNewFiles;
     lReader = new LocalStreamCollectorReader(partitionId,  fs, streamName,
-        streamsLocalDir, conf, waitTimeForFileCreate, metrics, stopDate);
+        streamsLocalDir, conf, waitTimeForFileCreate, metrics, stopTime);
     cReader = new CollectorStreamReader(partitionId, fs, streamName,
         collectorDir, waitTimeForFlush, waitTimeForFileCreate, metrics,
-        conf, noNewFiles, stopDate);
+        conf, noNewFiles, stopTime);
   }
 
   private void initializeCurrentFileFromTimeStamp(Date timestamp)
@@ -147,7 +147,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       if (closed) {
         return line;
       }
-      if (stopDate != null && cReader.isStopped() && lReader.isStopped()) {
+      if (stopTime != null && cReader.isStopped() && lReader.isStopped()) {
         return null;
       }
       if (reader == lReader) {
