@@ -427,7 +427,7 @@ public class TestCollectorReader {
   }
   
   @Test
-  public void testReadFromCheckpointWithCollectorFileNameWithStopTime()
+  public void testReadFromCheckpointWhichDoesNotExistsWithStopTime()
       throws Exception {
     CollectorReaderStatsExposer prMetrics = new CollectorReaderStatsExposer(
         testStream, "c1", partitionId.toString(), consumerNumber);

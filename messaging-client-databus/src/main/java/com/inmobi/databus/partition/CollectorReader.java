@@ -74,7 +74,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
           DatabusStreamFile.create(streamName, localStreamFileName),
           partitionCheckpoint.getLineNum()))) {
         reader = lReader;
-      } else if (lReader.isStopped()) {
+      } else if (lReader.isStopped() || cReader.isStopped()) {
         shouldBeClosed  = true;
       } else {
         throw new IllegalArgumentException(error);
@@ -87,7 +87,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
         if (!reader.initFromStart()) {
           throw new IllegalArgumentException(error);
         }
-      } else if (cReader.isStopped()) {
+      } else if (cReader.isStopped() || lReader.isStopped()) {
         shouldBeClosed  = true;
       } else {
         throw new IllegalArgumentException(error);
@@ -134,8 +134,10 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     } else {
       LOG.info("Would never reach here");
     }
-    /*LOG.info("Intialized currentFile:" + reader.getCurrentFile() +
-        " currentLineNum:" + reader.getCurrentLineNum());*/
+    if (reader != null) {
+      LOG.info("Intialized currentFile:" + reader.getCurrentFile() +
+          " currentLineNum:" + reader.getCurrentLineNum());
+    }
   }
 
   public Message readLine() throws IOException, InterruptedException {
@@ -145,7 +147,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       if (closed) {
         return line;
       }
-      if (stopDate != null && reader.isStopped()) {
+      if (stopDate != null && cReader.isStopped() && lReader.isStopped()) {
         return null;
       }
       if (reader == lReader) {
@@ -181,6 +183,8 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       }
       boolean ret = reader.openStream();
       if (ret) {
+        LOG.info("Reading file " + reader.getCurrentFile() +
+            " and lineNum:" + reader.getCurrentLineNum());
         line = super.readLine();
         if (line == null && noNewFiles) {
           return null;

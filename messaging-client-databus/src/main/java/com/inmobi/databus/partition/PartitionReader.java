@@ -74,7 +74,7 @@ public class PartitionReader {
     // initialize cluster and its directories
     LOG.info("Partition reader initialized with partitionId:" + partitionId +
         " checkPoint:" + partitionCheckpoint +  
-        " startTime:" + startTime +
+        " startTime:" + startTime + " stopTime:" + stopDate +
         " currentReader:" + reader);
   }
 
@@ -94,7 +94,7 @@ public class PartitionReader {
     // initialize cluster and its directories
     LOG.info("Partition reader initialized with partitionId:" + partitionId +
         " checkPoint:" + partitionCheckpointList +  
-        " startTime:" + startTime +
+        " startTime:" + startTime + " stopTime:" + stopDate +
         " currentReader:" + reader);
   }
 

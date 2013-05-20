@@ -40,7 +40,9 @@ public abstract class AbstractPartitionStreamReader implements
 
   @Override
   public void closeStream() throws IOException {
-    reader.closeStream();    
+    if (reader != null) {
+      reader.closeStream();
+    }
   }
 
   public Message readLine() throws IOException, InterruptedException {

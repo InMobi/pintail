@@ -206,57 +206,6 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
   }
 
   @Test
-  public void testConsumerWithAbsoluteStartTimeAndStopTime() throws Exception {
-    ClientConfig config = loadConfig();
-    config.set(DatabusConsumerConfig.databusRootDirsConfig,
-        rootDirs[0].toUri().toString());
-    Date absoluteStartTime = CollectorStreamReader.
-        getDateFromCollectorFile(dataFiles[0]);
-    config.set(MessageConsumerFactory.ABSOLUTE_START_TIME,
-        AbstractMessageConsumer.minDirFormat.get().format(absoluteStartTime));
-    config.set(DatabusConsumerConfig.checkpointDirConfig, ck12);
-    Date stopDate = CollectorStreamReader.getDateFromCollectorFile(dataFiles[1]);
-    config.set(DatabusConsumerConfig.stopDateConfig,
-        AbstractMessageConsumer.minDirFormat.get().format(stopDate));
-    ConsumerUtil.testConsumerWithAbsoluteStartTimeAndStopTime(config,
-        testStream, consumerName, absoluteStartTime, false, stopDate);
-  }
-
-  @Test
-  public void testConsumerWithAbsoluteStopTime() throws Exception {
-    ClientConfig config = loadConfig();
-    config.set(DatabusConsumerConfig.databusRootDirsConfig,
-        rootDirs[0].toUri().toString());
-    Date absoluteStartTime = CollectorStreamReader.
-        getDateFromCollectorFile(dataFiles[0]);
-    config.set(MessageConsumerFactory.ABSOLUTE_START_TIME,
-        AbstractMessageConsumer.minDirFormat.get().format(absoluteStartTime));
-    config.set(DatabusConsumerConfig.checkpointDirConfig, ck13);
-    Date stopDate = CollectorStreamReader.getDateFromCollectorFile(dataFiles[0]);
-    config.set(DatabusConsumerConfig.stopDateConfig,
-        AbstractMessageConsumer.minDirFormat.get().format(stopDate));
-    ConsumerUtil.testConsumerWithAbsoluteStopTime(config,
-        testStream, consumerName, absoluteStartTime, false, stopDate);
-  }
-
-  @Test
-  public void testConsumerWithStopTime() throws Exception {
-    ClientConfig config = loadConfig();
-    config.set(DatabusConsumerConfig.databusRootDirsConfig,
-        rootDirs[0].toUri().toString());
-    Date absoluteStartTime = CollectorStreamReader.
-        getDateFromCollectorFile(dataFiles[0]);
-    config.set(MessageConsumerFactory.ABSOLUTE_START_TIME,
-        AbstractMessageConsumer.minDirFormat.get().format(absoluteStartTime));
-    config.set(DatabusConsumerConfig.checkpointDirConfig, ck14);
-    Date stopDate = CollectorStreamReader.getDateFromCollectorFile(dataFiles[1]);
-    config.set(DatabusConsumerConfig.stopDateConfig,
-        AbstractMessageConsumer.minDirFormat.get().format(stopDate));
-    ConsumerUtil.testConsumerWithStopTime(config,
-        testStream, consumerName, absoluteStartTime, false, stopDate);
-  }
-  
-  //@Test
   public void testConsumerWithStopTimeBeyondCheckpoint() throws Exception {
     ClientConfig config = loadConfig();
     config.set(DatabusConsumerConfig.databusRootDirsConfig,
