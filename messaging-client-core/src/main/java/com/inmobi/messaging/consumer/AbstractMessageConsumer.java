@@ -200,8 +200,7 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
   }
 
   public static String getStringFromDate(Date date) {
-    DateFormat formatter = new SimpleDateFormat(minDirFormatStr);
-    return formatter.format(date);
+    return minDirFormat.get().format(date);
   }
 
   /**

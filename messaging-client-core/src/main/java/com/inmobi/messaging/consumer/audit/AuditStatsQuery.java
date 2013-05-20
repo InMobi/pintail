@@ -315,8 +315,7 @@ public class AuditStatsQuery {
     ClientConfig config =
         ClientConfig.loadFromClasspath(MESSAGE_CLIENT_CONF_FILE);
     String stopDateString = AbstractMessageConsumer.getStringFromDate(stopTime);
-    config.set(CONFIG_STOP_TIME,
- stopDateString);
+    config.set(CONFIG_STOP_TIME, stopDateString);
     if (rootDir != null) {
       config.set(ROOT_DIR_KEY, rootDir);
     }
