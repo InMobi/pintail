@@ -11,14 +11,11 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.testng.Assert;
-import org.testng.annotations.Test;
 
-import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.consumer.AbstractMessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
-import com.inmobi.messaging.consumer.databus.DatabusConsumerConfig;
 import com.inmobi.messaging.consumer.databus.MessagingConsumerConfig;
 import com.inmobi.messaging.consumer.util.ConsumerUtil;
 import com.inmobi.messaging.consumer.util.HadoopUtil;
@@ -258,7 +255,7 @@ public abstract class TestAbstractHadoopConsumer {
     config.set(HadoopConsumerConfig.stopDateConfig,
         AbstractMessageConsumer.minDirFormat.get().format(stopDate));
     ConsumerUtil.testConsumerWithAbsoluteStartTimeAndStopTime(config,
-        testStream, consumerName, absoluteStartTime, true, stopDate);
+        testStream, consumerName, absoluteStartTime, true);
   }
 
   public void testConsumerWithAbsoluteStopTime() throws Exception {
@@ -275,24 +272,7 @@ public abstract class TestAbstractHadoopConsumer {
     config.set(HadoopConsumerConfig.stopDateConfig,
         AbstractMessageConsumer.minDirFormat.get().format(stopDate));
     ConsumerUtil.testConsumerWithAbsoluteStopTime(config,
-        testStream, consumerName, absoluteStartTime, true, stopDate);
-  }
-
-  public void testConsumerWithStopTime() throws Exception {
-    ClientConfig config = loadConfig();
-    config.set(HadoopConsumerConfig.rootDirsConfig,
-        rootDirs[0].toString());
-    config.set(HadoopConsumerConfig.checkpointDirConfig, ck15);
-    Date absoluteStartTime = DatabusStreamWaitingReader.
-        getDateFromStreamDir(rootDirs[0], finalPaths[0][0]);
-    config.set(MessageConsumerFactory.ABSOLUTE_START_TIME,
-        AbstractMessageConsumer.minDirFormat.get().format(absoluteStartTime));
-    Date stopDate = DatabusStreamWaitingReader.
-        getDateFromStreamDir(rootDirs[0], finalPaths[0][1]);
-    config.set(HadoopConsumerConfig.stopDateConfig,
-        AbstractMessageConsumer.minDirFormat.get().format(stopDate));
-    ConsumerUtil.testConsumerWithStopTime(config,
-        testStream, consumerName, absoluteStartTime, true, stopDate);
+        testStream, consumerName, absoluteStartTime, true);
   }
 
   public void testConsumerWithStopTimeBeyondCheckpoint() throws Exception {

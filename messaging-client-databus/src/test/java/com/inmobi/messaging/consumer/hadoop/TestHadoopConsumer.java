@@ -111,11 +111,6 @@ public class TestHadoopConsumer extends TestAbstractHadoopConsumer {
   }
   
   @Test
-  public void testConsumerWithStopTime() throws Exception {
-    super.testConsumerWithStopTime();
-  }
-  
-  @Test
   public void testConsumerWithStopTimeBeyondCheckpoint() throws Exception {
     super.testConsumerWithStopTimeBeyondCheckpoint();
   }
