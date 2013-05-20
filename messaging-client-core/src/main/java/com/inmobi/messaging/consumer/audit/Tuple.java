@@ -1,5 +1,6 @@
 package com.inmobi.messaging.consumer.audit;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 
@@ -14,13 +15,17 @@ public class Tuple {
   private Map<LatencyColumns, Long> latencyCountMap;
 
   public Tuple(String hostname, String tier, String cluster, Date timestamp,
-      String topic,
-               Map<LatencyColumns, Long> latencyCountMap) {
+               String topic) {
+    this(hostname, tier, cluster, timestamp, topic, null);
+  }
+
+  public Tuple(String hostname, String tier, String cluster, Date timestamp,
+               String topic, Map<LatencyColumns, Long> latencyCountMap) {
     this.hostname = hostname;
     this.tier = tier;
+    this.topic = topic;
     this.cluster = cluster;
     this.timestamp = timestamp;
-    this.topic = topic;
     this.latencyCountMap = latencyCountMap;
   }
 
@@ -77,6 +82,10 @@ public class Tuple {
     return tier;
   }
 
+  public String getTopic() {
+    return topic;
+  }
+
   public String getCluster() {
     return cluster;
   }
@@ -89,12 +98,8 @@ public class Tuple {
     return hostname;
   }
 
-  public String getTopic() {
-    return topic;
-  }
-
   public Map<LatencyColumns, Long> getLatencyCountMap() {
-    return latencyCountMap;
+    return Collections.unmodifiableMap(latencyCountMap);
   }
 
   public void setLatencyCountMap(Map<LatencyColumns, Long> latencyCountMap) {
@@ -104,7 +109,7 @@ public class Tuple {
   @Override
   public String toString() {
     return "Tuple{" +
-        "name='" + hostname + '\'' +
+        "hostname='" + hostname + '\'' +
         ", tier='" + tier + '\'' +
         ", cluster='" + cluster + '\'' +
         ", timestamp=" + timestamp +
