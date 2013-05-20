@@ -49,7 +49,7 @@ public class AuditDBHelper {
         .DB_URL), config.getString(AuditDBConstants.DB_USERNAME),
         config.getString(AuditDBConstants.DB_PASSWORD));
     if (connection == null) {
-      LOG.info("Connection not initialized returning ...");
+      LOG.error("Connection not initialized returning ...");
       return false;
     }
     LOG.info("Connected to DB");
@@ -186,7 +186,7 @@ public class AuditDBHelper {
         .DB_URL), config.getString(AuditDBConstants.DB_USERNAME),
         config.getString(AuditDBConstants.DB_PASSWORD));
     if (connection == null) {
-      LOG.info("Connection not initialized returning ...");
+      LOG.error("Connection not initialized returning ...");
       return null;
     }
     LOG.info("Connected to DB");
@@ -233,7 +233,7 @@ public class AuditDBHelper {
         preparedstatement.setString(index, cluster);
         index++;
       }
-      LOG.info("Prepared statement is " + preparedstatement.toString());
+      LOG.debug("Prepared statement is " + preparedstatement.toString());
       rs = preparedstatement.executeQuery();
       while (rs.next()) {
         Tuple tuple = new Tuple(rs.getString(AuditDBConstants.HOSTNAME),
