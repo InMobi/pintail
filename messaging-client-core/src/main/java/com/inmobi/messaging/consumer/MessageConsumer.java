@@ -19,7 +19,7 @@ public interface MessageConsumer {
    * 
    * @return {@link Message} object
    * @throws InterruptedException 
-   * @throws EndOfStreamException TODO
+   * @throws EndOfStreamException
    */
   public Message next() throws InterruptedException, EndOfStreamException;
   
@@ -27,7 +27,7 @@ public interface MessageConsumer {
    * Reads the next message if it is available with in the specified timeout.
    * Otherwise returns null
    * @throws InterruptedException
-   * @throws EndOfStreamException TODO
+   * @throws EndOfStreamException
    */
   public Message next(long timeout, TimeUnit timeunit) 
       throws InterruptedException, EndOfStreamException;

@@ -46,8 +46,10 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
       FileSystem fs, String streamName, Path streamDir,
       long waitTimeForFlush,
       long waitTimeForCreate, CollectorReaderStatsExposer metrics,
-      Configuration conf, boolean noNewFiles, Date stopDate) throws IOException {
-    super(partitionId, fs, streamDir, waitTimeForCreate, metrics, noNewFiles, stopDate);
+      Configuration conf, boolean noNewFiles, Date stopTime)
+          throws IOException {
+    super(partitionId, fs, streamDir, waitTimeForCreate, metrics, noNewFiles,
+        stopTime);
     this.streamName = streamName;
     this.waitTimeForFlush = waitTimeForFlush;
     this.collectorMetrics = (CollectorReaderStatsExposer)(this.metrics);
@@ -90,10 +92,10 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
             return;
           }
           for (FileStatus file : fileStatuses) {
-            if (stopDate != null) {
+            if (stopTime != null) {
               Date currentTimeStamp = getDateFromCollectorFile(
                   file.getPath().getName());
-              if (stopDate.before(currentTimeStamp)) {
+              if (stopTime.before(currentTimeStamp)) {
                 stopListing();
                 continue;
               }
