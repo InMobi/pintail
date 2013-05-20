@@ -10,8 +10,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.sql.*;
-import java.util.*;
 import java.util.Date;
+import java.util.*;
 
 public class AuditDBHelper {
 
@@ -114,21 +114,15 @@ public class AuditDBHelper {
           int index = 1;
           for (Map.Entry<LatencyColumns, Long> entry : latencyCountMap
               .entrySet()) {
-            updatePreparedStatement.setString(index, entry.getKey().toString());
-            index++;
-            updatePreparedStatement.setLong(index, entry.getValue());
-            index++;
+            updatePreparedStatement.setString(index++, entry.getKey().toString());
+            updatePreparedStatement.setLong(index++, entry.getValue());
           }
-          updatePreparedStatement.setString(index, tuple.getHostname());
-          index++;
-          updatePreparedStatement.setString(index, tuple.getTier());
-          index++;
-          updatePreparedStatement.setString(index, tuple.getTopic());
-          index++;
-          updatePreparedStatement.setString(index, tuple.getCluster());
-          index++;
+          updatePreparedStatement.setString(index++, tuple.getHostname());
+          updatePreparedStatement.setString(index++, tuple.getTier());
+          updatePreparedStatement.setString(index++, tuple.getTopic());
+          updatePreparedStatement.setString(index++, tuple.getCluster());
           updatePreparedStatement
-              .setLong(index, tuple.getTimestamp().getTime());
+              .setLong(index++, tuple.getTimestamp().getTime());
           updatePreparedStatement.addBatch();
         } else {
           //no record in db corresponding to this tuple
@@ -199,7 +193,7 @@ public class AuditDBHelper {
     String statement =
         "select * from " + AuditDBConstants.TABLE_NAME + " where " +
             AuditDBConstants.TIMESTAMP + " >= ? and " +
-            AuditDBConstants.TIMESTAMP + " <= ?";
+            AuditDBConstants.TIMESTAMP + " < ?";
     for (int i = 0; i < filter.getFilters().size(); i++) {
       statement += " and ? = ?";
     }
@@ -210,28 +204,20 @@ public class AuditDBHelper {
       preparedstatement.setLong(2, toDate.getTime());
       int index = 3;
       if (hostname != null || !hostname.isEmpty()) {
-        preparedstatement.setString(index, AuditDBConstants.HOSTNAME);
-        index++;
-        preparedstatement.setString(index, hostname);
-        index++;
+        preparedstatement.setString(index++, AuditDBConstants.HOSTNAME);
+        preparedstatement.setString(index++, hostname);
       }
       if (tier != null || !tier.isEmpty()) {
-        preparedstatement.setString(index, AuditDBConstants.TIER);
-        index++;
-        preparedstatement.setString(index, tier);
-        index++;
+        preparedstatement.setString(index++, AuditDBConstants.TIER);
+        preparedstatement.setString(index++, tier);
       }
       if (topic != null || !topic.isEmpty()) {
-        preparedstatement.setString(index, AuditDBConstants.TOPIC);
-        index++;
-        preparedstatement.setString(index, topic);
-        index++;
+        preparedstatement.setString(index++, AuditDBConstants.TOPIC);
+        preparedstatement.setString(index++, topic);
       }
       if (cluster != null || !cluster.isEmpty()) {
-        preparedstatement.setString(index, AuditDBConstants.CLUSTER);
-        index++;
-        preparedstatement.setString(index, cluster);
-        index++;
+        preparedstatement.setString(index++, AuditDBConstants.CLUSTER);
+        preparedstatement.setString(index++, cluster);
       }
       LOG.debug("Prepared statement is " + preparedstatement.toString());
       rs = preparedstatement.executeQuery();

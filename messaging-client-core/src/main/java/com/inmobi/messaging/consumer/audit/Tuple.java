@@ -1,5 +1,6 @@
 package com.inmobi.messaging.consumer.audit;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 
@@ -98,7 +99,7 @@ public class Tuple {
   }
 
   public Map<LatencyColumns, Long> getLatencyCountMap() {
-    return latencyCountMap;
+    return Collections.unmodifiableMap(latencyCountMap);
   }
 
   public void setLatencyCountMap(Map<LatencyColumns, Long> latencyCountMap) {
