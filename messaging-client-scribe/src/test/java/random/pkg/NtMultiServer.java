@@ -6,7 +6,9 @@ import java.util.concurrent.Executors;
 
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipelineFactory;
+import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 
 import scribe.thrift.scribe;
@@ -37,7 +39,14 @@ public class NtMultiServer {
 
   private synchronized ThriftServerHandler getTHandler() {
     if (x == null) {
-      x = new ThriftServerHandler(new scribe.Processor(scribeImpl));
+      x = new ThriftServerHandler(new scribe.Processor(scribeImpl)) {
+        @Override
+        public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
+            throws Exception {
+          System.out.println("Got exception on NtMultiServer");
+          e.getCause().printStackTrace();
+        }        
+      };
     }
     return x;
   }
