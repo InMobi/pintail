@@ -30,9 +30,6 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
   private String ck10 = "/tmp/test/databustest2/checkpoint8";
   private String ck11 = "/tmp/test/databustest2/checkpoint9";
   private String ck12 = "/tmp/test/databustest2/checkpoint10";
-  private String ck13 = "/tmp/test/databustest2/checkpoint11";
-  private String ck14 = "/tmp/test/databustest2/checkpoint12";
-  private String ck15 = "/tmp/test/databustest2/checkpoint13";
 
   ClientConfig loadConfig() {
     return ClientConfig.loadFromClasspath(
@@ -214,7 +211,7 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
         getDateFromCollectorFile(dataFiles[0]);
     config.set(MessageConsumerFactory.ABSOLUTE_START_TIME,
         AbstractMessageConsumer.minDirFormat.get().format(absoluteStartTime));
-    config.set(DatabusConsumerConfig.checkpointDirConfig, ck15);
+    config.set(DatabusConsumerConfig.checkpointDirConfig, ck12);
     Date stopDate = CollectorStreamReader.getDateFromCollectorFile(dataFiles[1]);
     Date stopDateForCheckpoint = CollectorStreamReader.
         getDateFromCollectorFile(dataFiles[0]);

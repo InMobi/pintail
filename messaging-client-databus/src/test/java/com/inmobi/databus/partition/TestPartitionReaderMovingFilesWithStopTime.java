@@ -107,11 +107,11 @@ public class TestPartitionReaderMovingFilesWithStopTime {
       Thread.sleep(10);
     }
     // move files to local stream while reader is reading these files
-    databusFiles[4] = TestUtil.moveFileToStreamLocal(fs, testStream,
+    TestUtil.moveFileToStreamLocal(fs, testStream,
         collectorName, cluster, collectorDir, files[4]);
-    databusFiles[5] = TestUtil.moveFileToStreamLocal(fs, testStream,
+    TestUtil.moveFileToStreamLocal(fs, testStream,
         collectorName, cluster, collectorDir, files[5]);
-    databusFiles[6] = TestUtil.moveFileToStreamLocal(fs, testStream,
+    TestUtil.moveFileToStreamLocal(fs, testStream,
         collectorName, cluster, collectorDir, files[6]);
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[4]),
         5, 0, 100, partitionId, buffer, true);

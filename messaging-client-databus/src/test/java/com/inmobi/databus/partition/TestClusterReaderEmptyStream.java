@@ -1,6 +1,7 @@
 package com.inmobi.databus.partition;
 
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
@@ -129,8 +130,11 @@ public class TestClusterReaderEmptyStream {
   public void prepareCheckpointList(StreamFile streamFile, int lineNum, 
       PartitionCheckpointList partitionCheckpointList) {
     partitionCheckpointList = new PartitionCheckpointList(chkPoints);
-    Date date = DatabusStreamWaitingReader.getDateFromCheckpointPath(streamFile.toString());
-    partitionCheckpointList.set(date.getMinutes(), new PartitionCheckpoint(
-        streamFile, lineNum));
+    Date date = DatabusStreamWaitingReader.getDateFromCheckpointPath(
+        streamFile.toString());
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(date);
+    partitionCheckpointList.set(cal.get(Calendar.MINUTE),
+        new PartitionCheckpoint(streamFile, lineNum));
   }
 }
