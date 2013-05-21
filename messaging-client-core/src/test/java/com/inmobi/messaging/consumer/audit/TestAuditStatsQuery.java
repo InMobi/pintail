@@ -15,6 +15,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.consumer.EndOfStreamException;
 import com.inmobi.messaging.consumer.MessageConsumer;
 import com.inmobi.messaging.consumer.MockInMemoryConsumer;
 import com.inmobi.messaging.consumer.audit.GroupBy.Group;
@@ -76,7 +77,7 @@ public class TestAuditStatsQuery {
 
   @Test
   public void testAuditQuery() throws IOException, InterruptedException,
-      TException, ParseException {
+      TException, ParseException, EndOfStreamException {
     assert (publisher instanceof com.inmobi.messaging.publisher.MockInMemoryPublisher);
     generateData(topic, topic1);
     publisher.close();
@@ -98,7 +99,7 @@ public class TestAuditStatsQuery {
 
   @Test
   public void testAuditQueryGroupFilter() throws IOException,
-      InterruptedException, TException, ParseException {
+      InterruptedException, TException, ParseException, EndOfStreamException {
     assert (publisher instanceof com.inmobi.messaging.publisher.MockInMemoryPublisher);
     generateData(topic, topic1);
     publisher.close();
@@ -127,7 +128,7 @@ public class TestAuditStatsQuery {
 
   @Test
   public void testAuditQueryWhereEndTimeIsLessThanFromTime()
-      throws IOException, InterruptedException, TException, ParseException {
+      throws IOException, InterruptedException, TException, ParseException, EndOfStreamException {
     assert (publisher instanceof com.inmobi.messaging.publisher.MockInMemoryPublisher);
     generateData(topic, topic1);
     publisher.close();
@@ -152,7 +153,7 @@ public class TestAuditStatsQuery {
 
   @Test
   public void testAuditQueryCuttoffTime0() throws IOException,
-      InterruptedException, TException, ParseException {
+      InterruptedException, TException, ParseException, EndOfStreamException {
     assert (publisher instanceof com.inmobi.messaging.publisher.MockInMemoryPublisher);
     generateData(topic, topic1);
     publisher.close();
@@ -173,7 +174,7 @@ public class TestAuditStatsQuery {
 
   @Test
   public void testAuditQueryValidCuttoffTime() throws IOException,
-      InterruptedException, TException, ParseException {
+      InterruptedException, TException, ParseException, EndOfStreamException {
     assert (publisher instanceof com.inmobi.messaging.publisher.MockInMemoryPublisher);
     generateData(topic2, topic3);
     System.out.println("Before audit has been generated: StartTime "
@@ -216,7 +217,7 @@ public class TestAuditStatsQuery {
 
   @Test
   public void testAuditQueryMaxMessages() throws IOException,
-      InterruptedException, TException, ParseException {
+      InterruptedException, TException, ParseException, EndOfStreamException {
     assert (publisher instanceof com.inmobi.messaging.publisher.MockInMemoryPublisher);
     generateData(topic4, topic5);
     // setting very large timeout so that query cuttoff should happen as per max

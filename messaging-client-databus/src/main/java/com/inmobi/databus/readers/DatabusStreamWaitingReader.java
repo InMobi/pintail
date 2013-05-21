@@ -39,12 +39,13 @@ public class DatabusStreamWaitingReader
       Path streamDir,  String inputFormatClass, Configuration conf,
       long waitTimeForFileCreate, PartitionReaderStatsExposer metrics,
       boolean noNewFiles, Set<Integer> partitionMinList, 
-      PartitionCheckpointList partitionCheckpointList)
+      PartitionCheckpointList partitionCheckpointList, Date stopTime)
           throws IOException {
     super(partitionId, fs, streamDir, inputFormatClass, conf,
-        waitTimeForFileCreate, metrics, noNewFiles);
+        waitTimeForFileCreate, metrics, noNewFiles, stopTime);
     this.partitionCheckpointList = partitionCheckpointList;
     this.partitionMinList = partitionMinList; 
+    this.stopTime = stopTime;
     currentMin = -1;
   }
 
@@ -130,6 +131,11 @@ public class DatabusStreamWaitingReader
       if (fs.exists(hhDir)) {
         while (current.getTime().before(now) && 
             hour  == current.get(Calendar.HOUR_OF_DAY)) {
+          // stop the file listing if stop date is beyond current time.
+          if (checkAndSetstopTimeReached(current)) {
+            breakListing = true;
+            break;
+          }
           Path dir = getMinuteDirPath(streamDir, current.getTime());
           int min = current.get(Calendar.MINUTE);
           Date currenTimestamp = current.getTime();
@@ -148,7 +154,7 @@ public class DatabusStreamWaitingReader
                 breakListing = true;
                 break;
               }
-            } 
+            }
           }
         } 
       } else {
@@ -169,6 +175,19 @@ public class DatabusStreamWaitingReader
       cal.setTime(currentDate);
       currentMin = cal.get(Calendar.MINUTE);
     }
+  }
+
+  /*
+   * check whether reached stopTime and stop the File listing if it reached stopTime
+   */
+  private boolean checkAndSetstopTimeReached(Calendar current) {
+    if (stopTime != null && stopTime.before(current.getTime())) {
+      LOG.info("Reached stopTime. Not listing from after" +
+          " the stop date ");
+      stopListing();
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -194,7 +213,7 @@ public class DatabusStreamWaitingReader
     boolean readFromCheckpoint = false;
     FileStatus fileToRead = nextFile;
     if (currentMin != now.get(Calendar.MINUTE)) {
-      //We are moving to next file, set the flags so that Message checkpoints 
+      //We are moving to next file, set the flags so that Message checkpoints
       //can be populated.
       movedToNext = true;
       prevMin = currentMin;
@@ -223,7 +242,7 @@ public class DatabusStreamWaitingReader
     this.currentFile = fileToRead;
     setIterator();
     return !readFromCheckpoint;
-  }  
+  }
 
   private void updatePartitionCheckpointList(int prevMin) {
     Map<Integer, PartitionCheckpoint> pckList = partitionCheckpointList.
@@ -245,17 +264,13 @@ public class DatabusStreamWaitingReader
   protected void startFromNextHigher(FileStatus file)
       throws IOException, InterruptedException {
     if (!setNextHigherAndOpen(file)) {
-      if (noNewFiles) {
-        // this boolean check is only for tests 
-        return;
-      }
       waitForNextFileCreation(file);
     }
   }
 
   private void waitForNextFileCreation(FileStatus file)
       throws IOException, InterruptedException {
-    while (!closed && !setNextHigherAndOpen(file)) {
+    while (!closed && !setNextHigherAndOpen(file) && !hasReadFully()) {
       LOG.info("Waiting for next file creation");
       waitForFileCreate();
       build();
@@ -276,10 +291,11 @@ public class DatabusStreamWaitingReader
         build(getDateFromStreamDir(streamDir, 
             getCurrentFile()));
         if (!nextFile()) { // reached end of stream
-          if (noNewFiles) {
-            // this boolean check is only for tests 
-            return null;
-          } 
+          // stop reading if read till stopTime
+          if (hasReadFully()) {
+            LOG.info("read all files till stop date");
+            break;
+          }
           LOG.info("Could not find next file");
           startFromNextHigher(currentFile);
           LOG.info("Reading from next higher file "+ getCurrentFile());
