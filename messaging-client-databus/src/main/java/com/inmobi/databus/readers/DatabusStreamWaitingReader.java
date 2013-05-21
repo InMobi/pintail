@@ -177,6 +177,9 @@ public class DatabusStreamWaitingReader
     }
   }
 
+  /*
+   * check whether reached stopTime and stop the File listing if it reached stopTime
+   */
   private boolean checkAndSetstopTimeReached(Calendar current) {
     if (stopTime != null && stopTime.before(current.getTime())) {
       LOG.info("Reached stopTime. Not listing from after" +
@@ -296,6 +299,7 @@ public class DatabusStreamWaitingReader
             // this boolean check is only for tests 
             return null;
           }
+          // stop reading if read till stopTime
           if (hasReadFully()) {
             LOG.info("read all files till stop date");
             break;

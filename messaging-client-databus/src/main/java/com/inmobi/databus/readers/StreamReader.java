@@ -362,12 +362,16 @@ public abstract class StreamReader<T extends StreamFile> {
     return listingStopped;
   }
 
+  /*
+   * Check whether it read all files till stopTime
+   */
   protected boolean hasReadFully() {
     if (isListingStopped()) {
       if (fileMap.isEmpty()) {
         return true;
       }
       if (currentFile == null) {
+        // no files were available on the stream for reading
         return true;
       }
       if (setIterator()) {

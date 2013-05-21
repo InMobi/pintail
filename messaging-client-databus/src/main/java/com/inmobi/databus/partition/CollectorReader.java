@@ -66,6 +66,9 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     }
   }
 
+  /*
+   * close the reader if given stopTime is beyond the checkpoint
+   */
   private void initializeCurrentFileFromCheckpointLocalStream(
       String localStreamFileName) throws IOException, InterruptedException {
     String error = "Checkpoint file does not exist";
@@ -147,6 +150,8 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       if (closed) {
         return line;
       }
+
+      // check whether readers are stopped
       if (stopTime != null && cReader.isStopped() && lReader.isStopped()) {
         return null;
       }

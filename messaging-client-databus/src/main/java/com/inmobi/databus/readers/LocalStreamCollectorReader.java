@@ -79,6 +79,7 @@ public class LocalStreamCollectorReader extends
     Calendar current = Calendar.getInstance();
     Date now = current.getTime();
     current.setTime(buildTimestamp);
+    // stop the file listing if stop date is beyond current time
     while (current.getTime().before(now) && !isListingStopped()) {
       Path hhDir =  getHourDirPath(streamDir, current.getTime());
       int hour = current.get(Calendar.HOUR_OF_DAY);

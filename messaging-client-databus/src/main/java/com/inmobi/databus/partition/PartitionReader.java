@@ -192,6 +192,10 @@ public class PartitionReader {
     assert (reader != null);
     try {
       boolean closeReader = false;
+      /*
+       * close the reader if there are no files present in the stream
+       *  for a given stopTime
+       */
       if (reader.shouldBeClosed()) {
         closeReader = true;
       } else {

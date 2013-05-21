@@ -83,6 +83,9 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
         };
       }
 
+      /*
+       * prepare a fileMap with files which are beyond the stopTime
+       */
       @Override
       protected void buildList() throws IOException {
         if (fs.exists(streamDir)) {
@@ -225,6 +228,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
           // this boolean check is only for tests 
           return null;
         }
+        // stop reading if it read till stopTime
         if (hasReadFully()) {
           LOG.info("read all files till stop date");
           break;

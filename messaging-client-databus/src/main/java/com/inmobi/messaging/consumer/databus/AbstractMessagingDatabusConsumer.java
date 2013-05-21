@@ -172,9 +172,10 @@ public abstract class AbstractMessagingDatabusConsumer
   }
   
   /**
-   * @throws throws an EndOfStreamException When consumer consumes EOFMessages
-   *  from all partitions
-   * @return Message if it not throws EndOfStreamException
+   * @throws throws an EndOfStreamException When consumer consumed all messages
+   *  till stopTime
+   * @return Message if Message is available on the stream
+   *         Otherwise waits for the Message to be available on the stream
    */
   @Override
   protected Message getNext()
@@ -201,9 +202,10 @@ public abstract class AbstractMessagingDatabusConsumer
   }
   
   /**
-   * @throws throws an EndOfStreamException 
-   * @return Message if it not throws EndOfStreamException
-   *         Null if there is no entry in the buffer for a specified time
+   * @throws throws an EndOfStreamException When consumer consumed all messages
+   *  till stopTime
+   * @return Message if Message is available on the stream
+   *         Null if Message is not available on the stream for a given time
    */
   @Override
   protected Message getNext(long timeout, TimeUnit timeunit) 
