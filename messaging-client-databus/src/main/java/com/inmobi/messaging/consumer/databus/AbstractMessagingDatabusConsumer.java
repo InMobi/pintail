@@ -205,7 +205,7 @@ public abstract class AbstractMessagingDatabusConsumer
    * @throws throws an EndOfStreamException When consumer consumed all messages
    *  till stopTime
    * @return Message if Message is available on the stream
-   *         Null if Message is not available on the stream for a given time
+   *         Null if Message is not available on the stream for a given timeout
    */
   @Override
   protected Message getNext(long timeout, TimeUnit timeunit) 
