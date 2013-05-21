@@ -78,7 +78,7 @@ public class ScribeTopicPublisher {
         channel =
             future.awaitUninterruptibly().getChannel();
         if (!future.isSuccess()) {
-          LOG.info("Could not connect to Scribe");
+          LOG.info("Could not connect to Scribe", future.getCause());
           if (future.getCause() instanceof Exception) {
             throw (Exception)future.getCause();
           } else {

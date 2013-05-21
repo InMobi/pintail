@@ -147,10 +147,10 @@ public class TestRetries {
       String topic = "resend";
       // publish a message and suggest reconnect to the server
       // ack will be lost for the message.
-      mb.publish(topic, new Message("mmmm".getBytes()));
+      mb.publish(topic, new Message("msg1".getBytes()));
       mb.getTopicPublisher(topic).suggestReconnect();
       Thread.sleep(1000);
-      mb.publish(topic, new Message("mmmm".getBytes()));
+      mb.publish(topic, new Message("msg2".getBytes()));
       mb.close();
       TimingAccumulator inspector = mb.getStats(topic);
       System.out.println("testResendOnAckLost " + resendOnAckLost + " stats:" 
@@ -169,5 +169,7 @@ public class TestRetries {
     } finally {
       tserver.stop();
     }
+    System.out.println("TestRetries.testResendOnAckLost:" + resendOnAckLost  +
+        " done");
   }
 }
