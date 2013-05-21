@@ -367,6 +367,10 @@ public abstract class StreamReader<T extends StreamFile> {
    */
   protected boolean hasReadFully() {
     if (isListingStopped()) {
+      if (noNewFiles) {
+        // this boolean check is only for tests
+        return true;
+      }
       if (fileMap.isEmpty()) {
         return true;
       }

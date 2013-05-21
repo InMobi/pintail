@@ -49,7 +49,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     this.metrics = metrics;
     this.noNewFiles = noNewFiles;
     lReader = new LocalStreamCollectorReader(partitionId,  fs, streamName,
-        streamsLocalDir, conf, waitTimeForFileCreate, metrics, stopTime);
+        streamsLocalDir, conf, waitTimeForFileCreate, metrics, noNewFiles, stopTime);
     cReader = new CollectorStreamReader(partitionId, fs, streamName,
         collectorDir, waitTimeForFlush, waitTimeForFileCreate, metrics,
         conf, noNewFiles, stopTime);

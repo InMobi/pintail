@@ -35,11 +35,11 @@ public class LocalStreamCollectorReader extends
   public LocalStreamCollectorReader(PartitionId partitionId, 
       FileSystem fs, String streamName, Path streamDir, Configuration conf,
       long waitTimeForFileCreate, CollectorReaderStatsExposer metrics,
-      Date stopTime)
+      boolean noNewFiles, Date stopTime)
           throws IOException {
     super(partitionId, fs, streamDir,
         DatabusInputFormat.class.getCanonicalName(), conf, waitTimeForFileCreate,
-        metrics, false, stopTime);
+        metrics, noNewFiles, stopTime);
     this.stopTime = stopTime;
     this.streamName = streamName;
     this.collector = partitionId.getCollector();
