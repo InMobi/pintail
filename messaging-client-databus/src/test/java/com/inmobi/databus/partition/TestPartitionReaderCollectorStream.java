@@ -165,7 +165,7 @@ public class TestPartitionReaderCollectorStream {
       preader = new PartitionReader(partitionId, new PartitionCheckpoint(
           CollectorStreamReader.getCollectorFile(doesNotExist3), 40), conf,
           fs, collectorDir, streamsLocalDir, buffer,
-          testStream, null, 1000, 1000, prMetrics, true, null);
+          testStream, null, 1000, 1000, prMetrics, false, null);
       preader.init();
     } catch (Exception e) {
       th = e;
@@ -180,7 +180,7 @@ public class TestPartitionReaderCollectorStream {
       preader = new PartitionReader(partitionId, new PartitionCheckpoint(
           CollectorStreamReader.getCollectorFile(doesNotExist2), 40), conf,
           fs, collectorDir, streamsLocalDir, buffer, testStream,
-          null, 10, 1000, prMetrics, true, null);
+          null, 10, 1000, prMetrics, false, null);
       preader.init();
     } catch (Exception e) {
       th = e;
@@ -426,7 +426,7 @@ public class TestPartitionReaderCollectorStream {
       preader = new PartitionReader(partitionId, new PartitionCheckpoint(
           CollectorStreamReader.getCollectorFile(doesNotExist2), 20), conf,
           fs, collectorDir, streamsLocalDir, buffer, testStream,
-        null, 1000, 1000, prMetrics, true, null);
+        null, 1000, 1000, prMetrics, false, null);
       preader.init();
     } catch (Exception e) {
       th = e;
@@ -444,7 +444,7 @@ public class TestPartitionReaderCollectorStream {
       preader = new PartitionReader(partitionId, new PartitionCheckpoint(
           CollectorStreamReader.getCollectorFile(doesNotExist3), 20), conf,
           fs, collectorDir, streamsLocalDir, buffer, testStream,
-        null, 1000, 1000, prMetrics, true, null);
+        null, 1000, 1000, prMetrics, false, null);
       preader.init();
     } catch (Exception e) {
       th = e;

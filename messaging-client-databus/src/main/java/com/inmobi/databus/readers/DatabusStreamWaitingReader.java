@@ -264,10 +264,6 @@ public class DatabusStreamWaitingReader
   protected void startFromNextHigher(FileStatus file)
       throws IOException, InterruptedException {
     if (!setNextHigherAndOpen(file)) {
-      if (noNewFiles) {
-        // this boolean check is only for tests 
-        return;
-      }
       waitForNextFileCreation(file);
     }
   }
@@ -295,10 +291,6 @@ public class DatabusStreamWaitingReader
         build(getDateFromStreamDir(streamDir, 
             getCurrentFile()));
         if (!nextFile()) { // reached end of stream
-          if (noNewFiles) {
-            // this boolean check is only for tests 
-            return null;
-          }
           // stop reading if read till stopTime
           if (hasReadFully()) {
             LOG.info("read all files till stop date");

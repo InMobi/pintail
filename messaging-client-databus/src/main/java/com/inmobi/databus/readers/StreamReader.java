@@ -289,20 +289,12 @@ public abstract class StreamReader<T extends StreamFile> {
   public void startFromTimestmp(Date timestamp)
       throws IOException, InterruptedException {
     if (!initializeCurrentFile(timestamp)) {
-      if (noNewFiles) {
-        // this boolean check is only for tests 
-        return;
-      }
       waitForNextFileCreation(timestamp);
     }
   }
 
   public void startFromBegining() throws IOException, InterruptedException {
     if (!initFromStart()) {
-      if (noNewFiles) {
-        // this boolean check is only for tests 
-        return;
-      }
       waitForNextFileCreation();
     }
   }
@@ -366,11 +358,11 @@ public abstract class StreamReader<T extends StreamFile> {
    * Check whether it read all files till stopTime
    */
   protected boolean hasReadFully() {
+    if (noNewFiles) {
+      // this boolean check is only for tests
+      return true;
+    }
     if (isListingStopped()) {
-      if (noNewFiles) {
-        // this boolean check is only for tests
-        return true;
-      }
       if (fileMap.isEmpty()) {
         return true;
       }

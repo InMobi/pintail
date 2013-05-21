@@ -49,7 +49,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     this.metrics = metrics;
     this.noNewFiles = noNewFiles;
     lReader = new LocalStreamCollectorReader(partitionId,  fs, streamName,
-        streamsLocalDir, conf, waitTimeForFileCreate, metrics, noNewFiles, stopTime);
+        streamsLocalDir, conf, waitTimeForFileCreate, metrics, stopTime);
     cReader = new CollectorStreamReader(partitionId, fs, streamName,
         collectorDir, waitTimeForFlush, waitTimeForFileCreate, metrics,
         conf, noNewFiles, stopTime);
@@ -96,10 +96,10 @@ public class CollectorReader extends AbstractPartitionStreamReader {
         throw new IllegalArgumentException(error);
       }
     } else {
+      reader = cReader;
       if (lReader.isStopped() || cReader.isStopped()) {
         shouldBeClosed = true;
       } else {
-        reader = cReader;
         cReader.startFromBegining();
       }
     }
@@ -152,7 +152,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       }
 
       // check whether readers are stopped
-      if (cReader.isStopped() && lReader.isStopped()) {
+      if (reader.isStopped()) {
         return null;
       }
       if (reader == lReader) {
@@ -191,9 +191,6 @@ public class CollectorReader extends AbstractPartitionStreamReader {
         LOG.info("Reading file " + reader.getCurrentFile() +
             " and lineNum:" + reader.getCurrentLineNum());
         line = super.readLine();
-        if (line == null && noNewFiles) {
-          return null;
-        }
       } else {
         return null;
       }

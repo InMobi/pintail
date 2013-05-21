@@ -128,6 +128,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   }
 
   protected void initCurrentFile() {
+
     super.initCurrentFile();
     sameStream = false;
   }
@@ -224,10 +225,6 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
       }
       build(); // rebuild file list
       if (!hasNextFile()) { //there is no next file
-        if (noNewFiles) {
-          // this boolean check is only for tests 
-          return null;
-        }
         // stop reading if it read till stopTime
         if (hasReadFully()) {
           LOG.info("read all files till stop date");
@@ -288,10 +285,6 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   public boolean startFromNextHigher(String fileName) 
       throws IOException, InterruptedException {
     if (!setNextHigher(fileName)) {
-      if (noNewFiles) {
-        // this boolean check is only for tests 
-        return false;
-      }
       waitForNextFileCreation(fileName);
     }
     return true;
@@ -351,5 +344,13 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
 
   public static CollectorFile getCollectorFile(String fileName) {
     return CollectorFile.create(fileName);
+  }
+
+  @Override
+  protected boolean hasReadFully() {
+    if (currentFile != null && !setIterator()) {
+      return false;
+    }
+    return super.hasReadFully();
   }
 }
