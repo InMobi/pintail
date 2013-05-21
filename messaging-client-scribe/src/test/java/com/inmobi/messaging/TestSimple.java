@@ -20,13 +20,13 @@ public class TestSimple {
     server = new NtMultiServer(new ScribeAlwaysSuccess(), port);
     server.start();
     try {
-    runTest();
-    //create the publisher again
-    runTest();
+      runTest();
+      //create the publisher again
+      runTest();
     } finally {
-    server.stop();
-    if (publisher != null)
-      publisher.close();
+      server.stop();
+      if (publisher != null)
+        publisher.close();
     }
     System.out.println("TestSimple.simpleSend() done");
   }
