@@ -14,6 +14,7 @@ import org.testng.annotations.Test;
 import com.inmobi.databus.Cluster;
 import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.databus.readers.LocalStreamCollectorReader;
+import com.inmobi.messaging.EOFMessage;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
 import com.inmobi.messaging.consumer.databus.StreamType;
 import com.inmobi.messaging.consumer.util.DatabusUtil;
@@ -119,6 +120,13 @@ public class TestPartitionReaderMovingFilesWithStopTime {
     Assert.assertEquals(((CollectorReader)preader.getReader()).
         getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
+    while (buffer.remainingCapacity() > 0) {
+      Thread.sleep(10);
+    }
+    // move last file to local stream to stop LocalStreamCollectorReader
+    TestUtil.moveFileToStreamLocal(fs, testStream,
+        collectorName, cluster, collectorDir, files[7]);
+
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[5]),
         6, 50, 50, partitionId, buffer, true);
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
@@ -126,10 +134,10 @@ public class TestPartitionReaderMovingFilesWithStopTime {
     Assert.assertEquals(((CollectorReader)preader.getReader()).
         getReader().getClass().getName(),
         LocalStreamCollectorReader.class.getName());
-    
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 600);
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 600);
     Assert.assertEquals(prMetrics.getSwitchesFromLocalToCollector(), 1);
     Assert.assertEquals(prMetrics.getSwitchesFromCollectorToLocal(), 1);
+    Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
   }
 }
