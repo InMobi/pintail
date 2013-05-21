@@ -1,5 +1,6 @@
 package com.inmobi.messaging.netty;
 
+import java.net.ConnectException;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -109,12 +110,14 @@ public class ScribeHandler extends SimpleChannelHandler {
       }
     }
 
-    if (channelSetter.getCurrentChannel() != null && 
-        ctx.getChannel().getId() == channelSetter.getCurrentChannel().getId()) {
+    if ((cause instanceof ConnectException) ||
+        (channelSetter.getCurrentChannel() != null && 
+        ctx.getChannel().getId() == channelSetter.getCurrentChannel().getId()))
+    {
       scheduleReconnect();
     } else {
       LOG.info("Ignoring exception " + cause + " because it was on" + 
-          " channel" + ctx.getChannel().getId());
+          " channel " + ctx.getChannel().getId());
     }
   }
 
@@ -136,7 +139,7 @@ public class ScribeHandler extends SimpleChannelHandler {
               reconnectInprogress = true;
               connectRequestTime = currentTime;
               timer.newTimeout(new TimerTask() {
-                
+
                 public void run(Timeout timeout) throws Exception {
                   LOG.info("Connecting now");
                   try {
@@ -171,7 +174,7 @@ public class ScribeHandler extends SimpleChannelHandler {
       ChannelStateEvent e) {
     if (channelSetter.getCurrentChannel() != null && 
         ctx.getChannel().getId() == channelSetter.getCurrentChannel().getId()) {
-      LOG.info("Channel disconnected");
+      LOG.info("Channel disconnected " + ctx.getChannel().getId());
       scheduleReconnect();
     }
   }
@@ -179,7 +182,7 @@ public class ScribeHandler extends SimpleChannelHandler {
   public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) {
     if (channelSetter.getCurrentChannel() != null && 
         ctx.getChannel().getId() == channelSetter.getCurrentChannel().getId()) {
-      LOG.info("Channel closed");
+      LOG.info("Channel closed " + ctx.getChannel().getId());
       scheduleReconnect();
     }
   }
@@ -187,7 +190,7 @@ public class ScribeHandler extends SimpleChannelHandler {
   public void channelUnbound(ChannelHandlerContext ctx, ChannelStateEvent e) {
     if (channelSetter.getCurrentChannel() != null && 
         ctx.getChannel().getId() == channelSetter.getCurrentChannel().getId()) {
-      LOG.info("Channel unbound");
+      LOG.info("Channel unbound " + ctx.getChannel().getId());
       scheduleReconnect();
     }
   }
