@@ -725,6 +725,44 @@ public class TestCollectorReader {
     Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
   }
 
+  /*
+   * Test whether reader is reading all files till stopTime where all files
+   *  exists on local stream
+   */
+  @Test
+  public void testReadTillStopTimeInLocalStream() throws Exception {
+    CollectorReaderStatsExposer prMetrics = new CollectorReaderStatsExposer(
+        testStream, "c1", partitionId.toString(), consumerNumber);
+    preader = new PartitionReader(partitionId, null, conf, fs,
+        collectorDir, streamsLocalDir, buffer, testStream,
+        CollectorStreamReader.getDateFromCollectorFile(files[0]), 10, 1000,
+        prMetrics, true,
+        CollectorStreamReader.getDateFromCollectorFile(files[1]));
+    preader.init();
+    Assert.assertTrue(buffer.isEmpty());
+    Assert.assertEquals(preader.getReader().getClass().getName(),
+        CollectorReader.class.getName());
+    Assert.assertEquals(((CollectorReader)preader.getReader())
+        .getReader().getClass().getName(),
+        LocalStreamCollectorReader.class.getName());
+    preader.execute();
+    TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
+        collectorName, files[0]), 1,  0, 100, partitionId, buffer, true);
+    TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
+        collectorName, files[1]), 2,  0, 100, partitionId, buffer, true);
+    Assert.assertEquals(preader.getReader().getClass().getName(),
+        CollectorReader.class.getName());
+    Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
+    Assert.assertEquals(prMetrics.getHandledExceptions(), 0);
+    Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 200);
+    Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 200);
+    Assert.assertEquals(prMetrics.getWaitTimeUnitsNewFile(), 0);
+    Assert.assertEquals(prMetrics.getWaitTimeInSameFile(), 0);
+    Assert.assertEquals(prMetrics.getSwitchesFromCollectorToLocal(), 0);
+    Assert.assertEquals(prMetrics.getSwitchesFromLocalToCollector(), 0);
+    Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
+  }
+
   @Test
   public void testReadFromStartTimeInLocalStream2() throws Exception {
     CollectorReaderStatsExposer prMetrics = new CollectorReaderStatsExposer(
@@ -774,6 +812,43 @@ public class TestCollectorReader {
     Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
   }
 
+  /*
+   * Test whether reader is reading all files till stopTime where all files
+   *  exists on local stream
+   */
+  @Test
+  public void testReadTillStopTimeInLocalStream2() throws Exception {
+    CollectorReaderStatsExposer prMetrics = new CollectorReaderStatsExposer(
+        testStream, "c1", partitionId.toString(), consumerNumber);
+    preader = new PartitionReader(partitionId, null, conf, fs,
+        collectorDir, streamsLocalDir, buffer, testStream,
+        CollectorStreamReader.getDateFromCollectorFile(doesNotExist1), 10, 1000,
+        prMetrics, true, CollectorStreamReader.getDateFromCollectorFile(files[1]));
+    preader.init();
+    Assert.assertTrue(buffer.isEmpty());
+    Assert.assertEquals(preader.getReader().getClass().getName(),
+        CollectorReader.class.getName());
+    Assert.assertEquals(((CollectorReader)preader.getReader())
+        .getReader().getClass().getName(),
+        LocalStreamCollectorReader.class.getName());
+    preader.execute();
+    TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
+        collectorName, files[0]), 1,  0, 100, partitionId, buffer, true);
+    TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
+        collectorName, files[1]), 2,  0, 100, partitionId, buffer, true);
+    Assert.assertEquals(preader.getReader().getClass().getName(),
+        CollectorReader.class.getName());
+    Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
+    Assert.assertEquals(prMetrics.getHandledExceptions(), 0);
+    Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 200);
+    Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 200);
+    Assert.assertEquals(prMetrics.getWaitTimeUnitsNewFile(), 0);
+    Assert.assertEquals(prMetrics.getWaitTimeInSameFile(), 0);
+    Assert.assertEquals(prMetrics.getSwitchesFromCollectorToLocal(), 0);
+    Assert.assertEquals(prMetrics.getSwitchesFromLocalToCollector(), 0);
+    Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
+  }
+
   @Test
   public void testReadFromStartTimeInCollectorStream() throws Exception {
     CollectorReaderStatsExposer prMetrics = new CollectorReaderStatsExposer(
@@ -803,6 +878,49 @@ public class TestCollectorReader {
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.close();
+    Assert.assertEquals(prMetrics.getHandledExceptions(), 0);
+    Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 200);
+    Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 200);
+    Assert.assertEquals(prMetrics.getWaitTimeUnitsNewFile(), 0);
+    Assert.assertEquals(prMetrics.getWaitTimeInSameFile(), 0);
+    Assert.assertEquals(prMetrics.getSwitchesFromCollectorToLocal(), 0);
+    Assert.assertEquals(prMetrics.getSwitchesFromLocalToCollector(), 0);
+    Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
+  }
+
+  /*
+   * Test whether reader is reading all files till stopTime where all files
+   *  exists on collector stream
+   */
+  @Test
+  public void testReadTillStopTimeInCollectorStream() throws Exception {
+    CollectorReaderStatsExposer prMetrics = new CollectorReaderStatsExposer(
+        testStream, "c1", partitionId.toString(), consumerNumber);
+    preader = new PartitionReader(partitionId, null, conf, fs,
+        collectorDir, streamsLocalDir, buffer, testStream,
+        CollectorStreamReader.getDateFromCollectorFile(files[3]), 10, 1000,
+        prMetrics, true,
+        CollectorStreamReader.getDateFromCollectorFile(files[4]));
+    preader.init();
+    Assert.assertTrue(buffer.isEmpty());
+    Assert.assertEquals(preader.getReader().getClass().getName(),
+        CollectorReader.class.getName());
+    Assert.assertEquals(((CollectorReader)preader.getReader())
+        .getReader().getClass().getName(),
+        CollectorStreamReader.class.getName());
+    preader.execute();
+    TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[3]), 4
+        ,  0, 100, partitionId, buffer, true);
+    TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[4]), 5,
+        0, 100, partitionId, buffer, true);
+    Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
+    Assert.assertTrue(buffer.isEmpty());
+    Assert.assertNotNull(preader.getReader());
+    Assert.assertEquals(preader.getReader().getClass().getName(),
+        CollectorReader.class.getName());
+    Assert.assertEquals(((CollectorReader)preader.getReader())
+        .getReader().getClass().getName(),
+        CollectorStreamReader.class.getName());
     Assert.assertEquals(prMetrics.getHandledExceptions(), 0);
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 200);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 200);
@@ -845,6 +963,47 @@ public class TestCollectorReader {
     Assert.assertEquals(prMetrics.getHandledExceptions(), 0);
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 200);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 200);
+    Assert.assertEquals(prMetrics.getWaitTimeUnitsNewFile(), 0);
+    Assert.assertEquals(prMetrics.getWaitTimeInSameFile(), 0);
+    Assert.assertEquals(prMetrics.getSwitchesFromCollectorToLocal(), 0);
+    Assert.assertEquals(prMetrics.getSwitchesFromLocalToCollector(), 0);
+    Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
+  }
+
+  /*
+   * Test whether reader is reading all files till stopTime where all files
+   *  exists on collector stream
+   */
+  @Test
+  public void testReadTillStopTimeInCollectorStream2() throws Exception {
+    CollectorReaderStatsExposer prMetrics = new CollectorReaderStatsExposer(
+        testStream, "c1", partitionId.toString(), consumerNumber);
+    preader = new PartitionReader(partitionId, null, conf, fs,
+        collectorDir, streamsLocalDir, buffer, testStream,
+        CollectorStreamReader.getDateFromCollectorFile(doesNotExist3), 10, 1000,
+        prMetrics, true,
+        CollectorStreamReader.getDateFromCollectorFile(files[4]));
+    preader.init();
+    Assert.assertTrue(buffer.isEmpty());
+    Assert.assertEquals(preader.getReader().getClass().getName(),
+        CollectorReader.class.getName());
+    Assert.assertEquals(((CollectorReader)preader.getReader())
+        .getReader().getClass().getName(),
+        CollectorStreamReader.class.getName());
+    preader.execute();
+    TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[4]), 5,
+        0, 100, partitionId, buffer, true);
+    Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
+    Assert.assertTrue(buffer.isEmpty());
+    Assert.assertNotNull(preader.getReader());
+    Assert.assertEquals(preader.getReader().getClass().getName(),
+        CollectorReader.class.getName());
+    Assert.assertEquals(((CollectorReader)preader.getReader())
+        .getReader().getClass().getName(),
+        CollectorStreamReader.class.getName());
+    Assert.assertEquals(prMetrics.getHandledExceptions(), 0);
+    Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 100);
+    Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 100);
     Assert.assertEquals(prMetrics.getWaitTimeUnitsNewFile(), 0);
     Assert.assertEquals(prMetrics.getWaitTimeInSameFile(), 0);
     Assert.assertEquals(prMetrics.getSwitchesFromCollectorToLocal(), 0);
