@@ -80,17 +80,17 @@ public class LocalStreamCollectorReader extends
     Date now = current.getTime();
     current.setTime(buildTimestamp);
     boolean breakListing = false;
-    while (current.getTime().before(now)) {
+    while (current.getTime().before(now) && !isListingStopped()) {
       Path hhDir =  getHourDirPath(streamDir, current.getTime());
       int hour = current.get(Calendar.HOUR_OF_DAY);
       if (fs.exists(hhDir)) {
         while (current.getTime().before(now) && 
             hour  == current.get(Calendar.HOUR_OF_DAY)) {
-          Path dir = getMinuteDirPath(streamDir, current.getTime());
           if (isListingStopped()) {
             breakListing = true;
             break;
           }
+          Path dir = getMinuteDirPath(streamDir, current.getTime());
           // Move the current minute to next minute
           current.add(Calendar.MINUTE, 1);
           doRecursiveListing(dir, pathFilter, fmap);
