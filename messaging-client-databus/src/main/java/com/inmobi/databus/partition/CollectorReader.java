@@ -152,7 +152,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       }
 
       // check whether readers are stopped
-      if (stopTime != null && cReader.isStopped() && lReader.isStopped()) {
+      if (cReader.isStopped() && lReader.isStopped()) {
         return null;
       }
       if (reader == lReader) {
