@@ -2,7 +2,6 @@ package com.inmobi.databus.partition;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Collection;
@@ -32,7 +31,7 @@ public class ClusterReader extends AbstractPartitionStreamReader {
       Path streamDir, Configuration conf, String inputFormatClass,
       Date startTime, long waitTimeForFileCreate, boolean isDatabusData,
       PartitionReaderStatsExposer metrics, boolean noNewFiles,
-      Set<Integer> partitionMinList)
+      Set<Integer> partitionMinList, Date stopTime)
           throws IOException {
     this.startTime = startTime;
     this.streamDir = streamDir;
@@ -41,7 +40,7 @@ public class ClusterReader extends AbstractPartitionStreamReader {
 
     reader = new DatabusStreamWaitingReader(partitionId, fs, streamDir,
         inputFormatClass, conf, waitTimeForFileCreate, metrics, noNewFiles,
-        partitionMinList, partitionCheckpointList);
+        partitionMinList, partitionCheckpointList, stopTime);
   }
 
   /*
@@ -87,7 +86,8 @@ public class ClusterReader extends AbstractPartitionStreamReader {
     LOG.info("Initializing partition reader's current file");
     PartitionCheckpoint partitionCheckpoint = null;
     if (partitionCheckpointList != null) {
-      partitionCheckpoint = findLeastPartitionCheckPointTime(partitionCheckpointList);
+      partitionCheckpoint = findLeastPartitionCheckPointTime(
+          partitionCheckpointList);
     } 
 
     if (partitionCheckpoint != null) {
@@ -137,5 +137,10 @@ public class ClusterReader extends AbstractPartitionStreamReader {
       dataWaitingReader.resetMoveToNextFlags();
     }
     return consumerPartitionCheckPoint;
+  }
+
+  @Override
+  public boolean shouldBeClosed() {
+    return false;
   }
 }

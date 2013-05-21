@@ -12,17 +12,16 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import com.inmobi.databus.Cluster;
-import com.inmobi.databus.partition.PartitionId;
-import com.inmobi.databus.partition.PartitionReader;
 import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.databus.readers.LocalStreamCollectorReader;
+import com.inmobi.messaging.EOFMessage;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
 import com.inmobi.messaging.consumer.databus.StreamType;
 import com.inmobi.messaging.consumer.util.DatabusUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 
-public class TestPartitionReaderMovingFilesFromLocalStream {
+public class TestPartitionReaderMovingFilesWithStopTime {
   private static final String testStream = "testclient";
 
   private static final String collectorName = "collector1";
@@ -65,13 +64,13 @@ public class TestPartitionReaderMovingFilesFromLocalStream {
   }
 
   @Test
-  public void testLocalStreamFileMoved() throws Exception {
+  public void testLocalStreamFileMovedWithStopDate() throws Exception {
     CollectorReaderStatsExposer prMetrics = new CollectorReaderStatsExposer(
         testStream, "c1", partitionId.toString(), consumerNumber);
     preader = new PartitionReader(partitionId, null, conf, fs,
         collectorDir, streamsLocalDir, buffer,
         testStream, CollectorStreamReader.getDateFromCollectorFile(files[0]),
-        1000, 1000, prMetrics, null);
+        1000, 1000, prMetrics, CollectorStreamReader.getDateFromCollectorFile(files[6]));
 
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
@@ -85,70 +84,60 @@ public class TestPartitionReaderMovingFilesFromLocalStream {
     while (buffer.remainingCapacity() > 0) {
       Thread.sleep(10);
     }
-    fs.delete(databusFiles[0], true);
-    fs.delete(databusFiles[1], true);
+    // delete a file from streams local while reader is reading
     fs.delete(databusFiles[2], true);
-    databusFiles[4] = TestUtil.moveFileToStreamLocal(fs, testStream,
-        collectorName, cluster, collectorDir, files[4]);
-    databusFiles[5] = TestUtil.moveFileToStreamLocal(fs, testStream,
-        collectorName, cluster, collectorDir, files[5]);
-
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
         collectorName, files[0]), 1, 0, 100, partitionId, buffer, true);
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
         collectorName, files[1]), 2, 0, 50, partitionId, buffer, true);
-
-    while (buffer.remainingCapacity() > 0) {
-      Thread.sleep(10);
-    }
     Assert.assertEquals(((CollectorReader)preader.getReader()).
         getReader().getClass().getName(),
         LocalStreamCollectorReader.class.getName());
+    while (buffer.remainingCapacity() > 0) {
+      Thread.sleep(10);
+    }
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
         collectorName, files[1]), 2, 50, 50, partitionId, buffer, true);
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
         collectorName, files[3]), 4, 0, 100, partitionId, buffer, true);
-
-    while (buffer.remainingCapacity() > 0) {
-      Thread.sleep(10);
-    }
     Assert.assertEquals(((CollectorReader)preader.getReader()).
         getReader().getClass().getName(),
         LocalStreamCollectorReader.class.getName());
-    fs.delete(databusFiles[3], true);
-    fs.delete(databusFiles[4], true);
-    fs.delete(databusFiles[5], true);
-    databusFiles[6] = TestUtil.copyFileToStreamLocal(fs, testStream,
+    while (buffer.remainingCapacity() > 0) {
+      Thread.sleep(10);
+    }
+    // move files to local stream while reader is reading these files
+    TestUtil.moveFileToStreamLocal(fs, testStream,
+        collectorName, cluster, collectorDir, files[4]);
+    TestUtil.moveFileToStreamLocal(fs, testStream,
+        collectorName, cluster, collectorDir, files[5]);
+    TestUtil.moveFileToStreamLocal(fs, testStream,
         collectorName, cluster, collectorDir, files[6]);
-    TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
-        collectorName, files[4]), 5, 0, 100, partitionId, buffer, true);
-    TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
-        collectorName, files[5]), 6, 0, 50, partitionId, buffer, true);
+    TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[4]),
+        5, 0, 100, partitionId, buffer, true);
+    TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[5]),
+        6, 0, 50, partitionId, buffer, true);
     Assert.assertEquals(((CollectorReader)preader.getReader()).
         getReader().getClass().getName(),
-        LocalStreamCollectorReader.class.getName());
+        CollectorStreamReader.class.getName());
     while (buffer.remainingCapacity() > 0) {
       Thread.sleep(10);
     }
-    fs.delete(databusFiles[6], true);
-    TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
-        collectorName, files[5]), 6, 50, 50, partitionId, buffer, true);
+    // move last file to local stream to stop LocalStreamCollectorReader
+    TestUtil.moveFileToStreamLocal(fs, testStream,
+        collectorName, cluster, collectorDir, files[7]);
+
+    TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[5]),
+        6, 50, 50, partitionId, buffer, true);
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
         collectorName, files[6]), 7, 0, 100, partitionId, buffer, true);
-    TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[7]),
-        8, 0, 100, partitionId, buffer, true);
-    Assert.assertEquals(((CollectorReader)preader.getReader())
-        .getReader().getClass().getName(),
-        CollectorStreamReader.class.getName());
-    Assert.assertTrue(buffer.isEmpty());
-    preader.close();
-    Assert.assertEquals(prMetrics.getHandledExceptions(), 0);
-    Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 700);
-    Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 700);
-    Assert.assertEquals(prMetrics.getWaitTimeUnitsNewFile(), 0);
-    Assert.assertEquals(prMetrics.getWaitTimeInSameFile(), 0);
-    Assert.assertEquals(prMetrics.getSwitchesFromCollectorToLocal(), 0);
+    Assert.assertEquals(((CollectorReader)preader.getReader()).
+        getReader().getClass().getName(),
+        LocalStreamCollectorReader.class.getName());
+    Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 600);
+    Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 600);
     Assert.assertEquals(prMetrics.getSwitchesFromLocalToCollector(), 1);
-    Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
+    Assert.assertEquals(prMetrics.getSwitchesFromCollectorToLocal(), 1);
+    Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
   }
 }

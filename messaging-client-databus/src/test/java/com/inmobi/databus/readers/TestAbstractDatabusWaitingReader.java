@@ -52,7 +52,7 @@ public abstract class TestAbstractDatabusWaitingReader {
     lreader = new DatabusStreamWaitingReader(partitionId,
         fs, streamDir,
         inputFormatClass, conf, 1000, metrics, false, partitionMinList, 
-        partitionCheckpointList);           
+        partitionCheckpointList, null);
     Calendar cal = Calendar.getInstance();
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         finalFiles[0].getParent()));
@@ -140,7 +140,7 @@ public abstract class TestAbstractDatabusWaitingReader {
     lreader = new DatabusStreamWaitingReader(partitionId,
         fs, getStreamsDir(),
         inputFormatClass, conf , 1000, metrics, false, partitionMinList, 
-        partitionCheckpointList);              
+        partitionCheckpointList, null);
     lreader.build(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         finalFiles[0].getParent()));
     lreader.initFromStart();
@@ -164,7 +164,7 @@ public abstract class TestAbstractDatabusWaitingReader {
         testStream, "c1", partitionId.toString(), consumerNumber);
     lreader = new DatabusStreamWaitingReader(partitionId,
         fs, getStreamsDir(), inputFormatClass, conf, 1000, metrics, false, 
-        partitionMinList, partitionCheckpointList);  
+        partitionMinList, partitionCheckpointList, null);
     PartitionCheckpoint pcp = new PartitionCheckpoint(
         DatabusStreamWaitingReader.getHadoopStreamFile(
             fs.getFileStatus( finalFiles[1])), 20);
@@ -188,7 +188,7 @@ public abstract class TestAbstractDatabusWaitingReader {
         testStream, "c1", partitionId.toString(), consumerNumber);
     lreader = new DatabusStreamWaitingReader(partitionId,
         fs, getStreamsDir(), inputFormatClass, conf, 1000, metrics, false, 
-        partitionMinList, partitionCheckpointList);  
+        partitionMinList, partitionCheckpointList, null);
     lreader.build(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         finalFiles[1].getParent()));
     lreader.initializeCurrentFile(

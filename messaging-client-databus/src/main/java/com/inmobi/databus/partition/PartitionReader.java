@@ -12,9 +12,9 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
 import com.inmobi.databus.files.StreamFile;
+import com.inmobi.messaging.EOFMessage;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.databus.MessageCheckpoint;
-import com.inmobi.messaging.consumer.databus.MessagingConsumerConfig;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
 import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
@@ -37,11 +37,11 @@ public class PartitionReader {
       FileSystem fs, Path collectorDataDir,
       Path streamsLocalDir, BlockingQueue<QueueEntry> buffer, String streamName,
       Date startTime, long waitTimeForFlush,
-      long waitTimeForFileCreate, PartitionReaderStatsExposer prMetrics)
+      long waitTimeForFileCreate, PartitionReaderStatsExposer prMetrics, Date stopTime)
           throws IOException {
     this(partitionId, partitionCheckpoint, conf, fs, collectorDataDir,
         streamsLocalDir, buffer, streamName, startTime,
-        waitTimeForFlush, waitTimeForFileCreate, prMetrics, false);
+        waitTimeForFlush, waitTimeForFileCreate, prMetrics, false, stopTime);
   }
 
   public PartitionReader(PartitionId partitionId,
@@ -49,11 +49,12 @@ public class PartitionReader {
       BlockingQueue<QueueEntry> buffer, Path streamDir,
       Configuration conf, String inputFormatClass,
       Date startTime, long waitTimeForFileCreate, boolean isDatabusData,
-      PartitionReaderStatsExposer prMetrics, Set<Integer> partitionMinList)
+      PartitionReaderStatsExposer prMetrics, Set<Integer> partitionMinList,
+      Date stopTime)
           throws IOException {
     this(partitionId, partitionCheckpointList, fs, buffer, streamDir,
         conf, inputFormatClass, startTime, waitTimeForFileCreate, isDatabusData,
-        prMetrics, false, partitionMinList);
+        prMetrics, false, partitionMinList, stopTime);
   }
 
   PartitionReader(PartitionId partitionId,
@@ -63,17 +64,17 @@ public class PartitionReader {
       Path streamLocalDir, 
       BlockingQueue<QueueEntry> buffer, String streamName, Date startTime,
       long waitTimeForFlush, long waitTimeForFileCreate,
-      PartitionReaderStatsExposer prMetrics, boolean noNewFiles)
+      PartitionReaderStatsExposer prMetrics, boolean noNewFiles, Date stopTime)
           throws IOException {
     this(partitionId, partitionCheckpoint, buffer, startTime, prMetrics);
     reader = new CollectorReader(partitionId, partitionCheckpoint, fs,
         streamName, collectorDataDir, streamLocalDir, conf,
         startTime, waitTimeForFlush, waitTimeForFileCreate,
-        ((CollectorReaderStatsExposer)prMetrics), noNewFiles);
+        ((CollectorReaderStatsExposer)prMetrics), noNewFiles, stopTime);
     // initialize cluster and its directories
     LOG.info("Partition reader initialized with partitionId:" + partitionId +
         " checkPoint:" + partitionCheckpoint +  
-        " startTime:" + startTime +
+        " startTime:" + startTime + " stopTime:" + stopTime +
         " currentReader:" + reader);
   }
 
@@ -83,17 +84,17 @@ public class PartitionReader {
       Configuration conf, String inputFormatClass,
       Date startTime, long waitTimeForFileCreate, boolean isDatabusData,
       PartitionReaderStatsExposer prMetrics, boolean noNewFiles,
-      Set<Integer> partitionMinList)
+      Set<Integer> partitionMinList, Date stopTime)
           throws IOException {
     this(partitionId, partitionCheckpointList, buffer, startTime, prMetrics);
     reader = new ClusterReader(partitionId, partitionCheckpointList,
         fs, streamDir, conf, inputFormatClass, startTime,
         waitTimeForFileCreate, isDatabusData, prMetrics, noNewFiles, 
-        partitionMinList);
+        partitionMinList, stopTime);
     // initialize cluster and its directories
     LOG.info("Partition reader initialized with partitionId:" + partitionId +
         " checkPoint:" + partitionCheckpointList +  
-        " startTime:" + startTime +
+        " startTime:" + startTime + " stopTime:" + stopTime +
         " currentReader:" + reader);
   }
 
@@ -145,7 +146,6 @@ public class PartitionReader {
           }
         }
       }
-
     };
     thread = new Thread(runnable, this.partitionId.toString());
     LOG.info("Starting thread " + thread.getName());
@@ -191,10 +191,21 @@ public class PartitionReader {
   void execute() {
     assert (reader != null);
     try {
-      reader.openStream();
-      LOG.info("Reading file " + reader.getCurrentFile() + 
-          " and lineNum:" + reader.getCurrentLineNum());
-      while (!stopped) {
+      boolean closeReader = false;
+      /*
+       * close the reader if there are no files present in the stream
+       *  for a given stopTime
+       */
+      if (reader.shouldBeClosed()) {
+        closeReader = true;
+      } else {
+        closeReader = !(reader.openStream());
+      }
+      if (!closeReader) {
+        LOG.info("Reading file " + reader.getCurrentFile() + 
+            " and lineNum:" + reader.getCurrentLineNum());
+      }
+      while (!stopped && !closeReader) {
         Message msg = reader.readLine();
         if (msg != null) {
           // add the data to queue
@@ -202,9 +213,15 @@ public class PartitionReader {
           buffer.put(new QueueEntry(msg, partitionId, checkpoint));
           prMetrics.incrementMessagesAddedToBuffer();
         } else {
-          LOG.info("No stream to read");
-          return;
+          closeReader = true;
         }
+      }
+      if (closeReader) {
+        LOG.info("No stream to read");
+        putEOFMessageInBuffer();
+        // close the reader if reader's status is "closing"
+        close();
+        return;
       }
     } catch (InterruptedException ie) {
       LOG.info("Interrupted while reading stream", ie);
@@ -219,6 +236,11 @@ public class PartitionReader {
         prMetrics.incrementHandledExceptions();
       }
     }
+  }
+
+  public void putEOFMessageInBuffer() throws InterruptedException {
+    EOFMessage eofMessage = new EOFMessage();
+    buffer.put(new QueueEntry(eofMessage, partitionId, null));
   }
 
   public PartitionReaderStatsExposer getStatsExposer() {

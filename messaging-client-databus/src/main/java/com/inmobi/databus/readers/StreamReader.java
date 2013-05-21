@@ -32,10 +32,13 @@ public abstract class StreamReader<T extends StreamFile> {
   protected Path streamDir;
   protected final PartitionReaderStatsExposer metrics;
   private FileMap<T> fileMap;
+  protected Date stopTime;
+
+  private boolean listingStopped = false;
 
   protected StreamReader(PartitionId partitionId, FileSystem fs, 
       Path streamDir, long waitTimeForCreate,
-      PartitionReaderStatsExposer metrics, boolean noNewFiles)
+      PartitionReaderStatsExposer metrics, boolean noNewFiles, Date stopTime)
           throws IOException {
     this.partitionId = partitionId;
     this.fs = fs;
@@ -43,17 +46,18 @@ public abstract class StreamReader<T extends StreamFile> {
     this.waitTimeForCreate = waitTimeForCreate;
     this.metrics = metrics;
     this.noNewFiles = noNewFiles;
+    this.stopTime = stopTime;
     this.fileMap = createFileMap();
   }
-  
+
   public boolean prepareMoveToNext(FileStatus currentFile, FileStatus nextFile)
       throws IOException {
     this.currentFile = nextFile;
     return true;
   }
 
-  public void openStream() throws IOException {
-    openCurrentFile(false);
+  public boolean openStream() throws IOException {
+    return openCurrentFile(false);
   }
 
   public void closeStream() throws IOException {
@@ -75,8 +79,8 @@ public abstract class StreamReader<T extends StreamFile> {
     return fileMap.setIterator(currentFile);
   }
 
-  protected abstract void openCurrentFile(boolean next) throws IOException;
-  
+  protected abstract boolean openCurrentFile(boolean next) throws IOException;
+
   protected abstract void closeCurrentFile() throws IOException; 
   protected void initCurrentFile() {
     currentFile = null;
@@ -282,23 +286,15 @@ public abstract class StreamReader<T extends StreamFile> {
     }
   }
 
-  public void startFromTimestmp(Date timestamp) throws IOException,
-      InterruptedException {
+  public void startFromTimestmp(Date timestamp)
+      throws IOException, InterruptedException {
     if (!initializeCurrentFile(timestamp)) {
-      if (noNewFiles) {
-        // this boolean check is only for tests 
-        return;
-      }
       waitForNextFileCreation(timestamp);
     }
   }
 
   public void startFromBegining() throws IOException, InterruptedException {
     if (!initFromStart()) {
-      if (noNewFiles) {
-        // this boolean check is only for tests 
-        return;
-      }
       waitForNextFileCreation();
     }
   }
@@ -309,17 +305,17 @@ public abstract class StreamReader<T extends StreamFile> {
   }
 
   private void waitForNextFileCreation() throws IOException,
-      InterruptedException {
-    while (!closed && !initFromStart()) {
+  InterruptedException {
+    while (!closed && !initFromStart() && !hasReadFully()) {
       LOG.info("Waiting for next file creation");
       waitForFileCreate();
       build();
     }
   }
 
-  private void waitForNextFileCreation(Date timestamp) throws IOException,
-      InterruptedException {
-    while (!closed && !initializeCurrentFile(timestamp)) {
+  private void waitForNextFileCreation(Date timestamp)
+      throws IOException, InterruptedException {
+    while (!closed && !initializeCurrentFile(timestamp) && !hasReadFully()) {
       LOG.info("Waiting for next file creation");
       waitForFileCreate();
       build();
@@ -333,16 +329,60 @@ public abstract class StreamReader<T extends StreamFile> {
   public boolean isBeforeStream(String fileName) throws IOException {
     return fileMap.isBefore(fileName);
   }
-  
+
   protected boolean isWithinStream(String fileName) throws IOException {
     return fileMap.isWithin(fileName);
   }
-  
+
   protected FileStatus getFirstFileInStream() {
-  	return fileMap.getFirstFile();
+    return fileMap.getFirstFile();
   }
 
   protected FileStatus getFileMapValue(StreamFile streamFile) {
     return fileMap.getValue(streamFile);
+  }
+
+  public boolean isStopped() {
+    return hasReadFully();
+  }
+
+  protected void stopListing() {
+    this.listingStopped = true;
+  }
+
+  protected boolean isListingStopped() {
+    return listingStopped;
+  }
+
+  /*
+   * Check whether it read all files till stopTime
+   */
+  protected boolean hasReadFully() {
+    if (noNewFiles) {
+      // this boolean check is only for tests
+      return true;
+    }
+    if (isListingStopped()) {
+      if (fileMap.isEmpty()) {
+        return true;
+      }
+      if (currentFile == null) {
+        // no files were available on the stream for reading
+        return true;
+      }
+      if (setIterator()) {
+        if (getCurrentFile().equals(fileMap.getLastFile().getPath())) {
+          // current file the last file in fileMap
+          return true;
+        }
+      } else {
+        // could not find current file in filemap 
+        // and filemap does not contain files higher than the current file
+        if (fileMap.getHigherValue(currentFile) == null) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }

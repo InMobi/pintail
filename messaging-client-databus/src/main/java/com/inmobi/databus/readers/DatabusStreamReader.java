@@ -34,7 +34,7 @@ import com.inmobi.messaging.Message;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
 public abstract class DatabusStreamReader<T extends StreamFile> extends 
-    StreamReader<T> {
+StreamReader<T> {
 
   private static final Log LOG = LogFactory.getLog(DatabusStreamReader.class);
 
@@ -51,13 +51,14 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
   protected DatabusStreamReader(PartitionId partitionId, FileSystem fs,
       Path streamDir, String inputFormatClass,
       Configuration conf, long waitTimeForFileCreate,
-      PartitionReaderStatsExposer metrics, boolean noNewFiles)
+      PartitionReaderStatsExposer metrics, boolean noNewFiles, Date stopTime)
           throws IOException {
-    super(partitionId, fs, streamDir, waitTimeForFileCreate, metrics, noNewFiles);
+    super(partitionId, fs, streamDir, waitTimeForFileCreate, metrics,
+        noNewFiles, stopTime);
     this.conf = conf;
     try {
       input = (InputFormat<Object, Object>) ReflectionUtils.newInstance(
-              conf.getClassByName(inputFormatClass), conf);
+          conf.getClassByName(inputFormatClass), conf);
     } catch (ClassNotFoundException e) {
       throw new IllegalArgumentException("Input format class" 
           + inputFormatClass + " not found", e);
@@ -109,8 +110,11 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
     return ret;
   }
 
-  protected void openCurrentFile(boolean next) throws IOException {
+  protected boolean openCurrentFile(boolean next) throws IOException {
     closeCurrentFile();
+    if (getCurrentFile() == null) {
+      return false;
+    }
     if (next) {
       resetCurrentFileSettings();
     }
@@ -138,6 +142,7 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
     } catch (FileNotFoundException fnfe) {
       LOG.info("CurrentFile:" + getCurrentFile() + " does not exist");
     }
+    return true;
   }
 
   protected synchronized void closeCurrentFile() throws IOException {
@@ -160,7 +165,7 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
           ((Writable)msgValue).write(new DataOutputStream(baos));
           return new Message(baos.toByteArray());
         } else {
-           return ((Message)msgValue);
+          return ((Message)msgValue);
         }
       }
     }
@@ -194,7 +199,7 @@ public abstract class DatabusStreamReader<T extends StreamFile> extends
     }
     return null;
   }
-  
+
   public static Date getDateFromCheckpointPath(String checkpointPath) {
     String dirString = checkpointPath.substring(0, minDirFormatStr.length());
     try {

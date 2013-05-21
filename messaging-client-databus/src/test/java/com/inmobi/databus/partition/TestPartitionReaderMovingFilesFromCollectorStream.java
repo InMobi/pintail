@@ -74,7 +74,7 @@ public class TestPartitionReaderMovingFilesFromCollectorStream {
     preader = new PartitionReader(partitionId, null, conf, fs,
         collectorDir, streamsLocalDir, buffer,
         testStream, CollectorStreamReader.getDateFromCollectorFile(files[0]),
-        10, 1000, prMetrics);
+        10, 1000, prMetrics, null);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),

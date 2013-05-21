@@ -9,6 +9,7 @@ import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.AbstractMessageConsumer;
+import com.inmobi.messaging.consumer.EndOfStreamException;
 import com.inmobi.messaging.consumer.MessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
 import com.inmobi.messaging.consumer.BaseMessageConsumerStatsExposer;
@@ -28,7 +29,7 @@ public class StdInConsumer extends AbstractMessageConsumer {
   }
 
   @Override
-  public Message getNext() throws InterruptedException {
+  public Message getNext() throws InterruptedException, EndOfStreamException {
     try {
       String str = in.readLine();
       if (str != null) {
@@ -92,7 +93,7 @@ public class StdInConsumer extends AbstractMessageConsumer {
 
   @Override
   protected Message getNext(long timeout, TimeUnit timeunit)
-      throws InterruptedException {
+      throws InterruptedException, EndOfStreamException {
     return null;
   }
 }

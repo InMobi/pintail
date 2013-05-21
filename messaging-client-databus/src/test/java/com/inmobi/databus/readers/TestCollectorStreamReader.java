@@ -64,7 +64,7 @@ public class TestCollectorStreamReader {
     cReader = new CollectorStreamReader(partitionId, FileSystem.get(
         cluster.getHadoopConf()), testStream,
         CollectorStreamReader.getCollectorDir(cluster, testStream, collectorName),
-        10, 10, metrics, conf, true);
+        10, 10, metrics, conf, true, null);
     cReader.build();
     cReader.initFromStart();
     Assert.assertEquals(cReader.getCurrentFile(), new Path(collectorDir,
@@ -154,7 +154,7 @@ public class TestCollectorStreamReader {
     cReader = new CollectorStreamReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
         CollectorStreamReader.getCollectorDir(cluster, testStream, collectorName),
-        10, 10, metrics, conf, true);
+        10, 10, metrics, conf, true, null);
     cReader.build();
     cReader.initFromStart();
     cReader.openStream();
@@ -178,7 +178,7 @@ public class TestCollectorStreamReader {
     cReader = new CollectorStreamReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
         CollectorStreamReader.getCollectorDir(cluster, testStream, collectorName),
-        10, 10, metrics, conf, true);
+        10, 10, metrics, conf, true, null);
     cReader.build();
     cReader.initializeCurrentFile(new PartitionCheckpoint(
         CollectorStreamReader.getCollectorFile(files[1]), 20));
@@ -202,7 +202,7 @@ public class TestCollectorStreamReader {
     cReader = new CollectorStreamReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
         CollectorStreamReader.getCollectorDir(cluster, testStream, collectorName),
-        10, 10, metrics, conf, true);
+        10, 10, metrics, conf, true, null);
     cReader.build();
     cReader.initializeCurrentFile(
         CollectorStreamReader.getDateFromCollectorFile(files[1]));

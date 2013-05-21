@@ -19,7 +19,7 @@ public class MockConsumer extends AbstractMessageConsumer {
     initedConf = true;
   }
   @Override
-  protected Message getNext() throws InterruptedException {
+  protected Message getNext() throws InterruptedException, EndOfStreamException {
     if (block) {
       Thread.sleep(2000);
     }
@@ -50,7 +50,7 @@ public class MockConsumer extends AbstractMessageConsumer {
   
   @Override
   protected Message getNext(long timeout, TimeUnit timeunit)
-      throws InterruptedException {
+      throws InterruptedException, EndOfStreamException {
     return null;
   }
 
