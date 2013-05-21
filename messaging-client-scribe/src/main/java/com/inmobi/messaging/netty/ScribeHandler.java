@@ -1,6 +1,5 @@
 package com.inmobi.messaging.netty;
 
-import java.net.ConnectException;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -110,8 +109,7 @@ public class ScribeHandler extends SimpleChannelHandler {
       }
     }
 
-    if ((cause instanceof ConnectException) ||
-        (channelSetter.getCurrentChannel() != null && 
+    if ((channelSetter.getCurrentChannel() == null ||
         ctx.getChannel().getId() == channelSetter.getCurrentChannel().getId()))
     {
       scheduleReconnect();
@@ -145,7 +143,7 @@ public class ScribeHandler extends SimpleChannelHandler {
                   try {
                     channelSetter.connect();
                   } catch (Exception e) {
-                    LOG.warn("got exception during connect");
+                    LOG.warn("Got exception during connect ", e);
                     setExceptionDuringConnect();
                     return;
                   }
