@@ -171,7 +171,11 @@ public abstract class AbstractMessagingDatabusConsumer
     return currentCheckpoint;
   }
   
-
+  /**
+   * @throws throws an EndOfStreamException When consumer consumes EOFMessages
+   *  from all partitions
+   * @return Message if it not throws EndOfStreamException
+   */
   @Override
   protected Message getNext()
       throws InterruptedException, EndOfStreamException {
@@ -196,6 +200,11 @@ public abstract class AbstractMessagingDatabusConsumer
     currentCheckpoint.set(entry.getPartitionId(), msgchk);
   }
   
+  /**
+   * @throws throws an EndOfStreamException 
+   * @return Message if it not throws EndOfStreamException
+   *         Null if there is no entry in the buffer for a specified time
+   */
   @Override
   protected Message getNext(long timeout, TimeUnit timeunit) 
       throws InterruptedException, EndOfStreamException {

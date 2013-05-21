@@ -376,7 +376,7 @@ public abstract class StreamReader<T extends StreamFile> {
           return true;
         }
       } else {
-        // could not file current file in filemap 
+        // could not find current file in filemap 
         // and filemap does not contain files higher than the current file
         if (fileMap.getHigherValue(currentFile) == null) {
           return true;

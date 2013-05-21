@@ -22,7 +22,7 @@ import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.databus.mapred.DatabusInputFormat;
 import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 
-public class LocalStreamCollectorReader extends 
+public class LocalStreamCollectorReader extends
     DatabusStreamReader<DatabusStreamFile> {
 
   protected final String streamName;
@@ -79,17 +79,12 @@ public class LocalStreamCollectorReader extends
     Calendar current = Calendar.getInstance();
     Date now = current.getTime();
     current.setTime(buildTimestamp);
-    boolean breakListing = false;
     while (current.getTime().before(now) && !isListingStopped()) {
       Path hhDir =  getHourDirPath(streamDir, current.getTime());
       int hour = current.get(Calendar.HOUR_OF_DAY);
       if (fs.exists(hhDir)) {
         while (current.getTime().before(now) && 
-            hour  == current.get(Calendar.HOUR_OF_DAY)) {
-          if (isListingStopped()) {
-            breakListing = true;
-            break;
-          }
+            hour  == current.get(Calendar.HOUR_OF_DAY) && !isListingStopped()) {
           Path dir = getMinuteDirPath(streamDir, current.getTime());
           // Move the current minute to next minute
           current.add(Calendar.MINUTE, 1);
@@ -100,9 +95,6 @@ public class LocalStreamCollectorReader extends
         LOG.info("Hour directory " + hhDir + " does not exist");
         current.add(Calendar.HOUR_OF_DAY, 1);
         current.set(Calendar.MINUTE, 0);
-      }
-      if (breakListing) {
-        break;
       }
     }
   }
