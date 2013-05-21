@@ -78,7 +78,7 @@ Usage: $0 file <topic> <file> --conf <confdir>
        $0 counter [<minutes-to-read-from> <time-to-wait-for-NextMessage>] --conf <confdir> 
        $0 multitopicseqgen <topic1> <topic2> <maxSeq> --conf <confdir>
        $0 migrate-checkpoint <confFile>
-       $0 audit [-rootdir <hdfs root dir>] [-cutoff <cuttofTimeInHrs>] [-timeout <timeoutInMins>] [-group <TIER,HOSTNAME,TOPIC>]
+       $0 audit [-rootdir <hdfs root dir>] [-cutoff <cuttofTimeInMins>] [-timeout <timeoutInMins>] [-group <TIER,HOSTNAME,TOPIC>] 
           [-filter <TIER=xxx,HOSTNAME=xxx,TOPIC=xxx>] <dd-mm-yyyy-HH:mm> <dd-mm-yyyy-HH:mm> --conf <confdir>
 EOF
 }
