@@ -158,9 +158,8 @@ public class TestAuditStatsQuery {
     generateData(topic4, topic5);
     // setting very large timeout so that query cuttoff should happen as per max
     // messages
-    AuditStatsQuery query =
-        new AuditStatsQuery("mock", endTime, startTime, "topic=" + topic4,
- null, null, "600", null, Tier.PUBLISHER,
+    AuditStatsQuery query = new AuditStatsQuery("mock", endTime, startTime,
+        "topic=" + topic4, null, null, "600", null, Tier.PUBLISHER,
         totalData / 2);
     query.parseAndSetArguments();
     publisher.close();
