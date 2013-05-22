@@ -90,22 +90,26 @@ public class TestPartitionReaderMovingFilesWithStopTime {
         collectorName, files[0]), 1, 0, 100, partitionId, buffer, true);
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
         collectorName, files[1]), 2, 0, 50, partitionId, buffer, true);
-    Assert.assertEquals(((CollectorReader)preader.getReader()).
-        getReader().getClass().getName(),
-        LocalStreamCollectorReader.class.getName());
     while (buffer.remainingCapacity() > 0) {
       Thread.sleep(10);
     }
+
+    Assert.assertEquals(((CollectorReader)preader.getReader()).
+        getReader().getClass().getName(),
+        LocalStreamCollectorReader.class.getName());
+
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
         collectorName, files[1]), 2, 50, 50, partitionId, buffer, true);
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
         collectorName, files[3]), 4, 0, 100, partitionId, buffer, true);
-    Assert.assertEquals(((CollectorReader)preader.getReader()).
-        getReader().getClass().getName(),
-        LocalStreamCollectorReader.class.getName());
     while (buffer.remainingCapacity() > 0) {
       Thread.sleep(10);
     }
+
+    Assert.assertEquals(((CollectorReader)preader.getReader()).
+        getReader().getClass().getName(),
+        CollectorStreamReader.class.getName());
+
     // move files to local stream while reader is reading these files
     TestUtil.moveFileToStreamLocal(fs, testStream,
         collectorName, cluster, collectorDir, files[4]);
@@ -117,12 +121,14 @@ public class TestPartitionReaderMovingFilesWithStopTime {
         5, 0, 100, partitionId, buffer, true);
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[5]),
         6, 0, 50, partitionId, buffer, true);
-    Assert.assertEquals(((CollectorReader)preader.getReader()).
-        getReader().getClass().getName(),
-        CollectorStreamReader.class.getName());
     while (buffer.remainingCapacity() > 0) {
       Thread.sleep(10);
     }
+
+    Assert.assertEquals(((CollectorReader)preader.getReader()).
+        getReader().getClass().getName(),
+        LocalStreamCollectorReader.class.getName());
+
     // move last file to local stream to stop LocalStreamCollectorReader
     TestUtil.moveFileToStreamLocal(fs, testStream,
         collectorName, cluster, collectorDir, files[7]);
@@ -131,13 +137,11 @@ public class TestPartitionReaderMovingFilesWithStopTime {
         6, 50, 50, partitionId, buffer, true);
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
         collectorName, files[6]), 7, 0, 100, partitionId, buffer, true);
-    Assert.assertEquals(((CollectorReader)preader.getReader()).
-        getReader().getClass().getName(),
-        LocalStreamCollectorReader.class.getName());
+    Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
+
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 600);
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 600);
     Assert.assertEquals(prMetrics.getSwitchesFromLocalToCollector(), 1);
     Assert.assertEquals(prMetrics.getSwitchesFromCollectorToLocal(), 1);
-    Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
   }
 }
