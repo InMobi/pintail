@@ -18,16 +18,21 @@ public interface MessageConsumer {
    * stream
    * 
    * @return {@link Message} object
-   * @throws InterruptedException 
-   * @throws EndOfStreamException TODO
+   * 
+   * @throws InterruptedException if interrupted while waiting for Message
+   * @throws EndOfStreamException When consumer consumed all messages in the
+   *  stream
    */
   public Message next() throws InterruptedException, EndOfStreamException;
   
   /**
    * Reads the next message if it is available with in the specified timeout.
-   * Otherwise returns null
-   * @throws InterruptedException
-   * @throws EndOfStreamException TODO
+   * 
+   * @return {@link Message} object if available within timeout
+   *         Null otherwise
+   * @throws InterruptedException if interrupted while waiting for Message
+   * @throws EndOfStreamException When consumer consumed all messages in the
+   *  stream
    */
   public Message next(long timeout, TimeUnit timeunit) 
       throws InterruptedException, EndOfStreamException;

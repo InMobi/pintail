@@ -22,7 +22,7 @@ import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.databus.mapred.DatabusInputFormat;
 import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 
-public class LocalStreamCollectorReader extends 
+public class LocalStreamCollectorReader extends
     DatabusStreamReader<DatabusStreamFile> {
 
   protected final String streamName;
@@ -35,12 +35,12 @@ public class LocalStreamCollectorReader extends
   public LocalStreamCollectorReader(PartitionId partitionId, 
       FileSystem fs, String streamName, Path streamDir, Configuration conf,
       long waitTimeForFileCreate, CollectorReaderStatsExposer metrics,
-      Date stopDate)
+      Date stopTime)
           throws IOException {
     super(partitionId, fs, streamDir,
         DatabusInputFormat.class.getCanonicalName(), conf, waitTimeForFileCreate,
-        metrics, false, stopDate);
-    this.stopDate = stopDate;
+        metrics, false, stopTime);
+    this.stopTime = stopTime;
     this.streamName = streamName;
     this.collector = partitionId.getCollector();
   }
@@ -59,8 +59,9 @@ public class LocalStreamCollectorReader extends
           try {
             Date currentTimeStamp = LocalStreamCollectorReader.
                 getDateFromStreamFile(streamName, file.getPath().getName());
-            if (stopDate != null && stopDate.before(currentTimeStamp)) {
-              LOG.info("stop date is beyond the file time stamp ");
+            if (stopTime != null && stopTime.before(currentTimeStamp)) {
+              LOG.info("stopTime [ " + stopTime + " ] " + "is beyond the" +
+                  " current file timestamp [ " + currentTimeStamp +" ]");
               stopListing();
             } else {
               fmap.addPath(file);
@@ -78,18 +79,14 @@ public class LocalStreamCollectorReader extends
     Calendar current = Calendar.getInstance();
     Date now = current.getTime();
     current.setTime(buildTimestamp);
-    boolean breakListing = false;
-    while (current.getTime().before(now)) {
+    // stop the file listing if stop date is beyond current time
+    while (current.getTime().before(now) && !isListingStopped()) {
       Path hhDir =  getHourDirPath(streamDir, current.getTime());
       int hour = current.get(Calendar.HOUR_OF_DAY);
       if (fs.exists(hhDir)) {
         while (current.getTime().before(now) && 
-            hour  == current.get(Calendar.HOUR_OF_DAY)) {
+            hour  == current.get(Calendar.HOUR_OF_DAY) && !isListingStopped()) {
           Path dir = getMinuteDirPath(streamDir, current.getTime());
-          if (isListingStopped()) {
-            breakListing = true;
-            break;
-          }
           // Move the current minute to next minute
           current.add(Calendar.MINUTE, 1);
           doRecursiveListing(dir, pathFilter, fmap);
@@ -99,9 +96,6 @@ public class LocalStreamCollectorReader extends
         LOG.info("Hour directory " + hhDir + " does not exist");
         current.add(Calendar.HOUR_OF_DAY, 1);
         current.set(Calendar.MINUTE, 0);
-      }
-      if (breakListing) {
-        break;
       }
     }
   }

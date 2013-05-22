@@ -37,11 +37,11 @@ public class PartitionReader {
       FileSystem fs, Path collectorDataDir,
       Path streamsLocalDir, BlockingQueue<QueueEntry> buffer, String streamName,
       Date startTime, long waitTimeForFlush,
-      long waitTimeForFileCreate, PartitionReaderStatsExposer prMetrics, Date stopDate)
+      long waitTimeForFileCreate, PartitionReaderStatsExposer prMetrics, Date stopTime)
           throws IOException {
     this(partitionId, partitionCheckpoint, conf, fs, collectorDataDir,
         streamsLocalDir, buffer, streamName, startTime,
-        waitTimeForFlush, waitTimeForFileCreate, prMetrics, false, stopDate);
+        waitTimeForFlush, waitTimeForFileCreate, prMetrics, false, stopTime);
   }
 
   public PartitionReader(PartitionId partitionId,
@@ -50,11 +50,11 @@ public class PartitionReader {
       Configuration conf, String inputFormatClass,
       Date startTime, long waitTimeForFileCreate, boolean isDatabusData,
       PartitionReaderStatsExposer prMetrics, Set<Integer> partitionMinList,
-      Date stopDate)
+      Date stopTime)
           throws IOException {
     this(partitionId, partitionCheckpointList, fs, buffer, streamDir,
         conf, inputFormatClass, startTime, waitTimeForFileCreate, isDatabusData,
-        prMetrics, false, partitionMinList, stopDate);
+        prMetrics, false, partitionMinList, stopTime);
   }
 
   PartitionReader(PartitionId partitionId,
@@ -64,17 +64,18 @@ public class PartitionReader {
       Path streamLocalDir, 
       BlockingQueue<QueueEntry> buffer, String streamName, Date startTime,
       long waitTimeForFlush, long waitTimeForFileCreate,
-      PartitionReaderStatsExposer prMetrics, boolean noNewFiles, Date stopDate)
+      PartitionReaderStatsExposer prMetrics, boolean noNewFiles, Date stopTime)
           throws IOException {
     this(partitionId, partitionCheckpoint, buffer, startTime, prMetrics);
     reader = new CollectorReader(partitionId, partitionCheckpoint, fs,
         streamName, collectorDataDir, streamLocalDir, conf,
         startTime, waitTimeForFlush, waitTimeForFileCreate,
-        ((CollectorReaderStatsExposer)prMetrics), noNewFiles, stopDate);
+        ((CollectorReaderStatsExposer)prMetrics), noNewFiles, stopTime);
     // initialize cluster and its directories
     LOG.info("Partition reader initialized with partitionId:" + partitionId +
-    " checkPoint:" + partitionCheckpoint + " startTime:" + startTime
-        + " stopTime:" + stopDate + " currentReader:" + reader);
+        " checkPoint:" + partitionCheckpoint +  
+        " startTime:" + startTime + " stopTime:" + stopTime +
+        " currentReader:" + reader);
   }
 
   PartitionReader(PartitionId partitionId,
@@ -83,17 +84,17 @@ public class PartitionReader {
       Configuration conf, String inputFormatClass,
       Date startTime, long waitTimeForFileCreate, boolean isDatabusData,
       PartitionReaderStatsExposer prMetrics, boolean noNewFiles,
-      Set<Integer> partitionMinList, Date stopDate)
+      Set<Integer> partitionMinList, Date stopTime)
           throws IOException {
     this(partitionId, partitionCheckpointList, buffer, startTime, prMetrics);
     reader = new ClusterReader(partitionId, partitionCheckpointList,
         fs, streamDir, conf, inputFormatClass, startTime,
         waitTimeForFileCreate, isDatabusData, prMetrics, noNewFiles, 
-        partitionMinList, stopDate);
+        partitionMinList, stopTime);
     // initialize cluster and its directories
     LOG.info("Partition reader initialized with partitionId:" + partitionId +
         " checkPoint:" + partitionCheckpointList +  
-        " startTime:" + startTime +
+        " startTime:" + startTime + " stopTime:" + stopTime +
         " currentReader:" + reader);
   }
 
@@ -191,9 +192,19 @@ public class PartitionReader {
     assert (reader != null);
     try {
       boolean closeReader = false;
-      closeReader = !(reader.openStream());
-      LOG.info("Reading file " + reader.getCurrentFile() + 
-          " and lineNum:" + reader.getCurrentLineNum());
+      /*
+       * close the reader if there are no files present in the stream
+       *  for a given stopTime
+       */
+      if (reader.shouldBeClosed()) {
+        closeReader = true;
+      } else {
+        closeReader = !(reader.openStream());
+      }
+      if (!closeReader) {
+        LOG.info("Reading file " + reader.getCurrentFile() + 
+            " and lineNum:" + reader.getCurrentLineNum());
+      }
       while (!stopped && !closeReader) {
         Message msg = reader.readLine();
         if (msg != null) {

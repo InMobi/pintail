@@ -192,7 +192,7 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
         return minDirFormat.get().parse(dateString);
       } catch (java.text.ParseException e) {
         throw new IllegalArgumentException("Incorrect format of " +
-            "startTime/stopDate passed " +  " Absolute startTime/stopDate " +
+            "startTime/stopTime passed " +  " Absolute startTime/stopTime " +
             "should be in this format: " +  minDirFormatStr);
       }
     }

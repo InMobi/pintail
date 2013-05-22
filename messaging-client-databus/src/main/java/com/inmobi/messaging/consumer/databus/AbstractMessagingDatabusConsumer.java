@@ -46,7 +46,7 @@ public abstract class AbstractMessagingDatabusConsumer
   protected int totalConsumers;
   protected Set<Integer> partitionMinList;
   protected String relativeStartTimeStr;
-  protected Date stopDate;
+  protected Date stopTime;
   private int closedReadercount;
 
   @Override
@@ -142,8 +142,8 @@ public abstract class AbstractMessagingDatabusConsumer
       relativeStartTimeStr = String.valueOf(minutes);
     }
 
-    String stopDateStr = config.getString(stopDateConfig);
-    stopDate = getDateFromString(stopDateStr);
+    String stopTimeStr = config.getString(stopDateConfig);
+    stopTime = getDateFromString(stopTimeStr);
 
     closedReadercount = 0;
   }
@@ -171,7 +171,12 @@ public abstract class AbstractMessagingDatabusConsumer
     return currentCheckpoint;
   }
   
-
+  /**
+   * @throws throws an EndOfStreamException When consumer consumed all messages
+   *  till stopTime
+   * @return Message if Message is available on the stream
+   *         Otherwise waits for the Message to be available on the stream
+   */
   @Override
   protected Message getNext()
       throws InterruptedException, EndOfStreamException {
@@ -196,6 +201,12 @@ public abstract class AbstractMessagingDatabusConsumer
     currentCheckpoint.set(entry.getPartitionId(), msgchk);
   }
   
+  /**
+   * @throws throws an EndOfStreamException When consumer consumed all messages
+   *  till stopTime
+   * @return Message if Message is available on the stream
+   *         Null if Message is not available on the stream for a given timeout
+   */
   @Override
   protected Message getNext(long timeout, TimeUnit timeunit) 
       throws InterruptedException, EndOfStreamException {
@@ -253,9 +264,9 @@ public abstract class AbstractMessagingDatabusConsumer
 
   public void isValidStopDate(Date partitionTimestamp) {
     if (partitionTimestamp != null) {
-      if (stopDate != null && stopDate.before(partitionTimestamp)) {
-        throw new IllegalArgumentException("Invaild stop date is provided. " +
-            "Provide a stop date after start time");
+      if (stopTime != null && stopTime.before(partitionTimestamp)) {
+        throw new IllegalArgumentException("Provided stopTime is beyond" +
+            " the startTime." + "Provide a valid stopTime");
       }
     }
   }

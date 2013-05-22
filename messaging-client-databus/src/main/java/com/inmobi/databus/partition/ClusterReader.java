@@ -31,7 +31,7 @@ public class ClusterReader extends AbstractPartitionStreamReader {
       Path streamDir, Configuration conf, String inputFormatClass,
       Date startTime, long waitTimeForFileCreate, boolean isDatabusData,
       PartitionReaderStatsExposer metrics, boolean noNewFiles,
-      Set<Integer> partitionMinList, Date stopDate)
+      Set<Integer> partitionMinList, Date stopTime)
           throws IOException {
     this.startTime = startTime;
     this.streamDir = streamDir;
@@ -40,7 +40,7 @@ public class ClusterReader extends AbstractPartitionStreamReader {
 
     reader = new DatabusStreamWaitingReader(partitionId, fs, streamDir,
         inputFormatClass, conf, waitTimeForFileCreate, metrics, noNewFiles,
-        partitionMinList, partitionCheckpointList, stopDate);
+        partitionMinList, partitionCheckpointList, stopTime);
   }
 
   /*
@@ -137,5 +137,10 @@ public class ClusterReader extends AbstractPartitionStreamReader {
       dataWaitingReader.resetMoveToNextFlags();
     }
     return consumerPartitionCheckPoint;
+  }
+
+  @Override
+  public boolean shouldBeClosed() {
+    return false;
   }
 }

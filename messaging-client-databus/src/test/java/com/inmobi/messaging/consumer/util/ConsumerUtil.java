@@ -8,13 +8,13 @@ import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.hadoop.fs.Path;
-import org.mortbay.log.Log;
 import org.testng.Assert;
 
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.consumer.AbstractMessageConsumer;
 import com.inmobi.messaging.consumer.BaseMessageConsumerStatsExposer;
 import com.inmobi.messaging.consumer.EndOfStreamException;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
@@ -367,7 +367,7 @@ public class ConsumerUtil {
       consumer.next(60, TimeUnit.SECONDS);
     }
     consumer.mark();
-    
+
     ConsumerCheckpoint expectedCheckpoint = consumer.getCurrentCheckpoint();
     Map<PartitionId, PartitionCheckpoint> lastCheckpoint = new 
         HashMap<PartitionId, PartitionCheckpoint>();
@@ -597,7 +597,7 @@ public class ConsumerUtil {
     }
     Assert.assertTrue(th instanceof IllegalArgumentException);
   }
- 
+
   public static void testConsumerWithoutConfiguredOptions(ClientConfig config)
       throws Exception {
     Throwable th = null;
@@ -669,7 +669,7 @@ public class ConsumerUtil {
 
   public static void testConsumerWithAbsoluteStartTimeAndStopTime(
       ClientConfig config, String streamName, String consumerName,
-      Date startTime, boolean hadoop, Date stopDate)
+      Date startTime, boolean hadoop)
           throws Exception {
     AbstractMessagingDatabusConsumer consumer = createConsumer(hadoop);
     consumer.init(streamName, consumerName, startTime, config);
@@ -702,7 +702,7 @@ public class ConsumerUtil {
 
   public static void testConsumerWithAbsoluteStopTime(
       ClientConfig config, String streamName, String consumerName,
-      Date startTime, boolean hadoop, Date stopDate)
+      Date startTime, boolean hadoop)
           throws Exception {
     AbstractMessagingDatabusConsumer consumer = createConsumer(hadoop);
     consumer.init(streamName, consumerName, startTime, config);
@@ -739,10 +739,9 @@ public class ConsumerUtil {
     Assert.assertTrue(th instanceof EndOfStreamException);
   }
 
-  public static void testConsumerWithStopTime(
+  public static void testConsumerWithStopTimeBeyondCheckpoint(
       ClientConfig config, String streamName, String consumerName,
-      Date startTime, boolean hadoop, Date stopDate)
-          throws Exception {
+      Date startTime, boolean hadoop, Date stopDate) throws Exception {
     AbstractMessagingDatabusConsumer consumer = createConsumer(hadoop);
     consumer.init(streamName, consumerName, startTime, config);
     int i;
@@ -752,23 +751,18 @@ public class ConsumerUtil {
           MessageUtil.constructMessage(i));
     }
     consumer.mark();
-    for (i = 20; i < 140; i++) {
-      Message msg = consumer.next();
-      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
-          MessageUtil.constructMessage(i));
-    }
-    consumer.reset();
-    consumer.close();
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
-        consumer.getMetrics())).getNumMessagesConsumed(), 140);
-    consumer.init(streamName, consumerName, startTime, config);
     for (i = 20; i < 200; i++) {
       Message msg = consumer.next();
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
+    consumer.mark();
+    consumer.close();
     Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
-        consumer.getMetrics())).getNumMessagesConsumed(), 180);
+        consumer.getMetrics())).getNumMessagesConsumed(), 200);
+    config.set(HadoopConsumerConfig.stopDateConfig,
+        AbstractMessageConsumer.minDirFormat.get().format(stopDate));
+    consumer.init(streamName, consumerName, startTime, config);
     Throwable th = null;
     try {
       consumer.next();

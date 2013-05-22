@@ -39,13 +39,13 @@ public class DatabusStreamWaitingReader
       Path streamDir,  String inputFormatClass, Configuration conf,
       long waitTimeForFileCreate, PartitionReaderStatsExposer metrics,
       boolean noNewFiles, Set<Integer> partitionMinList, 
-      PartitionCheckpointList partitionCheckpointList, Date stopDate)
+      PartitionCheckpointList partitionCheckpointList, Date stopTime)
           throws IOException {
     super(partitionId, fs, streamDir, inputFormatClass, conf,
-        waitTimeForFileCreate, metrics, noNewFiles, stopDate);
+        waitTimeForFileCreate, metrics, noNewFiles, stopTime);
     this.partitionCheckpointList = partitionCheckpointList;
     this.partitionMinList = partitionMinList; 
-    this.stopDate = stopDate;
+    this.stopTime = stopTime;
     currentMin = -1;
   }
 
@@ -132,7 +132,7 @@ public class DatabusStreamWaitingReader
         while (current.getTime().before(now) && 
             hour  == current.get(Calendar.HOUR_OF_DAY)) {
           // stop the file listing if stop date is beyond current time.
-          if (checkAndSetStopDateReached(current)) {
+          if (checkAndSetstopTimeReached(current)) {
             breakListing = true;
             break;
           }
@@ -177,9 +177,12 @@ public class DatabusStreamWaitingReader
     }
   }
 
-  private boolean checkAndSetStopDateReached(Calendar current) {
-    if (stopDate != null && stopDate.before(current.getTime())) {
-      LOG.info("Reached stopDate. Not listing from after" +
+  /*
+   * check whether reached stopTime and stop the File listing if it reached stopTime
+   */
+  private boolean checkAndSetstopTimeReached(Calendar current) {
+    if (stopTime != null && stopTime.before(current.getTime())) {
+      LOG.info("Reached stopTime. Not listing from after" +
           " the stop date ");
       stopListing();
       return true;
@@ -210,7 +213,7 @@ public class DatabusStreamWaitingReader
     boolean readFromCheckpoint = false;
     FileStatus fileToRead = nextFile;
     if (currentMin != now.get(Calendar.MINUTE)) {
-      //We are moving to next file, set the flags so that Message checkpoints 
+      //We are moving to next file, set the flags so that Message checkpoints
       //can be populated.
       movedToNext = true;
       prevMin = currentMin;
@@ -261,10 +264,6 @@ public class DatabusStreamWaitingReader
   protected void startFromNextHigher(FileStatus file)
       throws IOException, InterruptedException {
     if (!setNextHigherAndOpen(file)) {
-      if (noNewFiles) {
-        // this boolean check is only for tests 
-        return;
-      }
       waitForNextFileCreation(file);
     }
   }
@@ -292,10 +291,7 @@ public class DatabusStreamWaitingReader
         build(getDateFromStreamDir(streamDir, 
             getCurrentFile()));
         if (!nextFile()) { // reached end of stream
-          if (noNewFiles) {
-            // this boolean check is only for tests 
-            return null;
-          }
+          // stop reading if read till stopTime
           if (hasReadFully()) {
             LOG.info("read all files till stop date");
             break;

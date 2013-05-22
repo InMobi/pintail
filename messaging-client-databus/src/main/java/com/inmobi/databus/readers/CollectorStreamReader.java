@@ -46,8 +46,10 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
       FileSystem fs, String streamName, Path streamDir,
       long waitTimeForFlush,
       long waitTimeForCreate, CollectorReaderStatsExposer metrics,
-      Configuration conf, boolean noNewFiles, Date stopDate) throws IOException {
-    super(partitionId, fs, streamDir, waitTimeForCreate, metrics, noNewFiles, stopDate);
+      Configuration conf, boolean noNewFiles, Date stopTime)
+          throws IOException {
+    super(partitionId, fs, streamDir, waitTimeForCreate, metrics, noNewFiles,
+        stopTime);
     this.streamName = streamName;
     this.waitTimeForFlush = waitTimeForFlush;
     this.collectorMetrics = (CollectorReaderStatsExposer)(this.metrics);
@@ -81,6 +83,9 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
         };
       }
 
+      /*
+       * prepare a fileMap with files which are beyond the stopTime
+       */
       @Override
       protected void buildList() throws IOException {
         if (fs.exists(streamDir)) {
@@ -90,10 +95,10 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
             return;
           }
           for (FileStatus file : fileStatuses) {
-            if (stopDate != null) {
+            if (stopTime != null) {
               Date currentTimeStamp = getDateFromCollectorFile(
                   file.getPath().getName());
-              if (stopDate.before(currentTimeStamp)) {
+              if (stopTime.before(currentTimeStamp)) {
                 stopListing();
                 continue;
               }
@@ -123,6 +128,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   }
 
   protected void initCurrentFile() {
+
     super.initCurrentFile();
     sameStream = false;
   }
@@ -219,10 +225,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
       }
       build(); // rebuild file list
       if (!hasNextFile()) { //there is no next file
-        if (noNewFiles) {
-          // this boolean check is only for tests 
-          return null;
-        }
+        // stop reading if it read till stopTime
         if (hasReadFully()) {
           LOG.info("read all files till stop date");
           break;
@@ -282,10 +285,6 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   public boolean startFromNextHigher(String fileName) 
       throws IOException, InterruptedException {
     if (!setNextHigher(fileName)) {
-      if (noNewFiles) {
-        // this boolean check is only for tests 
-        return false;
-      }
       waitForNextFileCreation(fileName);
     }
     return true;
@@ -345,5 +344,13 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
 
   public static CollectorFile getCollectorFile(String fileName) {
     return CollectorFile.create(fileName);
+  }
+
+  @Override
+  protected boolean hasReadFully() {
+    if (currentFile != null && !setIterator()) {
+      return false;
+    }
+    return super.hasReadFully();
   }
 }

@@ -27,8 +27,10 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   private LocalStreamCollectorReader lReader;
   private CollectorStreamReader cReader;
   private final CollectorReaderStatsExposer metrics;
-  private Date stopDate;
+  private Date stopTime;
   private boolean noNewFiles;
+
+  private boolean shouldBeClosed = false;
 
   CollectorReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, FileSystem fs,
@@ -37,20 +39,20 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       Configuration conf,
       Date startTime, long waitTimeForFlush,
       long waitTimeForFileCreate, CollectorReaderStatsExposer metrics,
-      boolean noNewFiles, Date stopDate)
+      boolean noNewFiles, Date stopTime)
           throws IOException {
     this.partitionId = partitionId;
     this.startTime = startTime;
     this.streamName = streamName;
     this.partitionCheckpoint = partitionCheckpoint;
-    this.stopDate = stopDate;
+    this.stopTime = stopTime;
     this.metrics = metrics;
     this.noNewFiles = noNewFiles;
     lReader = new LocalStreamCollectorReader(partitionId,  fs, streamName,
-        streamsLocalDir, conf, waitTimeForFileCreate, metrics, stopDate);
+        streamsLocalDir, conf, waitTimeForFileCreate, metrics, stopTime);
     cReader = new CollectorStreamReader(partitionId, fs, streamName,
         collectorDir, waitTimeForFlush, waitTimeForFileCreate, metrics,
-        conf, noNewFiles, stopDate);
+        conf, noNewFiles, stopTime);
   }
 
   private void initializeCurrentFileFromTimeStamp(Date timestamp)
@@ -64,6 +66,9 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     }
   }
 
+  /*
+   * close the reader if given stopTime is beyond the checkpoint
+   */
   private void initializeCurrentFileFromCheckpointLocalStream(
       String localStreamFileName) throws IOException, InterruptedException {
     String error = "Checkpoint file does not exist";
@@ -72,6 +77,8 @@ public class CollectorReader extends AbstractPartitionStreamReader {
           DatabusStreamFile.create(streamName, localStreamFileName),
           partitionCheckpoint.getLineNum()))) {
         reader = lReader;
+      } else if (lReader.isStopped() || cReader.isStopped()) {
+        shouldBeClosed  = true;
       } else {
         throw new IllegalArgumentException(error);
       } 
@@ -83,12 +90,18 @@ public class CollectorReader extends AbstractPartitionStreamReader {
         if (!reader.initFromStart()) {
           throw new IllegalArgumentException(error);
         }
+      } else if (cReader.isStopped() || lReader.isStopped()) {
+        shouldBeClosed  = true;
       } else {
         throw new IllegalArgumentException(error);
       }
     } else {
       reader = cReader;
-      cReader.startFromBegining();
+      if (lReader.isStopped() || cReader.isStopped()) {
+        shouldBeClosed = true;
+      } else {
+        cReader.startFromBegining();
+      }
     }
   }
 
@@ -124,8 +137,10 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     } else {
       LOG.info("Would never reach here");
     }
-    LOG.info("Intialized currentFile:" + reader.getCurrentFile() +
-        " currentLineNum:" + reader.getCurrentLineNum());
+    if (reader != null) {
+      LOG.info("Intialized currentFile:" + reader.getCurrentFile() +
+          " currentLineNum:" + reader.getCurrentLineNum());
+    }
   }
 
   public Message readLine() throws IOException, InterruptedException {
@@ -135,7 +150,9 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       if (closed) {
         return line;
       }
-      if (stopDate != null && reader.isStopped()) {
+
+      // check whether readers are stopped
+      if (reader.isStopped()) {
         return null;
       }
       if (reader == lReader) {
@@ -171,10 +188,9 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       }
       boolean ret = reader.openStream();
       if (ret) {
+        LOG.info("Reading file " + reader.getCurrentFile() +
+            " and lineNum:" + reader.getCurrentLineNum());
         line = super.readLine();
-        if (line == null && noNewFiles) {
-          return null;
-        }
       } else {
         return null;
       }
@@ -186,5 +202,10 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   public MessageCheckpoint getMessageCheckpoint() {
     return new PartitionCheckpoint(reader.getCurrentStreamFile(),
         reader.getCurrentLineNum());
+  }
+
+  @Override
+  public boolean shouldBeClosed() {
+    return shouldBeClosed;
   }
 }
