@@ -199,6 +199,10 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
     return null;
   }
 
+  public static String getStringFromDate(Date date) {
+    return minDirFormat.get().format(date);
+  }
+
   /**
    * Add statsExposer to the emitter.
    * 
