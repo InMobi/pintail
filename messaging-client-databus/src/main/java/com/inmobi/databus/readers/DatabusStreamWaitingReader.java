@@ -24,7 +24,7 @@ import com.inmobi.messaging.Message;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
 public class DatabusStreamWaitingReader 
-    extends DatabusStreamReader<HadoopStreamFile> {
+extends DatabusStreamReader<HadoopStreamFile> {
 
   private static final Log LOG = LogFactory.getLog(
       DatabusStreamWaitingReader.class);
@@ -136,18 +136,18 @@ public class DatabusStreamWaitingReader
             breakListing = true;
             break;
           }
-          Path dir = getMinuteDirPath(streamDir, current.getTime());
           int min = current.get(Calendar.MINUTE);
           Date currenTimestamp = current.getTime();
-          current.add(Calendar.MINUTE, 1);
-          if (fs.exists(dir)) {
-            // Move the current minute to next minute
-            Path nextMinDir = getMinuteDirPath(streamDir, current.getTime());
-            if (partitionMinList.contains(new Integer(min))) {
+
+          if (partitionMinList.contains(new Integer(min))
+              && !isRead(currenTimestamp, min)) {
+            Path dir = getMinuteDirPath(streamDir, currenTimestamp);
+            if (fs.exists(dir)) {
+              current.add(Calendar.MINUTE, 1);
+              // Move the current minute to next minute
+              Path nextMinDir = getMinuteDirPath(streamDir, current.getTime());
               if (fs.exists(nextMinDir)) {
-                if (!isRead(currenTimestamp, min)) {                                         
-                  doRecursiveListing(dir, pathFilter, fmap);
-                }
+                doRecursiveListing(dir, pathFilter, fmap);
               } else {
                 LOG.info("Reached end of file listing. Not looking at the last" +
                     " minute directory:" + dir);
