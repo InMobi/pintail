@@ -28,7 +28,7 @@ import com.inmobi.messaging.util.AuditUtil;
  * @author rohit.kochar
  * 
  */
-public class AuditStatsFeeder implements Runnable {
+class AuditStatsFeeder implements Runnable {
 
   private class TupleKey {
     public TupleKey(Date timestamp, String tier, String topic, String hostname,
@@ -106,15 +106,12 @@ public class AuditStatsFeeder implements Runnable {
   private static final String ROOT_DIR_KEY = "databus.consumer.rootdirs";
   private static final Logger LOG = LoggerFactory
       .getLogger(AuditStatsFeeder.class);
-  private static final String CONSUMER_CLASS_KEY = "consumer.classname";
   private static final String CONSUMER_CLASSNAME = "com.inmobi.messaging.consumer.databus.DatabusConsumer";
   private static final String CONSUMER_NAME = "audit-consumer";
   private final String clusterName;
   private final Date fromTime;
   private MessageConsumer consumer = null;
-  private static final String GROUPBY = "TIER,HOSTNAME,TOPIC";
-  private String rootDir;
-  private static final String CLUSTER_ROOT_DIR_PREFIX = "cluster.rootdir.";
+  
   private boolean isStop = false;
   private static final String MESSAGES_PER_BATCH_KEY = "messages.batch.num";
   private int DEFAULT_MSG_PER_BATCH = 1000;
@@ -122,7 +119,20 @@ public class AuditStatsFeeder implements Runnable {
   private TDeserializer deserializer = new TDeserializer();
   private final ClientConfig config;
   private final static long RETRY_INTERVAL = 60000;
-  public AuditStatsFeeder(String clusterName, Date fromTime)
+  private final static String CHECKPOINT_DIR = "/usr/local/databus/";
+  private final static String CHECKPOINT_DIR_KEY = "messaging.consumer.checkpoint.dir";
+  private final String rootDir;
+  private Thread thread;
+
+  /**
+   * 
+   * @param clusterName
+   * @param fromTime
+   * @param rootDir
+   *          path of _audit stream till /databus/system
+   * @throws IOException
+   */
+  public AuditStatsFeeder(String clusterName, Date fromTime, String rootDir)
       throws IOException {
     this.clusterName = clusterName;
     this.fromTime = fromTime;
@@ -132,6 +142,7 @@ public class AuditStatsFeeder implements Runnable {
     msgsPerBatch = config.getInteger(MESSAGES_PER_BATCH_KEY,
         DEFAULT_MSG_PER_BATCH);
     LOG.info("Messages per batch " + msgsPerBatch);
+    this.rootDir = rootDir;
   }
 
   private void addTuples(AuditMessage message) {
@@ -162,12 +173,14 @@ public class AuditStatsFeeder implements Runnable {
     // since audit topic is getting rolled every hour hence starting the
     // consumer from 1 hour behind
     calendar.add(Calendar.HOUR_OF_DAY, -1);
-
-
-    rootDir = config.getString(CLUSTER_ROOT_DIR_PREFIX + clusterName);
     config.set(ROOT_DIR_KEY, rootDir);
+    config.set(CHECKPOINT_DIR_KEY, CHECKPOINT_DIR);
     LOG.info("Intializing pintail from " + calendar.getTime()
         + " and root dir " + rootDir);
+    if (fromTime == null) {
+      // start the consumer from starting of stream,creating a old date
+      fromTime = new Date(0);
+    }
     return MessageConsumerFactory.create(config,
  CONSUMER_CLASSNAME,
         AuditUtil.AUDIT_STREAM_TOPIC_NAME, CONSUMER_NAME, calendar.getTime());
@@ -180,6 +193,21 @@ public class AuditStatsFeeder implements Runnable {
 
   public void stop() {
     isStop = true;
+  }
+
+  public void start() {
+    thread = new Thread(this, "AuditStatsFeeder_" + clusterName);
+    LOG.info("Starting thread " + thread.getName());
+    thread.start();
+  }
+
+  public void join() {
+    try {
+      thread.join();
+    } catch (InterruptedException e) {
+      LOG.error("Exception while waiting for thread " + thread.getName()
+          + " to join", e);
+    }
   }
   @Override
   public void run() {
