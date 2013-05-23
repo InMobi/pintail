@@ -15,7 +15,7 @@ import java.util.*;
 
 public class AuditDBHelper {
 
-  private static final String DB_TABLE_CONF_FILE = "db-table-conf.properties";
+  private static final String AUDIT_DB_CONF_FILE = "audit-db-conf.properties";
   private static final Log LOG = LogFactory.getLog(AuditDBHelper.class);
 
   private static Connection getConnection(String url, String username,
@@ -27,8 +27,8 @@ public class AuditDBHelper {
     }
     Connection connection = null;
     try {
-      connection = DriverManager.getConnection("jdbc:mysql://" + url,
-          username, password);
+      connection = DriverManager
+          .getConnection("jdbc:mysql://" + url, username, password);
       connection.setAutoCommit(false);
     } catch (SQLException e) {
       LOG.error("Exception while creating db connection ", e);
@@ -40,14 +40,15 @@ public class AuditDBHelper {
 
     ClientConfig config;
     if (confFileName == null || confFileName.isEmpty())
-      config = ClientConfig.loadFromClasspath(DB_TABLE_CONF_FILE);
+      config = ClientConfig.loadFromClasspath(AUDIT_DB_CONF_FILE);
     else
       config = ClientConfig.loadFromClasspath(confFileName);
 
     LOG.info("Connecting to DB ...");
-    Connection connection = getConnection(config.getString(AuditDBConstants
-        .DB_URL), config.getString(AuditDBConstants.DB_USERNAME),
-        config.getString(AuditDBConstants.DB_PASSWORD));
+    Connection connection =
+        getConnection(config.getString(AuditDBConstants.DB_URL),
+            config.getString(AuditDBConstants.DB_USERNAME),
+            config.getString(AuditDBConstants.DB_PASSWORD));
     if (connection == null) {
       LOG.error("Connection not initialized returning ...");
       return false;
@@ -61,28 +62,28 @@ public class AuditDBHelper {
             AuditDBConstants.HOSTNAME + " = ? and " + AuditDBConstants.TOPIC +
             " = ? and " + AuditDBConstants.TIER + " = ? and " +
             AuditDBConstants.CLUSTER + " = ?";
+    LOG.debug("Select statement: " + selectstatement);
     String columnString = "";
     String setString = "";
     for (int i = 0; i < LatencyColumns.values().length; i++) {
-      if (setString.isEmpty()) {
-        setString += " ? = ?";
-      } else {
-        setString += " and ?= ?";
-      }
+      setString += " and ?= ?";
       columnString += ", ?";
     }
     String insertStatement =
-        "insert into " + AuditDBConstants.TABLE_NAME + " " + "(" +
+        "insert into " + AuditDBConstants.TABLE_NAME + " (" +
             AuditDBConstants.TIMESTAMP + "," + AuditDBConstants.HOSTNAME +
-            ", " + AuditDBConstants.TIER + ", " +
-            "" + AuditDBConstants.TOPIC + ", " + AuditDBConstants.CLUSTER +
-            columnString + ") values (?, ?, ?, ?, ?" + columnString + ")";
-    String updateStatement =
-        "update " + AuditDBConstants.TABLE_NAME + " set " + setString +
-            " where " + AuditDBConstants.HOSTNAME + " = ? and " +
-            AuditDBConstants.TIER + " = ? and " + AuditDBConstants.TOPIC +
-            " = ? and " + AuditDBConstants.CLUSTER + " = ? and " +
-            AuditDBConstants.TIMESTAMP + " = ? ";
+            ", " + AuditDBConstants.TIER + ", " + AuditDBConstants.TOPIC +
+            ", " + AuditDBConstants.CLUSTER + ", " + AuditDBConstants.RECEIVED +
+            ", " + AuditDBConstants.SENT + ", " + columnString +
+            ") values (?, ?, ?, ?, ?, ?, ?" + columnString + ")";
+    LOG.debug("Insert statement: " + insertStatement);
+    String updateStatement = "update " + AuditDBConstants.TABLE_NAME + " set " +
+        AuditDBConstants.RECEIVED + " = ? and " + AuditDBConstants.SENT +
+        " = ?" + setString + " where " + AuditDBConstants.HOSTNAME +
+        " = ? and " + AuditDBConstants.TIER + " = ? and " +
+        AuditDBConstants.TOPIC + " = ? and " + AuditDBConstants.CLUSTER +
+        " = ? and " + AuditDBConstants.TIMESTAMP + " = ? ";
+    LOG.debug("Update statement: " + updateStatement);
     PreparedStatement selectPreparedStatement = null, insertPreparedStatement =
         null, updatePreparedStatement = null;
     try {
@@ -96,25 +97,39 @@ public class AuditDBHelper {
         selectPreparedStatement.setString(4, tuple.getTier());
         selectPreparedStatement.setString(5, tuple.getCluster());
         rs = selectPreparedStatement.executeQuery();
+        Long received = 0l;
         if (rs.next()) {
+          LOG.debug("Updating tuple in DB:" + tuple);
           Map<LatencyColumns, Long> latencyCountMap =
               new HashMap<LatencyColumns, Long>();
           latencyCountMap.putAll(tuple.getLatencyCountMap());
           for (LatencyColumns latencyColumn : LatencyColumns.values()) {
             Long currentVal = latencyCountMap.get(latencyColumn);
             Long prevVal = rs.getLong(latencyColumn.toString());
-            if (prevVal == null) {
-              latencyCountMap.put(latencyColumn, 0l);
-            } else if (currentVal == null) {
+            if (prevVal == null)
+              prevVal = 0l;
+            if (currentVal == null)
+              currentVal = 0l;
+            if (prevVal > 0l && currentVal == 0l) {
               latencyCountMap.put(latencyColumn, prevVal);
+            } else if (prevVal > 0l && currentVal > 0l) {
+              LOG.warn("Possible data replay for tuple: " + tuple.toString() +
+                  "; Column " + latencyColumn.toString() + " had value " +
+                  rs.getLong(latencyColumn.toString()) + " before updation");
+              latencyCountMap.put(latencyColumn, currentVal);
             } else {
-              latencyCountMap.put(latencyColumn, currentVal + prevVal);
+              latencyCountMap.put(latencyColumn, currentVal);
             }
+            received += latencyCountMap.get(latencyColumn);
           }
-          int index = 1;
+          Long sent = tuple.getSent() + rs.getLong(AuditDBConstants.SENT);
+          updatePreparedStatement.setLong(1, received);
+          updatePreparedStatement.setLong(2, sent);
+          int index = 3;
           for (Map.Entry<LatencyColumns, Long> entry : latencyCountMap
               .entrySet()) {
-            updatePreparedStatement.setString(index++, entry.getKey().toString());
+            updatePreparedStatement
+                .setString(index++, entry.getKey().toString());
             updatePreparedStatement.setLong(index++, entry.getValue());
           }
           updatePreparedStatement.setString(index++, tuple.getHostname());
@@ -123,25 +138,32 @@ public class AuditDBHelper {
           updatePreparedStatement.setString(index++, tuple.getCluster());
           updatePreparedStatement
               .setLong(index++, tuple.getTimestamp().getTime());
+          LOG.debug("Update prepared statement : " +
+              updatePreparedStatement.toString());
           updatePreparedStatement.addBatch();
         } else {
           //no record in db corresponding to this tuple
+          LOG.debug("Inserting tuple in DB " + tuple);
           insertPreparedStatement.setLong(1, tuple.getTimestamp().getTime());
           insertPreparedStatement.setString(2, tuple.getHostname());
           insertPreparedStatement.setString(3, tuple.getTier());
           insertPreparedStatement.setString(4, tuple.getTopic());
           insertPreparedStatement.setString(5, tuple.getCluster());
-          Map<LatencyColumns, Long> latencyCountMap = tuple
-              .getLatencyCountMap();
-          int index = 6, numberColumns = LatencyColumns.values().length;
-          for( LatencyColumns latencyColumn : LatencyColumns.values()) {
+          insertPreparedStatement.setLong(6, tuple.getReceived());
+          insertPreparedStatement.setLong(7, tuple.getSent());
+          Map<LatencyColumns, Long> latencyCountMap =
+              tuple.getLatencyCountMap();
+          int index = 8, numberColumns = LatencyColumns.values().length;
+          for (LatencyColumns latencyColumn : LatencyColumns.values()) {
             insertPreparedStatement.setString(index, latencyColumn.toString());
             Long count = latencyCountMap.get(latencyColumn);
             if (count == null)
               count = 0l;
-            insertPreparedStatement.setLong(index+numberColumns, count);
+            insertPreparedStatement.setLong(index + numberColumns, count);
             index++;
           }
+          LOG.debug("Insert prepared statement : " +
+              insertPreparedStatement.toString());
           insertPreparedStatement.addBatch();
         }
       }
@@ -165,20 +187,21 @@ public class AuditDBHelper {
     return true;
   }
 
-  public static Set<Tuple> retrieve(Date toDate, Date fromDate,
-                                     Filter filter, String confFileName) {
+  public static Set<Tuple> retrieve(Date toDate, Date fromDate, Filter filter,
+                                    String confFileName) {
     Set<Tuple> tupleSet = new HashSet<Tuple>();
 
     ClientConfig config;
     if (confFileName == null || confFileName.isEmpty())
-      config = ClientConfig.loadFromClasspath(DB_TABLE_CONF_FILE);
+      config = ClientConfig.loadFromClasspath(AUDIT_DB_CONF_FILE);
     else
       config = ClientConfig.loadFromClasspath(confFileName);
 
     LOG.info("Connecting to DB ...");
-    Connection connection = getConnection(config.getString(AuditDBConstants
-        .DB_URL), config.getString(AuditDBConstants.DB_USERNAME),
-        config.getString(AuditDBConstants.DB_PASSWORD));
+    Connection connection =
+        getConnection(config.getString(AuditDBConstants.DB_URL),
+            config.getString(AuditDBConstants.DB_USERNAME),
+            config.getString(AuditDBConstants.DB_PASSWORD));
     if (connection == null) {
       LOG.error("Connection not initialized returning ...");
       return null;
@@ -190,13 +213,30 @@ public class AuditDBHelper {
     String tier = filter.getFilters().get(Column.TIER);
     String topic = filter.getFilters().get(Column.TOPIC);
     String cluster = filter.getFilters().get(Column.CLUSTER);
-    String statement =
-        "select * from " + AuditDBConstants.TABLE_NAME + " where " +
-            AuditDBConstants.TIMESTAMP + " >= ? and " +
-            AuditDBConstants.TIMESTAMP + " < ?";
-    for (int i = 0; i < filter.getFilters().size(); i++) {
-      statement += " and ? = ?";
+    String sumString = "";
+    String asString = "";
+    String whereString = "";
+    for (LatencyColumns latencyColumn : LatencyColumns.values()) {
+      sumString += ", Sum(" + latencyColumn.toString() + ")";
+      asString += ", " + latencyColumn.toString();
     }
+    for (int i = 0; i < filter.getFilters().size(); i++) {
+      whereString += " and ? = ?";
+    }
+    String statement =
+        "select " + AuditDBConstants.HOSTNAME + ", " + AuditDBConstants.TIER +
+            ", " + AuditDBConstants.TOPIC + ", " + AuditDBConstants.CLUSTER +
+            ", Sum(" + AuditDBConstants.RECEIVED + "), Sum(" +
+            AuditDBConstants.SENT + ")" + sumString + " as " +
+            AuditDBConstants.HOSTNAME + ", " + AuditDBConstants.TIER + ", " +
+            AuditDBConstants.TOPIC + ", " + AuditDBConstants.CLUSTER + ", " +
+            AuditDBConstants.RECEIVED + ", " + AuditDBConstants.SENT +
+            asString + " from " + AuditDBConstants.TABLE_NAME + " where " +
+            AuditDBConstants.TIMESTAMP + " >= ? and " +
+            AuditDBConstants.TIMESTAMP + " < ? " + whereString + " group by " +
+            AuditDBConstants.HOSTNAME + ", " + AuditDBConstants.TIER + ", " +
+            AuditDBConstants.TOPIC + ", " + AuditDBConstants.CLUSTER;
+    LOG.debug("Select statement " + statement);
     PreparedStatement preparedstatement = null;
     try {
       preparedstatement = connection.prepareStatement(statement);
@@ -226,9 +266,11 @@ public class AuditDBHelper {
             rs.getString(AuditDBConstants.TIER),
             rs.getString(AuditDBConstants.CLUSTER),
             rs.getTimestamp(AuditDBConstants.TIMESTAMP),
-            rs.getString(AuditDBConstants.TOPIC));
+            rs.getString(AuditDBConstants.TOPIC),
+            rs.getLong(AuditDBConstants.RECEIVED),
+            rs.getLong(AuditDBConstants.SENT));
         Map<LatencyColumns, Long> latencyCountMap =
-            new TreeMap<LatencyColumns, Long>();
+            new HashMap<LatencyColumns, Long>();
         for (LatencyColumns latencyColumn : LatencyColumns.values()) {
           latencyCountMap
               .put(latencyColumn, rs.getLong(latencyColumn.toString()));

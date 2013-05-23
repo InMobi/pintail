@@ -10,22 +10,35 @@ public class Tuple {
   final private String cluster;
   final private Date timestamp;
   final private String topic;
-  private long sent, received;
-
+  private Long sent = 0l, received = 0l;
   private Map<LatencyColumns, Long> latencyCountMap;
 
-  public Tuple(String hostname, String tier, String cluster, Date timestamp,String topic) {
-    this(hostname, tier, cluster, timestamp, topic, null);
+  public Tuple(String hostname, String tier, String cluster, Date timestamp,
+               String topic) {
+    this(hostname, tier, cluster, timestamp, topic, null, 0l, 0l);
   }
 
   public Tuple(String hostname, String tier, String cluster, Date timestamp,
                String topic, Map<LatencyColumns, Long> latencyCountMap) {
+    this(hostname, tier, cluster, timestamp, topic, latencyCountMap, 0l, 0l);
+  }
+
+  public Tuple(String hostname, String tier, String cluster, Date timestamp,
+               String topic, Long received, Long sent) {
+    this(hostname, tier, cluster, timestamp, topic, null, received, sent);
+  }
+
+  public Tuple(String hostname, String tier, String cluster, Date timestamp,
+               String topic, Map<LatencyColumns, Long> latencyCountMap,
+               Long received, Long sent) {
     this.hostname = hostname;
     this.tier = tier;
     this.topic = topic;
     this.cluster = cluster;
     this.timestamp = timestamp;
     this.latencyCountMap = latencyCountMap;
+    this.received = received;
+    this.sent = sent;
   }
 
   @Override
@@ -123,11 +136,14 @@ public class Tuple {
   @Override
   public String toString() {
     return "Tuple{" +
-        "hostname='" + hostname + '\'' +
-        ", tier='" + tier + '\'' +
-        ", cluster='" + cluster + '\'' +
-        ", timestamp=" + timestamp +
+        "tier='" + tier + '\'' +
+        ", hostname='" + hostname + '\'' +
         ", latencyCountMap=" + latencyCountMap +
+        ", received=" + received +
+        ", sent=" + sent +
+        ", topic='" + topic + '\'' +
+        ", timestamp=" + timestamp +
+        ", cluster='" + cluster + '\'' +
         '}';
   }
 }
