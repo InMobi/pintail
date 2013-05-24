@@ -1,5 +1,5 @@
 CREATE TABLE audit
-{
+(
   timeinterval bigint,
   hostname varchar(25),
   tier varchar(15),
@@ -24,4 +24,4 @@ CREATE TABLE audit
   C120 bigint,
   C240 bigint,
   C600 bigint
-}
+)
