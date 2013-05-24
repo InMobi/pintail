@@ -33,7 +33,7 @@ CLIENT_BENCHMARK_CLASS="com.inmobi.messaging.consumer.examples.StreamingBenchmar
 CLIENT_COUNTER_CLASS="com.inmobi.messaging.consumer.examples.CounterClient"
 CLIENT_MULTITOPIC_SEQGEN_CLASS="com.inmobi.messaging.publisher.examples.MultiTopicSeqGenerator"
 CLIENT_CHECKPOINT_UTIL_CLASS="com.inmobi.messaging.consumer.util.CheckpointUtil"
-CLIENT_AUDIT_QUERY_CLASS="com.inmobi.messaging.consumer.audit.AuditStatsQuery"
+CLIENT_AUDIT_QUERY_CLASS="com.inmobi.messaging.consumer.audit.AuditDbQuery"
 CLIENT_RANDOMIZED_SEQGEN_CLASS="com.inmobi.messaging.publisher.examples.RandomizedMultiTopicSeqGenerator"
 
 ################################

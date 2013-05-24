@@ -1,10 +1,7 @@
 package com.inmobi.messaging.util;
 
 import com.inmobi.messaging.ClientConfig;
-import com.inmobi.messaging.consumer.audit.Column;
-import com.inmobi.messaging.consumer.audit.Filter;
-import com.inmobi.messaging.consumer.audit.LatencyColumns;
-import com.inmobi.messaging.consumer.audit.Tuple;
+import com.inmobi.messaging.consumer.audit.*;
 import com.mysql.jdbc.Driver;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -74,7 +71,7 @@ public class AuditDBHelper {
             AuditDBConstants.TIMESTAMP + "," + AuditDBConstants.HOSTNAME +
             ", " + AuditDBConstants.TIER + ", " + AuditDBConstants.TOPIC +
             ", " + AuditDBConstants.CLUSTER + ", " + AuditDBConstants.RECEIVED +
-            ", " + AuditDBConstants.SENT + ", " + columnString +
+            ", " + AuditDBConstants.SENT  + columnString +
             ") values (?, ?, ?, ?, ?, ?, ?" + columnString + ")";
     LOG.debug("Insert statement: " + insertStatement);
     String updateStatement = "update " + AuditDBConstants.TABLE_NAME + " set " +
@@ -91,11 +88,12 @@ public class AuditDBHelper {
       insertPreparedStatement = connection.prepareStatement(insertStatement);
       updatePreparedStatement = connection.prepareStatement(updateStatement);
       for (Tuple tuple : tupleSet) {
-        selectPreparedStatement.setLong(1, tuple.getTimestamp().getTime());
-        selectPreparedStatement.setString(2, tuple.getHostname());
-        selectPreparedStatement.setString(3, tuple.getTopic());
-        selectPreparedStatement.setString(4, tuple.getTier());
-        selectPreparedStatement.setString(5, tuple.getCluster());
+        int  i = 1;
+        selectPreparedStatement.setLong(i++, tuple.getTimestamp().getTime());
+        selectPreparedStatement.setString(i++, tuple.getHostname());
+        selectPreparedStatement.setString(i++, tuple.getTopic());
+        selectPreparedStatement.setString(i++, tuple.getTier());
+        selectPreparedStatement.setString(i++, tuple.getCluster());
         rs = selectPreparedStatement.executeQuery();
         Long received = 0l;
         if (rs.next()) {
@@ -144,16 +142,17 @@ public class AuditDBHelper {
         } else {
           //no record in db corresponding to this tuple
           LOG.debug("Inserting tuple in DB " + tuple);
-          insertPreparedStatement.setLong(1, tuple.getTimestamp().getTime());
-          insertPreparedStatement.setString(2, tuple.getHostname());
-          insertPreparedStatement.setString(3, tuple.getTier());
-          insertPreparedStatement.setString(4, tuple.getTopic());
-          insertPreparedStatement.setString(5, tuple.getCluster());
-          insertPreparedStatement.setLong(6, tuple.getReceived());
-          insertPreparedStatement.setLong(7, tuple.getSent());
+          int index = 1;
+          insertPreparedStatement.setLong(index++, tuple.getTimestamp().getTime());
+          insertPreparedStatement.setString(index++, tuple.getHostname());
+          insertPreparedStatement.setString(index++, tuple.getTier());
+          insertPreparedStatement.setString(index++, tuple.getTopic());
+          insertPreparedStatement.setString(index++, tuple.getCluster());
+          insertPreparedStatement.setLong(index++, tuple.getReceived());
+          insertPreparedStatement.setLong(index++, tuple.getSent());
           Map<LatencyColumns, Long> latencyCountMap =
               tuple.getLatencyCountMap();
-          int index = 8, numberColumns = LatencyColumns.values().length;
+          int numberColumns = LatencyColumns.values().length;
           for (LatencyColumns latencyColumn : LatencyColumns.values()) {
             insertPreparedStatement.setString(index, latencyColumn.toString());
             Long count = latencyCountMap.get(latencyColumn);
@@ -188,7 +187,10 @@ public class AuditDBHelper {
   }
 
   public static Set<Tuple> retrieve(Date toDate, Date fromDate, Filter filter,
-                                    String confFileName) {
+                                    GroupBy groupBy, String confFileName) {
+    LOG.debug("Retrieving from db  from-time :" + fromDate + " to-date :" +
+        ":" + toDate + " filter :" + filter.toString() +
+        " and conf-filename :" + confFileName);
     Set<Tuple> tupleSet = new HashSet<Tuple>();
 
     ClientConfig config;
@@ -216,6 +218,7 @@ public class AuditDBHelper {
     String sumString = "";
     String asString = "";
     String whereString = "";
+    String groupByString = "";
     for (LatencyColumns latencyColumn : LatencyColumns.values()) {
       sumString += ", Sum(" + latencyColumn.toString() + ")";
       asString += ", " + latencyColumn.toString();
@@ -223,19 +226,34 @@ public class AuditDBHelper {
     for (int i = 0; i < filter.getFilters().size(); i++) {
       whereString += " and ? = ?";
     }
+    for (Column column : groupBy.getGroupByColumns()) {
+      if (!groupByString.isEmpty()) {
+        groupByString += ", ";
+      }
+      switch (column) {
+        case HOSTNAME:
+          groupByString += AuditDBConstants.HOSTNAME;
+          break;
+        case TIER:
+          groupByString += AuditDBConstants.TIER;
+          break;
+        case TOPIC:
+          groupByString += AuditDBConstants.TOPIC;
+          break;
+        case CLUSTER:
+          groupByString += AuditDBConstants.CLUSTER;
+          break;
+      }
+    }
     String statement =
-        "select " + AuditDBConstants.HOSTNAME + ", " + AuditDBConstants.TIER +
-            ", " + AuditDBConstants.TOPIC + ", " + AuditDBConstants.CLUSTER +
-            ", Sum(" + AuditDBConstants.RECEIVED + "), Sum(" +
-            AuditDBConstants.SENT + ")" + sumString + " as " +
-            AuditDBConstants.HOSTNAME + ", " + AuditDBConstants.TIER + ", " +
-            AuditDBConstants.TOPIC + ", " + AuditDBConstants.CLUSTER + ", " +
-            AuditDBConstants.RECEIVED + ", " + AuditDBConstants.SENT +
-            asString + " from " + AuditDBConstants.TABLE_NAME + " where " +
+        "select " + groupByString + ", Sum(" + AuditDBConstants.RECEIVED +
+            "), Sum(" + AuditDBConstants.SENT + ")" + sumString + " as " +
+            groupByString + ", " + AuditDBConstants.RECEIVED + ", " +
+            AuditDBConstants.SENT + asString + " from " +
+            AuditDBConstants.TABLE_NAME + " where " +
             AuditDBConstants.TIMESTAMP + " >= ? and " +
             AuditDBConstants.TIMESTAMP + " < ? " + whereString + " group by " +
-            AuditDBConstants.HOSTNAME + ", " + AuditDBConstants.TIER + ", " +
-            AuditDBConstants.TOPIC + ", " + AuditDBConstants.CLUSTER;
+            groupByString;
     LOG.debug("Select statement " + statement);
     PreparedStatement preparedstatement = null;
     try {
@@ -262,12 +280,18 @@ public class AuditDBHelper {
       LOG.debug("Prepared statement is " + preparedstatement.toString());
       rs = preparedstatement.executeQuery();
       while (rs.next()) {
-        Tuple tuple = new Tuple(rs.getString(AuditDBConstants.HOSTNAME),
-            rs.getString(AuditDBConstants.TIER),
-            rs.getString(AuditDBConstants.CLUSTER),
-            rs.getTimestamp(AuditDBConstants.TIMESTAMP),
-            rs.getString(AuditDBConstants.TOPIC),
-            rs.getLong(AuditDBConstants.RECEIVED),
+        String newHostname = null, newTier = null, newTopic = null,
+            newCluster = null;
+        if (groupBy.getGroupByColumns().contains(Column.HOSTNAME))
+          newHostname = rs.getString(AuditDBConstants.HOSTNAME);
+        if (groupBy.getGroupByColumns().contains(Column.TIER))
+          newTier = rs.getString(AuditDBConstants.TIER);
+        if (groupBy.getGroupByColumns().contains(Column.CLUSTER))
+          newCluster = rs.getString(AuditDBConstants.CLUSTER);
+        if (groupBy.getGroupByColumns().contains(Column.TOPIC))
+          newTopic = rs.getString(AuditDBConstants.TOPIC);
+        Tuple tuple = new Tuple(newHostname, newTier, newCluster, null,
+            newTopic, rs.getLong(AuditDBConstants.RECEIVED),
             rs.getLong(AuditDBConstants.SENT));
         Map<LatencyColumns, Long> latencyCountMap =
             new HashMap<LatencyColumns, Long>();

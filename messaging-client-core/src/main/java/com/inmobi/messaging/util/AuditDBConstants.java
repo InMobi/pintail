@@ -11,7 +11,7 @@ public interface AuditDBConstants {
   public static final String TIER = "tier";
   public static final String TOPIC = "topic";
   public static final String CLUSTER = "cluster";
-  public static final String TIMESTAMP = "timestamp";
+  public static final String TIMESTAMP = "timeinterval";
   public static final String RECEIVED = "received";
   public static final String SENT = "sent";
 

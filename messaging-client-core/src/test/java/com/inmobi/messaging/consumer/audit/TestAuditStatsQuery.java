@@ -1,6 +1,8 @@
 package com.inmobi.messaging.consumer.audit;
 
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.consumer.MessageConsumer;
+import com.inmobi.messaging.consumer.MockInMemoryConsumer;
 import com.inmobi.messaging.consumer.audit.GroupBy.Group;
 import com.inmobi.messaging.publisher.MessagePublisher;
 import com.inmobi.messaging.publisher.MessagePublisherFactory;
@@ -45,7 +47,7 @@ public class TestAuditStatsQuery {
   }
 
   private void generateData(MessagePublisher publisher, String topic,
-      String topic1) {
+                            String topic1) {
     String msg = "sample data";
     startDate = new Date();
     Calendar calendar = Calendar.getInstance();
@@ -75,9 +77,13 @@ public class TestAuditStatsQuery {
     publisher.close();
     AuditStatsQuery query =
         new AuditStatsQuery("mock", endTime, startTime, "topic=" + topic1,
-            null);
+            null, null, "1", null);
     query.parseAndSetArguments();
-    query.aggregateStats();
+    query.timeout = 10;
+    MessageConsumer consumer = query.getConsumer(startDate, "mock");
+    ((MockInMemoryConsumer) consumer)
+        .setSource(((MockInMemoryPublisher) (publisher)).source);
+    query.aggregateStats(consumer);
     Collection<Long> sent = query.getReceived().values();
     assert (sent.iterator().hasNext());
     Long sentPublisher = sent.iterator().next();
@@ -92,9 +98,14 @@ public class TestAuditStatsQuery {
     generateData(topic, topic1);
     publisher.close();
     AuditStatsQuery query =
-        new AuditStatsQuery("mock", endTime, startTime, null, "topic,tier");
+        new AuditStatsQuery("mock", endTime, startTime, null, "topic,tier",
+            null, "1", null);
     query.parseAndSetArguments();
-    query.aggregateStats();
+    query.timeout = 10;
+    MessageConsumer consumer = query.getConsumer(startDate, "mock");
+    ((MockInMemoryConsumer) consumer)
+        .setSource(((MockInMemoryPublisher) (publisher)).source);
+    query.aggregateStats(consumer);
 
     Map<Column, String> map = new HashMap<Column, String>();
     map.put(Column.TIER, "publisher");
@@ -117,14 +128,18 @@ public class TestAuditStatsQuery {
     publisher.close();
     AuditStatsQuery query =
         new AuditStatsQuery("mock", endTime, startTime, "topic=" + topic1,
-            null);
+            null, null, "1", null);
     query.parseAndSetArguments();
 
     Calendar calendar = Calendar.getInstance();
     calendar.setTime(startDate);
     calendar.add(Calendar.MINUTE, -1);
     query.toTime = calendar.getTime();
-    query.aggregateStats();
+    query.timeout = 10;
+    MessageConsumer consumer = query.getConsumer(startDate, "mock");
+    ((MockInMemoryConsumer) consumer)
+        .setSource(((MockInMemoryPublisher) (publisher)).source);
+    query.aggregateStats(consumer);
     Collection<Long> sent = query.getReceived().values();
     assert (sent.iterator().next() == 0);
 
@@ -138,8 +153,14 @@ public class TestAuditStatsQuery {
     publisher.close();
     AuditStatsQuery query =
         new AuditStatsQuery("mock", endTime, startTime, "topic=" + topic1,
-            null);
+            null, null, "1", null);
     query.parseAndSetArguments();
+    query.timeout = 10;
+    query.cutoffTime = 0;
+    MessageConsumer consumer = query.getConsumer(startDate, "mock");
+    ((MockInMemoryConsumer) consumer)
+        .setSource(((MockInMemoryPublisher) (publisher)).source);
+    query.aggregateStats(consumer);
     Collection<Long> sent = query.getReceived().values();
     assert (sent.size() == 1);// only 1st packet would be considered
 
@@ -160,20 +181,25 @@ public class TestAuditStatsQuery {
     }
     assert (((MockInMemoryPublisher) publisher).source
         .containsKey(AuditUtil.AUDIT_STREAM_TOPIC_NAME));// to check whether
-                                                         // audit was generated
-                                                         // or not
+    // audit was generated
+    // or not
     Date endDate = new Date();
     String endTime = formatter.format(endDate);
     System.out.println("After audit was generated: StartTime " + startTime
         + "EndTime " + endTime);
     AuditStatsQuery query =
         new AuditStatsQuery("mock", endTime, startTime, "topic=" + topic2,
-            null);
+            null, null, "1", null);
     query.parseAndSetArguments();
+    query.timeout = 200;
+    query.cutoffTime = 60000;
     Thread.sleep(62000);
     generateData(topic2, topic3);
     publisher.close();
-    query.aggregateStats();
+    MessageConsumer consumer = query.getConsumer(startDate, "mock");
+    ((MockInMemoryConsumer) consumer)
+        .setSource(((MockInMemoryPublisher) (publisher)).source);
+    query.aggregateStats(consumer);
     Collection<Long> sent = query.getReceived().values();
     assert (sent.iterator().hasNext());
     Long sentPublisher = sent.iterator().next();
@@ -192,11 +218,15 @@ public class TestAuditStatsQuery {
     // messages
     AuditStatsQuery query =
         new AuditStatsQuery("mock", endTime, startTime, "topic=" + topic4,
-            null);
+            null, "600", "600", null, Tier.PUBLISHER, totalData / 2);
     query.parseAndSetArguments();
     publisher.close();
     query.filter = new Filter("topic=" + topic4);
     query.groupBy = new GroupBy(null);
+    MessageConsumer consumer = query.getConsumer(startDate, "mock");
+    ((MockInMemoryConsumer) consumer)
+        .setSource(((MockInMemoryPublisher) (publisher)).source);
+    query.aggregateStats(consumer);
     Collection<Long> sent = query.getReceived().values();
     assert (sent.iterator().hasNext());
     Long sentPublisher = sent.iterator().next();

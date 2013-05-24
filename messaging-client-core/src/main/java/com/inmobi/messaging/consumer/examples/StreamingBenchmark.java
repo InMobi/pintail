@@ -5,7 +5,7 @@ import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.MessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
-import com.inmobi.messaging.consumer.audit.AuditStatsQuery;
+import com.inmobi.messaging.consumer.audit.AuditDbQuery;
 import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 import com.inmobi.messaging.publisher.MessagePublisherFactory;
 import com.inmobi.messaging.util.AuditUtil;
@@ -607,8 +607,8 @@ public class StreamingBenchmark {
     public void run() {
       System.out.println("Audit Thread started!");
 
-      AuditStatsQuery auditQuery =
-          new AuditStatsQuery(null, endTime, startTime, "TOPIC=" + topic,
+      AuditDbQuery auditQuery =
+          new AuditDbQuery(null, endTime, startTime, "TOPIC=" + topic,
               "TIER");
 
       try {

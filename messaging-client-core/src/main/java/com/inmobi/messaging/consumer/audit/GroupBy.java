@@ -51,6 +51,22 @@ public class GroupBy {
       this.columns = values;
     }
 
+    public String getCluster() {
+      return columns.get(Column.CLUSTER);
+    }
+
+    public String getHostName() {
+      return columns.get(Column.HOSTNAME);
+    }
+
+    public String getTier() {
+      return columns.get(Column.TIER);
+    }
+
+    public String getTopic() {
+      return columns.get(Column.TOPIC);
+    }
+
     @Override
     public int compareTo(Group group) {
       int result = 0;
@@ -101,6 +117,10 @@ public class GroupBy {
     for (String s : columns) {
       isSet.add(Column.valueOf(s.toUpperCase()));
     }
+  }
+
+  public Set<Column> getGroupByColumns() {
+    return isSet;
   }
 
   @Override
