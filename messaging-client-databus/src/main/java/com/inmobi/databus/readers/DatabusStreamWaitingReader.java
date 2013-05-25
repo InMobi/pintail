@@ -160,12 +160,11 @@ extends DatabusStreamReader<HadoopStreamFile> {
           }
           int min = current.get(Calendar.MINUTE);
           Date currenTimestamp = current.getTime();
-
+          current.add(Calendar.MINUTE, 1);
           if (partitionMinList.contains(Integer.valueOf(min))
               && !isRead(currenTimestamp, min)) {
             Path dir = getMinuteDirPath(streamDir, currenTimestamp);
             if (fs.exists(dir)) {
-              current.add(Calendar.MINUTE, 1);
               // Move the current minute to next minute
               Path nextMinDir = getMinuteDirPath(streamDir, current.getTime());
               if (fs.exists(nextMinDir)) {
