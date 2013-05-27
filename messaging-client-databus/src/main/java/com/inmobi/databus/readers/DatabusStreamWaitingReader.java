@@ -190,11 +190,8 @@ public class DatabusStreamWaitingReader
     }
 
     if (getFirstFileInStream() != null && (currentMin == -1)) {
-      Calendar cal = Calendar.getInstance();
-      Date currentDate = DatabusStreamWaitingReader.getDateFromStreamDir(
-          streamDir, getFirstFileInStream().getPath().getParent());
-      cal.setTime(currentDate);
-      currentMin = cal.get(Calendar.MINUTE);
+      FileStatus firstFileInStream = getFirstFileInStream();
+      currentMin = getMinuteFromFile(firstFileInStream);
     }
   }
 
@@ -399,5 +396,34 @@ public class DatabusStreamWaitingReader
 
   public int getCurrentMin() {
     return this.currentMin;
+  }
+
+  /**
+   * @returns Zero  if checkpoint is not present for that minute or
+   *                checkpoint file and current file were not same.
+   *          Line number from checkpoint
+   */
+  @Override
+  protected long getLineNumberForFirstFile(FileStatus firstFile) {
+    int minute = getMinuteFromFile(firstFile);
+    PartitionCheckpoint partitionChkPoint = pChkpoints.get(
+        Integer.valueOf(minute));
+    if (partitionChkPoint != null) {
+      Path checkPointedFileName = new Path(streamDir, partitionChkPoint.
+          getFileName());
+      // check whether current file and checkpoint file are same
+      if (checkPointedFileName.equals(firstFile.getPath())) {
+        return partitionChkPoint.getLineNum();
+      }
+    }
+    return 0;
+  }
+
+  private int getMinuteFromFile(FileStatus firstFile) {
+    Date currentTimeStamp = getDateFromStreamDir(streamDir, firstFile.
+        getPath().getParent());
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(currentTimeStamp);
+    return cal.get(Calendar.MINUTE);
   }
 }

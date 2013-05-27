@@ -90,7 +90,7 @@ public class HadoopUtil {
     Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDirPrefix,
         hs.getParent());
     cal.setTime(date);
-    cal.add(Calendar.MINUTE, -1);
+    cal.add(Calendar.HOUR_OF_DAY, -1);
     return new HadoopStreamFile(
         DatabusStreamWaitingReader.getMinuteDirPath(streamDirPrefix,
             cal.getTime()),
