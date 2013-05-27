@@ -25,7 +25,7 @@ import com.inmobi.messaging.Message;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
 public class DatabusStreamWaitingReader 
-extends DatabusStreamReader<HadoopStreamFile> {
+    extends DatabusStreamReader<HadoopStreamFile> {
 
   private static final Log LOG = LogFactory.getLog(
       DatabusStreamWaitingReader.class);
@@ -160,12 +160,12 @@ extends DatabusStreamReader<HadoopStreamFile> {
           }
           int min = current.get(Calendar.MINUTE);
           Date currenTimestamp = current.getTime();
+          // Move the current minute to next minute
           current.add(Calendar.MINUTE, 1);
           if (partitionMinList.contains(Integer.valueOf(min))
               && !isRead(currenTimestamp, min)) {
             Path dir = getMinuteDirPath(streamDir, currenTimestamp);
             if (fs.exists(dir)) {
-              // Move the current minute to next minute
               Path nextMinDir = getMinuteDirPath(streamDir, current.getTime());
               if (fs.exists(nextMinDir)) {
                 doRecursiveListing(dir, pathFilter, fmap);
