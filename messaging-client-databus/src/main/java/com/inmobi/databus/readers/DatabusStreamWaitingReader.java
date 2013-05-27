@@ -190,9 +190,8 @@ public class DatabusStreamWaitingReader
     }
 
     if (getFirstFileInStream() != null && (currentMin == -1)) {
-      Date currentDate = DatabusStreamWaitingReader.getDateFromStreamDir(
-          streamDir, getFirstFileInStream().getPath().getParent());
-      currentMin = getMinuteFromDate(currentDate);
+      FileStatus firstFileInStream = getFirstFileInStream();
+      currentMin = getMinuteFromFile(firstFileInStream);
     }
   }
 
@@ -405,24 +404,24 @@ public class DatabusStreamWaitingReader
    *          Line number from checkpoint
    */
   @Override
-  protected long getLineNumberForCurrentFile(FileStatus currentFile) {
-    Date currentTimeStamp = getDateFromStreamDir(streamDir, currentFile.
-        getPath().getParent());
-    int minute = getMinuteFromDate(currentTimeStamp);
-    PartitionCheckpoint partitionChkPoint = pChkpoints.get(Integer.valueOf(minute));
+  protected long getLineNumberForFirstFile(FileStatus firstFile) {
+    int minute = getMinuteFromFile(firstFile);
+    PartitionCheckpoint partitionChkPoint = pChkpoints.get(
+        Integer.valueOf(minute));
     if (partitionChkPoint != null) {
-      String currentFileName = currentFile.getPath().toString();
-      String currentFileNameSubstring = currentFileName.substring(
-          streamDir.toString().length() + 1);
+      Path checkPointedFileName = new Path(streamDir, partitionChkPoint.
+          getFileName());
       // check whether current file and checkpoint file are same
-      if (currentFileNameSubstring.equals(partitionChkPoint.getFileName())) {
+      if (checkPointedFileName.equals(firstFile.getPath())) {
         return partitionChkPoint.getLineNum();
       }
     }
     return 0;
   }
 
-  private int getMinuteFromDate(Date currentTimeStamp) {
+  private int getMinuteFromFile(FileStatus firstFile) {
+    Date currentTimeStamp = getDateFromStreamDir(streamDir, firstFile.
+        getPath().getParent());
     Calendar cal = Calendar.getInstance();
     cal.setTime(currentTimeStamp);
     return cal.get(Calendar.MINUTE);
