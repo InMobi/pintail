@@ -200,6 +200,10 @@ class AuditStatsFeeder implements Runnable {
 
   private MessageConsumer getConsumer(Date fromTime, ClientConfig config)
       throws IOException {
+    if (fromTime == null) {
+      // start the consumer from starting of stream,creating a old date
+      fromTime = new Date(3600000);
+    }
     Calendar calendar = Calendar.getInstance();
     calendar.setTime(fromTime);
     // since audit topic is getting rolled every hour hence starting the
@@ -209,10 +213,7 @@ class AuditStatsFeeder implements Runnable {
     config.set(CHECKPOINT_DIR_KEY, CHECKPOINT_DIR);
     LOG.info("Intializing pintail from " + calendar.getTime()
         + " and root dir " + rootDir);
-    if (fromTime == null) {
-      // start the consumer from starting of stream,creating a old date
-      fromTime = new Date(0);
-    }
+
     return MessageConsumerFactory.create(config, CONSUMER_CLASSNAME,
         AuditUtil.AUDIT_STREAM_TOPIC_NAME, CONSUMER_NAME, calendar.getTime());
   }
