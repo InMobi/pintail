@@ -111,7 +111,7 @@ class AuditStatsFeeder implements Runnable {
   private final String clusterName;
   private final Date fromTime;
   private MessageConsumer consumer = null;
-  
+
   private boolean isStop = false;
   private static final String MESSAGES_PER_BATCH_KEY = "messages.batch.num";
   private int DEFAULT_MSG_PER_BATCH = 1000;
@@ -136,8 +136,7 @@ class AuditStatsFeeder implements Runnable {
       throws IOException {
     this.clusterName = clusterName;
     this.fromTime = fromTime;
-    config = ClientConfig
-        .loadFromClasspath(MESSAGE_CLIENT_CONF_FILE);
+    config = ClientConfig.loadFromClasspath(MESSAGE_CLIENT_CONF_FILE);
     consumer = getConsumer(fromTime, config);
     msgsPerBatch = config.getInteger(MESSAGES_PER_BATCH_KEY,
         DEFAULT_MSG_PER_BATCH);
@@ -146,25 +145,58 @@ class AuditStatsFeeder implements Runnable {
   }
 
   private void addTuples(AuditMessage message) {
-    if(message==null)
+    if (message == null)
       return;
     int windowSize = message.getWindowSize();
+    long messageReceivedTime = message.getTimestamp();
     for (long timestamp : message.getReceived().keySet()) {
+      long upperBoundaryTime = timestamp + windowSize * 1000;
+      long latency = messageReceivedTime - upperBoundaryTime;
+      LatencyColumns latencyColumn = LatencyColumns.getLatencyColumn(latency);
+      if (latency < 0) {
+        LOG.error("Error scenario,check that time is in sync across tiers,audit" +
+        		"message has time stamp "+ messageReceivedTime+ " and source time is "
+            + timestamp + " for tier= "+ message.getTier());
+        continue;
+      }
+      TupleKey key = new TupleKey(new Date(upperBoundaryTime),
+          message.getTier(), message.getTopic(), message.getHostname(),
+          clusterName);
+      Map<LatencyColumns, Long> latencyCountMap = new HashMap<LatencyColumns, Long>();
+      Tuple tuple;
+      if (tuples.containsKey(key)) {
+        tuple = tuples.get(key);
+      } else {
+        tuple = new Tuple(message.getHostname(), message.getTier(),
+            clusterName, new Date(upperBoundaryTime), message.getTopic());
+      }
+      long received = message.getReceived().get(timestamp);
+      tuple.setReceived(tuple.getReceived() + received);
+      if (tuple.getLatencyCountMap() != null) {
+        latencyCountMap.putAll(tuple.getLatencyCountMap());
+      }
+      latencyCountMap.put(latencyColumn, latencyCountMap.get(latencyColumn)
+          + latency);
+      tuple.setLatencyCountMap(latencyCountMap);
+      tuples.put(key, tuple);
+    }
+    for (long timestamp : message.getSent().keySet()) {
       long upperBoundaryTime = timestamp + windowSize * 1000;
       TupleKey key = new TupleKey(new Date(upperBoundaryTime),
           message.getTier(), message.getTopic(), message.getHostname(),
           clusterName);
+      Tuple tuple;
       if (tuples.containsKey(key)) {
-        Tuple tuple = tuples.get(key);
-        long received = message.getReceived().get(timestamp);
-        long sent = message.getSent().get(timestamp);
-        tuple.setSent(tuple.getSent() + sent);
-        tuple.setReceived(tuple.getReceived() + received);
+        tuple = tuples.get(key);
+      } else {
+        tuple = new Tuple(message.getHostname(), message.getTier(),
+            clusterName, new Date(upperBoundaryTime), message.getTopic());
       }
+      long sent = message.getSent().get(timestamp);
+      tuple.setSent(tuple.getSent() + sent);
+      tuples.put(key, tuple);
     }
-
   }
-
 
   private MessageConsumer getConsumer(Date fromTime, ClientConfig config)
       throws IOException {
@@ -181,11 +213,9 @@ class AuditStatsFeeder implements Runnable {
       // start the consumer from starting of stream,creating a old date
       fromTime = new Date(0);
     }
-    return MessageConsumerFactory.create(config,
- CONSUMER_CLASSNAME,
+    return MessageConsumerFactory.create(config, CONSUMER_CLASSNAME,
         AuditUtil.AUDIT_STREAM_TOPIC_NAME, CONSUMER_NAME, calendar.getTime());
   }
-
 
   private boolean updateDB(Set<Tuple> tuples) {
     return AuditDBHelper.update(tuples, null);
@@ -209,6 +239,7 @@ class AuditStatsFeeder implements Runnable {
           + " to join", e);
     }
   }
+
   @Override
   public void run() {
     LOG.info("Starting the run of audit feeder for cluster " + clusterName
@@ -216,7 +247,7 @@ class AuditStatsFeeder implements Runnable {
     Message msg;
     AuditMessage auditMsg;
     while (!isStop) {
-      int numOfMsgs= 0;
+      int numOfMsgs = 0;
       while (!isStop && consumer == null) {
         // if a checkpoint is already present than from time would be ignored.
         try {
