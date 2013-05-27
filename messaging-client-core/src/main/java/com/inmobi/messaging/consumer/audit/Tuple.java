@@ -16,6 +16,10 @@ public class Tuple {
   private Map<LatencyColumns, Long> latencyCountMap;
   private GroupBy.Group group;
 
+  public Tuple(String hostname, String tier, String cluster, Date timestamp,String topic) {
+    this(hostname, tier, cluster, timestamp, topic, null, 0l);
+  }
+
   public Tuple(String hostname, String tier, String cluster, Date timestamp,
                String topic, Map<LatencyColumns, Long> latencyCountMap,
                Long sent) {
@@ -30,6 +34,7 @@ public class Tuple {
   }
 
   private void setReceived() {
+    received = 0l;
     for (Map.Entry<LatencyColumns, Long> entry : latencyCountMap.entrySet()) {
       received += entry.getValue();
       if (LatencyColumns.getLatencyColumn(entry.getKey().getValue()) ==
@@ -89,6 +94,10 @@ public class Tuple {
     return sent;
   }
 
+  public void setSent(long sent) {
+    this.sent = sent;
+  }
+
   public long getReceived() {
     return received;
   }
@@ -111,6 +120,11 @@ public class Tuple {
 
   public Map<LatencyColumns, Long> getLatencyCountMap() {
     return Collections.unmodifiableMap(latencyCountMap);
+  }
+
+  public void setLatencyCountMap(Map<LatencyColumns, Long> latencyCountMap) {
+    this.latencyCountMap = latencyCountMap;
+    setReceived();
   }
 
   public void setGroupBy(GroupBy groupBy) {

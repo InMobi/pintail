@@ -1,18 +1,5 @@
 package com.inmobi.messaging.consumer.audit;
 
-import java.io.IOException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.thrift.TDeserializer;
-import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.inmobi.audit.thrift.AuditMessage;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
@@ -20,6 +7,13 @@ import com.inmobi.messaging.consumer.MessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
 import com.inmobi.messaging.util.AuditDBHelper;
 import com.inmobi.messaging.util.AuditUtil;
+import org.apache.thrift.TDeserializer;
+import org.apache.thrift.TException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.*;
 
 /**
  * This class is responsible for reading audit packets,aggregating stats in
@@ -170,8 +164,6 @@ class AuditStatsFeeder implements Runnable {
         tuple = new Tuple(message.getHostname(), message.getTier(),
             clusterName, new Date(upperBoundaryTime), message.getTopic());
       }
-      long received = message.getReceived().get(timestamp);
-      tuple.setReceived(tuple.getReceived() + received);
       if (tuple.getLatencyCountMap() != null) {
         latencyCountMap.putAll(tuple.getLatencyCountMap());
       }
