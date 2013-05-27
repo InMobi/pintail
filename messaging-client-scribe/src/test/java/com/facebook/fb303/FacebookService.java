@@ -20,6 +20,8 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.thrift.*;
 import org.apache.thrift.async.*;
 import org.apache.thrift.meta_data.*;
@@ -991,7 +993,7 @@ public class FacebookService {
   }
 
   public static class Processor implements TProcessor {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Processor.class.getName());
+    private static final Log LOGGER = LogFactory.getLog(Processor.class.getName());
     public Processor(Iface iface)
     {
       iface_ = iface;

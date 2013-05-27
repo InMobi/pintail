@@ -11,10 +11,10 @@ import java.util.Map.Entry;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.thrift.TException;
 import org.apache.thrift.TSerializer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.inmobi.audit.thrift.AuditMessage;
 import com.inmobi.messaging.ClientConfig;
@@ -41,7 +41,7 @@ class AuditService {
   private boolean isInit = false;
   private AuditWorker worker;
 
-  private static final Logger LOG = LoggerFactory.getLogger(AuditService.class);
+  private static final Log LOG = LogFactory.getLog(AuditService.class);
   private AbstractMessagePublisher publisher;
   private String hostname;
 
