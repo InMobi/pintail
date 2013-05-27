@@ -400,4 +400,33 @@ public class DatabusStreamWaitingReader
   public int getCurrentMin() {
     return this.currentMin;
   }
+
+  /**
+   * @returns Zero  if checkpoint is not present for that minute or
+   *                checkpoint file and current file were not same.
+   *          Line number from checkpoint
+   */
+  @Override
+  protected long getLineNumberForCurrentFile(FileStatus currentFile) {
+    Date currentTimeStamp = getDateFromStreamDir(streamDir, currentFile.
+        getPath().getParent());
+    int minute = getMinute(currentTimeStamp);
+    PartitionCheckpoint partitionChkPoint = pChkpoints.get(Integer.valueOf(minute));
+    if (partitionChkPoint != null) {
+      String currentFileName = currentFile.getPath().toString();
+      String currentFileNameSubstring = currentFileName.substring(
+          streamDir.toString().length() + 1);
+      // check whether current file and checkpoint file are same
+      if (currentFileNameSubstring.equals(partitionChkPoint.getFileName())) {
+        return partitionChkPoint.getLineNum();
+      }
+    }
+    return 0;
+  }
+
+  private int getMinute(Date currentTimeStamp) {
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(currentTimeStamp);
+    return cal.get(Calendar.MINUTE);
+  }
 }

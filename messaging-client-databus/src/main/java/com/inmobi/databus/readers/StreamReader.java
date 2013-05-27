@@ -125,11 +125,16 @@ public abstract class StreamReader<T extends StreamFile> {
     currentFile = fileMap.getFirstFile();
 
     if (currentFile != null) {
+      currentLineNum = getLineNumberForCurrentFile(currentFile);
       LOG.debug("CurrentFile:" + getCurrentFile() + " currentLineNum:" + 
           currentLineNum);
       setIterator();
     }
     return currentFile != null;
+  }
+
+  protected long getLineNumberForCurrentFile(FileStatus currentFile) {
+    return 0;
   }
 
   protected void resetCurrentFile() {
