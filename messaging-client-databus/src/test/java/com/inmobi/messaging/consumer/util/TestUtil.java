@@ -28,6 +28,7 @@ import com.inmobi.databus.readers.LocalStreamCollectorReader;
 import com.inmobi.databus.utils.FileUtil;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
 import com.inmobi.messaging.consumer.databus.StreamType;
+import com.inmobi.messaging.Message;
 
 public class TestUtil {
   static final Log LOG = LogFactory.getLog(TestUtil.class);
@@ -154,11 +155,11 @@ public class TestUtil {
             new PartitionCheckpoint(file, i + 1));
       }
       if (isDatabusData) {
-        Assert.assertEquals(new String(entry.getMessage().getData().array()),
+        Assert.assertEquals(new String(((Message) entry.getMessage()).getData().array()),
           MessageUtil.constructMessage(fileIndex + i));
       } else {
         Assert.assertEquals(MessageUtil.getTextMessage(
-            entry.getMessage().getData().array()),
+            ((Message) entry.getMessage()).getData().array()),
             new Text(MessageUtil.constructMessage(fileIndex + i)));
       }
     }

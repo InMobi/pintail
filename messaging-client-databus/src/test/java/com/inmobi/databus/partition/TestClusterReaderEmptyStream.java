@@ -1,6 +1,7 @@
 package com.inmobi.databus.partition;
 
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
@@ -82,7 +83,7 @@ public class TestClusterReaderEmptyStream {
         streamDir, conf, inputFormatClass,
         CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[0]), 
         1000,
-        false, prMetrics, true, partitionMinList);       
+        false, prMetrics, true, partitionMinList, null);
     preader.init();
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -98,7 +99,7 @@ public class TestClusterReaderEmptyStream {
             "dummyfile", 0L), 20, partitionCheckpointList);
     preader = new PartitionReader(clusterId, partitionCheckpointList, fs, buffer,
         streamDir, conf, inputFormatClass, null, 
-        1000, false, prMetrics, true, partitionMinList);
+        1000, false, prMetrics, true, partitionMinList, null);
     preader.init();
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -116,7 +117,7 @@ public class TestClusterReaderEmptyStream {
         streamDir, conf, inputFormatClass,
         CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[0]), 
         1000,
-        false, prMetrics, true, partitionMinList); 
+        false, prMetrics, true, partitionMinList, null);
     preader.init();
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -129,8 +130,11 @@ public class TestClusterReaderEmptyStream {
   public void prepareCheckpointList(StreamFile streamFile, int lineNum, 
       PartitionCheckpointList partitionCheckpointList) {
     partitionCheckpointList = new PartitionCheckpointList(chkPoints);
-    Date date = DatabusStreamWaitingReader.getDateFromCheckpointPath(streamFile.toString());
-    partitionCheckpointList.set(date.getMinutes(), new PartitionCheckpoint(
-        streamFile, lineNum));
+    Date date = DatabusStreamWaitingReader.getDateFromCheckpointPath(
+        streamFile.toString());
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(date);
+    partitionCheckpointList.set(cal.get(Calendar.MINUTE),
+        new PartitionCheckpoint(streamFile, lineNum));
   }
 }

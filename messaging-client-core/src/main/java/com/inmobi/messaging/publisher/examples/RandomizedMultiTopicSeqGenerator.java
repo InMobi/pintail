@@ -22,6 +22,7 @@ import org.apache.thrift.TException;
 import com.inmobi.instrumentation.TimingAccumulator;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.consumer.EndOfStreamException;
 import com.inmobi.messaging.consumer.MessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
 import com.inmobi.messaging.consumer.audit.AuditStatsQuery;
@@ -300,7 +301,7 @@ public class RandomizedMultiTopicSeqGenerator {
 
   private static boolean validateHDFSCount(Date start, String topics[],
       Counters[] total_counters, StringBuffer failureReason)
-      throws IOException, InterruptedException {
+      throws IOException, InterruptedException, EndOfStreamException {
     boolean isFail = false;
     ClientConfig config =
         ClientConfig
@@ -331,7 +332,7 @@ public class RandomizedMultiTopicSeqGenerator {
   private static boolean validateCounters(Date start, Date end,
       String[] topics, long totalMsgs, StringBuffer failureReason,
       Counters sum, Counters[] total_counters) throws ParseException,
-      IOException, InterruptedException, TException {
+      IOException, InterruptedException, TException, EndOfStreamException {
     boolean isFail = false;
     Calendar calendar = Calendar.getInstance();
     calendar.setTime(end);

@@ -15,6 +15,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.consumer.EndOfStreamException;
 import com.inmobi.messaging.consumer.MessageConsumer;
 import com.inmobi.messaging.consumer.MockInMemoryConsumer;
 import com.inmobi.messaging.consumer.audit.GroupBy.Group;
@@ -76,7 +77,7 @@ public class TestAuditStatsQuery {
 
   @Test
   public void testAuditQuery() throws IOException, InterruptedException,
-      TException, ParseException {
+      TException, ParseException, EndOfStreamException {
     assert (publisher instanceof com.inmobi.messaging.publisher.MockInMemoryPublisher);
     generateData(topic, topic1);
     publisher.close();
@@ -85,7 +86,7 @@ public class TestAuditStatsQuery {
             null, null, "1", null);
     query.parseAndSetArguments();
     query.timeout = 10;
-    MessageConsumer consumer = query.getConsumer(startDate, "mock");
+    MessageConsumer consumer = query.getConsumer(startDate, endDate, "mock");
     ((MockInMemoryConsumer) consumer)
         .setSource(((MockInMemoryPublisher) (publisher)).source);
     query.aggregateStats(consumer);
@@ -98,7 +99,7 @@ public class TestAuditStatsQuery {
 
   @Test
   public void testAuditQueryGroupFilter() throws IOException,
-      InterruptedException, TException, ParseException {
+      InterruptedException, TException, ParseException, EndOfStreamException {
     assert (publisher instanceof com.inmobi.messaging.publisher.MockInMemoryPublisher);
     generateData(topic, topic1);
     publisher.close();
@@ -107,7 +108,7 @@ public class TestAuditStatsQuery {
             null, "1", null);
     query.parseAndSetArguments();
     query.timeout = 10;
-    MessageConsumer consumer = query.getConsumer(startDate, "mock");
+    MessageConsumer consumer = query.getConsumer(startDate, endDate, "mock");
     ((MockInMemoryConsumer) consumer)
         .setSource(((MockInMemoryPublisher) (publisher)).source);
     query.aggregateStats(consumer);
@@ -127,7 +128,7 @@ public class TestAuditStatsQuery {
 
   @Test
   public void testAuditQueryWhereEndTimeIsLessThanFromTime()
-      throws IOException, InterruptedException, TException, ParseException {
+      throws IOException, InterruptedException, TException, ParseException, EndOfStreamException {
     assert (publisher instanceof com.inmobi.messaging.publisher.MockInMemoryPublisher);
     generateData(topic, topic1);
     publisher.close();
@@ -141,94 +142,30 @@ public class TestAuditStatsQuery {
     calendar.add(Calendar.MINUTE, -1);
     query.toTime = calendar.getTime();
     query.timeout = 10;
-    MessageConsumer consumer = query.getConsumer(startDate, "mock");
+    MessageConsumer consumer = query.getConsumer(startDate, endDate, "mock");
     ((MockInMemoryConsumer) consumer)
         .setSource(((MockInMemoryPublisher) (publisher)).source);
     query.aggregateStats(consumer);
     Collection<Long> sent = query.getReceived().values();
-    assert (sent.iterator().next() == 0);
-
-  }
-
-  @Test
-  public void testAuditQueryCuttoffTime0() throws IOException,
-      InterruptedException, TException, ParseException {
-    assert (publisher instanceof com.inmobi.messaging.publisher.MockInMemoryPublisher);
-    generateData(topic, topic1);
-    publisher.close();
-    AuditStatsQuery query =
-        new AuditStatsQuery("mock", endTime, startTime, "topic=" + topic1,
-            null, null, "1", null);
-    query.parseAndSetArguments();
-    query.timeout = 10;
-    query.cutoffTime = 0;
-    MessageConsumer consumer = query.getConsumer(startDate, "mock");
-    ((MockInMemoryConsumer) consumer)
-        .setSource(((MockInMemoryPublisher) (publisher)).source);
-    query.aggregateStats(consumer);
-    Collection<Long> sent = query.getReceived().values();
-    assert (sent.size() == 1);// only 1st packet would be considered
-
-  }
-
-  @Test
-  public void testAuditQueryValidCuttoffTime() throws IOException,
-      InterruptedException, TException, ParseException {
-    assert (publisher instanceof com.inmobi.messaging.publisher.MockInMemoryPublisher);
-    generateData(topic2, topic3);
-    System.out.println("Before audit has been generated: StartTime "
-        + startTime + "EndTime " + endTime);
-    int i = 0;
-    while (!((MockInMemoryPublisher) publisher).source
-        .containsKey(AuditUtil.AUDIT_STREAM_TOPIC_NAME) && i < 6) {
-      Thread.sleep(2500);
-      i++;
-    }
-    assert (((MockInMemoryPublisher) publisher).source
-        .containsKey(AuditUtil.AUDIT_STREAM_TOPIC_NAME));// to check whether
-                                                         // audit was generated
-                                                         // or not
-    Date endDate = new Date();
-    String endTime = formatter.format(endDate);
-    System.out.println("After audit was generated: StartTime " + startTime
-        + "EndTime " + endTime);
-    AuditStatsQuery query =
-        new AuditStatsQuery("mock", endTime, startTime, "topic=" + topic2,
-            null, null, "1", null);
-    query.parseAndSetArguments();
-    query.timeout = 200;
-    query.cutoffTime = 60000;
-    Thread.sleep(62000);
-    generateData(topic2, topic3);
-    publisher.close();
-    MessageConsumer consumer = query.getConsumer(startDate, "mock");
-    ((MockInMemoryConsumer) consumer)
-        .setSource(((MockInMemoryPublisher) (publisher)).source);
-    query.aggregateStats(consumer);
-    Collection<Long> sent = query.getReceived().values();
-    assert (sent.iterator().hasNext());
-    Long sentPublisher = sent.iterator().next();
-    System.out.println("Total Sent by Publisher " + sentPublisher
-        + "and expecting " + totalData / 2);
-    assert (sentPublisher == totalData / 2);
+    assert (!sent.iterator().hasNext());
 
   }
 
   @Test
   public void testAuditQueryMaxMessages() throws IOException,
-      InterruptedException, TException, ParseException {
+      InterruptedException, TException, ParseException, EndOfStreamException {
     assert (publisher instanceof com.inmobi.messaging.publisher.MockInMemoryPublisher);
     generateData(topic4, topic5);
     // setting very large timeout so that query cuttoff should happen as per max
     // messages
-    AuditStatsQuery query =
-        new AuditStatsQuery("mock", endTime, startTime, "topic=" + topic4,
-            null, "600", "600", null, Tier.PUBLISHER, totalData / 2);
+    AuditStatsQuery query = new AuditStatsQuery("mock", endTime, startTime,
+        "topic=" + topic4, null, null, "600", null, Tier.PUBLISHER,
+        totalData / 2);
     query.parseAndSetArguments();
     publisher.close();
     query.filter = new Filter("topic=" + topic4);
     query.groupBy = new GroupBy(null);
-    MessageConsumer consumer = query.getConsumer(startDate, "mock");
+    MessageConsumer consumer = query.getConsumer(startDate, endDate, "mock");
     ((MockInMemoryConsumer) consumer)
         .setSource(((MockInMemoryPublisher) (publisher)).source);
     query.aggregateStats(consumer);
