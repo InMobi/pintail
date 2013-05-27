@@ -81,7 +81,6 @@ public class TestAbstractInputFormat {
    */
   public void assertMessages(int index ) {
     for (Message msg : readMessages) {  
-      LOG.info("read msg is "+ new String(msg.getData().array()));
       Assert.assertEquals(new String(msg.getData().array()), 
           MessageUtil.constructMessage(index++));
     }
