@@ -3,6 +3,7 @@ package com.inmobi.databus.readers;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -34,6 +35,8 @@ public class DatabusStreamWaitingReader
   private PartitionCheckpointList partitionCheckpointList;
   private boolean movedToNext;
   private int prevMin;
+  private Map<Integer, Date> checkpointTimeStampMap;
+  private Map<Integer, PartitionCheckpoint> pChkpoints;
 
   public DatabusStreamWaitingReader(PartitionId partitionId, FileSystem fs,
       Path streamDir,  String inputFormatClass, Configuration conf,
@@ -47,7 +50,27 @@ public class DatabusStreamWaitingReader
     this.partitionMinList = partitionMinList; 
     this.stopTime = stopTime;
     currentMin = -1;
+    this.checkpointTimeStampMap = new HashMap<Integer, Date>();
+    if (partitionCheckpointList != null) {
+      pChkpoints = partitionCheckpointList.getCheckpoints();
+      prepareTimeStampsOfCheckpoints();
+    }
   }
+
+  public void prepareTimeStampsOfCheckpoints() {
+    PartitionCheckpoint partitionCheckpoint = null;
+    for (Integer min : partitionMinList) {
+      partitionCheckpoint = pChkpoints.get(min);
+      if (partitionCheckpoint != null) {
+        Date checkpointedTimestamp = getDateFromCheckpointPath(
+            partitionCheckpoint.getFileName());
+        checkpointTimeStampMap.put(min, checkpointedTimestamp);
+      } else {
+        checkpointTimeStampMap.put(min, null);
+      }
+    }
+  }
+
 
   /**
    * This method is used to check whether the given minute directory is 
@@ -60,20 +83,19 @@ public class DatabusStreamWaitingReader
    * If line num is -1 means all the files in that minute dir are already read.
    */ 
   public boolean isRead(Date currentTimeStamp, int minute) {
-    PartitionCheckpoint partitionCheckpoint = null;
-    if (partitionCheckpointList != null && (partitionCheckpointList.
-        getCheckpoints() != null)) {
-      partitionCheckpoint = partitionCheckpointList.getCheckpoints().get(minute);
-      if (partitionCheckpoint != null) {
-        Date checkpointedTimestamp = getDateFromCheckpointPath(
-            partitionCheckpoint.getFileName());
-        if (currentTimeStamp.before(checkpointedTimestamp)) {
-          return true;
-        } else if (currentTimeStamp.equals(checkpointedTimestamp)) {
-          if (partitionCheckpoint.getLineNum() == -1) {
-            return true;
-          }
-        }
+    Date checkpointedTimestamp = checkpointTimeStampMap.get(
+        Integer.valueOf(minute));
+    if (checkpointedTimestamp == null) {
+      return false;
+    }
+    if (currentTimeStamp.before(checkpointedTimestamp)) {
+      return true;
+    } else if (currentTimeStamp.equals(checkpointedTimestamp)) {
+      PartitionCheckpoint partitionCheckpoint = pChkpoints.get(
+          Integer.valueOf(minute));
+      if (partitionCheckpoint != null && partitionCheckpoint.getLineNum() == -1)
+      {
+        return true;
       }
     }
     return false;
@@ -136,18 +158,17 @@ public class DatabusStreamWaitingReader
             breakListing = true;
             break;
           }
-          Path dir = getMinuteDirPath(streamDir, current.getTime());
           int min = current.get(Calendar.MINUTE);
           Date currenTimestamp = current.getTime();
+          // Move the current minute to next minute
           current.add(Calendar.MINUTE, 1);
-          if (fs.exists(dir)) {
-            // Move the current minute to next minute
-            Path nextMinDir = getMinuteDirPath(streamDir, current.getTime());
-            if (partitionMinList.contains(new Integer(min))) {
+          if (partitionMinList.contains(Integer.valueOf(min))
+              && !isRead(currenTimestamp, min)) {
+            Path dir = getMinuteDirPath(streamDir, currenTimestamp);
+            if (fs.exists(dir)) {
+              Path nextMinDir = getMinuteDirPath(streamDir, current.getTime());
               if (fs.exists(nextMinDir)) {
-                if (!isRead(currenTimestamp, min)) {                                         
-                  doRecursiveListing(dir, pathFilter, fmap);
-                }
+                doRecursiveListing(dir, pathFilter, fmap);
               } else {
                 LOG.info("Reached end of file listing. Not looking at the last" +
                     " minute directory:" + dir);
@@ -156,7 +177,7 @@ public class DatabusStreamWaitingReader
               }
             }
           }
-        } 
+        }
       } else {
         // go to next hour
         LOG.info("Hour directory " + hhDir + " does not exist");
