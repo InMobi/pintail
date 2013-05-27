@@ -20,15 +20,15 @@ public class AuditDbQuery {
   private String rootDir, filterString, groupByString, toTimeString,
       fromTimeString, percentileString, dbConfFile;
 
-  Map<GroupBy.Group, Long> received;
-  Map<GroupBy.Group, Long> sent;
-  Map<GroupBy.Group, Map<LatencyColumns, Long>> latencyCount;
-  Map<GroupBy.Group, Map<Float, Float>> percentile;
+  Map<Tuple, Map<Float, Integer>> percentile;
   Date fromTime;
   Date toTime;
   GroupBy groupBy;
   Filter filter;
-  Set<Float> percentileList;
+  Set<Float> percentileSet;
+  Set<Tuple> tupleSet;
+  Map<GroupBy.Group, Long> received;
+  Map<GroupBy.Group, Long> sent;
 
   public AuditDbQuery(String rootDir, String toTimeString,
                          String fromTimeString, String filterString,
@@ -50,7 +50,7 @@ public class AuditDbQuery {
                          String dbConfFile) {
     received = new TreeMap<GroupBy.Group, Long>();
     sent = new TreeMap<GroupBy.Group, Long>();
-    latencyCount = new TreeMap<GroupBy.Group, Map<LatencyColumns, Long>>();
+    tupleSet = new HashSet<Tuple>();
     this.rootDir = rootDir;
     this.toTimeString = toTimeString;
     this.fromTimeString = fromTimeString;
@@ -61,63 +61,51 @@ public class AuditDbQuery {
   }
 
   void aggregateStats() {
-    Set<Tuple> tupleSet =
-        AuditDBHelper.retrieve(toTime, fromTime, filter, groupBy, dbConfFile);
-    for (Tuple tuple : tupleSet) {
-      LOG.debug("Aggregating stats on tuple :"+tuple.toString());
-      Map<Column, String> values = new HashMap<Column, String>();
-      values.put(Column.HOSTNAME, tuple.getHostname());
-      values.put(Column.TIER, tuple.getTier());
-      values.put(Column.TOPIC, tuple.getTopic());
-      values.put(Column.CLUSTER, tuple.getCluster());
-      GroupBy.Group group = groupBy.getGroup(values);
-      Map<LatencyColumns, Long> latencyCountMap = new HashMap();
-      for (LatencyColumns latencyColumn : LatencyColumns.values()) {
-        Long currentCount = tuple.getLatencyCountMap().get(latencyColumn);
-        latencyCountMap.put(latencyColumn, currentCount);
-      }
-      received.put(group, tuple.getReceived());
-      sent.put(group, tuple.getSent());
-      latencyCount.put(group, latencyCountMap);
-    }
-    ;
-    if (percentileList.size() > 0) {
+    tupleSet.addAll(
+        AuditDBHelper.retrieve(toTime, fromTime, filter, groupBy, dbConfFile));
+    setReceivedAndSentStats();
+    if (percentileSet.size() > 0) {
+      LOG.debug("Percentile set not empty..Creating percentile map for all " +
+          "tuples;");
       populatePercentileMap();
     }
   }
 
+  private void setReceivedAndSentStats() {
+    for(Tuple tuple : tupleSet) {
+      if (!tuple.isGroupBySet())
+        tuple.setGroupBy(groupBy);
+      GroupBy.Group group = tuple.getGroup();
+      received.put(group, tuple.getReceived());
+      sent.put(group, tuple.getSent());
+    }
+  }
+
   private void populatePercentileMap() {
-    for (Map.Entry<GroupBy.Group, Map<LatencyColumns, Long>> entry : latencyCount
-        .entrySet()) {
-      Map<LatencyColumns, Long> latencyCountMap = entry.getValue();
-      GroupBy.Group group = entry.getKey();
-      Long totalCount = received.get(group);
+    for (Tuple tuple : tupleSet) {
+      LOG.debug("Creating percentile map for tuple :"+tuple.toString());
+      Long totalCount = tuple.getReceived() - tuple.getLostCount();
       Long currentCount = 0l;
-      Long weightedSum = 0l;
-      Iterator<Float> it = percentileList.iterator();
-      Float currentPercentile = it.next();
-      for (Map.Entry<LatencyColumns, Long> countEntry : latencyCountMap
-          .entrySet()) {
-        if (currentCount + countEntry.getValue() <
+      Iterator<Float> it = percentileSet.iterator();
+      Float currentPercentile = 0.0f;
+      if(it.hasNext())
+        currentPercentile = it.next();
+      for (LatencyColumns latencyColumn : LatencyColumns.values()) {
+        if (LatencyColumns.getLatencyColumn(latencyColumn.getValue()) ==
+            LatencyColumns.LOST || latencyColumn == LatencyColumns.LOST)
+          continue;
+        Long value = tuple.getLatencyCountMap().get(latencyColumn);
+        if (currentCount + value >=
             ((currentPercentile * totalCount) / 100)) {
-          currentCount += countEntry.getValue();
-          weightedSum +=
-              (countEntry.getKey().getValue() * countEntry.getValue());
-        } else {
-          Long diffCount =(long)
-              ((currentPercentile * totalCount) / 100) - currentCount;
-          currentCount += diffCount;
-          weightedSum += (diffCount * countEntry.getKey().getValue());
-          Map<Float, Float> percentileMap = percentile.get(group);
+          Map<Float, Integer> percentileMap = percentile.get(tuple);
           if (percentileMap == null)
-            percentileMap = new HashMap<Float, Float>();
-          percentileMap.put(currentPercentile,
-              Float.valueOf(weightedSum / currentCount));
-          currentPercentile = it.next();
-          currentCount += countEntry.getValue() - diffCount;
-          weightedSum += ((countEntry.getValue() - diffCount) *
-              countEntry.getKey().getValue());
+            percentileMap = new HashMap<Float, Integer>();
+          percentileMap.put(currentPercentile, latencyColumn.getValue());
+          percentile.put(tuple, percentileMap);
+          if(it.hasNext())
+            currentPercentile = it.next();
         }
+        currentCount += value;
       }
     }
   }
@@ -138,16 +126,16 @@ public class AuditDbQuery {
     filter = new Filter(filterString);
     fromTime = getDate(fromTimeString);
     toTime = getDate(toTimeString);
-    percentileList = getPercentileList(percentileString);
+    percentileSet = getPercentileList(percentileString);
   }
 
   private Set<Float> getPercentileList(String percentileString) {
     if (percentileString != null || !percentileString.isEmpty()) {
-      Set<Float> percentileList = new TreeSet<Float>();
+      Set<Float> percentileSet = new TreeSet<Float>();
       String[] percentiles = percentileString.split(",");
       for (String percentile : percentiles)
-        percentileList.add(Float.parseFloat(percentile));
-      return percentileList;
+        percentileSet.add(Float.parseFloat(percentile));
+      return percentileSet;
     }
     return null;
   }
@@ -224,11 +212,11 @@ public class AuditDbQuery {
   public void displayResults() {
     StringBuffer results = new StringBuffer();
     results.append("Group \t\t\tReceived\t\t\t<Percentile, Latency>");
-    for (Map.Entry<GroupBy.Group, Long> entry : received.entrySet()) {
-      results.append(entry.getKey()+"\t");
-      results.append(entry.getValue()+"\t");
-      Map<Float, Float> percentileMap = percentile.get(entry.getKey());
-      for (Map.Entry<Float, Float> percentileEntry : percentileMap.entrySet()) {
+    for (Tuple tuple : tupleSet) {
+      results.append(tuple.getGroup()+"\t");
+      results.append(received.get(tuple.getGroup())+"\t");
+      Map<Float, Integer> percentileMap = percentile.get(tuple);
+      for (Map.Entry<Float, Integer> percentileEntry : percentileMap.entrySet()) {
         results.append("<"+percentileEntry.getKey()+",\t");
         results.append(percentileEntry.getValue()+">\t");
       }
@@ -266,7 +254,7 @@ public class AuditDbQuery {
     return sent;
   }
 
-  public Map<GroupBy.Group, Map<Float, Float>> getPercentile() {
+  public Map<Tuple, Map<Float, Integer>> getPercentile() {
     return percentile;
   }
 }

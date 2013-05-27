@@ -1,12 +1,11 @@
 CREATE TABLE audit
 (
-  timeinterval bigint,
-  hostname varchar(25),
-  tier varchar(15),
-  topic varchar(25),
-  cluster varchar(50),
-  received bigint,
-  sent bigint,
+  TIMEINTERVAL bigint,
+  HOSTNAME varchar(25),
+  TIER varchar(15),
+  TOPIC varchar(25),
+  CLUSTER varchar(50),
+  SENT bigint,
   C0 bigint,
   C1 bigint,
   C2 bigint,
