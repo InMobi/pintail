@@ -730,7 +730,17 @@ public class ConsumerUtil {
     }
     Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
         consumer.getMetrics())).getNumMessagesConsumed(), 80);
+    // throw an EndOfStreamException if consumer consumes one EOFMessage
+    // (one partitionReader only)
     Throwable th = null;
+    try {
+      consumer.next();
+    } catch (Exception e) {
+      th = e;
+    }
+    Assert.assertTrue(th instanceof EndOfStreamException);
+    // throw an EndOfStreamException if user calls next() after consuming
+    // all messages till stop time
     try {
       consumer.next();
     } catch (Exception e) {
