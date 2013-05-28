@@ -3,7 +3,8 @@ package random.pkg;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.thrift.TException;
 
 import com.facebook.fb303.fb_status;
@@ -14,10 +15,10 @@ import scribe.thrift.scribe.Iface;
 
 public class ScribeAlwaysTryAgain implements Iface {
 
-  private Logger logger;
+  private Log LOG;
 
   public ScribeAlwaysTryAgain() {
-    logger = Logger.getLogger("scribeserver");
+    LOG = LogFactory.getLog("scribeserver");
   }
 
   @Override
@@ -100,9 +101,9 @@ public class ScribeAlwaysTryAgain implements Iface {
 
   @Override
   public ResultCode Log(List<LogEntry> messages) throws TException {
-    if (logger.isInfoEnabled()) {
+    if (LOG.isInfoEnabled()) {
       for (LogEntry m : messages) {
-        logger.info(m.getCategory() + ":" + m.getMessage());
+        LOG.info(m.getCategory() + ":" + m.getMessage());
       }
     }
     return ResultCode.TRY_LATER;
