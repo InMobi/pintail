@@ -993,7 +993,7 @@ public class FacebookService {
   }
 
   public static class Processor implements TProcessor {
-    private static final Log LOGGER = LogFactory.getLog(Processor.class.getName());
+    private static final Log LOG = LogFactory.getLog(Processor.class.getName());
     public Processor(Iface iface)
     {
       iface_ = iface;
