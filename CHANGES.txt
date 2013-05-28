@@ -1,5 +1,12 @@
 Release 3.0.0
 
+Incompatible Changes :
+
+    1. Changed the signature of next() to 
+      public Message next() throws InterruptedException, EndOfStreamException;
+ 
+Bug Fixes and Improvements :
+
    13. Remove slf4j logs and use commons-logging instead
 
    12. Fix starting file if checkpointed file is purged
@@ -16,9 +23,8 @@ Release 3.0.0
 
     6. Added commons-logging dependecy in parent pom
 
-    5. Changed the signature of next() to 
-      public Message next() throws InterruptedException, EndOfStreamException;
-    This is an INCOMPATIBLE CHANGE
+    5. Add stop time feature to stop streaming the messages once stop time
+    is seen.
 
     4. Added configuration for absolute stop time specified by the config '
     messaging.consumer.absolute.stoptime' in the format 'yyyy/MM/dd/HH/mm'. 
