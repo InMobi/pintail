@@ -231,7 +231,7 @@ public class AuditDBHelper {
     if (prevVal > 0l && currentVal == 0l) {
       count = prevVal;
     } else if (prevVal > 0l && currentVal > 0l) {
-      LOG.warn("Possible data replay for tuple: " + tuple.toString() +
+      LOG.error("Possible data replay for tuple: " + tuple.toString() +
           "; Column " + latencyColumn.toString() + " had value " +
           prevVal + " before updation");
       count = currentVal;

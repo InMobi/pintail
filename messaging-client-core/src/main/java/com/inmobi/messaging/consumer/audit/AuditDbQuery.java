@@ -61,8 +61,11 @@ public class AuditDbQuery {
   }
 
   void aggregateStats() {
+    LOG.debug("To time:"+toTime);
+    LOG.debug("From time:"+fromTime);
     tupleSet.addAll(
         AuditDBHelper.retrieve(toTime, fromTime, filter, groupBy, dbConfFile));
+    LOG.debug("Tuple set retrieved from DB: " + tupleSet);
     setReceivedAndSentStats();
     if (percentileSet.size() > 0) {
       LOG.debug("Percentile set not empty..Creating percentile map for all " +
@@ -87,9 +90,7 @@ public class AuditDbQuery {
       Long totalCount = tuple.getReceived() - tuple.getLostCount();
       Long currentCount = 0l;
       Iterator<Float> it = percentileSet.iterator();
-      Float currentPercentile = 0.0f;
-      if(it.hasNext())
-        currentPercentile = it.next();
+      Float currentPercentile = it.next();
       for (LatencyColumns latencyColumn : LatencyColumns.values()) {
         if (latencyColumn == LatencyColumns.C600)
           continue;
@@ -103,6 +104,8 @@ public class AuditDbQuery {
           percentile.put(tuple, percentileMap);
           if(it.hasNext())
             currentPercentile = it.next();
+          else
+            break;
         }
         currentCount += value;
       }
