@@ -14,7 +14,9 @@ import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.consumer.AbstractMessageConsumer;
 import com.inmobi.messaging.consumer.BaseMessageConsumerStatsExposer;
+import com.inmobi.messaging.consumer.EndOfStreamException;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
 import com.inmobi.messaging.consumer.databus.AbstractMessagingDatabusConsumer;
 import com.inmobi.messaging.consumer.databus.Checkpoint;
@@ -365,7 +367,7 @@ public class ConsumerUtil {
       consumer.next(60, TimeUnit.SECONDS);
     }
     consumer.mark();
-    
+
     ConsumerCheckpoint expectedCheckpoint = consumer.getCurrentCheckpoint();
     Map<PartitionId, PartitionCheckpoint> lastCheckpoint = new 
         HashMap<PartitionId, PartitionCheckpoint>();
@@ -595,7 +597,7 @@ public class ConsumerUtil {
     }
     Assert.assertTrue(th instanceof IllegalArgumentException);
   }
- 
+
   public static void testConsumerWithoutConfiguredOptions(ClientConfig config)
       throws Exception {
     Throwable th = null;
@@ -663,5 +665,110 @@ public class ConsumerUtil {
     }
     Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
         consumer.getMetrics())).getNumMessagesConsumed(), 300);
+  }
+
+  public static void testConsumerWithAbsoluteStartTimeAndStopTime(
+      ClientConfig config, String streamName, String consumerName,
+      Date startTime, boolean hadoop)
+          throws Exception {
+    AbstractMessagingDatabusConsumer consumer = createConsumer(hadoop);
+    consumer.init(streamName, consumerName, startTime, config);
+    int i;
+    for (i = 0; i < 120; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    consumer.mark();
+    consumer.close();
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMessagesConsumed(), 120);
+    consumer.init(streamName, consumerName, startTime, config);
+    for (i = 120; i < 200; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMessagesConsumed(), 80);
+    Throwable th = null;
+    try {
+      consumer.next();
+    } catch (Exception e) {
+      th = e;
+    }
+    Assert.assertTrue(th instanceof EndOfStreamException);
+  }
+
+  public static void testConsumerWithAbsoluteStopTime(
+      ClientConfig config, String streamName, String consumerName,
+      Date startTime, boolean hadoop)
+          throws Exception {
+    AbstractMessagingDatabusConsumer consumer = createConsumer(hadoop);
+    consumer.init(streamName, consumerName, startTime, config);
+    int i;
+    for (i = 0; i < 20; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    consumer.mark();
+    for (i = 20; i < 40; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    consumer.reset();
+    consumer.close();
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMessagesConsumed(), 40);
+    consumer.init(streamName, consumerName, startTime, config);
+    for (i = 20; i < 100; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMessagesConsumed(), 80);
+    Throwable th = null;
+    try {
+      consumer.next();
+    } catch (Exception e) {
+      th = e;
+    }
+    Assert.assertTrue(th instanceof EndOfStreamException);
+  }
+
+  public static void testConsumerWithStopTimeBeyondCheckpoint(
+      ClientConfig config, String streamName, String consumerName,
+      Date startTime, boolean hadoop, Date stopDate) throws Exception {
+    AbstractMessagingDatabusConsumer consumer = createConsumer(hadoop);
+    consumer.init(streamName, consumerName, startTime, config);
+    int i;
+    for (i = 0; i < 20; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    consumer.mark();
+    for (i = 20; i < 200; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    consumer.mark();
+    consumer.close();
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMessagesConsumed(), 200);
+    config.set(HadoopConsumerConfig.stopDateConfig,
+        AbstractMessageConsumer.minDirFormat.get().format(stopDate));
+    consumer.init(streamName, consumerName, startTime, config);
+    Throwable th = null;
+    try {
+      consumer.next();
+    } catch (Exception e) {
+      th = e;
+    }
+    Assert.assertTrue(th instanceof EndOfStreamException);
   }
 }

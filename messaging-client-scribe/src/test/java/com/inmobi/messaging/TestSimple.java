@@ -2,11 +2,10 @@ package com.inmobi.messaging;
 
 import static org.testng.Assert.assertEquals;
 
-import org.testng.annotations.AfterTest;
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import random.pkg.NtMultiServer;
+import random.pkg.ScribeAlwaysSuccess;
 
 import com.inmobi.instrumentation.TimingAccumulator;
 import com.inmobi.messaging.netty.ScribeMessagePublisher;
@@ -14,25 +13,21 @@ import com.inmobi.messaging.netty.ScribeMessagePublisher;
 public class TestSimple {
   private NtMultiServer server;
   private ScribeMessagePublisher publisher;
-
-  @BeforeTest
-  public void setUp() {
-    server = TestServerStarter.getServer();
-  }
-
-  @AfterTest
-  public void tearDown() {
-    server.stop();
-    if (publisher != null)
-      publisher.close();
-  }
+  private int port = 7922;
 
   @Test()
   public void simpleSend() throws Exception {
+    server = new NtMultiServer(new ScribeAlwaysSuccess(), port);
     server.start();
-    runTest();
-    //create the publisher again
-    runTest();
+    try {
+      runTest();
+      //create the publisher again
+      runTest();
+    } finally {
+      server.stop();
+      if (publisher != null)
+        publisher.close();
+    }
     System.out.println("TestSimple.simpleSend() done");
   }
 
@@ -55,7 +50,7 @@ public class TestSimple {
   }
 
   private void runTest() throws Exception {
-    publisher = TestServerStarter.createPublisher();
+    publisher = TestServerStarter.createPublisher(7922, 5);
     sendMessages();
     publisher.close();
   }

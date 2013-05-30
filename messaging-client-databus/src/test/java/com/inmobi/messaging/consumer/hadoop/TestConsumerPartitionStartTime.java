@@ -54,8 +54,7 @@ public class TestConsumerPartitionStartTime {
   public void setup() throws Exception {
     Calendar cal = Calendar.getInstance();
     startTime = cal.getTime();
-    LOG.info("current time is " + startTime.getMinutes());
-    cal.add(cal.MINUTE, -(20));
+    cal.add(Calendar.MINUTE, -(20));
     startTime = cal.getTime();
     config = ClientConfig.loadFromClasspath(firstConfFile);
     secondconfig = ClientConfig.loadFromClasspath(secondConfFile);

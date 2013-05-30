@@ -73,7 +73,8 @@ public class TestMergeStreamMultipleCollectors {
         FileSystem.get(cluster.getHadoopConf()),
         DatabusStreamReader.getStreamsDir(cluster, testStream),
         DatabusInputFormat.class.getCanonicalName(),
-        conf, 1000, metrics, false, partitionMinList, partitionCheckpointList);                             
+        conf, 1000, metrics, false, partitionMinList, partitionCheckpointList,
+        null);
     reader.build(CollectorStreamReader.getDateFromCollectorFile(files[0]));
     reader.initFromStart();
     Assert.assertNotNull(reader.getCurrentFile());

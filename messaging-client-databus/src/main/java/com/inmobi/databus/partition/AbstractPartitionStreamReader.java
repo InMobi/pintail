@@ -26,8 +26,8 @@ public abstract class AbstractPartitionStreamReader implements
   }
 
   @Override
-  public void openStream() throws IOException {
-    reader.openStream();
+  public boolean openStream() throws IOException {
+    return reader.openStream();
   }
 
   @Override
@@ -40,7 +40,9 @@ public abstract class AbstractPartitionStreamReader implements
 
   @Override
   public void closeStream() throws IOException {
-    reader.closeStream();    
+    if (reader != null) {
+      reader.closeStream();
+    }
   }
 
   public Message readLine() throws IOException, InterruptedException {

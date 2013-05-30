@@ -46,8 +46,10 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
       FileSystem fs, String streamName, Path streamDir,
       long waitTimeForFlush,
       long waitTimeForCreate, CollectorReaderStatsExposer metrics,
-      Configuration conf, boolean noNewFiles) throws IOException {
-    super(partitionId, fs, streamDir, waitTimeForCreate, metrics, noNewFiles);
+      Configuration conf, boolean noNewFiles, Date stopTime)
+          throws IOException {
+    super(partitionId, fs, streamDir, waitTimeForCreate, metrics, noNewFiles,
+        stopTime);
     this.streamName = streamName;
     this.waitTimeForFlush = waitTimeForFlush;
     this.collectorMetrics = (CollectorReaderStatsExposer)(this.metrics);
@@ -81,6 +83,9 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
         };
       }
 
+      /*
+       * prepare a fileMap with files which are beyond the stopTime
+       */
       @Override
       protected void buildList() throws IOException {
         if (fs.exists(streamDir)) {
@@ -90,6 +95,14 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
             return;
           }
           for (FileStatus file : fileStatuses) {
+            if (stopTime != null) {
+              Date currentTimeStamp = getDateFromCollectorFile(
+                  file.getPath().getName());
+              if (stopTime.before(currentTimeStamp)) {
+                stopListing();
+                continue;
+              }
+            }
             addPath(file);
           }
         } else {
@@ -115,12 +128,16 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   }
 
   protected void initCurrentFile() {
+
     super.initCurrentFile();
     sameStream = false;
   }
 
-  protected void openCurrentFile(boolean next) throws IOException {
+  protected boolean openCurrentFile(boolean next) throws IOException {
     closeCurrentFile();
+    if (getCurrentFile() == null) {
+      return false;
+    }
     if (next) {
       resetCurrentFileSettings();
     } 
@@ -134,6 +151,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     } else {
       LOG.info("CurrentFile:" + getCurrentFile() + " does not exist");
     }
+    return true;
   }
 
   protected synchronized void closeCurrentFile() throws IOException {
@@ -207,10 +225,11 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
       }
       build(); // rebuild file list
       if (!hasNextFile()) { //there is no next file
-        if (noNewFiles) {
-          // this boolean check is only for tests 
-          return null;
-        } 
+        // stop reading if it read till stopTime
+        if (hasReadFully()) {
+          LOG.info("read all files till stop date");
+          break;
+        }
         if (!setIterator()) {
           LOG.info("Could not find current file in the stream");
           if (isWithinStream(getCurrentFile().getName())) {
@@ -266,10 +285,6 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   public boolean startFromNextHigher(String fileName) 
       throws IOException, InterruptedException {
     if (!setNextHigher(fileName)) {
-      if (noNewFiles) {
-        // this boolean check is only for tests 
-        return false;
-      }
       waitForNextFileCreation(fileName);
     }
     return true;
@@ -277,7 +292,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
 
   private void waitForNextFileCreation(String fileName) 
       throws IOException, InterruptedException {
-    while (!closed && !setNextHigher(fileName)) {
+    while (!closed && !setNextHigher(fileName) && !hasReadFully()) {
       LOG.info("Waiting for next file creation");
       waitForFileCreate();
       build();
@@ -329,5 +344,13 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
 
   public static CollectorFile getCollectorFile(String fileName) {
     return CollectorFile.create(fileName);
+  }
+
+  @Override
+  protected boolean hasReadFully() {
+    if (currentFile != null && !setIterator()) {
+      return false;
+    }
+    return super.hasReadFully();
   }
 }

@@ -3,6 +3,7 @@ package com.inmobi.databus.readers;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -34,19 +35,42 @@ public class DatabusStreamWaitingReader
   private PartitionCheckpointList partitionCheckpointList;
   private boolean movedToNext;
   private int prevMin;
+  private Map<Integer, Date> checkpointTimeStampMap;
+  private Map<Integer, PartitionCheckpoint> pChkpoints;
 
   public DatabusStreamWaitingReader(PartitionId partitionId, FileSystem fs,
       Path streamDir,  String inputFormatClass, Configuration conf,
       long waitTimeForFileCreate, PartitionReaderStatsExposer metrics,
       boolean noNewFiles, Set<Integer> partitionMinList, 
-      PartitionCheckpointList partitionCheckpointList)
+      PartitionCheckpointList partitionCheckpointList, Date stopTime)
           throws IOException {
     super(partitionId, fs, streamDir, inputFormatClass, conf,
-        waitTimeForFileCreate, metrics, noNewFiles);
+        waitTimeForFileCreate, metrics, noNewFiles, stopTime);
     this.partitionCheckpointList = partitionCheckpointList;
     this.partitionMinList = partitionMinList; 
+    this.stopTime = stopTime;
     currentMin = -1;
+    this.checkpointTimeStampMap = new HashMap<Integer, Date>();
+    if (partitionCheckpointList != null) {
+      pChkpoints = partitionCheckpointList.getCheckpoints();
+      prepareTimeStampsOfCheckpoints();
+    }
   }
+
+  public void prepareTimeStampsOfCheckpoints() {
+    PartitionCheckpoint partitionCheckpoint = null;
+    for (Integer min : partitionMinList) {
+      partitionCheckpoint = pChkpoints.get(min);
+      if (partitionCheckpoint != null) {
+        Date checkpointedTimestamp = getDateFromCheckpointPath(
+            partitionCheckpoint.getFileName());
+        checkpointTimeStampMap.put(min, checkpointedTimestamp);
+      } else {
+        checkpointTimeStampMap.put(min, null);
+      }
+    }
+  }
+
 
   /**
    * This method is used to check whether the given minute directory is 
@@ -59,20 +83,19 @@ public class DatabusStreamWaitingReader
    * If line num is -1 means all the files in that minute dir are already read.
    */ 
   public boolean isRead(Date currentTimeStamp, int minute) {
-    PartitionCheckpoint partitionCheckpoint = null;
-    if (partitionCheckpointList != null && (partitionCheckpointList.
-        getCheckpoints() != null)) {
-      partitionCheckpoint = partitionCheckpointList.getCheckpoints().get(minute);
-      if (partitionCheckpoint != null) {
-        Date checkpointedTimestamp = getDateFromCheckpointPath(
-            partitionCheckpoint.getFileName());
-        if (currentTimeStamp.before(checkpointedTimestamp)) {
-          return true;
-        } else if (currentTimeStamp.equals(checkpointedTimestamp)) {
-          if (partitionCheckpoint.getLineNum() == -1) {
-            return true;
-          }
-        }
+    Date checkpointedTimestamp = checkpointTimeStampMap.get(
+        Integer.valueOf(minute));
+    if (checkpointedTimestamp == null) {
+      return false;
+    }
+    if (currentTimeStamp.before(checkpointedTimestamp)) {
+      return true;
+    } else if (currentTimeStamp.equals(checkpointedTimestamp)) {
+      PartitionCheckpoint partitionCheckpoint = pChkpoints.get(
+          Integer.valueOf(minute));
+      if (partitionCheckpoint != null && partitionCheckpoint.getLineNum() == -1)
+      {
+        return true;
       }
     }
     return false;
@@ -130,27 +153,31 @@ public class DatabusStreamWaitingReader
       if (fs.exists(hhDir)) {
         while (current.getTime().before(now) && 
             hour  == current.get(Calendar.HOUR_OF_DAY)) {
-          Path dir = getMinuteDirPath(streamDir, current.getTime());
+          // stop the file listing if stop date is beyond current time.
+          if (checkAndSetstopTimeReached(current)) {
+            breakListing = true;
+            break;
+          }
           int min = current.get(Calendar.MINUTE);
           Date currenTimestamp = current.getTime();
+          // Move the current minute to next minute
           current.add(Calendar.MINUTE, 1);
-          if (fs.exists(dir)) {
-            // Move the current minute to next minute
-            Path nextMinDir = getMinuteDirPath(streamDir, current.getTime());
-            if (partitionMinList.contains(new Integer(min))) {
+          if (partitionMinList.contains(Integer.valueOf(min))
+              && !isRead(currenTimestamp, min)) {
+            Path dir = getMinuteDirPath(streamDir, currenTimestamp);
+            if (fs.exists(dir)) {
+              Path nextMinDir = getMinuteDirPath(streamDir, current.getTime());
               if (fs.exists(nextMinDir)) {
-                if (!isRead(currenTimestamp, min)) {                                         
-                  doRecursiveListing(dir, pathFilter, fmap);
-                }
+                doRecursiveListing(dir, pathFilter, fmap);
               } else {
                 LOG.info("Reached end of file listing. Not looking at the last" +
                     " minute directory:" + dir);
                 breakListing = true;
                 break;
               }
-            } 
+            }
           }
-        } 
+        }
       } else {
         // go to next hour
         LOG.info("Hour directory " + hhDir + " does not exist");
@@ -163,12 +190,22 @@ public class DatabusStreamWaitingReader
     }
 
     if (getFirstFileInStream() != null && (currentMin == -1)) {
-      Calendar cal = Calendar.getInstance();
-      Date currentDate = DatabusStreamWaitingReader.getDateFromStreamDir(
-          streamDir, getFirstFileInStream().getPath().getParent());
-      cal.setTime(currentDate);
-      currentMin = cal.get(Calendar.MINUTE);
+      FileStatus firstFileInStream = getFirstFileInStream();
+      currentMin = getMinuteFromFile(firstFileInStream);
     }
+  }
+
+  /*
+   * check whether reached stopTime and stop the File listing if it reached stopTime
+   */
+  private boolean checkAndSetstopTimeReached(Calendar current) {
+    if (stopTime != null && stopTime.before(current.getTime())) {
+      LOG.info("Reached stopTime. Not listing from after" +
+          " the stop date ");
+      stopListing();
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -194,7 +231,7 @@ public class DatabusStreamWaitingReader
     boolean readFromCheckpoint = false;
     FileStatus fileToRead = nextFile;
     if (currentMin != now.get(Calendar.MINUTE)) {
-      //We are moving to next file, set the flags so that Message checkpoints 
+      //We are moving to next file, set the flags so that Message checkpoints
       //can be populated.
       movedToNext = true;
       prevMin = currentMin;
@@ -223,7 +260,7 @@ public class DatabusStreamWaitingReader
     this.currentFile = fileToRead;
     setIterator();
     return !readFromCheckpoint;
-  }  
+  }
 
   private void updatePartitionCheckpointList(int prevMin) {
     Map<Integer, PartitionCheckpoint> pckList = partitionCheckpointList.
@@ -245,17 +282,13 @@ public class DatabusStreamWaitingReader
   protected void startFromNextHigher(FileStatus file)
       throws IOException, InterruptedException {
     if (!setNextHigherAndOpen(file)) {
-      if (noNewFiles) {
-        // this boolean check is only for tests 
-        return;
-      }
       waitForNextFileCreation(file);
     }
   }
 
   private void waitForNextFileCreation(FileStatus file)
       throws IOException, InterruptedException {
-    while (!closed && !setNextHigherAndOpen(file)) {
+    while (!closed && !setNextHigherAndOpen(file) && !hasReadFully()) {
       LOG.info("Waiting for next file creation");
       waitForFileCreate();
       build();
@@ -276,10 +309,11 @@ public class DatabusStreamWaitingReader
         build(getDateFromStreamDir(streamDir, 
             getCurrentFile()));
         if (!nextFile()) { // reached end of stream
-          if (noNewFiles) {
-            // this boolean check is only for tests 
-            return null;
-          } 
+          // stop reading if read till stopTime
+          if (hasReadFully()) {
+            LOG.info("read all files till stop date");
+            break;
+          }
           LOG.info("Could not find next file");
           startFromNextHigher(currentFile);
           LOG.info("Reading from next higher file "+ getCurrentFile());
@@ -362,5 +396,34 @@ public class DatabusStreamWaitingReader
 
   public int getCurrentMin() {
     return this.currentMin;
+  }
+
+  /**
+   * @returns Zero  if checkpoint is not present for that minute or
+   *                checkpoint file and current file were not same.
+   *          Line number from checkpoint
+   */
+  @Override
+  protected long getLineNumberForFirstFile(FileStatus firstFile) {
+    int minute = getMinuteFromFile(firstFile);
+    PartitionCheckpoint partitionChkPoint = pChkpoints.get(
+        Integer.valueOf(minute));
+    if (partitionChkPoint != null) {
+      Path checkPointedFileName = new Path(streamDir, partitionChkPoint.
+          getFileName());
+      // check whether current file and checkpoint file are same
+      if (checkPointedFileName.equals(firstFile.getPath())) {
+        return partitionChkPoint.getLineNum();
+      }
+    }
+    return 0;
+  }
+
+  private int getMinuteFromFile(FileStatus firstFile) {
+    Date currentTimeStamp = getDateFromStreamDir(streamDir, firstFile.
+        getPath().getParent());
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(currentTimeStamp);
+    return cal.get(Calendar.MINUTE);
   }
 }

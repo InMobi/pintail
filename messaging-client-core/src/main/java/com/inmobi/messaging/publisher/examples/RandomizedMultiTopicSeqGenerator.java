@@ -1,8 +1,28 @@
 package com.inmobi.messaging.publisher.examples;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.ByteBuffer;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.thrift.TException;
+
 import com.inmobi.instrumentation.TimingAccumulator;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.consumer.EndOfStreamException;
 import com.inmobi.messaging.consumer.MessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
 import com.inmobi.messaging.consumer.audit.AuditStatsQuery;
@@ -12,18 +32,6 @@ import com.inmobi.messaging.consumer.audit.GroupBy.Group;
 import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 import com.inmobi.messaging.publisher.MessagePublisherFactory;
 import com.inmobi.messaging.util.AuditUtil;
-import org.apache.thrift.TException;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.ByteBuffer;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 class Counters {
   long success = 0, invocations = 0, unhandled = 0, graceful = 0, inflight = 0,
@@ -293,7 +301,7 @@ public class RandomizedMultiTopicSeqGenerator {
 
   private static boolean validateHDFSCount(Date start, String topics[],
                                            Counters[] total_counters, StringBuffer failureReason)
-      throws IOException, InterruptedException {
+      throws IOException, InterruptedException, EndOfStreamException {
     boolean isFail = false;
     ClientConfig config =
         ClientConfig
@@ -324,7 +332,7 @@ public class RandomizedMultiTopicSeqGenerator {
   private static boolean validateCounters(Date start, Date end,
                                           String[] topics, long totalMsgs, StringBuffer failureReason,
                                           Counters sum, Counters[] total_counters) throws ParseException,
-      IOException, InterruptedException, TException {
+      IOException, InterruptedException, TException, EndOfStreamException {
     boolean isFail = false;
     Calendar calendar = Calendar.getInstance();
     calendar.setTime(end);

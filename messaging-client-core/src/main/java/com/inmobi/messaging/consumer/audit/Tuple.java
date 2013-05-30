@@ -119,6 +119,8 @@ public class Tuple {
   }
 
   public Map<LatencyColumns, Long> getLatencyCountMap() {
+    if (latencyCountMap == null)
+      return null;
     return Collections.unmodifiableMap(latencyCountMap);
   }
 

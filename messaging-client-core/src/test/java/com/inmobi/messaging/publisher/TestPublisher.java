@@ -14,6 +14,7 @@ import org.testng.annotations.Test;
 import com.inmobi.audit.thrift.AuditMessage;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.consumer.EndOfStreamException;
 import com.inmobi.messaging.consumer.MessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
 import com.inmobi.messaging.consumer.MockInMemoryConsumer;
@@ -88,7 +89,7 @@ public class TestPublisher {
 
   @Test
   public void testPublisherWithHeaders() throws IOException,
-      InterruptedException {
+      InterruptedException, EndOfStreamException {
     ClientConfig conf = new ClientConfig();
     conf.set("publisher.classname",
         "com.inmobi.messaging.publisher.MockInMemoryPublisher");
@@ -114,7 +115,7 @@ public class TestPublisher {
 
   @Test
   public void testAuditMessage() throws IOException, InterruptedException,
-      TException {
+      TException, EndOfStreamException {
     ClientConfig conf = new ClientConfig();
     conf.set("publisher.classname",
         "com.inmobi.messaging.publisher.MockInMemoryPublisher");

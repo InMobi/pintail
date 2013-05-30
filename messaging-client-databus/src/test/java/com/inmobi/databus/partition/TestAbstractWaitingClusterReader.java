@@ -58,7 +58,8 @@ public abstract class TestAbstractWaitingClusterReader {
     		buffer, streamDir, conf, inputFormatClass,
         DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
             databusFiles[0]),
-        1000, isDatabusData(), prMetrics, false, partitionMinList);     
+        1000, isDatabusData(), prMetrics, false, partitionMinList,
+        null);
 
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
@@ -106,7 +107,7 @@ public abstract class TestAbstractWaitingClusterReader {
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(newDatabusFiles[1])), 2, 0, 100, partitionId,
         buffer, isDatabusData());
-    Assert.assertTrue(buffer.isEmpty());    
+    Assert.assertTrue(buffer.isEmpty());
     preader.close();
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 500);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 500);

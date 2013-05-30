@@ -3,7 +3,7 @@
   <parent>
     <artifactId>messaging-client-parent</artifactId>
     <groupId>com.inmobi.messaging</groupId>
-    <version>2.2.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>messaging-client-core</artifactId>
@@ -71,10 +71,10 @@
       <artifactId>databus-core</artifactId>
       <version>${databus.version}</version>
       <exclusions>
-        <exclusion>
+        <!-- <exclusion>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-core</artifactId>
-        </exclusion>
+        </exclusion> -->
         <exclusion>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-test</artifactId>

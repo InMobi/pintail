@@ -43,7 +43,7 @@ public class MockInMemoryConsumer extends AbstractMessageConsumer {
   }
 
   @Override
-  protected Message getNext() throws InterruptedException {
+  protected Message getNext() throws InterruptedException, EndOfStreamException {
     BlockingQueue<Message> queue = source.get(topicName);
     if (queue == null)
       queue = new LinkedBlockingQueue<Message>();
@@ -53,21 +53,21 @@ public class MockInMemoryConsumer extends AbstractMessageConsumer {
   }
 
   @Override
-  public synchronized Message next() throws InterruptedException {
+  public synchronized Message next() throws InterruptedException, EndOfStreamException {
     Message msg = getNext();
     return msg;
   }
 
   @Override
   public synchronized Message next(long timeout, TimeUnit timeunit)
-      throws InterruptedException {
+      throws InterruptedException, EndOfStreamException {
     Message msg = getNext(timeout, timeunit);
     return msg;
   }
 
   @Override
   protected Message getNext(long timeout, TimeUnit timeunit)
-      throws InterruptedException {
+      throws InterruptedException, EndOfStreamException {
     BlockingQueue<Message> queue = source.get(topicName);
     if (queue == null)
       queue = new LinkedBlockingQueue<Message>();

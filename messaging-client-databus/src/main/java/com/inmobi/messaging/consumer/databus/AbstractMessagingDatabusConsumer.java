@@ -23,6 +23,7 @@ import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.AbstractMessageConsumer;
+import com.inmobi.messaging.consumer.EndOfStreamException;
 import com.inmobi.messaging.metrics.DatabusConsumerStatsExposer;
 
 public abstract class AbstractMessagingDatabusConsumer 
@@ -45,6 +46,8 @@ public abstract class AbstractMessagingDatabusConsumer
   protected int totalConsumers;
   protected Set<Integer> partitionMinList;
   protected String relativeStartTimeStr;
+  protected Date stopTime;
+  private int closedReadercount;
 
   @Override
   protected void init(ClientConfig config) throws IOException {
@@ -139,6 +142,10 @@ public abstract class AbstractMessagingDatabusConsumer
       relativeStartTimeStr = String.valueOf(minutes);
     }
 
+    String stopTimeStr = config.getString(stopDateConfig);
+    stopTime = getDateFromString(stopTimeStr);
+
+    closedReadercount = 0;
   }
 
   protected boolean isValidConfiguration() {
@@ -164,13 +171,29 @@ public abstract class AbstractMessagingDatabusConsumer
     return currentCheckpoint;
   }
   
-
+  /**
+   * @throws throws an EndOfStreamException When consumer consumed all messages
+   *  till stopTime
+   * @return Message if Message is available on the stream
+   *         Otherwise waits for the Message to be available on the stream
+   */
   @Override
-  protected Message getNext() throws InterruptedException {
-    QueueEntry entry;
-    entry = buffer.take();
+  protected Message getNext()
+      throws InterruptedException, EndOfStreamException {
+    QueueEntry entry = null;
+    for (int i = 0; i < readers.size(); i++) {
+      entry = buffer.take();
+      if (entry.getMessage() instanceof Message) {
+        break;
+      } else { // if (entry.getMessage() instanceof EOFMessage)
+        closedReadercount++;
+        if (closedReadercount == readers.size()) {
+          throw new EndOfStreamException();
+        }
+      }
+    }
     setMessageCheckpoint(entry);
-    return entry.getMessage();
+    return (Message)entry.getMessage();
   }
 
   private void setMessageCheckpoint(QueueEntry entry) {
@@ -178,16 +201,32 @@ public abstract class AbstractMessagingDatabusConsumer
     currentCheckpoint.set(entry.getPartitionId(), msgchk);
   }
   
+  /**
+   * @throws throws an EndOfStreamException When consumer consumed all messages
+   *  till stopTime
+   * @return Message if Message is available on the stream
+   *         Null if Message is not available on the stream for a given timeout
+   */
   @Override
   protected Message getNext(long timeout, TimeUnit timeunit) 
-      throws InterruptedException {
-    QueueEntry entry;
-    entry = buffer.poll(timeout, timeunit);
-    if (entry == null) {
-      return null;
+      throws InterruptedException, EndOfStreamException {
+    QueueEntry entry = null;
+    for (int i =0; i < readers.size(); i++) {
+      entry = buffer.poll(timeout, timeunit);
+      if (entry == null) {
+        return null;
+      }
+      if (entry.getMessage() instanceof Message) {
+        break;
+      } else { // if (entry.getMessage() instanceof EOFMessage)
+        closedReadercount++;
+        if (closedReadercount == readers.size()) {
+          throw new EndOfStreamException();
+        }
+      }
     }
     setMessageCheckpoint(entry);
-    return entry.getMessage();
+    return (Message)entry.getMessage();
   }
 
   protected synchronized void start() throws IOException {
@@ -207,18 +246,29 @@ public abstract class AbstractMessagingDatabusConsumer
       partitionTimestamp = null;
     } else if (relativeStartTimeStr != null) {
       partitionTimestamp = findStartTimeStamp(relativeStartTimeStr);
-      LOG.info("checkpoint does not exists and relative start time is provided" +
-          "started from relative start time" + partitionTimestamp);
+      LOG.info("Checkpoint does not exists and relative start time is provided. " +
+          "Started from relative start time" + partitionTimestamp);
     } else if (startTime != null) {
       partitionTimestamp = startTime;
-      LOG.info("there is no checkpoint and no relative start time is provided" +
-          "starting from absolute start time" + partitionTimestamp);
+      LOG.info("There is no checkpoint and no relative start time is provided." +
+          " Starting from absolute start time" + partitionTimestamp);
     } else {
       throw new IllegalArgumentException("Invalid configuration to start" +
-          " the consumer. " + "provide a checkpoint or relative startTime" +
+          " the consumer. " + "Provide a checkpoint or relative startTime" +
           " or absolute startTime ");
     }
+    //check whether the given stop date is before/after the start time
+    isValidStopDate(partitionTimestamp);
     return partitionTimestamp;
+  }
+
+  public void isValidStopDate(Date partitionTimestamp) {
+    if (partitionTimestamp != null) {
+      if (stopTime != null && stopTime.before(partitionTimestamp)) {
+        throw new IllegalArgumentException("Provided stopTime is beyond" +
+            " the startTime." + "Provide a valid stopTime");
+      }
+    }
   }
 
   protected String getChkpointKey() {

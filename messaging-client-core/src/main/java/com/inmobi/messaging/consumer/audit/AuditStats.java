@@ -21,6 +21,28 @@ public class AuditStats {
   private static final String AUDIT_PATH_SUFFIX = "system/";
   private static final Logger LOG = LoggerFactory.getLogger(AuditStats.class);
 
+  private void start(List<AuditStatsFeeder> feeders) throws Exception {
+    DatabusConfigParser parser = new DatabusConfigParser(CONF_PATH);
+    DatabusConfig config = parser.getConfig();
+    for (Entry<String, Cluster> cluster : config.getClusters().entrySet()) {
+      String rootDir = cluster.getValue().getRootDir() + File.separator
+          + AUDIT_PATH_SUFFIX;
+      AuditStatsFeeder feeder = new AuditStatsFeeder(cluster.getKey(), rootDir);
+      feeders.add(feeder);
+    }
+    // start all feeders
+    for (AuditStatsFeeder feeder : feeders) {
+      LOG.info("starting feeder for cluster " + feeder.getClusterName());
+      feeder.start();
+    }
+  }
+
+  private void join(List<AuditStatsFeeder> feeders) {
+    for (AuditStatsFeeder feeder : feeders) {
+      feeder.join();
+    }
+  }
+
   public static void main(String args[]) throws Exception{
     final List<AuditStatsFeeder> feeders = new ArrayList<AuditStatsFeeder>();
     Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -36,23 +58,11 @@ public class AuditStats {
         }
       }
     });
-    DatabusConfigParser parser= new DatabusConfigParser(CONF_PATH);
-    DatabusConfig config = parser.getConfig();
-    for(Entry<String, Cluster> cluster:config.getClusters().entrySet()){
-      String rootDir = cluster.getValue().getRootDir() + File.separator
-          + AUDIT_PATH_SUFFIX;
-      AuditStatsFeeder feeder = new AuditStatsFeeder(cluster.getKey(), null,
-          rootDir);
-      feeders.add(feeder);
-    }
-    // start all feeders
-    for (AuditStatsFeeder feeder : feeders) {
-      feeder.start();
-    }
+
+    AuditStats stats = new AuditStats();
+    stats.start(feeders);
     // wait for all feeders to finish
-    for (AuditStatsFeeder feeder : feeders) {
-      feeder.join();
-    }
+    stats.join(feeders);
 
   }
 }

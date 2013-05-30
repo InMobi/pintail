@@ -27,6 +27,10 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   private LocalStreamCollectorReader lReader;
   private CollectorStreamReader cReader;
   private final CollectorReaderStatsExposer metrics;
+  private Date stopTime;
+  private boolean noNewFiles;
+
+  private boolean shouldBeClosed = false;
 
   CollectorReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, FileSystem fs,
@@ -35,18 +39,20 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       Configuration conf,
       Date startTime, long waitTimeForFlush,
       long waitTimeForFileCreate, CollectorReaderStatsExposer metrics,
-      boolean noNewFiles)
+      boolean noNewFiles, Date stopTime)
           throws IOException {
     this.partitionId = partitionId;
     this.startTime = startTime;
     this.streamName = streamName;
     this.partitionCheckpoint = partitionCheckpoint;
+    this.stopTime = stopTime;
     this.metrics = metrics;
+    this.noNewFiles = noNewFiles;
     lReader = new LocalStreamCollectorReader(partitionId,  fs, streamName,
-        streamsLocalDir, conf, waitTimeForFileCreate, metrics);
+        streamsLocalDir, conf, waitTimeForFileCreate, metrics, stopTime);
     cReader = new CollectorStreamReader(partitionId, fs, streamName,
         collectorDir, waitTimeForFlush, waitTimeForFileCreate, metrics,
-        conf, noNewFiles);
+        conf, noNewFiles, stopTime);
   }
 
   private void initializeCurrentFileFromTimeStamp(Date timestamp)
@@ -60,6 +66,9 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     }
   }
 
+  /*
+   * close the reader if given stopTime is beyond the checkpoint
+   */
   private void initializeCurrentFileFromCheckpointLocalStream(
       String localStreamFileName) throws IOException, InterruptedException {
     String error = "Checkpoint file does not exist";
@@ -68,6 +77,8 @@ public class CollectorReader extends AbstractPartitionStreamReader {
           DatabusStreamFile.create(streamName, localStreamFileName),
           partitionCheckpoint.getLineNum()))) {
         reader = lReader;
+      } else if (lReader.isStopped() || cReader.isStopped()) {
+        shouldBeClosed  = true;
       } else {
         throw new IllegalArgumentException(error);
       } 
@@ -79,12 +90,18 @@ public class CollectorReader extends AbstractPartitionStreamReader {
         if (!reader.initFromStart()) {
           throw new IllegalArgumentException(error);
         }
+      } else if (cReader.isStopped() || lReader.isStopped()) {
+        shouldBeClosed  = true;
       } else {
         throw new IllegalArgumentException(error);
       }
     } else {
       reader = cReader;
-      cReader.startFromBegining();
+      if (lReader.isStopped() || cReader.isStopped()) {
+        shouldBeClosed = true;
+      } else {
+        cReader.startFromBegining();
+      }
     }
   }
 
@@ -107,29 +124,36 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   }
 
   public void initializeCurrentFile() throws IOException, InterruptedException {
-      LOG.info("Initializing partition reader's current file");
-      cReader.build();
+    LOG.info("Initializing partition reader's current file");
+    cReader.build();
 
-      if (partitionCheckpoint != null) {
-        lReader.build(LocalStreamCollectorReader.getBuildTimestamp(
-            streamName, partitionId.getCollector(), partitionCheckpoint));
-        initializeCurrentFileFromCheckpoint();
-      } else if (startTime != null) {
-        lReader.build(startTime);
-        initializeCurrentFileFromTimeStamp(startTime);
-      } else {
-        LOG.info("Would never reach here");
-      }
+    if (partitionCheckpoint != null) {
+      lReader.build(LocalStreamCollectorReader.getBuildTimestamp(
+          streamName, partitionId.getCollector(), partitionCheckpoint));
+      initializeCurrentFileFromCheckpoint();
+    } else if (startTime != null) {
+      lReader.build(startTime);
+      initializeCurrentFileFromTimeStamp(startTime);
+    } else {
+      LOG.info("Would never reach here");
+    }
+    if (reader != null) {
       LOG.info("Intialized currentFile:" + reader.getCurrentFile() +
           " currentLineNum:" + reader.getCurrentLineNum());
+    }
   }
 
   public Message readLine() throws IOException, InterruptedException {
     assert (reader != null);
     Message line = super.readLine();
-    if (line == null) {
+    while (line == null) {
       if (closed) {
         return line;
+      }
+
+      // check whether readers are stopped
+      if (reader.isStopped()) {
+        return null;
       }
       if (reader == lReader) {
         lReader.closeStream();
@@ -162,13 +186,26 @@ public class CollectorReader extends AbstractPartitionStreamReader {
           metrics.incrementSwitchesFromCollectorToLocal();
         }
       }
+      boolean ret = reader.openStream();
+      if (ret) {
+        LOG.info("Reading file " + reader.getCurrentFile() +
+            " and lineNum:" + reader.getCurrentLineNum());
+        line = super.readLine();
+      } else {
+        return null;
+      }
     }
     return line;
   }
-  
+
   @Override
   public MessageCheckpoint getMessageCheckpoint() {
-  	return new PartitionCheckpoint(reader.getCurrentStreamFile(),
-  			reader.getCurrentLineNum());
+    return new PartitionCheckpoint(reader.getCurrentStreamFile(),
+        reader.getCurrentLineNum());
+  }
+
+  @Override
+  public boolean shouldBeClosed() {
+    return shouldBeClosed;
   }
 }

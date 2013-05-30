@@ -18,7 +18,6 @@ public class TestDatabusConsumerCollectorStream
   private String ck2 = "/tmp/test/databustest7/checkpoint22";
   private String ck3 = "/tmp/test/databustest8/checkpoint12";
   private String ck4 = "/tmp/test/databustest8/checkpoint22";
-  private String ck5 = "/tmp/test/databustest8/checkpoint32"; 
 
   ClientConfig loadConfig() {
     return ClientConfig

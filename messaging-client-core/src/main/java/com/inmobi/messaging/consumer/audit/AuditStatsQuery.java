@@ -3,6 +3,8 @@ package com.inmobi.messaging.consumer.audit;
 import com.inmobi.audit.thrift.AuditMessage;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.consumer.AbstractMessageConsumer;
+import com.inmobi.messaging.consumer.EndOfStreamException;
 import com.inmobi.messaging.consumer.MessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
 import com.inmobi.messaging.consumer.audit.GroupBy.Group;
@@ -38,14 +40,15 @@ public class AuditStatsQuery {
       .getLogger(AuditStatsQuery.class);
   Date fromTime;
   Date toTime;
-  long cutoffTime = 600000;
+  int cutoffTime;
   long timeout = 60000;
   private static final String MESSAGE_CLIENT_CONF_FILE =
       "audit-consumer-conf.properties";
   public static final String ROOT_DIR_KEY = "databus.consumer.rootdirs";
   public static final String CONSUMER_CLASS_KEY = "consumer.classname";
-  private boolean isTimeOut = false;
+  boolean isTimeOut = false;
   private boolean isMaxMsgsProcessed = false;
+  boolean isCutoffReached = false;
   long currentTime;
   GroupBy groupBy;
   Filter filter;
@@ -59,6 +62,8 @@ public class AuditStatsQuery {
   public static final String CONSUMER_CLASSNAME =
       "com.inmobi.messaging.consumer.databus.DatabusConsumer";
   public static final String CONSUMER_NAME = "audit-consumer";
+  private static final int DEFAULT_CUTOFF_HRS = 1;
+  private static final String CONFIG_STOP_TIME = "messaging.consumer.absolute.stopdate";
 
   public AuditStatsQuery(String rootDir, String toTimeString,
                          String fromTimeString, String filterString, String groupByString,
@@ -85,24 +90,28 @@ public class AuditStatsQuery {
     this.maxMessages = maxMessages;
   }
 
-  private boolean isCutoffReached(long timestamp) {
-    if (messageCount >= maxMessages)
-      isMaxMsgsProcessed = true;
-    return (timestamp - toTime.getTime() >= cutoffTime)
-        || (messageCount >= maxMessages);
-  }
+
 
   void aggregateStats(MessageConsumer consumer) throws InterruptedException,
-      TException, ParseException, IOException {
+      TException, ParseException, IOException, EndOfStreamException {
     Message message = null;
     TDeserializer deserialize = new TDeserializer();
     AuditMessage packet;
     currentTime = 0;
 
-    do {
-      message = consumer.next(timeout, TimeUnit.MILLISECONDS);
-      if (message == null)
+    while (messageCount < maxMessages) {
+      try {
+        message = consumer.next(timeout, TimeUnit.MILLISECONDS);
+      } catch (EndOfStreamException e) {
+        isCutoffReached = true;
+        LOG.info("Query was stopped due to cutoff");
         break;
+      }
+      if (message == null) {
+        LOG.info("Query was stopped due to timeout");
+        isTimeOut = true;
+        break;
+      }
       packet = new AuditMessage();
       deserialize.deserialize(packet, message.getData().array());
       LOG.debug("Packet read is " + packet);
@@ -127,11 +136,12 @@ public class AuditStatsQuery {
             && packet.getTier().equalsIgnoreCase(cutoffTier.toString())) {
           messageCount += receivedCount;
         }
-
-        received.put(group, alreadyReceived);
-        sent.put(group, alreadySent);
+        if (alreadyReceived > 0)
+          received.put(group, alreadyReceived);
+        if (alreadySent > 0)
+          sent.put(group, alreadySent);
       }
-    } while (!isCutoffReached(currentTime));
+    }
   }
 
   private Long getSum(Map<Long, Long> counters) {
@@ -153,7 +163,7 @@ public class AuditStatsQuery {
   }
 
   public void execute() throws ParseException, IOException,
-      InterruptedException, TException {
+      InterruptedException, TException, EndOfStreamException {
     try {
       parseAndSetArguments();
       aggregateStats(consumer);
@@ -165,9 +175,9 @@ public class AuditStatsQuery {
 
   void parseAndSetArguments() throws ParseException, IOException {
     if (cuttoffString == null)
-      cutoffTime = 3600000l;
+      cutoffTime = DEFAULT_CUTOFF_HRS;
     else
-      cutoffTime = Long.parseLong(cuttoffString) * 60 * 1000;
+      cutoffTime = Integer.parseInt(cuttoffString);
     if (timeOutString == null)
       timeout = 120000;
     else
@@ -176,7 +186,7 @@ public class AuditStatsQuery {
     filter = new Filter(filterString);
     fromTime = getDate(fromTimeString);
     toTime = getDate(toTimeString);
-    consumer = getConsumer(fromTime, rootDir);
+    consumer = getConsumer(fromTime, toTime, rootDir);
   }
 
   public static void main(String args[]) {
@@ -279,31 +289,42 @@ public class AuditStatsQuery {
     }
   }
 
-  MessageConsumer getConsumer(Date fromTime, String rootDir) throws IOException {
+  MessageConsumer getConsumer(Date fromTime, Date toTime, String rootDir)
+      throws IOException {
     Calendar calendar = Calendar.getInstance();
+    Date startTime, stopTime;
     if (timezone != null)
       calendar.setTimeZone(TimeZone.getTimeZone(timezone));
     calendar.setTime(fromTime);
     // since audit topic is getting rolled every hour hence starting the
     // consumer from 1 hour behind
     calendar.add(Calendar.HOUR_OF_DAY, -1);
+    startTime = calendar.getTime();
+
+    // Adding cuttoff to end time to compensate for delays
+    calendar.setTime(toTime);
+    calendar.add(Calendar.HOUR_OF_DAY, cutoffTime);
+    stopTime = calendar.getTime();
 
     ClientConfig config =
         ClientConfig.loadFromClasspath(MESSAGE_CLIENT_CONF_FILE);
+    String stopDateString = AbstractMessageConsumer.getStringFromDate(stopTime);
+    config.set(CONFIG_STOP_TIME, stopDateString);
     if (rootDir != null) {
       config.set(ROOT_DIR_KEY, rootDir);
     }
-    LOG.info("Intializing pintail from " + calendar.getTime());
+    LOG.info("Intializing pintail from " + startTime);
+    LOG.info("Setting Stop time of consumer as " + stopDateString);
     return MessageConsumerFactory.create(config,
         config.getString(CONSUMER_CLASS_KEY, CONSUMER_CLASSNAME),
-        AuditUtil.AUDIT_STREAM_TOPIC_NAME, CONSUMER_NAME, calendar.getTime());
+        AuditUtil.AUDIT_STREAM_TOPIC_NAME, CONSUMER_NAME, startTime);
   }
 
   private static void printUsage() {
     StringBuffer usage = new StringBuffer();
     usage.append("Usage : AuditStatsQuery ");
     usage.append("[-rootdir <hdfs root dir>]");
-    usage.append("[-cutoff <cuttofTimeInMins>]");
+    usage.append("[-cutoff <cuttofTimeInHrs>]");
     usage.append("[-timeout <timeoutInMins>]");
 
     usage.append("[-group <comma seperated columns>]");
