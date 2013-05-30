@@ -88,11 +88,13 @@ public class CounterClient {
             break;
           }
         }
-        System.out.println("Counter:" + msgCounter);
-        markCounter++;
-        if (markCounter == 5) {
-          consumer.mark();
-          markCounter = 0;
+        if (keepRunnig) {
+          System.out.println("Counter:" + msgCounter);
+          markCounter++;
+          if (markCounter == 5) {
+            consumer.mark();
+            markCounter = 0;
+          }
         }
       } catch (Exception e) {
         e.printStackTrace();
