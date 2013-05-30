@@ -7,11 +7,10 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.PathFilter;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class TestHadoopStreamFile<StreamFile> {
+public class TestHadoopStreamFile {
   
   @Test
   public void testHadoopStreamFile() throws IOException {
