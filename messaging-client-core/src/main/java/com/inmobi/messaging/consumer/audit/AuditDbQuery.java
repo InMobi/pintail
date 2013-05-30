@@ -248,10 +248,12 @@ public class AuditDbQuery {
     System.out.println(usage);
   }
 
+  @Deprecated
   public Map<GroupBy.Group, Long> getReceived() {
     return received;
   }
 
+  @Deprecated
   public Map<GroupBy.Group, Long> getSent() {
     return sent;
   }
