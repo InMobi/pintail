@@ -84,8 +84,8 @@ public class CounterClient {
             }
             msgCounter++;
           } catch (EndOfStreamException e) {
-            close();
-            System.exit(0);
+            keepRunnig = false;
+            break;
           }
         }
         System.out.println("Counter:" + msgCounter);
