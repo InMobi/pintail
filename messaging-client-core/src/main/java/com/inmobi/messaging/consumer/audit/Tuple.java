@@ -37,8 +37,7 @@ public class Tuple {
     received = 0l;
     for (Map.Entry<LatencyColumns, Long> entry : latencyCountMap.entrySet()) {
       received += entry.getValue();
-      if (LatencyColumns.getLatencyColumn(entry.getKey().getValue()) ==
-          LatencyColumns.LOST)
+      if (entry.getKey() == LatencyColumns.C600)
         lost = entry.getValue();
     }
   }
