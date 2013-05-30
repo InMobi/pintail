@@ -165,8 +165,6 @@ public class AuditDBHelper {
           tuple.getLatencyCountMap();
       int numberColumns = LatencyColumns.values().length;
       for (LatencyColumns latencyColumn : LatencyColumns.values()) {
-        if(latencyColumn == LatencyColumns.LOST)
-          continue;
         insertPreparedStatement.setString(index, latencyColumn.toString());
         Long count = latencyCountMap.get(latencyColumn);
         if (count == null)
@@ -192,8 +190,6 @@ public class AuditDBHelper {
           new HashMap<LatencyColumns, Long>();
       latencyCountMap.putAll(tuple.getLatencyCountMap());
       for (LatencyColumns latencyColumn : LatencyColumns.values()) {
-        if (latencyColumn == LatencyColumns.LOST)
-          continue;
         Long currentVal = latencyCountMap.get(latencyColumn);
         Long prevVal = rs.getLong(latencyColumn.toString());
         Long count = getCountForLatency(currentVal, prevVal, latencyColumn, tuple);
@@ -203,8 +199,6 @@ public class AuditDBHelper {
       int index = 1;
       updatePreparedStatement.setLong(index++, sent);
       for (LatencyColumns latencyColumn : LatencyColumns.values()) {
-        if (latencyColumn == LatencyColumns.LOST)
-          continue;
         updatePreparedStatement.setString(index++, latencyColumn.toString());
         updatePreparedStatement.setLong(index++, latencyCountMap.get(
             latencyColumn));
@@ -322,8 +316,6 @@ public class AuditDBHelper {
       Map<LatencyColumns, Long> latencyCountMap =
           new HashMap<LatencyColumns, Long>();
       for (LatencyColumns latencyColumn : LatencyColumns.values()) {
-        if(latencyColumn == LatencyColumns.LOST)
-          continue;
         latencyCountMap
             .put(latencyColumn, rs.getLong(latencyColumn.toString()));
       }
@@ -341,8 +333,6 @@ public class AuditDBHelper {
   private static String getSelectStmtForRetrieve(Filter filter, GroupBy groupBy) {
     String sumString = "", asString = "", whereString = "", groupByString = "";
     for (LatencyColumns latencyColumn : LatencyColumns.values()) {
-      if (latencyColumn == LatencyColumns.LOST)
-        continue;
       sumString += ", Sum(" + latencyColumn.toString() + ")";
       asString += ", " + latencyColumn.toString();
     }

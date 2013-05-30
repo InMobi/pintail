@@ -91,8 +91,7 @@ public class AuditDbQuery {
       if(it.hasNext())
         currentPercentile = it.next();
       for (LatencyColumns latencyColumn : LatencyColumns.values()) {
-        if (LatencyColumns.getLatencyColumn(latencyColumn.getValue()) ==
-            LatencyColumns.LOST || latencyColumn == LatencyColumns.LOST)
+        if (latencyColumn == LatencyColumns.C600)
           continue;
         Long value = tuple.getLatencyCountMap().get(latencyColumn);
         if (currentCount + value >=
