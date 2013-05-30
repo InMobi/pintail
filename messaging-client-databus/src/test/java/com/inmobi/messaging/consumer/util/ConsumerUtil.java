@@ -771,4 +771,36 @@ public class ConsumerUtil {
     }
     Assert.assertTrue(th instanceof EndOfStreamException);
   }
+
+  public static void testConsumerWithStartOfStream(ClientConfig config,
+      String streamName, String consumerName, boolean hadoop)
+          throws IOException, InterruptedException, EndOfStreamException {
+    AbstractMessagingDatabusConsumer consumer = createConsumer(hadoop);
+    consumer.init(streamName, consumerName, null, config);
+    int i;
+    for (i = 0; i < 200; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    consumer.mark();
+    for (i = 200; i < 220; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    consumer.reset();
+    for (i = 200; i < 300; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    consumer.close();
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMarkCalls(), 1);
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumResetCalls(), 1);
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMessagesConsumed(), 320);
+  }
 }

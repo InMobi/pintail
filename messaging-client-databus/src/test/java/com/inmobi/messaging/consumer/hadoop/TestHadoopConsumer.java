@@ -35,6 +35,7 @@ public class TestHadoopConsumer extends TestAbstractHadoopConsumer {
     ck14 = "/tmp/test/hadoop/2/checkpoint11";
     ck15 = "/tmp/test/hadoop/2/checkpoint12";
     ck16 = "/tmp/test/hadoop/2/checkpoint13";
+    ck17 = "/tmp/test/hadoop/2/checkpoint14";
     
     super.setup();
     Assert.assertEquals(rootDirs.length, 3);
@@ -113,6 +114,11 @@ public class TestHadoopConsumer extends TestAbstractHadoopConsumer {
   @Test
   public void testConsumerWithStopTimeBeyondCheckpoint() throws Exception {
     super.testConsumerWithStopTimeBeyondCheckpoint();
+  }
+
+  @Test
+  public void testConsumerWithStartOfStream() throws Exception {
+    super.testConsumerWithStartOfStream();
   }
 
   @AfterTest
