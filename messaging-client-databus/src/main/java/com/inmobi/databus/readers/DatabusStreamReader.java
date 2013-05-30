@@ -9,6 +9,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -31,6 +32,8 @@ import com.inmobi.databus.files.StreamFile;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.consumer.AbstractMessageConsumer;
+import com.inmobi.messaging.consumer.util.FileStatusComparator;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
 public abstract class DatabusStreamReader<T extends StreamFile> extends 
@@ -244,5 +247,34 @@ StreamReader<T> {
 
   public static Path getMinuteDirPath(Path streamDir, Date date) {
     return new Path(streamDir, minDirFormat.get().format(date));
+  }
+
+  public List<FileStatus> getStartingDirFromStream(FileSystem fs, Path dir,
+      int depth, List<FileStatus> leastTimeStampFileStatusList)
+          throws IOException {
+    FileStatus [] filestatuses = fs.listStatus(dir);
+    if (filestatuses != null && filestatuses.length > 0) {
+      FileStatusComparator comparator = new FileStatusComparator();
+      FileStatus leastTimeStampFileStatus = filestatuses[0];
+      for (int i = 1; i < filestatuses.length; i++) {
+        if (comparator.compare(leastTimeStampFileStatus, filestatuses[i]) < 0) {
+          leastTimeStampFileStatus = filestatuses[i];
+        }
+      }
+      if (depth == 4) {
+        leastTimeStampFileStatusList.add(leastTimeStampFileStatus);
+      } else {
+        getStartingDirFromStream(fs, leastTimeStampFileStatus.getPath(),
+            depth + 1, leastTimeStampFileStatusList);
+      }
+    }
+    return leastTimeStampFileStatusList;
+  }
+
+  public Date getDateFromPath(Path streamDir, FileStatus leastFileStatus) {
+    String leastTimeStampFile = leastFileStatus.getPath().toString();
+    String streamDirStr = streamDir.toString();
+    String startTimeStr = leastTimeStampFile.substring(streamDirStr.length() + 1);
+    return AbstractMessageConsumer.getDateFromString(startTimeStr);
   }
 }

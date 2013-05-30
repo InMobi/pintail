@@ -339,8 +339,16 @@ public abstract class StreamReader<T extends StreamFile> {
     return fileMap.isWithin(fileName);
   }
 
-  protected FileStatus getFirstFileInStream() {
+  public FileStatus getFirstFileInStream() {
     return fileMap.getFirstFile();
+  }
+
+  public FileSystem getFileSystem() {
+    return fs;
+  }
+
+  public Path getStreamDir() {
+    return streamDir;
   }
 
   protected FileStatus getFileMapValue(StreamFile streamFile) {

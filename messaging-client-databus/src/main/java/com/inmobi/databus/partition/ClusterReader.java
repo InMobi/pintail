@@ -1,8 +1,10 @@
 package com.inmobi.databus.partition;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Collection;
 import java.util.Set;
@@ -10,6 +12,7 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
@@ -113,10 +116,40 @@ public class ClusterReader extends AbstractPartitionStreamReader {
         reader.startFromTimestmp(startTime);
       }
     } else {
-      LOG.info("Would never reach here");
+      startFromStartOfStream();
     }
     LOG.info("Intialized currentFile:" + reader.getCurrentFile() +
         " currentLineNum:" + reader.getCurrentLineNum());
+  }
+
+  private void startFromStartOfStream()
+      throws IOException, InterruptedException {
+
+    FileStatus startingDir = getStartingDirFromStream();
+    if (startingDir != null) {
+      Date startingDirTimeStamp = ((DatabusStreamWaitingReader) reader).
+          getDateFromPath(streamDir, startingDir);
+      // listing from start of the stream
+      ((DatabusStreamWaitingReader)reader).build(startingDirTimeStamp);
+      if (!reader.initializeCurrentFile(startingDirTimeStamp)) {
+        reader.startFromTimestmp(startingDirTimeStamp);
+      }
+    } else {
+      // close the reader if stream is empty or
+      // wait for next file creation
+      reader.startFromBegining();
+    }
+  }
+
+  private FileStatus getStartingDirFromStream() throws IOException {
+    List<FileStatus> leastTimeStampFileStatus = new ArrayList<FileStatus>();
+
+    ((DatabusStreamWaitingReader) reader).getStartingDirFromStream(
+        reader.getFileSystem(), streamDir, 0, leastTimeStampFileStatus);
+    if (leastTimeStampFileStatus.size() > 0) {
+      return leastTimeStampFileStatus.get(0);
+    }
+    return null;
   }
 
   @Override
