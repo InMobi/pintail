@@ -1,11 +1,14 @@
 package com.inmobi.databus.partition;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
@@ -135,12 +138,65 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       lReader.build(startTime);
       initializeCurrentFileFromTimeStamp(startTime);
     } else {
-      LOG.info("Would never reach here");
+      startFromStartOfStream();
     }
     if (reader != null) {
       LOG.info("Intialized currentFile:" + reader.getCurrentFile() +
           " currentLineNum:" + reader.getCurrentLineNum());
     }
+  }
+
+  private void startFromStartOfStream()
+      throws IOException, InterruptedException {
+
+    Date startingFileTimeStamp = null;
+    String startingFile = null;
+    reader = lReader;
+
+    FileStatus startingDir = getStartingDIrFromStream();
+
+    if (startingDir != null) {
+      Date startingDirTimeStamp = ((LocalStreamCollectorReader) reader).
+          getDateFromPath(reader.getStreamDir(),
+              startingDir);
+      // listing from start of the stream
+      lReader.build(startingDirTimeStamp);
+      FileStatus startingFileStatus = reader.getFirstFileInStream();
+      if (startingFileStatus != null) {
+        startingFile = startingFileStatus.getPath().getName();
+        String collectorFile = CollectorStreamReader.getCollectorFileName(
+            streamName, startingFile);
+        startingFileTimeStamp = CollectorStreamReader
+            .getDateFromCollectorFile(collectorFile);
+        initializeCurrentFileFromTimeStamp(startingFileTimeStamp);
+      }
+    }
+    if ((startingDir == null) || (startingFile == null)) {
+      reader = cReader;
+      if (reader.isEmpty()) {
+        // close the reader if stream is empty or
+        // wait for next file creation
+        reader.startFromBegining();
+      } else {
+        FileStatus startingFileStatus = reader.getFirstFileInStream();
+        if (startingFileStatus != null) {
+          startingFile = startingFileStatus.getPath().getName();
+          startingFileTimeStamp = CollectorStreamReader.getDateFromCollectorFile(
+              startingFile);
+          initializeCurrentFileFromTimeStamp(startingFileTimeStamp);
+        }
+      }
+    }
+  }
+
+  private FileStatus getStartingDIrFromStream() throws IOException {
+    List<FileStatus> leastTimeStampFileStatus = new ArrayList<FileStatus>();
+    lReader.getStartingDirFromStream(reader.getFileSystem(),
+        reader.getStreamDir(), 0, leastTimeStampFileStatus);
+    if (leastTimeStampFileStatus.size() > 0) {
+      return leastTimeStampFileStatus.get(0);
+    }
+    return null;
   }
 
   public Message readLine() throws IOException, InterruptedException {
