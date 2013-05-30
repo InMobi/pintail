@@ -803,4 +803,28 @@ public class ConsumerUtil {
     Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
         consumer.getMetrics())).getNumMessagesConsumed(), 320);
   }
+
+  public static void testConsumerStartOfStreamWithStopTime(ClientConfig config,
+      String streamName, String consumerName, boolean hadoop)
+          throws IOException, InterruptedException, EndOfStreamException {
+    AbstractMessagingDatabusConsumer consumer = createConsumer(hadoop);
+    consumer.init(streamName, consumerName, null, config);
+    int i;
+    for (i = 0; i < 200; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+        consumer.getMetrics())).getNumMessagesConsumed(), 200);
+
+    Throwable th = null;
+    try {
+      consumer.next();
+    } catch (EndOfStreamException e) {
+      th = e;
+    }
+    Assert.assertTrue(th instanceof EndOfStreamException);
+    consumer.close();
+  }
 }
