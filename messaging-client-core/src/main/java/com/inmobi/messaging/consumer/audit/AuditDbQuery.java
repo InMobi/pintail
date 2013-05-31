@@ -67,9 +67,8 @@ public class AuditDbQuery {
         AuditDBHelper.retrieve(toTime, fromTime, filter, groupBy, dbConfFile));
     LOG.debug("Tuple set retrieved from DB: " + tupleSet);
     setReceivedAndSentStats();
-    if (percentileSet.size() > 0) {
-      LOG.debug("Percentile set not empty..Creating percentile map for all " +
-          "tuples;");
+    if (percentileSet != null) {
+      LOG.debug("Creating percentile map for all tuples");
       populatePercentileMap();
     }
   }
