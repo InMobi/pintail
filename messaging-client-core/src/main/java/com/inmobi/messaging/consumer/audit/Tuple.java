@@ -16,13 +16,13 @@ public class Tuple {
   private Map<LatencyColumns, Long> latencyCountMap;
   private GroupBy.Group group;
 
-  public Tuple(String hostname, String tier, String cluster, Date timestamp,String topic) {
+  public Tuple(String hostname, String tier, String cluster, Date timestamp,
+      String topic) {
     this(hostname, tier, cluster, timestamp, topic, null, 0l);
   }
 
   public Tuple(String hostname, String tier, String cluster, Date timestamp,
-               String topic, Map<LatencyColumns, Long> latencyCountMap,
-               Long sent) {
+      String topic, Map<LatencyColumns, Long> latencyCountMap, Long sent) {
     this.hostname = hostname;
     this.tier = tier;
     this.topic = topic;
@@ -35,10 +35,12 @@ public class Tuple {
 
   private void setReceived() {
     received = 0l;
-    for (Map.Entry<LatencyColumns, Long> entry : latencyCountMap.entrySet()) {
-      received += entry.getValue();
-      if (entry.getKey() == LatencyColumns.C600)
-        lost = entry.getValue();
+    if (latencyCountMap != null) {
+      for (Map.Entry<LatencyColumns, Long> entry : latencyCountMap.entrySet()) {
+        received += entry.getValue();
+        if (entry.getKey() == LatencyColumns.C600)
+          lost = entry.getValue();
+      }
     }
   }
 
@@ -63,19 +65,19 @@ public class Tuple {
 
     Tuple tuple = (Tuple) o;
 
-    if (cluster != null ? !cluster.equals(tuple.cluster) :
-        tuple.cluster != null) {
+    if (cluster != null ? !cluster.equals(tuple.cluster)
+        : tuple.cluster != null) {
       return false;
     }
-    if (hostname != null ? !hostname.equals(tuple.hostname) :
-        tuple.hostname != null) {
+    if (hostname != null ? !hostname.equals(tuple.hostname)
+        : tuple.hostname != null) {
       return false;
     }
     if (tier != null ? !tier.equals(tuple.tier) : tuple.tier != null) {
       return false;
     }
-    if (timestamp != null ? !timestamp.equals(tuple.timestamp) :
-        tuple.timestamp != null) {
+    if (timestamp != null ? !timestamp.equals(tuple.timestamp)
+        : tuple.timestamp != null) {
       return false;
     }
     if (topic != null ? !topic.equals(tuple.topic) : tuple.topic != null) {
@@ -141,6 +143,7 @@ public class Tuple {
   public boolean isGroupBySet() {
     return isGroupBySet;
   }
+
   public GroupBy.Group getGroup() {
     return group;
   }
@@ -151,15 +154,9 @@ public class Tuple {
 
   @Override
   public String toString() {
-    return "Tuple{" +
-        "tier='" + tier + '\'' +
-        ", hostname='" + hostname + '\'' +
-        ", latencyCountMap=" + latencyCountMap +
-        ", received=" + received +
-        ", sent=" + sent +
-        ", topic='" + topic + '\'' +
-        ", timestamp=" + timestamp +
-        ", cluster='" + cluster + '\'' +
-        '}';
+    return "Tuple{" + "tier='" + tier + '\'' + ", hostname='" + hostname + '\''
+        + ", latencyCountMap=" + latencyCountMap + ", received=" + received
+        + ", sent=" + sent + ", topic='" + topic + '\'' + ", timestamp="
+        + timestamp + ", cluster='" + cluster + '\'' + '}';
   }
 }
