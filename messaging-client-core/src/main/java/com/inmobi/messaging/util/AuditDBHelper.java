@@ -1,26 +1,14 @@
 package com.inmobi.messaging.util;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
+import com.inmobi.messaging.ClientConfig;
+import com.inmobi.messaging.consumer.audit.*;
+import com.mysql.jdbc.Driver;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.inmobi.messaging.ClientConfig;
-import com.inmobi.messaging.consumer.audit.Column;
-import com.inmobi.messaging.consumer.audit.Filter;
-import com.inmobi.messaging.consumer.audit.GroupBy;
-import com.inmobi.messaging.consumer.audit.LatencyColumns;
-import com.inmobi.messaging.consumer.audit.Tuple;
-import com.mysql.jdbc.Driver;
+import java.sql.*;
+import java.util.Date;
+import java.util.*;
 
 public class AuditDBHelper {
 
@@ -124,8 +112,8 @@ public class AuditDBHelper {
 
   private static String getUpdateStmtForUpdation() {
     String setString = "";
-    for (int i = 0; i < LatencyColumns.values().length; i++) {
-      setString += ", ? = ?";
+    for (LatencyColumns columns : LatencyColumns.values()) {
+      setString += ", "+columns.toString()+" = ?";
     }
     String updateStatement = "update " + AuditDBConstants.TABLE_NAME + " set " +
         "" + AuditDBConstants.SENT + " = ?" + setString + " where " + Column
@@ -137,12 +125,13 @@ public class AuditDBHelper {
   }
 
   private static String getInsertStmtForUpdation() {
-    String columnString = "";
-    for (int i = 0; i < LatencyColumns.values().length; i++) {
+    String columnString = "", columnNames = "";
+    for (LatencyColumns column : LatencyColumns.values()) {
+      columnNames += column.toString() +", ";
       columnString += "?, ";
     }
     String insertStatement =
-        "insert into " + AuditDBConstants.TABLE_NAME + " (" + columnString +
+        "insert into " + AuditDBConstants.TABLE_NAME + " (" + columnNames +
             AuditDBConstants.TIMESTAMP + "," + Column.HOSTNAME +
             ", " + Column.TIER + ", " + Column.TOPIC +
             ", " + Column.CLUSTER + ", " + AuditDBConstants.SENT+ ") values " +
@@ -168,16 +157,12 @@ public class AuditDBHelper {
       int index = 1;
       Map<LatencyColumns, Long> latencyCountMap =
           tuple.getLatencyCountMap();
-      int numberColumns = LatencyColumns.values().length;
       for (LatencyColumns latencyColumn : LatencyColumns.values()) {
-        insertPreparedStatement.setString(index, latencyColumn.toString());
         Long count = latencyCountMap.get(latencyColumn);
         if (count == null)
           count = 0l;
-        insertPreparedStatement.setLong(index + numberColumns, count);
-        index++;
+        insertPreparedStatement.setLong(index++, count);
       }
-      index += numberColumns;
       insertPreparedStatement.setLong(index++, tuple.getTimestamp().getTime());
       insertPreparedStatement.setString(index++, tuple.getHostname());
       insertPreparedStatement.setString(index++, tuple.getTier());
@@ -211,7 +196,6 @@ public class AuditDBHelper {
       int index = 1;
       updatePreparedStatement.setLong(index++, sent);
       for (LatencyColumns latencyColumn : LatencyColumns.values()) {
-        updatePreparedStatement.setString(index++, latencyColumn.toString());
         updatePreparedStatement.setLong(index++, latencyCountMap.get(
             latencyColumn));
       }
@@ -288,7 +272,6 @@ public class AuditDBHelper {
       for (Column column : Column.values()) {
         String value = filter.getFilters().get(column);
         if ( value != null || !value.isEmpty() ) {
-          preparedstatement.setString(index++, column.toString());
           preparedstatement.setString(index++, value);
         }
       }
@@ -348,8 +331,11 @@ public class AuditDBHelper {
       sumString += ", Sum(" + latencyColumn.toString() + ")";
       asString += ", " + latencyColumn.toString();
     }
-    for (int i = 0; i < filter.getFilters().size(); i++) {
-      whereString += " and ? = ?";
+    for (Column column : Column.values()) {
+      String value = filter.getFilters().get(column);
+      if ( value != null || !value.isEmpty() ) {
+        whereString += " and " + column.toString() +" = ?";
+      }
     }
     for (Column column : groupBy.getGroupByColumns()) {
       if (!groupByString.isEmpty()) {
