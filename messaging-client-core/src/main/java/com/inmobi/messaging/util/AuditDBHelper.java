@@ -113,7 +113,7 @@ public class AuditDBHelper {
   private static String getUpdateStmtForUpdation() {
     String setString = "";
     for (int i = 0; i < LatencyColumns.values().length; i++) {
-      setString += " and ?= ?";
+      setString += ", ? = ?";
     }
     String updateStatement = "update " + AuditDBConstants.TABLE_NAME + " set " +
         "" + AuditDBConstants.SENT + " = ?" + setString + " where " + Column
