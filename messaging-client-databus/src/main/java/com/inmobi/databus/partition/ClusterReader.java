@@ -131,12 +131,17 @@ public class ClusterReader extends AbstractPartitionStreamReader {
           getDateFromPath(streamDir, startingDir);
       // listing from start of the stream
       ((DatabusStreamWaitingReader)reader).build(startingDirTimeStamp);
-      if (!reader.initializeCurrentFile(startingDirTimeStamp)) {
-        reader.startFromTimestmp(startingDirTimeStamp);
+      if (!reader.isEmpty()) {
+        if (!reader.initializeCurrentFile(startingDirTimeStamp)) {
+          reader.startFromTimestmp(startingDirTimeStamp);
+        }
+      } else {
+        reader.startFromBegining();
       }
     } else {
       // close the reader if stream is empty or
       // wait for next file creation
+      // set current time stamp as build time stamp
       reader.startFromBegining();
     }
   }

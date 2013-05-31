@@ -170,7 +170,10 @@ public class CollectorReader extends AbstractPartitionStreamReader {
             .getDateFromCollectorFile(collectorFile);
         initializeCurrentFileFromTimeStamp(startingFileTimeStamp);
       }
+    } else {
+      // set current time stamp as build time stamp
     }
+
     if ((startingDir == null) || (startingFile == null)) {
       reader = cReader;
       if (reader.isEmpty()) {
