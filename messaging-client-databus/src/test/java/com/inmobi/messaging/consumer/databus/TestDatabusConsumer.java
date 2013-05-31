@@ -165,8 +165,8 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
   }
 
   /*
-   *  setting retention period as 0 hours and relative time is 20 minutes.
-   *  Consumer should start consume the messages from 20 minutes beyond the
+   *  setting retention period as 0 hours and relative time is 30 minutes.
+   *  Consumer should start consume the messages from 30 minutes beyond the
    *  current time
    */
   @Test

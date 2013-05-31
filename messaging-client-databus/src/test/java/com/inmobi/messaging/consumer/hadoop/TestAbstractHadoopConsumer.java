@@ -54,7 +54,7 @@ public abstract class TestAbstractHadoopConsumer {
       ck8, ck9, ck10, ck11, ck12, ck13, ck14, ck15, ck16};
   Path[][] finalPaths;
   Configuration conf;
-  protected final String relativeStartTime = "20";
+  protected final String relativeStartTime = "30";
 
   abstract ClientConfig loadConfig();
 
