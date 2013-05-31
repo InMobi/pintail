@@ -1,26 +1,20 @@
 package com.inmobi.messaging.consumer.examples;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-
 import com.inmobi.instrumentation.TimingAccumulator;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.MessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
-import com.inmobi.messaging.consumer.audit.AuditStatsQuery;
+import com.inmobi.messaging.consumer.audit.AuditDbQuery;
 import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 import com.inmobi.messaging.publisher.MessagePublisherFactory;
 import com.inmobi.messaging.util.AuditUtil;
 import com.inmobi.messaging.util.ConsumerUtil;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class StreamingBenchmark {
 
@@ -613,9 +607,9 @@ public class StreamingBenchmark {
     public void run() {
       System.out.println("Audit Thread started!");
 
-      AuditStatsQuery auditQuery =
-          new AuditStatsQuery(null, endTime, startTime, "TOPIC=" + topic,
-              "TIER", null, timeout, null);
+      AuditDbQuery auditQuery =
+          new AuditDbQuery(null, endTime, startTime, "TOPIC=" + topic,
+              "TIER");
 
       try {
         auditQuery.execute();

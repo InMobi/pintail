@@ -25,15 +25,15 @@ import com.inmobi.messaging.util.AuditUtil;
 /**
  * This class is responsible for reading audit packets,aggregating stats in
  * memory for some time and than performing batch update of the DB
- * 
+ *
  * @author rohit.kochar
- * 
+ *
  */
 class AuditStatsFeeder implements Runnable {
 
   private class TupleKey {
     public TupleKey(Date timestamp, String tier, String topic, String hostname,
-        String cluster) {
+                    String cluster) {
       this.timestamp = timestamp;
       this.tier = tier;
       this.topic = topic;
@@ -126,7 +126,7 @@ class AuditStatsFeeder implements Runnable {
   private static final String START_TIME_KEY = "messaging.consumer.absolute.starttime";
 
   /**
-   * 
+   *
    * @param clusterName
    * @param fromTime
    * @param rootDir
@@ -231,8 +231,6 @@ class AuditStatsFeeder implements Runnable {
           tuple = new Tuple(message.getHostname(), message.getTier(),
               clusterName, new Date(upperBoundaryTime), message.getTopic());
         }
-        long received = message.getReceived().get(timestamp);
-        tuple.setReceived(tuple.getReceived() + received);
         if (tuple.getLatencyCountMap() != null) {
           latencyCountMap.putAll(tuple.getLatencyCountMap());
         }

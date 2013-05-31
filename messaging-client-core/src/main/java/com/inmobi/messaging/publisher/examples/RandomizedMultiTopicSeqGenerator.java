@@ -300,7 +300,7 @@ public class RandomizedMultiTopicSeqGenerator {
   }
 
   private static boolean validateHDFSCount(Date start, String topics[],
-      Counters[] total_counters, StringBuffer failureReason)
+                                           Counters[] total_counters, StringBuffer failureReason)
       throws IOException, InterruptedException, EndOfStreamException {
     boolean isFail = false;
     ClientConfig config =
@@ -330,8 +330,8 @@ public class RandomizedMultiTopicSeqGenerator {
   }
 
   private static boolean validateCounters(Date start, Date end,
-      String[] topics, long totalMsgs, StringBuffer failureReason,
-      Counters sum, Counters[] total_counters) throws ParseException,
+                                          String[] topics, long totalMsgs, StringBuffer failureReason,
+                                          Counters sum, Counters[] total_counters) throws ParseException,
       IOException, InterruptedException, TException, EndOfStreamException {
     boolean isFail = false;
     Calendar calendar = Calendar.getInstance();
@@ -412,8 +412,8 @@ public class RandomizedMultiTopicSeqGenerator {
     Random random;
 
     PublishThreadNew(String topic1, String topic2,
-        List<AbstractMessagePublisher> publishers, long maxSeq,
-        CountDownLatch latch) {
+                     List<AbstractMessagePublisher> publishers, long maxSeq,
+                     CountDownLatch latch) {
       topics = new String[2];
       topics[0] = topic1;
       topics[1] = topic2;
@@ -424,8 +424,8 @@ public class RandomizedMultiTopicSeqGenerator {
     }
 
     private
-        void publishMessages(AbstractMessagePublisher publisher, long maxSeq)
-            throws InterruptedException {
+    void publishMessages(AbstractMessagePublisher publisher, long maxSeq)
+        throws InterruptedException {
       for (long seq = 1; seq <= maxSeq; seq++) {
         Message msg =
             new Message(ByteBuffer.wrap(Long.toString(seq).getBytes()));

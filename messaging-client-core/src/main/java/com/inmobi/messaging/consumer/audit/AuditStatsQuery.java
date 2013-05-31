@@ -1,22 +1,5 @@
 package com.inmobi.messaging.consumer.audit;
 
-import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TimeZone;
-import java.util.TreeMap;
-import java.util.concurrent.TimeUnit;
-
-import org.apache.thrift.TDeserializer;
-import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.inmobi.audit.thrift.AuditMessage;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
@@ -26,6 +9,17 @@ import com.inmobi.messaging.consumer.MessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
 import com.inmobi.messaging.consumer.audit.GroupBy.Group;
 import com.inmobi.messaging.util.AuditUtil;
+import org.apache.thrift.TDeserializer;
+import org.apache.thrift.TException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 
 public class AuditStatsQuery {
 
@@ -72,8 +66,8 @@ public class AuditStatsQuery {
   private static final String CONFIG_STOP_TIME = "messaging.consumer.absolute.stopdate";
 
   public AuditStatsQuery(String rootDir, String toTimeString,
-      String fromTimeString, String filterString, String groupByString,
-      String cuttoffTime, String timeOut, String timezone) {
+                         String fromTimeString, String filterString, String groupByString,
+                         String cuttoffTime, String timeOut, String timezone) {
     received = new TreeMap<Group, Long>();
     sent = new TreeMap<Group, Long>();
     this.rootDir = rootDir;
@@ -87,9 +81,9 @@ public class AuditStatsQuery {
   }
 
   public AuditStatsQuery(String rootDir, String toTimeString,
-      String fromTimeString, String filterString, String groupByString,
-      String cuttoffTime, String timeOut, String timezone, Tier cutoffTier,
-      long maxMessages) {
+                         String fromTimeString, String filterString, String groupByString,
+                         String cuttoffTime, String timeOut, String timezone, Tier cutoffTier,
+                         long maxMessages) {
     this(rootDir, toTimeString, fromTimeString, filterString, groupByString,
         cuttoffTime, timeOut, timezone);
     this.cutoffTier = cutoffTier;
@@ -107,7 +101,7 @@ public class AuditStatsQuery {
 
     while (messageCount < maxMessages) {
       try {
-      message = consumer.next(timeout, TimeUnit.MILLISECONDS);
+        message = consumer.next(timeout, TimeUnit.MILLISECONDS);
       } catch (EndOfStreamException e) {
         isCutoffReached = true;
         LOG.info("Query was stopped due to cutoff");
@@ -143,9 +137,9 @@ public class AuditStatsQuery {
           messageCount += receivedCount;
         }
         if (alreadyReceived > 0)
-        received.put(group, alreadyReceived);
+          received.put(group, alreadyReceived);
         if (alreadySent > 0)
-        sent.put(group, alreadySent);
+          sent.put(group, alreadySent);
       }
     }
   }

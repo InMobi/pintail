@@ -53,7 +53,7 @@ public class TestAuditStatsQuery {
   }
 
   private void generateData(MessagePublisher publisher, String topic,
-      String topic1) {
+                            String topic1) {
     String msg = "sample data";
     startDate = new Date();
     Calendar calendar = Calendar.getInstance();

@@ -51,9 +51,32 @@ public class GroupBy {
       this.columns = values;
     }
 
+    public String getCluster() {
+      return columns.get(Column.CLUSTER);
+    }
+
+    public String getHostName() {
+      return columns.get(Column.HOSTNAME);
+    }
+
+    public String getTier() {
+      return columns.get(Column.TIER);
+    }
+
+    public String getTopic() {
+      return columns.get(Column.TOPIC);
+    }
+
     @Override
     public int compareTo(Group group) {
       int result = 0;
+      if (columns.containsKey(Column.CLUSTER)) {
+        String cluster1 = columns.get(Column.CLUSTER);
+        String cluster2 = group.columns.get(Column.CLUSTER);
+        result = cluster1.compareTo(cluster2);
+        if (result != 0)
+          return result;
+      }
       if (columns.containsKey(Column.TIER)) {
         Tier tier1 = Tier.valueOf(columns.get(Column.TIER).toUpperCase());
         Tier tier2 = Tier.valueOf(group.columns.get(Column.TIER).toUpperCase());
@@ -70,7 +93,7 @@ public class GroupBy {
       }
       if (columns.containsKey(Column.HOSTNAME)) {
         String hostname1 = columns.get(Column.HOSTNAME);
-        String hostname2 = columns.get(Column.HOSTNAME);
+        String hostname2 = group.columns.get(Column.HOSTNAME);
         result = hostname1.compareTo(hostname2);
         if (result != 0)
           return result;
@@ -94,6 +117,10 @@ public class GroupBy {
     for (String s : columns) {
       isSet.add(Column.valueOf(s.toUpperCase()));
     }
+  }
+
+  public Set<Column> getGroupByColumns() {
+    return isSet;
   }
 
   @Override

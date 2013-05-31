@@ -2,6 +2,7 @@ package com.inmobi.messaging.consumer.audit;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 public class Tuple {
@@ -10,70 +11,77 @@ public class Tuple {
   final private String cluster;
   final private Date timestamp;
   final private String topic;
-  private long sent, received;
-
+  private Long sent = 0l, received = 0l, lost = 0l;
+  private boolean isGroupBySet = false;
   private Map<LatencyColumns, Long> latencyCountMap;
+  private GroupBy.Group group;
 
   public Tuple(String hostname, String tier, String cluster, Date timestamp,String topic) {
-    this(hostname, tier, cluster, timestamp, topic, null);
+    this(hostname, tier, cluster, timestamp, topic, null, 0l);
   }
 
   public Tuple(String hostname, String tier, String cluster, Date timestamp,
-               String topic, Map<LatencyColumns, Long> latencyCountMap) {
+               String topic, Map<LatencyColumns, Long> latencyCountMap,
+               Long sent) {
     this.hostname = hostname;
     this.tier = tier;
     this.topic = topic;
     this.cluster = cluster;
     this.timestamp = timestamp;
     this.latencyCountMap = latencyCountMap;
+    this.sent = sent;
+    setReceived();
+  }
+
+  private void setReceived() {
+    received = 0l;
+    for (Map.Entry<LatencyColumns, Long> entry : latencyCountMap.entrySet()) {
+      received += entry.getValue();
+      if (entry.getKey() == LatencyColumns.C600)
+        lost = entry.getValue();
+    }
   }
 
   @Override
   public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((cluster == null) ? 0 : cluster.hashCode());
-    result = prime * result + ((hostname == null) ? 0 : hostname.hashCode());
-    result = prime * result + ((tier == null) ? 0 : tier.hashCode());
-    result = prime * result + ((timestamp == null) ? 0 : timestamp.hashCode());
-    result = prime * result + ((topic == null) ? 0 : topic.hashCode());
+    int result = hostname != null ? hostname.hashCode() : 0;
+    result = 31 * result + (tier != null ? tier.hashCode() : 0);
+    result = 31 * result + (cluster != null ? cluster.hashCode() : 0);
+    result = 31 * result + (timestamp != null ? timestamp.hashCode() : 0);
+    result = 31 * result + (topic != null ? topic.hashCode() : 0);
     return result;
   }
 
   @Override
-  public boolean equals(Object obj) {
-    if (this == obj)
+  public boolean equals(Object o) {
+    if (this == o) {
       return true;
-    if (obj == null)
+    }
+    if (o == null || getClass() != o.getClass()) {
       return false;
-    if (getClass() != obj.getClass())
+    }
+
+    Tuple tuple = (Tuple) o;
+
+    if (cluster != null ? !cluster.equals(tuple.cluster) :
+        tuple.cluster != null) {
       return false;
-    Tuple other = (Tuple) obj;
-    if (cluster == null) {
-      if (other.cluster != null)
-        return false;
-    } else if (!cluster.equals(other.cluster))
+    }
+    if (hostname != null ? !hostname.equals(tuple.hostname) :
+        tuple.hostname != null) {
       return false;
-    if (hostname == null) {
-      if (other.hostname != null)
-        return false;
-    } else if (!hostname.equals(other.hostname))
+    }
+    if (tier != null ? !tier.equals(tuple.tier) : tuple.tier != null) {
       return false;
-    if (tier == null) {
-      if (other.tier != null)
-        return false;
-    } else if (!tier.equals(other.tier))
+    }
+    if (timestamp != null ? !timestamp.equals(tuple.timestamp) :
+        tuple.timestamp != null) {
       return false;
-    if (timestamp == null) {
-      if (other.timestamp != null)
-        return false;
-    } else if (!timestamp.equals(other.timestamp))
+    }
+    if (topic != null ? !topic.equals(tuple.topic) : tuple.topic != null) {
       return false;
-    if (topic == null) {
-      if (other.topic != null)
-        return false;
-    } else if (!topic.equals(other.topic))
-      return false;
+    }
+
     return true;
   }
 
@@ -93,9 +101,6 @@ public class Tuple {
     return received;
   }
 
-  public void setReceived(long received) {
-    this.received = received;
-  }
   public String getTopic() {
     return topic;
   }
@@ -120,16 +125,41 @@ public class Tuple {
 
   public void setLatencyCountMap(Map<LatencyColumns, Long> latencyCountMap) {
     this.latencyCountMap = latencyCountMap;
+    setReceived();
+  }
+
+  public void setGroupBy(GroupBy groupBy) {
+    Map<Column, String> values = new HashMap<Column, String>();
+    values.put(Column.HOSTNAME, hostname);
+    values.put(Column.TIER, tier);
+    values.put(Column.TOPIC, topic);
+    values.put(Column.CLUSTER, cluster);
+    this.group = groupBy.getGroup(values);
+    isGroupBySet = true;
+  }
+
+  public boolean isGroupBySet() {
+    return isGroupBySet;
+  }
+  public GroupBy.Group getGroup() {
+    return group;
+  }
+
+  public Long getLostCount() {
+    return lost;
   }
 
   @Override
   public String toString() {
     return "Tuple{" +
-        "hostname='" + hostname + '\'' +
-        ", tier='" + tier + '\'' +
-        ", cluster='" + cluster + '\'' +
-        ", timestamp=" + timestamp +
+        "tier='" + tier + '\'' +
+        ", hostname='" + hostname + '\'' +
         ", latencyCountMap=" + latencyCountMap +
+        ", received=" + received +
+        ", sent=" + sent +
+        ", topic='" + topic + '\'' +
+        ", timestamp=" + timestamp +
+        ", cluster='" + cluster + '\'' +
         '}';
   }
 }
