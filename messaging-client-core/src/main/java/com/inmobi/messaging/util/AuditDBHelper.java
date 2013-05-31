@@ -112,7 +112,7 @@ public class AuditDBHelper {
 
   private static String getUpdateStmtForUpdation() {
     String setString = "";
-    for (int i = 0; i < LatencyColumns.values().length-1; i++) {
+    for (int i = 0; i < LatencyColumns.values().length; i++) {
       setString += " and ?= ?";
     }
     String updateStatement = "update " + AuditDBConstants.TABLE_NAME + " set " +
@@ -126,16 +126,15 @@ public class AuditDBHelper {
 
   private static String getInsertStmtForUpdation() {
     String columnString = "";
-    for (int i = 0; i < LatencyColumns.values().length-1; i++) {
-      columnString += ", ?";
+    for (int i = 0; i < LatencyColumns.values().length; i++) {
+      columnString += "?, ";
     }
     String insertStatement =
-        "insert into " + AuditDBConstants.TABLE_NAME + " (" +
+        "insert into " + AuditDBConstants.TABLE_NAME + " (" + columnString +
             AuditDBConstants.TIMESTAMP + "," + Column.HOSTNAME +
             ", " + Column.TIER + ", " + Column.TOPIC +
-            ", " + Column.CLUSTER + ", " + AuditDBConstants.SENT  +
-            columnString + ") values (?, ?, ?, ?, ?, ?, " +
-            "?" + columnString + ")";
+            ", " + Column.CLUSTER + ", " + AuditDBConstants.SENT+ ") values " +
+            "(" + columnString + "?, ?, ?, ?, ?, ?)";
     LOG.debug("Insert statement: " + insertStatement);
     return insertStatement;
   }
@@ -155,12 +154,6 @@ public class AuditDBHelper {
     try {
       LOG.debug("Inserting tuple in DB " + tuple);
       int index = 1;
-      insertPreparedStatement.setLong(index++, tuple.getTimestamp().getTime());
-      insertPreparedStatement.setString(index++, tuple.getHostname());
-      insertPreparedStatement.setString(index++, tuple.getTier());
-      insertPreparedStatement.setString(index++, tuple.getTopic());
-      insertPreparedStatement.setString(index++, tuple.getCluster());
-      insertPreparedStatement.setLong(index++, tuple.getSent());
       Map<LatencyColumns, Long> latencyCountMap =
           tuple.getLatencyCountMap();
       int numberColumns = LatencyColumns.values().length;
@@ -172,6 +165,12 @@ public class AuditDBHelper {
         insertPreparedStatement.setLong(index + numberColumns, count);
         index++;
       }
+      insertPreparedStatement.setLong(index++, tuple.getTimestamp().getTime());
+      insertPreparedStatement.setString(index++, tuple.getHostname());
+      insertPreparedStatement.setString(index++, tuple.getTier());
+      insertPreparedStatement.setString(index++, tuple.getTopic());
+      insertPreparedStatement.setString(index++, tuple.getCluster());
+      insertPreparedStatement.setLong(index++, tuple.getSent());
       LOG.debug("Insert prepared statement : " +
           insertPreparedStatement.toString());
       insertPreparedStatement.addBatch();
