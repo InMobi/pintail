@@ -43,26 +43,36 @@ public class AuditStats {
     }
   }
 
+  public static void stop(List<AuditStatsFeeder> feeders) {
+
+    try {
+      LOG.info("Stoping Feeder...");
+      for (AuditStatsFeeder feeder : feeders) {
+        feeder.stop();
+      }
+    } catch (Exception e) {
+      LOG.warn("Error in shutting down feeder", e);
+    }
+
+  }
+
   public static void main(String args[]) throws Exception{
     final List<AuditStatsFeeder> feeders = new ArrayList<AuditStatsFeeder>();
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
       public void run() {
-        try {
-          LOG.info("Stoping Feeder...");
-          for (AuditStatsFeeder feeder : feeders) {
-            feeder.stop();
-          }
-        } catch (Exception e) {
-          LOG.warn("Error in shutting down feeder", e);
-        }
+        AuditStats.stop(feeders);
       }
     });
 
     AuditStats stats = new AuditStats();
+    try {
     stats.start(feeders);
     // wait for all feeders to finish
     stats.join(feeders);
+    } finally {
+      AuditStats.stop(feeders);
+    }
 
   }
 }

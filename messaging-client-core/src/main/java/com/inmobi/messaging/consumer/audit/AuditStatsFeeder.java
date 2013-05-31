@@ -25,15 +25,15 @@ import com.inmobi.messaging.util.AuditUtil;
 /**
  * This class is responsible for reading audit packets,aggregating stats in
  * memory for some time and than performing batch update of the DB
- *
+ * 
  * @author rohit.kochar
- *
+ * 
  */
 class AuditStatsFeeder implements Runnable {
 
   private class TupleKey {
     public TupleKey(Date timestamp, String tier, String topic, String hostname,
-                    String cluster) {
+        String cluster) {
       this.timestamp = timestamp;
       this.tier = tier;
       this.topic = topic;
@@ -126,7 +126,7 @@ class AuditStatsFeeder implements Runnable {
   private static final String START_TIME_KEY = "messaging.consumer.absolute.starttime";
 
   /**
-   *
+   * 
    * @param clusterName
    * @param fromTime
    * @param rootDir
@@ -166,39 +166,42 @@ class AuditStatsFeeder implements Runnable {
       msg.setHostname(message.getHostname());
       msg.setTopic(message.getTopic());
     }
-    for (Entry<Long, Long> entry : message.getReceived().entrySet()) {
-      long upperBoundaryTime = entry.getKey() + windowSize * 1000;
-      if (upperBoundaryTime < receivedTime) {
-        long received = entry.getValue();
-        // dividing the recieved in proportion of offset of received time from
-        // the minute boundary to total window size
-        long received2 = ((receivedTime - lowerBoundary) / (windowSize * 1000))
-            * received;
-        long received1 = received = received2;
-        messages[0].putToReceived(entry.getKey(), received1);
-        messages[1].putToReceived(entry.getKey(), received2);
-      } else {
-        // all the received packets belong to same minute interval in which
-        // audit is generated
-        messages[1].putToReceived(entry.getKey(), entry.getValue());
+    if (message.getReceived() != null) {
+      for (Entry<Long, Long> entry : message.getReceived().entrySet()) {
+        long upperBoundaryTime = entry.getKey() + windowSize * 1000;
+        if (upperBoundaryTime < receivedTime) {
+          long received = entry.getValue();
+          // dividing the recieved in proportion of offset of received time from
+          // the minute boundary to total window size
+          long received2 = ((receivedTime - lowerBoundary) / (windowSize * 1000))
+              * received;
+          long received1 = received = received2;
+          messages[0].putToReceived(entry.getKey(), received1);
+          messages[1].putToReceived(entry.getKey(), received2);
+        } else {
+          // all the received packets belong to same minute interval in which
+          // audit is generated
+          messages[1].putToReceived(entry.getKey(), entry.getValue());
+        }
       }
     }
-
-    for (Entry<Long, Long> entry : message.getSent().entrySet()) {
-      long upperBoundaryTime = entry.getKey() + windowSize * 1000;
-      if (upperBoundaryTime < receivedTime) {
-        long sent = entry.getValue();
-        // dividing the recieved in proportion of offset of received time from
-        // the minute boundary to total window size
-        long sent2 = ((receivedTime - lowerBoundary) / (windowSize * 1000))
-            * sent;
-        long sent1 = sent = sent2;
-        messages[0].putToSent(entry.getKey(), sent1);
-        messages[1].putToSent(entry.getKey(), sent2);
-      } else {
-        // all the received packets belong to same minute interval in which
-        // audit is generated
-        messages[1].putToReceived(entry.getKey(), entry.getValue());
+    if (message.getSent() != null) {
+      for (Entry<Long, Long> entry : message.getSent().entrySet()) {
+        long upperBoundaryTime = entry.getKey() + windowSize * 1000;
+        if (upperBoundaryTime < receivedTime) {
+          long sent = entry.getValue();
+          // dividing the recieved in proportion of offset of received time from
+          // the minute boundary to total window size
+          long sent2 = ((receivedTime - lowerBoundary) / (windowSize * 1000))
+              * sent;
+          long sent1 = sent = sent2;
+          messages[0].putToSent(entry.getKey(), sent1);
+          messages[1].putToSent(entry.getKey(), sent2);
+        } else {
+          // all the received packets belong to same minute interval in which
+          // audit is generated
+          messages[1].putToReceived(entry.getKey(), entry.getValue());
+        }
       }
     }
     return messages;
@@ -210,52 +213,61 @@ class AuditStatsFeeder implements Runnable {
     int windowSize = msg.getWindowSize();
     for (AuditMessage message : getAuditMessagesAlignedAtMinuteBoundary(msg)) {
       long messageReceivedTime = message.getTimestamp();
-      for (long timestamp : message.getReceived().keySet()) {
-        long upperBoundaryTime = timestamp + windowSize * 1000;
-        long latency = messageReceivedTime - upperBoundaryTime;
-        LatencyColumns latencyColumn = LatencyColumns.getLatencyColumn(latency);
-        if (latency < 0) {
-          LOG.error("Error scenario,check that time is in sync across tiers,audit"
-              + "message has time stamp "+ messageReceivedTime+ " and source time is "
-              + timestamp+ " for tier= "+ message.getTier());
-          continue;
+      if (message.getReceived() != null) {
+        for (long timestamp : message.getReceived().keySet()) {
+          long upperBoundaryTime = timestamp + windowSize * 1000;
+          long latency = messageReceivedTime - upperBoundaryTime;
+          LatencyColumns latencyColumn = LatencyColumns
+              .getLatencyColumn(latency);
+          if (latency < 0) {
+            LOG.error("Error scenario,check that time is in sync across tiers,audit"
+                + "message has time stamp "
+                + messageReceivedTime
+                + " and source time is "
+                + timestamp
+                + " for tier= "
+                + message.getTier());
+            continue;
+          }
+          TupleKey key = new TupleKey(new Date(upperBoundaryTime),
+              message.getTier(), message.getTopic(), message.getHostname(),
+              clusterName);
+          Map<LatencyColumns, Long> latencyCountMap = new HashMap<LatencyColumns, Long>();
+          Tuple tuple;
+          if (tuples.containsKey(key)) {
+            tuple = tuples.get(key);
+          } else {
+            tuple = new Tuple(message.getHostname(), message.getTier(),
+                clusterName, new Date(upperBoundaryTime), message.getTopic());
+          }
+          if (tuple.getLatencyCountMap() != null) {
+            latencyCountMap.putAll(tuple.getLatencyCountMap());
+          }
+          long prevValue = 0l;
+          if (latencyCountMap.get(latencyColumn) != null)
+            prevValue = latencyCountMap.get(latencyColumn);
+          latencyCountMap.put(latencyColumn, prevValue + latency);
+          tuple.setLatencyCountMap(latencyCountMap);
+          tuples.put(key, tuple);
         }
-        TupleKey key = new TupleKey(new Date(upperBoundaryTime),
-            message.getTier(), message.getTopic(), message.getHostname(),
-            clusterName);
-        Map<LatencyColumns, Long> latencyCountMap = new HashMap<LatencyColumns, Long>();
-        Tuple tuple;
-        if (tuples.containsKey(key)) {
-          tuple = tuples.get(key);
-        } else {
-          tuple = new Tuple(message.getHostname(), message.getTier(),
-              clusterName, new Date(upperBoundaryTime), message.getTopic());
-        }
-        if (tuple.getLatencyCountMap() != null) {
-          latencyCountMap.putAll(tuple.getLatencyCountMap());
-        }
-        long prevValue = 0l;
-        if (latencyCountMap.get(latencyColumn) != null)
-          prevValue = latencyCountMap.get(latencyColumn);
-        latencyCountMap.put(latencyColumn, prevValue + latency);
-        tuple.setLatencyCountMap(latencyCountMap);
-        tuples.put(key, tuple);
       }
-      for (long timestamp : message.getSent().keySet()) {
-        long upperBoundaryTime = timestamp + windowSize * 1000;
-        TupleKey key = new TupleKey(new Date(upperBoundaryTime),
-            message.getTier(), message.getTopic(), message.getHostname(),
-            clusterName);
-        Tuple tuple;
-        if (tuples.containsKey(key)) {
-          tuple = tuples.get(key);
-        } else {
-          tuple = new Tuple(message.getHostname(), message.getTier(),
-              clusterName, new Date(upperBoundaryTime), message.getTopic());
+      if (message.getSent() != null) {
+        for (long timestamp : message.getSent().keySet()) {
+          long upperBoundaryTime = timestamp + windowSize * 1000;
+          TupleKey key = new TupleKey(new Date(upperBoundaryTime),
+              message.getTier(), message.getTopic(), message.getHostname(),
+              clusterName);
+          Tuple tuple;
+          if (tuples.containsKey(key)) {
+            tuple = tuples.get(key);
+          } else {
+            tuple = new Tuple(message.getHostname(), message.getTier(),
+                clusterName, new Date(upperBoundaryTime), message.getTopic());
+          }
+          long sent = message.getSent().get(timestamp);
+          tuple.setSent(tuple.getSent() + sent);
+          tuples.put(key, tuple);
         }
-        long sent = message.getSent().get(timestamp);
-        tuple.setSent(tuple.getSent() + sent);
-        tuples.put(key, tuple);
       }
     }
   }
