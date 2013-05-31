@@ -5,6 +5,7 @@ import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.consumer.EndOfStreamException;
 import com.inmobi.messaging.consumer.MessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
 
@@ -57,8 +58,6 @@ public class CounterClient {
       now.add(Calendar.MINUTE, - (min.intValue()));
       consumer = MessageConsumerFactory.create(now.getTime());      
     } else {
-      System.out.println("start time is not provided. Starts from the last " +
-          "marked position");
       consumer = MessageConsumerFactory.create();
     }
     Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -77,18 +76,25 @@ public class CounterClient {
     while (keepRunnig) {
       try {
         for (int i = 0; i < 1000; i++) {
-          Message msg = consumer.next(timeout, TimeUnit.SECONDS);
-          if (msg == null) {
+          try {
+            Message msg = consumer.next(timeout, TimeUnit.SECONDS);
+            if (msg == null) {
+              keepRunnig = false;
+              break;
+            }
+            msgCounter++;
+          } catch (EndOfStreamException e) {
             keepRunnig = false;
             break;
           }
-          msgCounter++;
         }
-        System.out.println("Counter:" + msgCounter);
-        markCounter++;
-        if (markCounter == 5) {
-          consumer.mark();
-          markCounter = 0;
+        if (keepRunnig) {
+          System.out.println("Counter:" + msgCounter);
+          markCounter++;
+          if (markCounter == 5) {
+            consumer.mark();
+            markCounter = 0;
+          }
         }
       } catch (Exception e) {
         e.printStackTrace();
