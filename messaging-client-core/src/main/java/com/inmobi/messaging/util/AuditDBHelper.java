@@ -157,13 +157,11 @@ public class AuditDBHelper {
       int index = 1;
       Map<LatencyColumns, Long> latencyCountMap =
           tuple.getLatencyCountMap();
-      int numberColumns = LatencyColumns.values().length;
       for (LatencyColumns latencyColumn : LatencyColumns.values()) {
         Long count = latencyCountMap.get(latencyColumn);
         if (count == null)
           count = 0l;
-        insertPreparedStatement.setLong(index + numberColumns, count);
-        index++;
+        insertPreparedStatement.setLong(index++, count);
       }
       insertPreparedStatement.setLong(index++, tuple.getTimestamp().getTime());
       insertPreparedStatement.setString(index++, tuple.getHostname());
