@@ -96,5 +96,8 @@ public class TestMergeStreamMultipleCollectors {
     reader.close();
     Assert.assertEquals(metrics.getHandledExceptions(), 0);
     Assert.assertEquals(metrics.getMessagesReadFromSource(), 600);
+    Assert.assertTrue(metrics.getListOps() > 0);
+    Assert.assertTrue(metrics.getOpenOps() == 0);
+    Assert.assertTrue(metrics.getFileStatusOps() > 0);
   }
 }

@@ -170,6 +170,9 @@ public class TestCollectorStreamReader {
     Assert.assertEquals(metrics.getMessagesReadFromSource(), 300);
     Assert.assertEquals(metrics.getWaitTimeInSameFile(), 0);
     Assert.assertEquals(metrics.getWaitTimeUnitsNewFile(), 0);
+    Assert.assertTrue(metrics.getListOps() > 0);
+    Assert.assertTrue(metrics.getOpenOps() > 0);
+    Assert.assertTrue(metrics.getFileStatusOps() == 0);
   }
 
   @Test
@@ -194,6 +197,9 @@ public class TestCollectorStreamReader {
     Assert.assertEquals(metrics.getMessagesReadFromSource(), 180);
     Assert.assertEquals(metrics.getWaitTimeInSameFile(), 0);
     Assert.assertEquals(metrics.getWaitTimeUnitsNewFile(), 0);
+    Assert.assertTrue(metrics.getListOps() > 0);
+    Assert.assertTrue(metrics.getOpenOps() > 0);
+    Assert.assertTrue(metrics.getFileStatusOps() == 0);
   }
 
   @Test
@@ -217,6 +223,9 @@ public class TestCollectorStreamReader {
     Assert.assertEquals(metrics.getMessagesReadFromSource(), 200);
     Assert.assertEquals(metrics.getWaitTimeInSameFile(), 0);
     Assert.assertEquals(metrics.getWaitTimeUnitsNewFile(), 0);
+    Assert.assertTrue(metrics.getListOps() > 0);
+    Assert.assertTrue(metrics.getOpenOps() > 0);
+    Assert.assertTrue(metrics.getFileStatusOps() == 0);
   }
 
 }
