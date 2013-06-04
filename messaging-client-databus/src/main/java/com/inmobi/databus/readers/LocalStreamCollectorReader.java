@@ -1,18 +1,5 @@
 package com.inmobi.databus.readers;
 
-import java.io.IOException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.TreeMap;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.PathFilter;
-
 import com.inmobi.databus.files.CollectorFile;
 import com.inmobi.databus.files.DatabusStreamFile;
 import com.inmobi.databus.files.FileMap;
@@ -21,6 +8,18 @@ import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.databus.mapred.DatabusInputFormat;
 import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.PathFilter;
+
+import java.io.IOException;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.TreeMap;
 
 public class LocalStreamCollectorReader extends
     DatabusStreamReader<DatabusStreamFile> {
@@ -48,7 +47,7 @@ public class LocalStreamCollectorReader extends
   @Override
   protected void doRecursiveListing(Path dir, PathFilter pathFilter,
       FileMap<DatabusStreamFile> fmap) throws IOException {
-    FileStatus[] fileStatuses = fs.listStatus(dir, pathFilter);
+    FileStatus[] fileStatuses = listFileStatus(fs, dir, pathFilter);
     if (fileStatuses == null || fileStatuses.length == 0) {
       LOG.debug("No files in directory:" + dir);
     } else {

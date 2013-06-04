@@ -1,8 +1,14 @@
 package com.inmobi.databus.partition;
 
-import java.io.IOException;
-import java.util.concurrent.LinkedBlockingQueue;
-
+import com.inmobi.databus.Cluster;
+import com.inmobi.databus.readers.CollectorStreamReader;
+import com.inmobi.messaging.consumer.databus.QueueEntry;
+import com.inmobi.messaging.consumer.databus.StreamType;
+import com.inmobi.messaging.consumer.util.DatabusUtil;
+import com.inmobi.messaging.consumer.util.MessageUtil;
+import com.inmobi.messaging.consumer.util.MiniClusterUtil;
+import com.inmobi.messaging.consumer.util.TestUtil;
+import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -13,17 +19,8 @@ import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-import com.inmobi.databus.Cluster;
-import com.inmobi.databus.partition.PartitionId;
-import com.inmobi.databus.partition.PartitionReader;
-import com.inmobi.databus.readers.CollectorStreamReader;
-import com.inmobi.messaging.consumer.databus.QueueEntry;
-import com.inmobi.messaging.consumer.databus.StreamType;
-import com.inmobi.messaging.consumer.util.DatabusUtil;
-import com.inmobi.messaging.consumer.util.MessageUtil;
-import com.inmobi.messaging.consumer.util.MiniClusterUtil;
-import com.inmobi.messaging.consumer.util.TestUtil;
-import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
+import java.io.IOException;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class TestCurrentFile {
   private static final String testStream = "testclient";
@@ -44,6 +41,7 @@ public class TestCurrentFile {
   Configuration conf = new Configuration();
   private Path streamsLocalDir;
   int consumerNumber;
+  String fsUri;
 
 
   private void writeMessages(FSDataOutputStream out, int num)
@@ -76,12 +74,13 @@ public class TestCurrentFile {
     streamsLocalDir = DatabusUtil.getStreamDir(StreamType.LOCAL,
         new Path(cluster.getRootDir()), testStream);
     fs = FileSystem.get(cluster.getHadoopConf());
+    fsUri = fs.getUri().toString();
   }
 
   @Test
   public void testReadFromCurrentScribeFile() throws Exception {
     CollectorReaderStatsExposer prMetrics = new CollectorReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     preader = new PartitionReader(partitionId, null, conf, fs,
         collectorDir, streamsLocalDir, buffer, testStream,
         CollectorStreamReader.getDateFromCollectorFile(currentScribeFile), 1000,

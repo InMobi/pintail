@@ -1,16 +1,5 @@
 package com.inmobi.databus.partition;
 
-import java.io.IOException;
-import java.util.concurrent.LinkedBlockingQueue;
-
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.testng.Assert;
-import org.testng.annotations.AfterTest;
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.Test;
-
 import com.inmobi.databus.Cluster;
 import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.databus.readers.LocalStreamCollectorReader;
@@ -20,6 +9,16 @@ import com.inmobi.messaging.consumer.databus.StreamType;
 import com.inmobi.messaging.consumer.util.DatabusUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.testng.Assert;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeTest;
+import org.testng.annotations.Test;
+
+import java.io.IOException;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class TestPartitionReaderMovingFilesWithStopTime {
   private static final String testStream = "testclient";
@@ -43,6 +42,7 @@ public class TestPartitionReaderMovingFilesWithStopTime {
       TestUtil.files[8]};
   private Path[] databusFiles = new Path[8];
   int consumerNumber;
+  String fsUri;
 
   @BeforeTest
   public void setup() throws Exception {
@@ -56,6 +56,7 @@ public class TestPartitionReaderMovingFilesWithStopTime {
     streamsLocalDir = DatabusUtil.getStreamDir(StreamType.LOCAL,
         new Path(cluster.getRootDir()), testStream);
     fs = FileSystem.get(cluster.getHadoopConf());
+    fsUri = fs.getUri().toString();
   }
 
   @AfterTest
@@ -66,7 +67,7 @@ public class TestPartitionReaderMovingFilesWithStopTime {
   @Test
   public void testLocalStreamFileMovedWithStopDate() throws Exception {
     CollectorReaderStatsExposer prMetrics = new CollectorReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     preader = new PartitionReader(partitionId, null, conf, fs,
         collectorDir, streamsLocalDir, buffer,
         testStream, CollectorStreamReader.getDateFromCollectorFile(files[0]),

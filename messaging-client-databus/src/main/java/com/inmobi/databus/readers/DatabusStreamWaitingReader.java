@@ -1,13 +1,12 @@
 package com.inmobi.databus.readers;
 
-import java.io.IOException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-
+import com.inmobi.databus.files.FileMap;
+import com.inmobi.databus.files.HadoopStreamFile;
+import com.inmobi.databus.partition.PartitionCheckpoint;
+import com.inmobi.databus.partition.PartitionCheckpointList;
+import com.inmobi.databus.partition.PartitionId;
+import com.inmobi.messaging.Message;
+import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -16,13 +15,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
 
-import com.inmobi.databus.files.FileMap;
-import com.inmobi.databus.files.HadoopStreamFile;
-import com.inmobi.databus.partition.PartitionCheckpoint;
-import com.inmobi.databus.partition.PartitionCheckpointList;
-import com.inmobi.databus.partition.PartitionId;
-import com.inmobi.messaging.Message;
-import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
+import java.io.IOException;
+import java.util.*;
 
 public class DatabusStreamWaitingReader 
     extends DatabusStreamReader<HadoopStreamFile> {
@@ -123,7 +117,7 @@ public class DatabusStreamWaitingReader
           partitioncheckpoint.getFileName());
       if (!(currentFile.getPath()).equals(checkpointedFileName)) {
         if(fs.exists(checkpointedFileName)) {
-          currentFile = fs.getFileStatus(checkpointedFileName);
+          currentFile = getFileStatus(fs, checkpointedFileName);
           currentLineNum = partitioncheckpoint.getLineNum();
         } else {
           currentLineNum = 0;
@@ -245,7 +239,7 @@ public class DatabusStreamWaitingReader
         //set iterator to checkpoointed file if there is a checkpoint
         if(!fileToRead.getPath().equals(checkPointedFileName)) {
           if (fs.exists(checkPointedFileName)) {
-            fileToRead = fs.getFileStatus(checkPointedFileName);
+            fileToRead = getFileStatus(fs, checkPointedFileName);
             currentLineNum = partitionCheckpoint.getLineNum();
           } else {
             currentLineNum = 0;

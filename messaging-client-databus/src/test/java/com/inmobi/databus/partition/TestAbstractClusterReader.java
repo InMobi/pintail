@@ -1,32 +1,22 @@
 package com.inmobi.databus.partition;
 
-import java.io.IOException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.concurrent.LinkedBlockingQueue;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.testng.Assert;
-
 import com.inmobi.databus.files.StreamFile;
-import com.inmobi.databus.partition.PartitionCheckpoint;
-import com.inmobi.databus.partition.PartitionId;
-import com.inmobi.databus.partition.PartitionReader;
 import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 import com.inmobi.messaging.EOFMessage;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
 import com.inmobi.messaging.consumer.util.HadoopUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.testng.Assert;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public abstract class TestAbstractClusterReader {
   private static final Log LOG = LogFactory.getLog(
@@ -63,9 +53,9 @@ public abstract class TestAbstractClusterReader {
   public void testInitialize() throws Exception {
     initializeMinList();
     initializePartitionCheckpointList();
-
+    String fsUri = fs.getUri().toString();
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     Calendar cal = Calendar.getInstance();
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         databusFiles[0].getParent()));
@@ -194,8 +184,9 @@ public abstract class TestAbstractClusterReader {
   public void testReadFromStart() throws Exception {
     initializeMinList();
     initializePartitionCheckpointList();
+    String fsUri = fs.getUri().toString();
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     preader = new PartitionReader(partitionId, partitionCheckpointList, fs, 
         buffer, streamDir, conf, inputFormatClass,
         DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
@@ -236,8 +227,9 @@ public abstract class TestAbstractClusterReader {
   public void testReadFromCheckpoint() throws Exception {
     initializeMinList();
     initializePartitionCheckpointList();
+    String fsUri = fs.getUri().toString();
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     prepareCheckpoint(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[1])), 20, databusFiles[1], 
         partitionCheckpointList);
@@ -282,8 +274,9 @@ public abstract class TestAbstractClusterReader {
   public void testReadFromCheckpointWhichDoesNotExist() throws Exception {
     initializeMinList();
     initializePartitionCheckpointList();
+    String fsUri = fs.getUri().toString();
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     prepareCheckpoint(HadoopUtil.getOlderFile(streamDir, fs, databusFiles[0]), 
         20, databusFiles[0], partitionCheckpointList);
 
@@ -327,8 +320,9 @@ public abstract class TestAbstractClusterReader {
   public void testReadFromStartTime() throws Exception {
     initializeMinList();
     initializePartitionCheckpointList();
+    String fsUri = fs.getUri().toString();
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     
     preader = new PartitionReader(partitionId, partitionCheckpointList, fs, 
         buffer, streamDir, conf, inputFormatClass,
@@ -372,8 +366,9 @@ public abstract class TestAbstractClusterReader {
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         databusFiles[0].getParent()));
     cal.add(Calendar.MINUTE, 1);
+    String fsUri = fs.getUri().toString();
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
 
     preader = new PartitionReader(partitionId, partitionCheckpointList, fs, 
         buffer, streamDir, conf, inputFormatClass, cal.getTime(), 1000,
@@ -414,8 +409,9 @@ public abstract class TestAbstractClusterReader {
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         databusFiles[0].getParent()));
     cal.add(Calendar.MINUTE, -1);
+    String fsUri = fs.getUri().toString();
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     preader = new PartitionReader(partitionId, partitionCheckpointList, fs, 
         buffer, streamDir, conf, inputFormatClass, cal.getTime(), 1000,
         isDatabusData(), prMetrics, true, partitionMinList, null);
@@ -458,8 +454,9 @@ public abstract class TestAbstractClusterReader {
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         databusFiles[2].getParent()));
     cal.add(Calendar.MINUTE, 2);
+    String fsUri = fs.getUri().toString();
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     preader = new PartitionReader(partitionId, null, fs, 
         buffer, streamDir, conf, inputFormatClass, cal.getTime(), 1000,
         isDatabusData(), prMetrics, true, partitionMinList, null);
@@ -494,8 +491,9 @@ public abstract class TestAbstractClusterReader {
               fs.getFileStatus(databusFiles[i])), 20));
     }
 
+    String fsUri = fs.getUri().toString();
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     Calendar cal = Calendar.getInstance();
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         databusFiles[0].getParent()));
@@ -529,6 +527,7 @@ public abstract class TestAbstractClusterReader {
   public void testReadFromCheckpointMultipleMinutes() throws Exception {
     partitionMinList = new TreeSet<Integer>();
     initializePartitionCheckpointList();
+    String fsUri = fs.getUri().toString();
 
     for (int i = 0; i < 3; i++) {
       Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
@@ -542,7 +541,7 @@ public abstract class TestAbstractClusterReader {
     }
 
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     Calendar cal = Calendar.getInstance();
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         databusFiles[0].getParent()));
@@ -583,6 +582,7 @@ public abstract class TestAbstractClusterReader {
   public void testReadFromCheckpointSomeMinutes()  throws Exception {
     partitionMinList = new TreeSet<Integer>();
     initializePartitionCheckpointList();
+    String fsUri = fs.getUri().toString();
     for (int i = 0; i < 3; i++) {
       Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
           databusFiles[i].getParent());
@@ -601,7 +601,7 @@ public abstract class TestAbstractClusterReader {
     }
 
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     Calendar cal = Calendar.getInstance();
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         databusFiles[1].getParent()));
@@ -648,6 +648,7 @@ public abstract class TestAbstractClusterReader {
   public void testReadFromMultipleCompleteCheckpoints() throws Exception {
     partitionMinList = new TreeSet<Integer>();
     initializePartitionCheckpointList();
+    String fsUri = fs.getUri().toString();
 
     for (int i = 0; i < 3; i++) {
       Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
@@ -661,7 +662,7 @@ public abstract class TestAbstractClusterReader {
     }
 
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     Calendar cal = Calendar.getInstance();
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         databusFiles[0].getParent()));
@@ -706,6 +707,7 @@ public abstract class TestAbstractClusterReader {
   public void testReadFromSingleCompleteCheckpoint() throws Exception {
     partitionMinList = new TreeSet<Integer>();
     initializePartitionCheckpointList();
+    String fsUri = fs.getUri().toString();
 
     for (int i = 0; i < 3; i++) {
       Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
@@ -725,7 +727,7 @@ public abstract class TestAbstractClusterReader {
     }
 
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     Calendar cal = Calendar.getInstance();
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         databusFiles[0].getParent()));
@@ -762,6 +764,7 @@ public abstract class TestAbstractClusterReader {
   public void testReadFromTwoCompleteCheckpoint() throws Exception {
     partitionMinList = new TreeSet<Integer>();
     initializePartitionCheckpointList();
+    String fsUri = fs.getUri().toString();
     for (int i = 0; i < 3; i++) {
       Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
           databusFiles[i].getParent());
@@ -776,7 +779,7 @@ public abstract class TestAbstractClusterReader {
     }
 
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     Calendar cal = Calendar.getInstance();
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         databusFiles[0].getParent()));
@@ -814,6 +817,7 @@ public abstract class TestAbstractClusterReader {
   public void testReadFromCheckpointsAndSomeNotExists()  throws Exception {
     partitionMinList = new TreeSet<Integer>();
     initializePartitionCheckpointList();
+    String fsUri = fs.getUri().toString();
     for (int i = 0; i < 3; i++) {
       Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
           databusFiles[i].getParent());
@@ -830,7 +834,7 @@ public abstract class TestAbstractClusterReader {
       }
     }
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     Calendar cal = Calendar.getInstance();
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         databusFiles[0].getParent()));
@@ -876,6 +880,7 @@ public abstract class TestAbstractClusterReader {
       throws Exception {
     partitionMinList = new TreeSet<Integer>();
     initializePartitionCheckpointList();
+    String fsUri = fs.getUri().toString();
 
     for (int i = 0; i < 3; i++) {
       Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
@@ -899,7 +904,7 @@ public abstract class TestAbstractClusterReader {
     }
 
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     Calendar cal = Calendar.getInstance();
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         databusFiles[0].getParent()));

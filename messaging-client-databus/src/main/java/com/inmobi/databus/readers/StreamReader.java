@@ -1,20 +1,17 @@
 package com.inmobi.databus.readers;
 
-import java.io.IOException;
-import java.util.Date;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-
 import com.inmobi.databus.files.FileMap;
 import com.inmobi.databus.files.StreamFile;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.fs.*;
+
+import java.io.IOException;
+import java.util.Date;
 
 public abstract class StreamReader<T extends StreamFile> {
 
@@ -389,5 +386,26 @@ public abstract class StreamReader<T extends StreamFile> {
       }
     }
     return false;
+  }
+
+  protected FileStatus[] listFileStatus(FileSystem fs, Path baseDir,
+                                        PathFilter pathFilter)
+      throws IOException {
+    FileStatus[] fileStatusList = fs.listStatus(baseDir, pathFilter);
+    metrics.incrementListOps();
+    return fileStatusList;
+  }
+
+  protected FileStatus getFileStatus(FileSystem fs, Path dir)
+      throws IOException {
+    FileStatus status = fs.getFileStatus(dir);
+    metrics.incrementFileStatusOps();
+    return status;
+  }
+
+  protected FSDataInputStream open(FileSystem fs, Path dir) throws IOException {
+    FSDataInputStream inputstream = fs.open(dir);
+    metrics.incrementOpenOps();
+    return inputstream;
   }
 }

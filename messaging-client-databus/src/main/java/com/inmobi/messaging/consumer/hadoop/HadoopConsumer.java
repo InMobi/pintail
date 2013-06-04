@@ -1,14 +1,5 @@
 package com.inmobi.messaging.consumer.hadoop;
 
-import java.io.IOException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionCheckpointList;
 import com.inmobi.databus.partition.PartitionId;
@@ -17,6 +8,14 @@ import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.consumer.databus.AbstractMessagingDatabusConsumer;
 import com.inmobi.messaging.consumer.databus.CheckpointList;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+
+import java.io.IOException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class HadoopConsumer extends AbstractMessagingDatabusConsumer 
     implements HadoopConsumerConfig {
@@ -62,6 +61,7 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
   protected void createPartitionReaders() throws IOException {
     for (int i= 0; i < clusterNames.length; i++) {
       String clusterName = clusterNames[i];
+      String fsUri = fileSystems[i].getUri().toString();
       LOG.debug("Creating partition reader for cluster:" + clusterName);
 
       // create partition id
@@ -78,7 +78,7 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
           partitionCheckpointList);
       PartitionReaderStatsExposer clusterMetrics = 
           new PartitionReaderStatsExposer(topicName, consumerName, id.toString(), 
-              consumerNumber);
+              consumerNumber, fsUri);
       addStatsExposer(clusterMetrics);
       PartitionReader reader = new PartitionReader(id,
           partitionCheckpointList, fileSystems[i], buffer, rootDirs[i],

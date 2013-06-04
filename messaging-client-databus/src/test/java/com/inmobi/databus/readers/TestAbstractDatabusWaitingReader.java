@@ -1,16 +1,5 @@
 package com.inmobi.databus.readers;
 
-import java.io.IOException;
-import java.util.Calendar;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.Text;
-import org.testng.Assert;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionCheckpointList;
 import com.inmobi.databus.partition.PartitionId;
@@ -19,6 +8,17 @@ import com.inmobi.messaging.consumer.util.HadoopUtil;
 import com.inmobi.messaging.consumer.util.MessageUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.Text;
+import org.testng.Assert;
+
+import java.io.IOException;
+import java.util.Calendar;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 public abstract class TestAbstractDatabusWaitingReader {
   protected static final String testStream = "testclient";
@@ -46,8 +46,9 @@ public abstract class TestAbstractDatabusWaitingReader {
   abstract Path getStreamsDir();
 
   public void testInitialize() throws Exception {
+    String fsUri = fs.getUri().toString();
     PartitionReaderStatsExposer metrics = new PartitionReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     // Read from start
     lreader = new DatabusStreamWaitingReader(partitionId,
         fs, streamDir,
@@ -135,8 +136,9 @@ public abstract class TestAbstractDatabusWaitingReader {
 
   public void testReadFromStart() throws Exception {
     initializePartitionCheckpointList();
+    String fsUri = fs.getUri().toString();
     PartitionReaderStatsExposer metrics = new PartitionReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     lreader = new DatabusStreamWaitingReader(partitionId,
         fs, getStreamsDir(),
         inputFormatClass, conf , 1000, metrics, false, partitionMinList, 
@@ -160,8 +162,9 @@ public abstract class TestAbstractDatabusWaitingReader {
 
   public void testReadFromCheckpoint() throws Exception {
     initializePartitionCheckpointList();
+    String fsUri = fs.getUri().toString();
     PartitionReaderStatsExposer metrics = new PartitionReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     lreader = new DatabusStreamWaitingReader(partitionId,
         fs, getStreamsDir(), inputFormatClass, conf, 1000, metrics, false, 
         partitionMinList, partitionCheckpointList, null);
@@ -184,8 +187,9 @@ public abstract class TestAbstractDatabusWaitingReader {
 
   public void testReadFromTimeStamp() throws Exception {
     initializePartitionCheckpointList();
+    String fsUri = fs.getUri().toString();
     PartitionReaderStatsExposer metrics = new PartitionReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     lreader = new DatabusStreamWaitingReader(partitionId,
         fs, getStreamsDir(), inputFormatClass, conf, 1000, metrics, false, 
         partitionMinList, partitionCheckpointList, null);

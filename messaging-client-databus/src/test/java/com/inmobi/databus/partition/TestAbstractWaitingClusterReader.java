@@ -1,20 +1,19 @@
 package com.inmobi.databus.partition;
 
-import java.io.IOException;
-import java.util.Set;
-import java.util.concurrent.LinkedBlockingQueue;
-
+import com.inmobi.databus.Cluster;
+import com.inmobi.databus.readers.DatabusStreamWaitingReader;
+import com.inmobi.messaging.consumer.databus.QueueEntry;
+import com.inmobi.messaging.consumer.util.TestUtil;
+import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.testng.Assert;
 
-import com.inmobi.databus.Cluster;
-import com.inmobi.databus.readers.DatabusStreamWaitingReader;
-import com.inmobi.messaging.consumer.databus.QueueEntry;
-import com.inmobi.messaging.consumer.util.TestUtil;
-import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
+import java.io.IOException;
+import java.util.Set;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public abstract class TestAbstractWaitingClusterReader {
 
@@ -52,8 +51,9 @@ public abstract class TestAbstractWaitingClusterReader {
   }
 
   public void testReadFromStart() throws Exception {
+    String fsUri = fs.getUri().toString();
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     preader = new PartitionReader(partitionId, partitionCheckpointlist, fs, 
     		buffer, streamDir, conf, inputFormatClass,
         DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,

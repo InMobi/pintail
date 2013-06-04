@@ -13,18 +13,30 @@ public class PartitionReaderStatsExposer extends
   public final static String PARTITION_CONTEXT = "PartitionId";
   public final static String CUMULATIVE_NANOS_FETCH_MESSAGE = 
       "cumulativeNanosForFecthMessage";
+  public final static String LIST = "list";
+  public final static String OPEN = "open";
+  public final static String FILE_STATUS = "fileStatus";
 
   private final AtomicLong numMessagesReadFromSource = new AtomicLong(0);
   private final AtomicLong numMessagesAddedToBuffer = new AtomicLong(0);
   private final AtomicLong numHandledExceptions = new AtomicLong(0);
   private final AtomicLong numWaitTimeUnitsNewFile = new AtomicLong(0);
   private final AtomicLong cumulativeNanosForFecthMessage = new AtomicLong(0);
+  private final AtomicLong listOps = new AtomicLong(0);
+  private final AtomicLong openOps = new AtomicLong(0);
+  private final AtomicLong fileStatusOps = new AtomicLong(0);
   private final String pid;
+  private final String fsUri;
+  private final String FS_LIST, FS_OPEN, FS_FILE_STATUS;
 
   public PartitionReaderStatsExposer(String topicName, String consumerName,
-      String pid, int consumerNumber) {
+      String pid, int consumerNumber, String fsUri) {
     super(topicName, consumerName, consumerNumber);
     this.pid = pid;
+    this.fsUri = fsUri;
+    FS_LIST = this.fsUri + "-" + LIST;
+    FS_OPEN = this.fsUri + "-" + OPEN;
+    FS_FILE_STATUS = this.fsUri + "-" + FILE_STATUS;
   }
 
   public void incrementMessagesReadFromSource() {
@@ -47,6 +59,18 @@ public class PartitionReaderStatsExposer extends
     cumulativeNanosForFecthMessage.addAndGet(nanos);
   }
 
+  public void incrementListOps(){
+    listOps.incrementAndGet();
+  }
+
+  public void incrementOpenOps() {
+    openOps.incrementAndGet();
+  }
+
+  public void incrementFileStatusOps() {
+    fileStatusOps.incrementAndGet();
+  }
+
   @Override
   protected void addToStatsMap(Map<String, Number> map) {
     map.put(MESSAGES_READ_FROM_SOURCE, getMessagesReadFromSource());
@@ -54,6 +78,9 @@ public class PartitionReaderStatsExposer extends
     map.put(HANDLED_EXCEPTIONS, getHandledExceptions());
     map.put(WAIT_TIME_UNITS_NEW_FILE, getWaitTimeUnitsNewFile());
     map.put(CUMULATIVE_NANOS_FETCH_MESSAGE, getCumulativeNanosForFetchMessage());
+    map.put(FS_LIST, getListOps());
+    map.put(FS_OPEN, getOpenOps());
+    map.put(FS_FILE_STATUS, getFileStatusOps());
   }
 
   @Override
@@ -80,5 +107,17 @@ public class PartitionReaderStatsExposer extends
 
   public long getCumulativeNanosForFetchMessage() {
     return cumulativeNanosForFecthMessage.get();
+  }
+
+  public long getListOps() {
+    return listOps.get();
+  }
+
+  public long getOpenOps() {
+    return openOps.get();
+  }
+
+  public long getFileStatusOps() {
+    return fileStatusOps.get();
   }
 }

@@ -1,14 +1,13 @@
 package com.inmobi.databus.partition;
 
-import java.io.IOException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.concurrent.LinkedBlockingQueue;
-
+import com.inmobi.databus.files.HadoopStreamFile;
+import com.inmobi.databus.files.StreamFile;
+import com.inmobi.databus.readers.CollectorStreamReader;
+import com.inmobi.databus.readers.DatabusStreamWaitingReader;
+import com.inmobi.messaging.consumer.databus.QueueEntry;
+import com.inmobi.messaging.consumer.util.HadoopUtil;
+import com.inmobi.messaging.consumer.util.TestUtil;
+import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -20,17 +19,9 @@ import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-import com.inmobi.databus.files.HadoopStreamFile;
-import com.inmobi.databus.files.StreamFile;
-import com.inmobi.databus.partition.PartitionCheckpoint;
-import com.inmobi.databus.partition.PartitionId;
-import com.inmobi.databus.partition.PartitionReader;
-import com.inmobi.databus.readers.CollectorStreamReader;
-import com.inmobi.databus.readers.DatabusStreamWaitingReader;
-import com.inmobi.messaging.consumer.databus.QueueEntry;
-import com.inmobi.messaging.consumer.util.HadoopUtil;
-import com.inmobi.messaging.consumer.util.TestUtil;
-import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class TestClusterReaderEmptyStream {
   static final Log LOG = LogFactory.getLog(TestClusterReaderEmptyStream.class);
@@ -50,12 +41,14 @@ public class TestClusterReaderEmptyStream {
   Configuration conf = new Configuration();
   String inputFormatClass;
   int consumerNumber;
+  String fsUri;
 
   @BeforeTest
   public void setup() throws Exception {
     // setup cluster
     consumerNumber = 1;
     fs = FileSystem.getLocal(conf);
+    fsUri = fs.getUri().toString();
     streamDir = new Path("/tmp/test/hadoop/" + this.getClass().getSimpleName(),
         testStream).makeQualified(fs);
     HadoopUtil.setupHadoopCluster(conf, null, null, null, streamDir);
@@ -77,7 +70,7 @@ public class TestClusterReaderEmptyStream {
   @Test
   public void testInitialize() throws Exception {
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
-        testStream, "c1", clusterId.toString(), consumerNumber);
+        testStream, "c1", clusterId.toString(), consumerNumber, fsUri);
     // Read from start time 
     preader = new PartitionReader(clusterId, null, fs, buffer,
         streamDir, conf, inputFormatClass,
