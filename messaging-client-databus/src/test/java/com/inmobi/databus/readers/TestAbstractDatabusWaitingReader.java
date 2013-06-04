@@ -1,5 +1,16 @@
 package com.inmobi.databus.readers;
 
+import java.io.IOException;
+import java.util.Calendar;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.Text;
+import org.testng.Assert;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionCheckpointList;
 import com.inmobi.databus.partition.PartitionId;
@@ -8,17 +19,6 @@ import com.inmobi.messaging.consumer.util.HadoopUtil;
 import com.inmobi.messaging.consumer.util.MessageUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.Text;
-import org.testng.Assert;
-
-import java.io.IOException;
-import java.util.Calendar;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
 
 public abstract class TestAbstractDatabusWaitingReader {
   protected static final String testStream = "testclient";

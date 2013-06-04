@@ -1,14 +1,8 @@
 package com.inmobi.databus.partition;
 
-import com.inmobi.databus.Cluster;
-import com.inmobi.databus.readers.CollectorStreamReader;
-import com.inmobi.messaging.consumer.databus.QueueEntry;
-import com.inmobi.messaging.consumer.databus.StreamType;
-import com.inmobi.messaging.consumer.util.DatabusUtil;
-import com.inmobi.messaging.consumer.util.MessageUtil;
-import com.inmobi.messaging.consumer.util.MiniClusterUtil;
-import com.inmobi.messaging.consumer.util.TestUtil;
-import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
+import java.io.IOException;
+import java.util.concurrent.LinkedBlockingQueue;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -19,8 +13,17 @@ import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
-import java.util.concurrent.LinkedBlockingQueue;
+import com.inmobi.databus.Cluster;
+import com.inmobi.databus.partition.PartitionId;
+import com.inmobi.databus.partition.PartitionReader;
+import com.inmobi.databus.readers.CollectorStreamReader;
+import com.inmobi.messaging.consumer.databus.QueueEntry;
+import com.inmobi.messaging.consumer.databus.StreamType;
+import com.inmobi.messaging.consumer.util.DatabusUtil;
+import com.inmobi.messaging.consumer.util.MessageUtil;
+import com.inmobi.messaging.consumer.util.MiniClusterUtil;
+import com.inmobi.messaging.consumer.util.TestUtil;
+import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 
 public class TestCurrentFile {
   private static final String testStream = "testclient";
