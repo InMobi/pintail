@@ -83,8 +83,8 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
        */
       @Override
       protected void buildList() throws IOException {
-        if (isExists(streamDir)) {
-          FileStatus[] fileStatuses = listFileStatus(streamDir, pathFilter);
+        if (fsIsPathExists(streamDir)) {
+          FileStatus[] fileStatuses = fsListFileStatus(streamDir, pathFilter);
           if (fileStatuses == null || fileStatuses.length == 0) {
             LOG.info("No files in directory:" + streamDir);
             return;
@@ -138,9 +138,9 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     } 
     LOG.info("Opening file:" + getCurrentFile() + " NumLinesTobeSkipped when" +
         " opening:" + currentLineNum);
-    if (isExists(getCurrentFile())) {
+    if (fsIsPathExists(getCurrentFile())) {
 
-      inStream = open(getCurrentFile());
+      inStream = fsOpen(getCurrentFile());
       reader = new BufferedReader(new InputStreamReader(inStream));
       skipOldData();
     } else {

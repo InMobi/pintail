@@ -395,27 +395,27 @@ public abstract class StreamReader<T extends StreamFile> {
     return false;
   }
 
-  protected FileStatus[] listFileStatus(Path baseDir, PathFilter pathFilter)
+  protected FileStatus[] fsListFileStatus(Path baseDir, PathFilter pathFilter)
       throws IOException {
     FileStatus[] fileStatusList = fs.listStatus(baseDir, pathFilter);
     metrics.incrementListOps();
     return fileStatusList;
   }
 
-  protected FileStatus getFileStatus(Path dir)
+  protected FileStatus fsGetFileStatus(Path dir)
       throws IOException {
     FileStatus status = fs.getFileStatus(dir);
     metrics.incrementFileStatusOps();
     return status;
   }
 
-  protected FSDataInputStream open(Path dir) throws IOException {
+  protected FSDataInputStream fsOpen(Path dir) throws IOException {
     FSDataInputStream inputstream = fs.open(dir);
     metrics.incrementOpenOps();
     return inputstream;
   }
 
-  protected boolean isExists(Path dir) throws IOException {
+  protected boolean fsIsPathExists(Path dir) throws IOException {
     boolean isExists = fs.exists(dir);
     metrics.incrementExistsOps();
     return isExists;

@@ -174,6 +174,7 @@ public class TestCollectorStreamReader {
     Assert.assertTrue(metrics.getOpenOps() > 0);
     Assert.assertTrue(metrics.getFileStatusOps() == 0);
     Assert.assertTrue(metrics.getExistsOps() > 0);
+    Assert.assertTrue(metrics.getNumberRecordReaders() == 0);
   }
 
   @Test
@@ -202,6 +203,7 @@ public class TestCollectorStreamReader {
     Assert.assertTrue(metrics.getOpenOps() > 0);
     Assert.assertTrue(metrics.getFileStatusOps() == 0);
     Assert.assertTrue(metrics.getExistsOps() > 0);
+    Assert.assertTrue(metrics.getNumberRecordReaders() == 0);
   }
 
   @Test
@@ -229,6 +231,7 @@ public class TestCollectorStreamReader {
     Assert.assertTrue(metrics.getOpenOps() > 0);
     Assert.assertTrue(metrics.getFileStatusOps() == 0);
     Assert.assertTrue(metrics.getExistsOps() > 0);
+    Assert.assertTrue(metrics.getNumberRecordReaders() == 0);
   }
 
 }
