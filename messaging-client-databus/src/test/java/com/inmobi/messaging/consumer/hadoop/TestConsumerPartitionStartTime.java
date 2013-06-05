@@ -53,8 +53,7 @@ public class TestConsumerPartitionStartTime {
   @BeforeTest
   public void setup() throws Exception {
     Calendar cal = Calendar.getInstance();
-    startTime = cal.getTime();
-    cal.add(Calendar.MINUTE, -(20));
+    cal.add(Calendar.MINUTE, -30);
     startTime = cal.getTime();
     config = ClientConfig.loadFromClasspath(firstConfFile);
     secondconfig = ClientConfig.loadFromClasspath(secondConfFile);
@@ -103,14 +102,14 @@ public class TestConsumerPartitionStartTime {
       firstConsumedMessages.add(getMessage(msg.getData().array()));
     }
     consumer.close();
-    LOG.info("msgs consumed by first consumer" + firstConsumedMessages.size());
+    LOG.debug("msgs consumed by first consumer" + firstConsumedMessages.size());
 
     while (secondConsumedMessages.size() < 600) {
       Message msgs = secondConsumer.next();
       secondConsumedMessages.add(getMessage(msgs.getData().array()));
     }
     secondConsumer.close();
-    LOG.info("msgs consumed by second consumer " + secondConsumedMessages.size());
+    LOG.debug("msgs consumed by second consumer " + secondConsumedMessages.size());
 
     Assert.assertEquals(firstConsumedMessages.size() + 
         secondConsumedMessages.size(), 1200);
