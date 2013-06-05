@@ -219,14 +219,15 @@ public class DatabusStreamWaitingReader
   @Override
   public boolean prepareMoveToNext(FileStatus currentFile, FileStatus nextFile) 
       throws IOException {                              
-    Date date = getDateFromStreamDir(streamDir, currentFile.getPath().
-        getParent());
+    Date currentFileTimeStamp = getDateFromStreamDir(streamDir,
+        currentFile.getPath().getParent());
     Calendar now = Calendar.getInstance();
-    now.setTime(date);
+    now.setTime(currentFileTimeStamp);
     currentMin = now.get(Calendar.MINUTE);
 
-    date = getDateFromStreamDir(streamDir, nextFile.getPath().getParent());
-    now.setTime(date);
+    Date nextFileTimeStamp = getDateFromStreamDir(streamDir,
+        nextFile.getPath().getParent());
+    now.setTime(nextFileTimeStamp);
 
     boolean readFromCheckpoint = false;
     FileStatus fileToRead = nextFile;
