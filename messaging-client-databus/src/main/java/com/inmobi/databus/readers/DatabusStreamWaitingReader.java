@@ -35,6 +35,7 @@ public class DatabusStreamWaitingReader
   private PartitionCheckpointList partitionCheckpointList;
   private boolean movedToNext;
   private int prevMin;
+  private long numOfLinesReadInMinute;
   private Map<Integer, Date> checkpointTimeStampMap;
   private Map<Integer, PartitionCheckpoint> pChkpoints;
 
@@ -50,6 +51,7 @@ public class DatabusStreamWaitingReader
     this.partitionMinList = partitionMinList; 
     this.stopTime = stopTime;
     currentMin = -1;
+    numOfLinesReadInMinute = 0;
     this.checkpointTimeStampMap = new HashMap<Integer, Date>();
     if (partitionCheckpointList != null) {
       pChkpoints = partitionCheckpointList.getCheckpoints();
@@ -229,13 +231,17 @@ public class DatabusStreamWaitingReader
         nextFile.getPath().getParent());
     now.setTime(nextFileTimeStamp);
 
+    numOfLinesReadInMinute += getCurrentLineNum();
     boolean readFromCheckpoint = false;
     FileStatus fileToRead = nextFile;
     if (currentMin != now.get(Calendar.MINUTE)) {
-      //We are moving to next file, set the flags so that Message checkpoints
-      //can be populated.
-      movedToNext = true;
-      prevMin = currentMin;
+      if (numOfLinesReadInMinute > 0) {
+        //We are moving to next file, set the flags so that Message checkpoints
+        //can be populated.
+        movedToNext = true;
+        prevMin = currentMin;
+        numOfLinesReadInMinute = 0;
+      }
       currentMin = now.get(Calendar.MINUTE);
       PartitionCheckpoint partitionCheckpoint = partitionCheckpointList.
           getCheckpoints().get(currentMin);
