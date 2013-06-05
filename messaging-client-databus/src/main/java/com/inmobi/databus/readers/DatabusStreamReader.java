@@ -75,7 +75,7 @@ StreamReader<T> {
 
   protected void doRecursiveListing(Path dir, PathFilter pathFilter,
       FileMap<T> fmap) throws IOException {
-    FileStatus[] fileStatuses = listFileStatus(fs, dir, pathFilter);
+    FileStatus[] fileStatuses = listFileStatus(dir, pathFilter);
     if (fileStatuses == null || fileStatuses.length == 0) {
       LOG.debug("No files in directory:" + dir);
     } else {
@@ -121,7 +121,7 @@ StreamReader<T> {
     LOG.info("Opening file:" + getCurrentFile() + " NumLinesTobeSkipped when" +
         " opening:" + currentLineNum);
     try {
-      FileStatus status = getFileStatus(fs, getCurrentFile());
+      FileStatus status = getFileStatus(getCurrentFile());
       if (status != null) {
         currentFileSplit = new FileSplit(getCurrentFile(), 0L,
             status.getLen(), new String[0]);

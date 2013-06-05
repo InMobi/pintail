@@ -58,12 +58,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
         " streamDir:" + streamDir + 
         " waitTimeForFlush:" + waitTimeForFlush +
         " waitTimeForCreate:" + waitTimeForCreate);
-    isFileSystemS3();
-  }
-
-  private void isFileSystemS3() {
-    if(fs instanceof S3FileSystem || fs instanceof NativeS3FileSystem)
-      isS3Fs = true;
+    isS3Fs = isFileSystemS3();
   }
 
   protected FileMap<CollectorFile> createFileMap() throws IOException {
@@ -88,8 +83,8 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
        */
       @Override
       protected void buildList() throws IOException {
-        if (fs.exists(streamDir)) {
-          FileStatus[] fileStatuses = listFileStatus(fs, streamDir, pathFilter);
+        if (isExists(streamDir)) {
+          FileStatus[] fileStatuses = listFileStatus(streamDir, pathFilter);
           if (fileStatuses == null || fileStatuses.length == 0) {
             LOG.info("No files in directory:" + streamDir);
             return;
@@ -143,9 +138,9 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     } 
     LOG.info("Opening file:" + getCurrentFile() + " NumLinesTobeSkipped when" +
         " opening:" + currentLineNum);
-    if (fs.exists(getCurrentFile())) {
+    if (isExists(getCurrentFile())) {
 
-      inStream = open(fs, getCurrentFile());
+      inStream = open(getCurrentFile());
       reader = new BufferedReader(new InputStreamReader(inStream));
       skipOldData();
     } else {

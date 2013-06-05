@@ -16,6 +16,7 @@ public class PartitionReaderStatsExposer extends
   public final static String LIST = "list";
   public final static String OPEN = "open";
   public final static String FILE_STATUS = "fileStatus";
+  public final static String EXISTS = "exists";
 
   private final AtomicLong numMessagesReadFromSource = new AtomicLong(0);
   private final AtomicLong numMessagesAddedToBuffer = new AtomicLong(0);
@@ -25,9 +26,10 @@ public class PartitionReaderStatsExposer extends
   private final AtomicLong listOps = new AtomicLong(0);
   private final AtomicLong openOps = new AtomicLong(0);
   private final AtomicLong fileStatusOps = new AtomicLong(0);
+  private final AtomicLong existsOps = new AtomicLong(0);
   private final String pid;
   private final String fsUri;
-  private final String FS_LIST, FS_OPEN, FS_FILE_STATUS;
+  private final String FS_LIST, FS_OPEN, FS_FILE_STATUS, FS_EXISTS;
 
   public PartitionReaderStatsExposer(String topicName, String consumerName,
       String pid, int consumerNumber, String fsUri) {
@@ -37,6 +39,7 @@ public class PartitionReaderStatsExposer extends
     FS_LIST = this.fsUri + "-" + LIST;
     FS_OPEN = this.fsUri + "-" + OPEN;
     FS_FILE_STATUS = this.fsUri + "-" + FILE_STATUS;
+    FS_EXISTS = this.fsUri + "-" + EXISTS;
   }
 
   public void incrementMessagesReadFromSource() {
@@ -71,6 +74,10 @@ public class PartitionReaderStatsExposer extends
     fileStatusOps.incrementAndGet();
   }
 
+  public void incrementExistsOps() {
+    existsOps.incrementAndGet();
+  }
+
   @Override
   protected void addToStatsMap(Map<String, Number> map) {
     map.put(MESSAGES_READ_FROM_SOURCE, getMessagesReadFromSource());
@@ -81,6 +88,7 @@ public class PartitionReaderStatsExposer extends
     map.put(FS_LIST, getListOps());
     map.put(FS_OPEN, getOpenOps());
     map.put(FS_FILE_STATUS, getFileStatusOps());
+    map.put(FS_EXISTS, getExistsOps());
   }
 
   @Override
@@ -119,5 +127,9 @@ public class PartitionReaderStatsExposer extends
 
   public long getFileStatusOps() {
     return fileStatusOps.get();
+  }
+
+  public long getExistsOps() {
+    return existsOps.get();
   }
 }

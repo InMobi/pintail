@@ -17,6 +17,8 @@ import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 import org.apache.hadoop.fs.PathFilter;
+import org.apache.hadoop.fs.s3.S3FileSystem;
+import org.apache.hadoop.fs.s3native.NativeS3FileSystem;
 
 public abstract class StreamReader<T extends StreamFile> {
 
@@ -27,7 +29,7 @@ public abstract class StreamReader<T extends StreamFile> {
   protected PartitionId partitionId;
   protected FileStatus currentFile;
   protected long currentLineNum = 0;
-  protected FileSystem fs;
+  private FileSystem fs;
   protected volatile boolean closed = false;
   protected boolean noNewFiles = false; // this is purely for tests
   private long waitTimeForCreate;
@@ -393,24 +395,35 @@ public abstract class StreamReader<T extends StreamFile> {
     return false;
   }
 
-  protected FileStatus[] listFileStatus(FileSystem fs, Path baseDir,
-                                        PathFilter pathFilter)
+  protected FileStatus[] listFileStatus(Path baseDir, PathFilter pathFilter)
       throws IOException {
     FileStatus[] fileStatusList = fs.listStatus(baseDir, pathFilter);
     metrics.incrementListOps();
     return fileStatusList;
   }
 
-  protected FileStatus getFileStatus(FileSystem fs, Path dir)
+  protected FileStatus getFileStatus(Path dir)
       throws IOException {
     FileStatus status = fs.getFileStatus(dir);
     metrics.incrementFileStatusOps();
     return status;
   }
 
-  protected FSDataInputStream open(FileSystem fs, Path dir) throws IOException {
+  protected FSDataInputStream open(Path dir) throws IOException {
     FSDataInputStream inputstream = fs.open(dir);
     metrics.incrementOpenOps();
     return inputstream;
+  }
+
+  protected boolean isExists(Path dir) throws IOException {
+    boolean isExists = fs.exists(dir);
+    metrics.incrementExistsOps();
+    return isExists;
+  }
+
+  protected boolean isFileSystemS3() {
+    if(fs instanceof S3FileSystem || fs instanceof NativeS3FileSystem)
+      return true;
+    return false;
   }
 }

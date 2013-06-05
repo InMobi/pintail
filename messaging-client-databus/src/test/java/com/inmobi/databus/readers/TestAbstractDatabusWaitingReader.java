@@ -161,6 +161,7 @@ public abstract class TestAbstractDatabusWaitingReader {
     Assert.assertTrue(metrics.getListOps() > 0);
     Assert.assertTrue(metrics.getOpenOps() == 0);
     Assert.assertTrue(metrics.getFileStatusOps() > 0);
+    Assert.assertTrue(metrics.getExistsOps() > 0);
   }
 
   public void testReadFromCheckpoint() throws Exception {
@@ -189,6 +190,7 @@ public abstract class TestAbstractDatabusWaitingReader {
     Assert.assertTrue(metrics.getListOps() > 0);
     Assert.assertTrue(metrics.getOpenOps() == 0);
     Assert.assertTrue(metrics.getFileStatusOps() > 0);
+    Assert.assertTrue(metrics.getExistsOps() > 0);
   }
 
   public void testReadFromTimeStamp() throws Exception {
@@ -217,6 +219,7 @@ public abstract class TestAbstractDatabusWaitingReader {
     Assert.assertTrue(metrics.getListOps() > 0);
     Assert.assertTrue(metrics.getOpenOps() == 0);
     Assert.assertTrue(metrics.getFileStatusOps() > 0);
+    Assert.assertTrue(metrics.getExistsOps() > 0);
   }
   public void initializePartitionCheckpointList() {
     chkPoints = new TreeMap<Integer, PartitionCheckpoint>();
