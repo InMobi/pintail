@@ -7,6 +7,9 @@ Incompatible Changes :
  
 Bug Fixes and Improvements :
 
+   14. Fix NPE while doing next in hadoop consumer with minute directories
+   containing zero byte files
+
    13. Remove slf4j logs and use commons-logging instead
 
    12. Fix starting file if checkpointed file is purged
