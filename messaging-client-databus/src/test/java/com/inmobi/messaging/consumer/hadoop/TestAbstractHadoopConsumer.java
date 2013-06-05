@@ -45,8 +45,8 @@ public abstract class TestAbstractHadoopConsumer {
   HadoopConsumer testConsumer;
   static final String testStream = "testclient";
   protected String[] dataFiles = new String[]{HadoopUtil.files[0],
-    HadoopUtil.files[1],
-    HadoopUtil.files[2]};
+    HadoopUtil.files[1], HadoopUtil.files[3], HadoopUtil.files[4],
+    HadoopUtil.files[6]};
   protected String[] suffixDirs;
   protected String consumerName;
   protected Path[] rootDirs;
@@ -72,8 +72,8 @@ public abstract class TestAbstractHadoopConsumer {
     numDataFiles = dataFiles != null ? dataFiles.length : 1;
     finalPaths = new Path[rootDirs.length][numSuffixDirs * numDataFiles];
     for (int i = 0; i < rootDirs.length; i++) {
-      HadoopUtil.setupHadoopCluster(
-        conf, dataFiles, suffixDirs, finalPaths[i], rootDirs[i]);
+      HadoopUtil.setupHadoopCluster(conf, dataFiles, suffixDirs,
+          finalPaths[i], rootDirs[i], true);
     }
     HadoopUtil.setUpHadoopFiles(rootDirs[0], conf,
       new String[]{"_SUCCESS", "_DONE"}, suffixDirs, null);
