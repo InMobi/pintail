@@ -45,8 +45,8 @@ public abstract class TestAbstractHadoopConsumer {
   HadoopConsumer testConsumer;
   static final String testStream = "testclient";
   protected String[] dataFiles = new String[]{HadoopUtil.files[0],
-    HadoopUtil.files[1],
-    HadoopUtil.files[2]};
+    HadoopUtil.files[1], HadoopUtil.files[3], HadoopUtil.files[4],
+    HadoopUtil.files[6]};
   protected String[] suffixDirs;
   protected String consumerName;
   protected Path[] rootDirs;
@@ -72,8 +72,8 @@ public abstract class TestAbstractHadoopConsumer {
     numDataFiles = dataFiles != null ? dataFiles.length : 1;
     finalPaths = new Path[rootDirs.length][numSuffixDirs * numDataFiles];
     for (int i = 0; i < rootDirs.length; i++) {
-      HadoopUtil.setupHadoopCluster(
-        conf, dataFiles, suffixDirs, finalPaths[i], rootDirs[i]);
+      HadoopUtil.setupHadoopCluster(conf, dataFiles, suffixDirs,
+          finalPaths[i], rootDirs[i], true);
     }
     HadoopUtil.setUpHadoopFiles(rootDirs[0], conf,
       new String[]{"_SUCCESS", "_DONE"}, suffixDirs, null);
@@ -118,8 +118,7 @@ public abstract class TestAbstractHadoopConsumer {
     config.set(MessagingConsumerConfig.relativeStartTimeConfig,
         relativeStartTime);
     ConsumerUtil.assertMessages(config, testStream, consumerName, 1,
-      numSuffixDirs,
-      numDataFiles, numMessagesPerFile, true);
+      numSuffixDirs, 3, numMessagesPerFile, true);
   }
 
 
@@ -132,8 +131,7 @@ public abstract class TestAbstractHadoopConsumer {
     config.set(MessagingConsumerConfig.relativeStartTimeConfig,
         relativeStartTime);
     ConsumerUtil.assertMessages(config, testStream, consumerName, 2,
-      numSuffixDirs,
-      numDataFiles, numMessagesPerFile, true);
+      numSuffixDirs, 3, numMessagesPerFile, true);
   }
 
   public void testMultipleClusters2() throws Exception {
@@ -144,8 +142,7 @@ public abstract class TestAbstractHadoopConsumer {
     config.set(MessagingConsumerConfig.relativeStartTimeConfig,
         relativeStartTime);
     ConsumerUtil.assertMessages(config, testStream, consumerName, 3,
-      numSuffixDirs,
-      numDataFiles, numMessagesPerFile, true);
+      numSuffixDirs, 3, numMessagesPerFile, true);
   }
 
   public void testConsumerStartUp() throws Exception {
@@ -251,7 +248,7 @@ public abstract class TestAbstractHadoopConsumer {
     config.set(MessageConsumerFactory.ABSOLUTE_START_TIME,
         AbstractMessageConsumer.minDirFormat.get().format(absoluteStartTime));
     Date stopDate = DatabusStreamWaitingReader.
-        getDateFromStreamDir(rootDirs[0], finalPaths[0][1]);
+        getDateFromStreamDir(rootDirs[0], finalPaths[0][2]);
     config.set(HadoopConsumerConfig.stopDateConfig,
         AbstractMessageConsumer.minDirFormat.get().format(stopDate));
     ConsumerUtil.testConsumerWithAbsoluteStartTimeAndStopTime(config,
@@ -285,7 +282,7 @@ public abstract class TestAbstractHadoopConsumer {
     config.set(MessageConsumerFactory.ABSOLUTE_START_TIME,
         AbstractMessageConsumer.minDirFormat.get().format(absoluteStartTime));
     Date stopDate = DatabusStreamWaitingReader.
-        getDateFromStreamDir(rootDirs[0], finalPaths[0][1]);
+        getDateFromStreamDir(rootDirs[0], finalPaths[0][2]);
     Date stopDateForCheckpoint = DatabusStreamWaitingReader.
         getDateFromStreamDir(rootDirs[0], finalPaths[0][0]);
     config.set(HadoopConsumerConfig.stopDateConfig,
