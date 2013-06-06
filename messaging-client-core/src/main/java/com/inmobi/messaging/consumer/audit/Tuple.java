@@ -18,7 +18,8 @@ public class Tuple {
 
   public Tuple(String hostname, String tier, String cluster, Date timestamp,
       String topic) {
-    this(hostname, tier, cluster, timestamp, topic, null, 0l);
+    this(hostname, tier, cluster, timestamp, topic,
+        new HashMap<LatencyColumns, Long>(), 0l);
   }
 
   public Tuple(String hostname, String tier, String cluster, Date timestamp,

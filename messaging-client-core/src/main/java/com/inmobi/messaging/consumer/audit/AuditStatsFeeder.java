@@ -108,7 +108,7 @@ class AuditStatsFeeder implements Runnable {
   private static final Logger LOG = LoggerFactory
       .getLogger(AuditStatsFeeder.class);
   private static final String CONSUMER_CLASSNAME = "com.inmobi.messaging.consumer.databus.DatabusConsumer";
-  private static final String CONSUMER_NAME = "audit-consumer";
+
   private final String clusterName;
   private MessageConsumer consumer = null;
 
@@ -119,7 +119,8 @@ class AuditStatsFeeder implements Runnable {
   private TDeserializer deserializer = new TDeserializer();
   private final ClientConfig config;
   private final static long RETRY_INTERVAL = 60000;
-  private final static String CHECKPOINT_DIR = "/usr/local/databus/";
+  // TODO change checkpoint DIR to correct path
+  private final static String CHECKPOINT_DIR = "/tmp";
   private final static String CHECKPOINT_DIR_KEY = "messaging.consumer.checkpoint.dir";
   private final String rootDir;
   private Thread thread;
@@ -165,6 +166,7 @@ class AuditStatsFeeder implements Runnable {
       msg.setTier(message.getTier());
       msg.setHostname(message.getHostname());
       msg.setTopic(message.getTopic());
+      msg.setWindowSize(message.getWindowSize());
     }
     if (message.getReceived() != null) {
       for (Entry<Long, Long> entry : message.getReceived().entrySet()) {
@@ -173,9 +175,12 @@ class AuditStatsFeeder implements Runnable {
           long received = entry.getValue();
           // dividing the recieved in proportion of offset of received time from
           // the minute boundary to total window size
-          long received2 = ((receivedTime - lowerBoundary) / (windowSize * 1000))
-              * received;
-          long received1 = received = received2;
+          float fractionReceivedInUpperBoundary = ((float) (receivedTime - lowerBoundary))
+              / (windowSize * 1000);
+          float receivedInUpperBoundary = fractionReceivedInUpperBoundary
+              * (float) received;
+          long received2 = (long) receivedInUpperBoundary;
+          long received1 = received - received2;
           messages[0].putToReceived(entry.getKey(), received1);
           messages[1].putToReceived(entry.getKey(), received2);
         } else {
@@ -192,18 +197,23 @@ class AuditStatsFeeder implements Runnable {
           long sent = entry.getValue();
           // dividing the recieved in proportion of offset of received time from
           // the minute boundary to total window size
-          long sent2 = ((receivedTime - lowerBoundary) / (windowSize * 1000))
-              * sent;
-          long sent1 = sent = sent2;
+          float fractionSentInUpperBoundary = ((float) (receivedTime - lowerBoundary))
+              / (windowSize * 1000);
+          float sentInUpperBoundary = fractionSentInUpperBoundary
+              * (float) sent;
+          long sent2 = (long) sentInUpperBoundary;
+          long sent1 = sent - sent2;
           messages[0].putToSent(entry.getKey(), sent1);
           messages[1].putToSent(entry.getKey(), sent2);
         } else {
-          // all the received packets belong to same minute interval in which
+          // all the sent packets belong to same minute interval in which
           // audit is generated
-          messages[1].putToReceived(entry.getKey(), entry.getValue());
+          messages[1].putToSent(entry.getKey(), entry.getValue());
         }
       }
     }
+    LOG.debug("Audit packet " + message + " was divided into " + messages[0]
+        + " and " + messages[1]);
     return messages;
   }
 
@@ -221,12 +231,8 @@ class AuditStatsFeeder implements Runnable {
               .getLatencyColumn(latency);
           if (latency < 0) {
             LOG.error("Error scenario,check that time is in sync across tiers,audit"
-                + "message has time stamp "
-                + messageReceivedTime
-                + " and source time is "
-                + timestamp
-                + " for tier= "
-                + message.getTier());
+                + "message has time stamp "+ messageReceivedTime
+                + " and source time is "+ timestamp+ " for tier " + message.getTier());
             continue;
           }
           TupleKey key = new TupleKey(new Date(upperBoundaryTime),
@@ -246,7 +252,8 @@ class AuditStatsFeeder implements Runnable {
           long prevValue = 0l;
           if (latencyCountMap.get(latencyColumn) != null)
             prevValue = latencyCountMap.get(latencyColumn);
-          latencyCountMap.put(latencyColumn, prevValue + latency);
+          latencyCountMap.put(latencyColumn, prevValue
+              + message.getReceived().get(timestamp));
           tuple.setLatencyCountMap(latencyCountMap);
           tuples.put(key, tuple);
         }
@@ -275,8 +282,9 @@ class AuditStatsFeeder implements Runnable {
   private MessageConsumer getConsumer(ClientConfig config) throws IOException {
     config.set(ROOT_DIR_KEY, rootDir);
     config.set(CHECKPOINT_DIR_KEY, CHECKPOINT_DIR);
+    String consumerName = clusterName + "_consumer";
     return MessageConsumerFactory.create(config, CONSUMER_CLASSNAME,
-        AuditUtil.AUDIT_STREAM_TOPIC_NAME, CONSUMER_NAME);
+        AuditUtil.AUDIT_STREAM_TOPIC_NAME, consumerName);
   }
 
   private boolean updateDB(Set<Tuple> tuples) {
@@ -352,24 +360,28 @@ class AuditStatsFeeder implements Runnable {
         if (updateDB(tupleSet)) {
           try {
             consumer.mark();
-          } catch (IOException e) {
+          } catch (Exception e) {
             LOG.error(
-                "Failure in marking the consumer,Audit Messages  would be re processed",
+                "Failure in marking the consumer,Audit Messages  could be re processed",
                 e);
           }
         } else {
           LOG.error("Updation to DB failed,resetting the consumer");
           try {
             consumer.reset();
-          } catch (IOException e) {
+          } catch (Exception e) {
             LOG.error("Exception while reseting the consumer,would re-intialize consumer in next run");
             consumer = null;
           }
         }
+        // clearing of the tuples as they have been processed
+        tuples.clear();
       }
     } finally {
-      if (consumer != null)
+      if (consumer != null) {
+        LOG.info("closing the consumer for cluster " + clusterName);
         consumer.close();
+      }
     }
   }
 

@@ -1,14 +1,26 @@
 package com.inmobi.messaging.util;
 
-import com.inmobi.messaging.ClientConfig;
-import com.inmobi.messaging.consumer.audit.*;
-import com.mysql.jdbc.Driver;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.sql.*;
-import java.util.Date;
-import java.util.*;
+import com.inmobi.messaging.ClientConfig;
+import com.inmobi.messaging.consumer.audit.Column;
+import com.inmobi.messaging.consumer.audit.Filter;
+import com.inmobi.messaging.consumer.audit.GroupBy;
+import com.inmobi.messaging.consumer.audit.LatencyColumns;
+import com.inmobi.messaging.consumer.audit.Tuple;
+import com.mysql.jdbc.Driver;
 
 public class AuditDBHelper {
 
@@ -189,7 +201,11 @@ public class AuditDBHelper {
       for (LatencyColumns latencyColumn : LatencyColumns.values()) {
         Long currentVal = latencyCountMap.get(latencyColumn);
         Long prevVal = rs.getLong(latencyColumn.toString());
-        Long count = getCountForLatency(currentVal, prevVal, latencyColumn, tuple);
+        if (currentVal == null)
+          currentVal = 0l;
+        if (prevVal == null)
+          prevVal = 0l;
+        Long count = currentVal + prevVal;
         latencyCountMap.put(latencyColumn, count);
       }
       Long sent = tuple.getSent() + rs.getLong(AuditDBConstants.SENT);
@@ -216,26 +232,7 @@ public class AuditDBHelper {
     return true;
   }
 
-  private static Long getCountForLatency(Long currentVal, Long prevVal,
-                                         LatencyColumns latencyColumn,
-                                         Tuple tuple) {
-    Long count;
-    if (prevVal == null)
-      prevVal = 0l;
-    if (currentVal == null)
-      currentVal = 0l;
-    if (prevVal > 0l && currentVal == 0l) {
-      count = prevVal;
-    } else if (prevVal > 0l && currentVal > 0l) {
-      LOG.error("Possible data replay for tuple: " + tuple.toString() +
-          "; Column " + latencyColumn.toString() + " had value " +
-          prevVal + " before updation");
-      count = currentVal;
-    } else {
-      count = currentVal;
-    }
-    return count;
-  }
+
 
   public static Set<Tuple> retrieve(Date toDate, Date fromDate, Filter filter,
                                     GroupBy groupBy, String confFileName) {
