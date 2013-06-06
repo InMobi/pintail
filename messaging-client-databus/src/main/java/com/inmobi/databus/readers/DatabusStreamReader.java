@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -71,6 +72,24 @@ StreamReader<T> {
   public void build(Date date) throws IOException {
     this.buildTimestamp = date;
     build();
+  }
+
+  public void build(boolean startOfStream) throws IOException {
+    FileStatus startingDir = getStartingDirFromStream();
+    if (startingDir != null) {
+      Date startingDirTimeStamp = getDateFromPath(streamDir, startingDir);
+      // listing from start of the stream
+      build(startingDirTimeStamp);
+    }
+  }
+
+  private FileStatus getStartingDirFromStream() throws IOException {
+    List<FileStatus> leastTimeStampFileStatus = new ArrayList<FileStatus>();
+    getStartingDirFromStream(fs, streamDir, 0, leastTimeStampFileStatus);
+    if (leastTimeStampFileStatus.size() > 0) {
+      return leastTimeStampFileStatus.get(0);
+    }
+    return null;
   }
 
   protected abstract void buildListing(FileMap<T> fmap, PathFilter pathFilter)

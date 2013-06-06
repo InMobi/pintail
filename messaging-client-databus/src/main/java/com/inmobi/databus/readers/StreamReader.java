@@ -1,6 +1,7 @@
 package com.inmobi.databus.readers;
 
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.Date;
 
 import org.apache.commons.logging.Log;
@@ -235,7 +236,7 @@ public abstract class StreamReader<T extends StreamFile> {
     }
     return line;
   }
-
+  
 
   protected void resetCurrentFileSettings() {
     currentLineNum = 0;

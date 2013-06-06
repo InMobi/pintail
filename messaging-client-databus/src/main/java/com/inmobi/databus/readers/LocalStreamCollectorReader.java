@@ -76,24 +76,6 @@ public class LocalStreamCollectorReader extends
     }
   }
 
-  public void build(boolean startOfStream) throws IOException {
-    FileStatus startingDir = getStartingDirFromStream();
-    if (startingDir != null) {
-      Date startingDirTimeStamp = getDateFromPath(streamDir, startingDir);
-      // listing from start of the stream
-      build(startingDirTimeStamp);
-    }
-  }
-
-  private FileStatus getStartingDirFromStream() throws IOException {
-    List<FileStatus> leastTimeStampFileStatus = new ArrayList<FileStatus>();
-    getStartingDirFromStream(fs, streamDir, 0, leastTimeStampFileStatus);
-    if (leastTimeStampFileStatus.size() > 0) {
-      return leastTimeStampFileStatus.get(0);
-    }
-    return null;
-  }
-
   protected void buildListing(FileMap<DatabusStreamFile> fmap, PathFilter pathFilter)
       throws IOException {
     Calendar current = Calendar.getInstance();

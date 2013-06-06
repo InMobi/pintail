@@ -162,7 +162,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       throws IOException {
     FileStatus startingFileStatus;
     if (isCollectorFile) {
-      startingFileStatus= lReader.getFirstFileInStream();
+      startingFileStatus= cReader.getFirstFileInStream();
       String startingFile = startingFileStatus.getPath().getName();
       return CollectorStreamReader.getDateFromCollectorFile(startingFile);
     } else {

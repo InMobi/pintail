@@ -2,6 +2,7 @@ package com.inmobi.databus.partition;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -28,6 +29,7 @@ public class ClusterReader extends AbstractPartitionStreamReader {
   private final Date startTime;
   private final Path streamDir;
   private final boolean isDatabusData;
+  private Date startOfStreamTimeStamp;
 
   ClusterReader(PartitionId partitionId,
       PartitionCheckpointList partitionCheckpointList, FileSystem fs,
@@ -116,45 +118,33 @@ public class ClusterReader extends AbstractPartitionStreamReader {
         reader.startFromTimestmp(startTime);
       }
     } else {
-      startFromStartOfStream();
+      ((DatabusStreamWaitingReader)reader).build(true);
+      initializeCurrentFileFromStartOfStream();
     }
     LOG.info("Intialized currentFile:" + reader.getCurrentFile() +
         " currentLineNum:" + reader.getCurrentLineNum());
   }
 
-  private void startFromStartOfStream()
+  private void initializeCurrentFileFromStartOfStream()
       throws IOException, InterruptedException {
-
-    FileStatus startingDir = getStartingDirFromStream();
-    if (startingDir != null) {
-      Date startingDirTimeStamp = ((DatabusStreamWaitingReader) reader).
-          getDateFromPath(streamDir, startingDir);
-      // listing from start of the stream
-      ((DatabusStreamWaitingReader)reader).build(startingDirTimeStamp);
-      if (!reader.isEmpty()) {
-        if (!reader.initializeCurrentFile(startingDirTimeStamp)) {
-          reader.startFromTimestmp(startingDirTimeStamp);
-        }
-      } else {
-        reader.startFromBegining();
-      }
+    if (!reader.isEmpty()) {
+      startOfStreamTimeStamp = getStartingFileTimeStamp();
     } else {
-      // close the reader if stream is empty or
-      // wait for next file creation
-      // set current time stamp as build time stamp
-      reader.startFromBegining();
+      startOfStreamTimeStamp = getCurrentTimeStamp();
     }
+
+    reader.startFromTimestmp(startOfStreamTimeStamp);
   }
 
-  private FileStatus getStartingDirFromStream() throws IOException {
-    List<FileStatus> leastTimeStampFileStatus = new ArrayList<FileStatus>();
+  private Date getStartingFileTimeStamp() {
+    FileStatus startingFileStatus =reader.getFirstFileInStream();
+    return DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
+        startingFileStatus.getPath());
+  }
 
-    ((DatabusStreamWaitingReader) reader).getStartingDirFromStream(
-        reader.getFileSystem(), streamDir, 0, leastTimeStampFileStatus);
-    if (leastTimeStampFileStatus.size() > 0) {
-      return leastTimeStampFileStatus.get(0);
-    }
-    return null;
+  public Date getCurrentTimeStamp() {
+    Calendar cal = Calendar.getInstance();
+    return cal.getTime();
   }
 
   @Override
