@@ -105,7 +105,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   private void initializeCurrentFileFromCheckpoint() 
       throws IOException, InterruptedException {
     String fileName = partitionCheckpoint.getFileName();
-    if (cReader.isCollectorFile(fileName)) {
+    if (CollectorStreamReader.isCollectorFile(fileName)) {
       if (cReader.initializeCurrentFile(partitionCheckpoint)) {
         reader = cReader;
       } else { //file could be moved to local stream
