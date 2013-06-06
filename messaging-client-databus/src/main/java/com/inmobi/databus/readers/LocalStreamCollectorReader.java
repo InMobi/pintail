@@ -1,8 +1,10 @@
 package com.inmobi.databus.readers;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.TreeMap;
 
 import org.apache.commons.logging.Log;
@@ -72,6 +74,24 @@ public class LocalStreamCollectorReader extends
         }
       }
     }
+  }
+
+  public void build(boolean startOfStream) throws IOException {
+    FileStatus startingDir = getStartingDirFromStream();
+    if (startingDir != null) {
+      Date startingDirTimeStamp = getDateFromPath(streamDir, startingDir);
+      // listing from start of the stream
+      build(startingDirTimeStamp);
+    }
+  }
+
+  private FileStatus getStartingDirFromStream() throws IOException {
+    List<FileStatus> leastTimeStampFileStatus = new ArrayList<FileStatus>();
+    getStartingDirFromStream(fs, streamDir, 0, leastTimeStampFileStatus);
+    if (leastTimeStampFileStatus.size() > 0) {
+      return leastTimeStampFileStatus.get(0);
+    }
+    return null;
   }
 
   protected void buildListing(FileMap<DatabusStreamFile> fmap, PathFilter pathFilter)

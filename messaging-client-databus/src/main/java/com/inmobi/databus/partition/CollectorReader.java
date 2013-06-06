@@ -2,6 +2,7 @@ package com.inmobi.databus.partition;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -31,6 +32,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   private CollectorStreamReader cReader;
   private final CollectorReaderStatsExposer metrics;
   private boolean shouldBeClosed = false;
+  private Date startOfStreamTimeStamp;
 
   CollectorReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, FileSystem fs,
@@ -121,6 +123,20 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     }
   }
 
+  private void initializeCurrentFileFromStartOfStream()
+      throws IOException, InterruptedException {
+    if (!lReader.isEmpty()) {
+      startOfStreamTimeStamp = getStartingFileTimeStamp(false);
+      // setIterator to current file directly
+    } else if (!cReader.isEmpty()) {
+      startOfStreamTimeStamp = getStartingFileTimeStamp(true);
+    } else {
+      startOfStreamTimeStamp = getCurrentTimeStamp();
+    }
+
+    initializeCurrentFileFromTimeStamp(startOfStreamTimeStamp);
+  }
+
   public void initializeCurrentFile() throws IOException, InterruptedException {
     LOG.info("Initializing partition reader's current file");
     cReader.build();
@@ -133,7 +149,8 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       lReader.build(startTime);
       initializeCurrentFileFromTimeStamp(startTime);
     } else {
-      startFromStartOfStream();
+      lReader.build(true);
+      initializeCurrentFileFromStartOfStream();
     }
     if (reader != null) {
       LOG.info("Intialized currentFile:" + reader.getCurrentFile() +
@@ -141,60 +158,25 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     }
   }
 
-  private void startFromStartOfStream()
-      throws IOException, InterruptedException {
-
-    Date startingFileTimeStamp = null;
-    String startingFile = null;
-    reader = lReader;
-
-    FileStatus startingDir = getStartingDIrFromStream();
-
-    if (startingDir != null) {
-      Date startingDirTimeStamp = ((LocalStreamCollectorReader) reader).
-          getDateFromPath(reader.getStreamDir(),
-              startingDir);
-      // listing from start of the stream
-      lReader.build(startingDirTimeStamp);
-      FileStatus startingFileStatus = reader.getFirstFileInStream();
-      if (startingFileStatus != null) {
-        startingFile = startingFileStatus.getPath().getName();
-        String collectorFile = CollectorStreamReader.getCollectorFileName(
-            streamName, startingFile);
-        startingFileTimeStamp = CollectorStreamReader
-            .getDateFromCollectorFile(collectorFile);
-        initializeCurrentFileFromTimeStamp(startingFileTimeStamp);
-      }
+  private Date getStartingFileTimeStamp(boolean isCollectorFile)
+      throws IOException {
+    FileStatus startingFileStatus;
+    if (isCollectorFile) {
+      startingFileStatus= lReader.getFirstFileInStream();
+      String startingFile = startingFileStatus.getPath().getName();
+      return CollectorStreamReader.getDateFromCollectorFile(startingFile);
     } else {
-      // set current time stamp as build time stamp
-    }
-
-    if ((startingDir == null) || (startingFile == null)) {
-      reader = cReader;
-      if (reader.isEmpty()) {
-        // close the reader if stream is empty or
-        // wait for next file creation
-        reader.startFromBegining();
-      } else {
-        FileStatus startingFileStatus = reader.getFirstFileInStream();
-        if (startingFileStatus != null) {
-          startingFile = startingFileStatus.getPath().getName();
-          startingFileTimeStamp = CollectorStreamReader.getDateFromCollectorFile(
-              startingFile);
-          initializeCurrentFileFromTimeStamp(startingFileTimeStamp);
-        }
-      }
+      startingFileStatus= lReader.getFirstFileInStream();
+      String startingFile = startingFileStatus.getPath().getName();
+      String collectorFile = CollectorStreamReader.getCollectorFileName(
+          streamName, startingFile);
+      return CollectorStreamReader.getDateFromCollectorFile(collectorFile);
     }
   }
 
-  private FileStatus getStartingDIrFromStream() throws IOException {
-    List<FileStatus> leastTimeStampFileStatus = new ArrayList<FileStatus>();
-    lReader.getStartingDirFromStream(reader.getFileSystem(),
-        reader.getStreamDir(), 0, leastTimeStampFileStatus);
-    if (leastTimeStampFileStatus.size() > 0) {
-      return leastTimeStampFileStatus.get(0);
-    }
-    return null;
+  private Date getCurrentTimeStamp() {
+    Calendar cal = Calendar.getInstance();
+    return cal.getTime();
   }
 
   public Message readLine() throws IOException, InterruptedException {
