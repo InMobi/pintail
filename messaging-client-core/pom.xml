@@ -71,10 +71,10 @@
       <artifactId>databus-core</artifactId>
       <version>${databus.version}</version>
       <exclusions>
-        <!-- <exclusion>
+        <exclusion>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-core</artifactId>
-        </exclusion> -->
+        </exclusion> 
         <exclusion>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-test</artifactId>
