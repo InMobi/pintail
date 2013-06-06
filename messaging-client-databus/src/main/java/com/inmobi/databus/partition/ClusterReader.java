@@ -126,8 +126,10 @@ public class ClusterReader extends AbstractPartitionStreamReader {
       throws IOException, InterruptedException {
     if (!reader.isEmpty()) {
       startOfStreamTimeStamp = getStartingFileTimeStamp();
+      // we can directly start from starting dir's timestamp
     } else {
       startOfStreamTimeStamp = reader.getCurrentTimeStamp();
+      // should start from some old time. There may be a timing issue here
     }
 
     reader.startFromTimestmp(startOfStreamTimeStamp);

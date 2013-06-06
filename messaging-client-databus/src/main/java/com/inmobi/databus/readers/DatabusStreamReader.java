@@ -33,7 +33,6 @@ import com.inmobi.databus.files.StreamFile;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.Message;
-import com.inmobi.messaging.consumer.AbstractMessageConsumer;
 import com.inmobi.messaging.consumer.util.FileStatusComparator;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
@@ -77,7 +76,8 @@ StreamReader<T> {
   public void build(boolean startOfStream) throws IOException {
     FileStatus startingDir = getStartingDirFromStream();
     if (startingDir != null) {
-      Date startingDirTimeStamp = getDateFromPath(streamDir, startingDir);
+      Date startingDirTimeStamp = getDateFromStreamDir(streamDir,
+          startingDir.getPath());
       // listing from start of the stream
       build(startingDirTimeStamp);
     }
@@ -288,12 +288,5 @@ StreamReader<T> {
       }
     }
     return leastTimeStampFileStatusList;
-  }
-
-  public Date getDateFromPath(Path streamDir, FileStatus leastFileStatus) {
-    String leastTimeStampFile = leastFileStatus.getPath().toString();
-    String streamDirStr = streamDir.toString();
-    String startTimeStr = leastTimeStampFile.substring(streamDirStr.length() + 1);
-    return AbstractMessageConsumer.getDateFromString(startTimeStr);
   }
 }
