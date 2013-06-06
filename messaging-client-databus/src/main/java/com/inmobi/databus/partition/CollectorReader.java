@@ -19,7 +19,7 @@ import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 
 public class CollectorReader extends AbstractPartitionStreamReader {
 
-  private static final Log LOG = LogFactory.getLog(PartitionReader.class);
+  private static final Log LOG = LogFactory.getLog(CollectorReader.class);
 
   private final PartitionId partitionId;
   private final String streamName;
