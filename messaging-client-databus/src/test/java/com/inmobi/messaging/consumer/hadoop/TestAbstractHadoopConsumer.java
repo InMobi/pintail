@@ -310,7 +310,7 @@ public abstract class TestAbstractHadoopConsumer {
         rootDirs[0].toString());
     config.set(HadoopConsumerConfig.checkpointDirConfig, ck18);
     Date stopDate = DatabusStreamWaitingReader.
-        getDateFromStreamDir(rootDirs[0], finalPaths[0][1]);
+        getDateFromStreamDir(rootDirs[0], finalPaths[0][2]);
     config.set(HadoopConsumerConfig.stopDateConfig,
         AbstractMessageConsumer.minDirFormat.get().format(stopDate));
     ConsumerUtil.testConsumerStartOfStreamWithStopTime(config, testStream,
