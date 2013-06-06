@@ -95,14 +95,22 @@ public class HadoopStreamFile implements StreamFile {
     HadoopStreamFile other = (HadoopStreamFile)o;
     int cComp = checkpointPath.compareTo(other.checkpointPath);
     if ( cComp== 0) {
-      if (timeStamp != null && other.timeStamp != null) {
-        int tComp = timeStamp.compareTo(other.timeStamp);
-        if ( tComp == 0) {
-          if (fileName != null && other.fileName != null) {
-            return fileName.compareTo(other.fileName);
+      if (timeStamp != null ) {
+        if (other.timeStamp != null) {
+          int tComp = timeStamp.compareTo(other.timeStamp);
+          if ( tComp == 0) {
+            if (fileName != null && other.fileName != null) {
+              return fileName.compareTo(other.fileName);
+            }
+          } else {
+            return tComp;
           }
         } else {
-          return tComp;
+          return 1;
+        }
+      } else {
+        if (other.timeStamp != null) {
+          return -1;
         }
       }
     }

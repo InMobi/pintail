@@ -70,7 +70,7 @@ public class GroupBy {
       }
       if (columns.containsKey(Column.HOSTNAME)) {
         String hostname1 = columns.get(Column.HOSTNAME);
-        String hostname2 = columns.get(Column.HOSTNAME);
+        String hostname2 = group.columns.get(Column.HOSTNAME);
         result = hostname1.compareTo(hostname2);
         if (result != 0)
           return result;

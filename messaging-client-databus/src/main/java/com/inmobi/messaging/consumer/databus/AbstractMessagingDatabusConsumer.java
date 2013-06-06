@@ -183,6 +183,8 @@ public abstract class AbstractMessagingDatabusConsumer
   @Override
   protected Message getNext()
       throws InterruptedException, EndOfStreamException {
+    // check whether it consumed all messages till stopTime
+    checkClosedReaders();
     QueueEntry entry = null;
     for (int i = 0; i < readers.size(); i++) {
       entry = buffer.take();
@@ -190,9 +192,7 @@ public abstract class AbstractMessagingDatabusConsumer
         break;
       } else { // if (entry.getMessage() instanceof EOFMessage)
         closedReadercount++;
-        if (closedReadercount == readers.size()) {
-          throw new EndOfStreamException();
-        }
+        checkClosedReaders();
       }
     }
     setMessageCheckpoint(entry);
@@ -213,6 +213,8 @@ public abstract class AbstractMessagingDatabusConsumer
   @Override
   protected Message getNext(long timeout, TimeUnit timeunit) 
       throws InterruptedException, EndOfStreamException {
+    // check whether it consumed all messages till stopTime
+    checkClosedReaders();
     QueueEntry entry = null;
     for (int i =0; i < readers.size(); i++) {
       entry = buffer.poll(timeout, timeunit);
@@ -223,13 +225,17 @@ public abstract class AbstractMessagingDatabusConsumer
         break;
       } else { // if (entry.getMessage() instanceof EOFMessage)
         closedReadercount++;
-        if (closedReadercount == readers.size()) {
-          throw new EndOfStreamException();
-        }
+        checkClosedReaders();
       }
     }
     setMessageCheckpoint(entry);
     return (Message)entry.getMessage();
+  }
+
+  private void checkClosedReaders() throws EndOfStreamException {
+    if (closedReadercount == readers.size()) {
+      throw new EndOfStreamException();
+    }
   }
 
   protected synchronized void start() throws IOException {

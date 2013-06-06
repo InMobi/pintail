@@ -160,7 +160,7 @@ public class ConsumerUtil {
       }
     }
 
-    for (int i= 0; i < numCounters; i++) {
+    for (int i = 0; i < numCounters; i++) {
       Assert.assertEquals(markedcounter2[i], numDataFiles * numMessagesPerFile);
     }
     consumer.close();
@@ -381,6 +381,7 @@ public class ConsumerUtil {
     }
     compareConsumerCheckpoints(expectedCheckpoint, checkpointMap, 
         lastCheckpoint, consumer);
+    consumer.close();
     Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
         consumer.getMetrics())).getNumMessagesConsumed(), 300);
     Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
@@ -647,6 +648,7 @@ public class ConsumerUtil {
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
+    consumer.close();
     Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
         consumer.getMetrics())).getNumMessagesConsumed(), 300);
   }
@@ -663,6 +665,7 @@ public class ConsumerUtil {
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
+    consumer.close();
     Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
         consumer.getMetrics())).getNumMessagesConsumed(), 300);
   }
@@ -730,7 +733,17 @@ public class ConsumerUtil {
     }
     Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
         consumer.getMetrics())).getNumMessagesConsumed(), 80);
+    // throw an EndOfStreamException if consumer consumes one EOFMessage
+    // (one partitionReader only)
     Throwable th = null;
+    try {
+      consumer.next();
+    } catch (Exception e) {
+      th = e;
+    }
+    Assert.assertTrue(th instanceof EndOfStreamException);
+    // throw an EndOfStreamException if user calls next() after consuming
+    // all messages till stop time
     try {
       consumer.next();
     } catch (Exception e) {

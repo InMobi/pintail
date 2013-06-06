@@ -51,6 +51,15 @@ public class MessageUtil {
     TestUtil.LOG.debug("Created sequence data file:" + file);
   }
 
+  public static void createEmptySequenceFile(String fileName, FileSystem fs,
+      Path parent, Configuration conf) throws IOException {
+    Path file = new Path(parent, fileName);
+    SequenceFile.Writer writer = SequenceFile.createWriter(fs, conf, file, 
+        IntWritable.class, Text.class, CompressionType.NONE);
+    writer.close();
+    TestUtil.LOG.debug("Created empty sequence file:" + file);
+  }
+
   public static Text getTextMessage(byte[] line) throws IOException {
     Text text = new Text();
     ByteArrayInputStream bais = new ByteArrayInputStream(line);
