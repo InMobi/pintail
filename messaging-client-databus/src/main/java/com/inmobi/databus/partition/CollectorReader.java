@@ -131,7 +131,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     } else if (!cReader.isEmpty()) {
       startOfStreamTimeStamp = getStartingFileTimeStamp(true);
     } else {
-      startOfStreamTimeStamp = getCurrentTimeStamp();
+      startOfStreamTimeStamp = reader.getCurrentTimeStamp();
     }
 
     initializeCurrentFileFromTimeStamp(startOfStreamTimeStamp);
@@ -172,11 +172,6 @@ public class CollectorReader extends AbstractPartitionStreamReader {
           streamName, startingFile);
       return CollectorStreamReader.getDateFromCollectorFile(collectorFile);
     }
-  }
-
-  private Date getCurrentTimeStamp() {
-    Calendar cal = Calendar.getInstance();
-    return cal.getTime();
   }
 
   public Message readLine() throws IOException, InterruptedException {

@@ -130,7 +130,7 @@ public class ClusterReader extends AbstractPartitionStreamReader {
     if (!reader.isEmpty()) {
       startOfStreamTimeStamp = getStartingFileTimeStamp();
     } else {
-      startOfStreamTimeStamp = getCurrentTimeStamp();
+      startOfStreamTimeStamp = reader.getCurrentTimeStamp();
     }
 
     reader.startFromTimestmp(startOfStreamTimeStamp);
@@ -140,11 +140,6 @@ public class ClusterReader extends AbstractPartitionStreamReader {
     FileStatus startingFileStatus =reader.getFirstFileInStream();
     return DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         startingFileStatus.getPath());
-  }
-
-  public Date getCurrentTimeStamp() {
-    Calendar cal = Calendar.getInstance();
-    return cal.getTime();
   }
 
   @Override

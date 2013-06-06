@@ -185,6 +185,11 @@ public abstract class StreamReader<T extends StreamFile> {
     return currentLineNum;
   }
 
+  public Date getCurrentTimeStamp() {
+    Calendar cal = Calendar.getInstance();
+    return cal.getTime();
+  }
+
   protected abstract T getStreamFile(Date timestamp);
 
   protected abstract T getStreamFile(FileStatus status);
@@ -236,7 +241,6 @@ public abstract class StreamReader<T extends StreamFile> {
     }
     return line;
   }
-  
 
   protected void resetCurrentFileSettings() {
     currentLineNum = 0;
@@ -342,14 +346,6 @@ public abstract class StreamReader<T extends StreamFile> {
 
   public FileStatus getFirstFileInStream() {
     return fileMap.getFirstFile();
-  }
-
-  public FileSystem getFileSystem() {
-    return fs;
-  }
-
-  public Path getStreamDir() {
-    return streamDir;
   }
 
   protected FileStatus getFileMapValue(StreamFile streamFile) {
