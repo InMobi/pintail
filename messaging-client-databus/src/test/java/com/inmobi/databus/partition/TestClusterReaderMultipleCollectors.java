@@ -46,6 +46,7 @@ public class TestClusterReaderMultipleCollectors {
   Path[] databusFiles2 = new Path[3];
   FileSystem fs;
   Path streamDir;
+  String fsUri;
   Configuration conf = new Configuration();
   Set<Integer> partitionMinList;                                                  
   PartitionCheckpointList partitionCheckpointList;    
@@ -64,6 +65,7 @@ public class TestClusterReaderMultipleCollectors {
         1);
     streamDir = DatabusUtil.getStreamDir(StreamType.MERGED,
         new Path(cluster.getRootDir()), testStream);
+    fsUri = fs.getUri().toString();
     Map<Integer, PartitionCheckpoint> chkpoints = new 
         TreeMap<Integer, PartitionCheckpoint>();
     partitionCheckpointList = new PartitionCheckpointList(chkpoints);
@@ -82,7 +84,7 @@ public class TestClusterReaderMultipleCollectors {
   @Test
   public void testReadFromStart() throws Exception {
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     preader = new PartitionReader(partitionId, partitionCheckpointList, fs, 
         buffer, streamDir, conf, DatabusInputFormat.class.getCanonicalName(),
         CollectorStreamReader.getDateFromCollectorFile(files[0]), 10, true,
@@ -177,7 +179,7 @@ public class TestClusterReaderMultipleCollectors {
     Assert.assertTrue(prMetrics.getWaitTimeUnitsNewFile() > 0);
 
     prMetrics = new PartitionReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     prepareCheckpoint( DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath5)), 50, movedPath5, partitionCheckpointList);
     preader = new PartitionReader(partitionId,  partitionCheckpointList, fs, 

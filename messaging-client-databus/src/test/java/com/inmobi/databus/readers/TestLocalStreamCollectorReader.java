@@ -35,6 +35,7 @@ public class TestLocalStreamCollectorReader {
   private String doesNotExist3 = TestUtil.files[7];
   Configuration conf;
   int consumerNumber;
+  String fsUri;
 
   @BeforeTest
   public void setup() throws Exception {
@@ -43,6 +44,7 @@ public class TestLocalStreamCollectorReader {
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
         testStream, partitionId, files, null, databusFiles, 3);
     conf = cluster.getHadoopConf();
+    fsUri = FileSystem.get(conf).getUri().toString();
   }
 
   @AfterTest
@@ -54,7 +56,7 @@ public class TestLocalStreamCollectorReader {
   public void testInitialize() throws Exception {
     CollectorReaderStatsExposer metrics = new 
         CollectorReaderStatsExposer(testStream, "c1", partitionId.toString(),
-            consumerNumber);
+            consumerNumber, fsUri);
     // Read from start
     lreader = new LocalStreamCollectorReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
@@ -136,7 +138,7 @@ public class TestLocalStreamCollectorReader {
   public void testReadFromStart() throws Exception {
     CollectorReaderStatsExposer metrics = new 
         CollectorReaderStatsExposer(testStream, "c1", partitionId.toString(), 
-            consumerNumber);
+            consumerNumber, fsUri);
     lreader = new LocalStreamCollectorReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
         DatabusStreamReader.getStreamsLocalDir(cluster, testStream), conf,
@@ -154,13 +156,18 @@ public class TestLocalStreamCollectorReader {
     Assert.assertEquals(metrics.getHandledExceptions(), 0);
     Assert.assertEquals(metrics.getMessagesReadFromSource(), 300);
     Assert.assertEquals(metrics.getWaitTimeUnitsNewFile(), 0);
+    Assert.assertTrue(metrics.getListOps() > 0);
+    Assert.assertTrue(metrics.getOpenOps() == 0);
+    Assert.assertTrue(metrics.getFileStatusOps() > 0);
+    Assert.assertTrue(metrics.getExistsOps() > 0);
+    Assert.assertTrue(metrics.getNumberRecordReaders() > 0);
   }
 
   @Test
   public void testReadFromCheckpoint() throws Exception {
     CollectorReaderStatsExposer metrics = new 
         CollectorReaderStatsExposer(testStream, "c1", partitionId.toString(), 
-            consumerNumber);
+            consumerNumber, fsUri);
     lreader = new LocalStreamCollectorReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
         DatabusStreamReader.getStreamsLocalDir(cluster, testStream), conf, 0L,
@@ -180,13 +187,18 @@ public class TestLocalStreamCollectorReader {
     Assert.assertEquals(metrics.getHandledExceptions(), 0);
     Assert.assertEquals(metrics.getMessagesReadFromSource(), 180);
     Assert.assertEquals(metrics.getWaitTimeUnitsNewFile(), 0);
+    Assert.assertTrue(metrics.getListOps() > 0);
+    Assert.assertTrue(metrics.getOpenOps() == 0);
+    Assert.assertTrue(metrics.getFileStatusOps() > 0);
+    Assert.assertTrue(metrics.getExistsOps() > 0);
+    Assert.assertTrue(metrics.getNumberRecordReaders() > 0);
   }
 
   @Test
   public void testReadFromTimeStamp() throws Exception {
     CollectorReaderStatsExposer metrics = new 
         CollectorReaderStatsExposer(testStream, "c1", partitionId.toString(), 
-            consumerNumber);
+            consumerNumber, fsUri);
     lreader = new LocalStreamCollectorReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
         DatabusStreamReader.getStreamsLocalDir(cluster, testStream), conf, 0L,
@@ -203,6 +215,11 @@ public class TestLocalStreamCollectorReader {
     Assert.assertEquals(metrics.getHandledExceptions(), 0);
     Assert.assertEquals(metrics.getMessagesReadFromSource(), 200);
     Assert.assertEquals(metrics.getWaitTimeUnitsNewFile(), 0);
+    Assert.assertTrue(metrics.getListOps() > 0);
+    Assert.assertTrue(metrics.getOpenOps() == 0);
+    Assert.assertTrue(metrics.getFileStatusOps() > 0);
+    Assert.assertTrue(metrics.getExistsOps() > 0);
+    Assert.assertTrue(metrics.getNumberRecordReaders() > 0);
   }
 
 }

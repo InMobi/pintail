@@ -48,7 +48,7 @@ public class LocalStreamCollectorReader extends
   @Override
   protected void doRecursiveListing(Path dir, PathFilter pathFilter,
       FileMap<DatabusStreamFile> fmap) throws IOException {
-    FileStatus[] fileStatuses = fs.listStatus(dir, pathFilter);
+    FileStatus[] fileStatuses = fsListFileStatus(dir, pathFilter);
     if (fileStatuses == null || fileStatuses.length == 0) {
       LOG.debug("No files in directory:" + dir);
     } else {
@@ -83,7 +83,7 @@ public class LocalStreamCollectorReader extends
     while (current.getTime().before(now) && !isListingStopped()) {
       Path hhDir =  getHourDirPath(streamDir, current.getTime());
       int hour = current.get(Calendar.HOUR_OF_DAY);
-      if (fs.exists(hhDir)) {
+      if (fsIsPathExists(hhDir)) {
         while (current.getTime().before(now) && 
             hour  == current.get(Calendar.HOUR_OF_DAY) && !isListingStopped()) {
           Path dir = getMinuteDirPath(streamDir, current.getTime());
