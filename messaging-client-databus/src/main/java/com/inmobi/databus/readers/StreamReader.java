@@ -1,7 +1,6 @@
 package com.inmobi.databus.readers;
 
 import java.io.IOException;
-import java.util.Calendar;
 import java.util.Date;
 
 import org.apache.commons.logging.Log;
@@ -185,11 +184,6 @@ public abstract class StreamReader<T extends StreamFile> {
     return currentLineNum;
   }
 
-  public Date getCurrentTimeStamp() {
-    Calendar cal = Calendar.getInstance();
-    return cal.getTime();
-  }
-
   protected abstract T getStreamFile(Date timestamp);
 
   protected abstract T getStreamFile(FileStatus status);
@@ -344,7 +338,7 @@ public abstract class StreamReader<T extends StreamFile> {
     return fileMap.isWithin(fileName);
   }
 
-  public FileStatus getFirstFileInStream() {
+  protected FileStatus getFirstFileInStream() {
     return fileMap.getFirstFile();
   }
 
