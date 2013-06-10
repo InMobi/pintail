@@ -145,6 +145,10 @@ public class DatabusStreamWaitingReader
   @Override
   protected void buildListing(FileMap<HadoopStreamFile> fmap,
       PathFilter pathFilter) throws IOException {
+    if (buildTimestamp == null) {
+      build(true);
+      return;
+    }
     Calendar current = Calendar.getInstance();
     Date now = current.getTime();
     current.setTime(buildTimestamp);
