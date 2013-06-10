@@ -73,6 +73,14 @@ public abstract class StreamReader<T extends StreamFile> {
   protected abstract FileMap<T> createFileMap() throws IOException;
 
   public void build() throws IOException {
+    // check whether reader is waiting reader and
+    // start from start of stream if stream is empty
+    if (this instanceof DatabusStreamWaitingReader) {
+      if (((DatabusStreamWaitingReader) this).getBuildTimestamp() == null) {
+        ((DatabusStreamWaitingReader) this).build(true);
+        return;
+      }
+    }
     fileMap.build();
   }
 
