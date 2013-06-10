@@ -115,30 +115,11 @@ public class ClusterReader extends AbstractPartitionStreamReader {
         reader.startFromTimestmp(startTime);
       }
     } else {
-      ((DatabusStreamWaitingReader)reader).build(true);
-      initializeCurrentFileFromStartOfStream();
+      ((DatabusStreamWaitingReader)reader).build(null);
+      reader.startFromBegining();
     }
     LOG.info("Intialized currentFile:" + reader.getCurrentFile() +
         " currentLineNum:" + reader.getCurrentLineNum());
-  }
-
-  private void initializeCurrentFileFromStartOfStream()
-      throws IOException, InterruptedException {
-    if (!reader.isEmpty()) {
-      startOfStreamTimeStamp = getStartingFileTimeStamp();
-      // we can directly start from starting dir's timestamp
-    } else {
-      startOfStreamTimeStamp = reader.getCurrentTimeStamp();
-      // should start from some old time. There may be a timing issue here
-    }
-
-    reader.startFromTimestmp(startOfStreamTimeStamp);
-  }
-
-  private Date getStartingFileTimeStamp() {
-    FileStatus startingFileStatus =reader.getFirstFileInStream();
-    return DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
-        startingFileStatus.getPath());
   }
 
   @Override

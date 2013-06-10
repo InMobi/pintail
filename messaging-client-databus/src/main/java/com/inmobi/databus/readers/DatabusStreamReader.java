@@ -68,9 +68,17 @@ StreamReader<T> {
     }
   }
 
+  public Date getBuildTimestamp() {
+    return buildTimestamp;
+  }
+
   public void build(Date date) throws IOException {
-    this.buildTimestamp = date;
-    build();
+    if (date != null) {
+      this.buildTimestamp = date;
+      build();
+    } else {
+      build(true);
+    }
   }
 
   public void build(boolean startOfStream) throws IOException {
