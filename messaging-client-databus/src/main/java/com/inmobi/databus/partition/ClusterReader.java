@@ -10,7 +10,6 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
@@ -26,7 +25,6 @@ public class ClusterReader extends AbstractPartitionStreamReader {
   private final Date startTime;
   private final Path streamDir;
   private final boolean isDatabusData;
-  private Date startOfStreamTimeStamp;
 
   ClusterReader(PartitionId partitionId,
       PartitionCheckpointList partitionCheckpointList, FileSystem fs,

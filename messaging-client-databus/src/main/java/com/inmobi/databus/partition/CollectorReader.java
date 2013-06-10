@@ -6,7 +6,6 @@ import java.util.Date;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
@@ -29,7 +28,6 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   private CollectorStreamReader cReader;
   private final CollectorReaderStatsExposer metrics;
   private boolean shouldBeClosed = false;
-  private Date startOfStreamTimeStamp;
 
   CollectorReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, FileSystem fs,
@@ -123,15 +121,12 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   private void initializeCurrentFileFromStartOfStream()
       throws IOException, InterruptedException {
     if (!lReader.isEmpty()) {
-      startOfStreamTimeStamp = getStartingFileTimeStamp(false);
-      // setIterator to current file directly
-    } else if (!cReader.isEmpty()) {
-      startOfStreamTimeStamp = getStartingFileTimeStamp(true);
+      reader =lReader;
     } else {
-      startOfStreamTimeStamp = reader.getCurrentTimeStamp();
+      reader = cReader;
     }
 
-    initializeCurrentFileFromTimeStamp(startOfStreamTimeStamp);
+    reader.startFromBegining();
   }
 
   public void initializeCurrentFile() throws IOException, InterruptedException {
@@ -152,22 +147,6 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     if (reader != null) {
       LOG.info("Intialized currentFile:" + reader.getCurrentFile() +
           " currentLineNum:" + reader.getCurrentLineNum());
-    }
-  }
-
-  private Date getStartingFileTimeStamp(boolean isCollectorFile)
-      throws IOException {
-    FileStatus startingFileStatus;
-    if (isCollectorFile) {
-      startingFileStatus= cReader.getFirstFileInStream();
-      String startingFile = startingFileStatus.getPath().getName();
-      return CollectorStreamReader.getDateFromCollectorFile(startingFile);
-    } else {
-      startingFileStatus= lReader.getFirstFileInStream();
-      String startingFile = startingFileStatus.getPath().getName();
-      String collectorFile = CollectorStreamReader.getCollectorFileName(
-          streamName, startingFile);
-      return CollectorStreamReader.getDateFromCollectorFile(collectorFile);
     }
   }
 
