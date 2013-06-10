@@ -94,16 +94,20 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
             LOG.info("No files in directory:" + streamDir);
             return;
           }
-          for (FileStatus file : fileStatuses) {
-            if (stopTime != null) {
+          if (stopTime == null) {
+            for (FileStatus file : fileStatuses) {
+              addPath(file);
+            }
+          } else {
+            for (FileStatus file : fileStatuses) {
               Date currentTimeStamp = getDateFromCollectorFile(
                   file.getPath().getName());
               if (stopTime.before(currentTimeStamp)) {
                 stopListing();
                 continue;
               }
+              addPath(file);
             }
-            addPath(file);
           }
         } else {
           LOG.info("Collector directory does not exist");
