@@ -29,7 +29,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   private final CollectorReaderStatsExposer metrics;
   private Date stopTime;
   private boolean noNewFiles;
-  private static boolean isLocalStreamAvailable = false;
+  private boolean isLocalStreamAvailable = false;
 
   private boolean shouldBeClosed = false;
 
@@ -56,7 +56,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     }
     cReader = new CollectorStreamReader(partitionId, fs, streamName,
         collectorDir, waitTimeForFlush, waitTimeForFileCreate, metrics,
-        conf, noNewFiles, stopTime);
+        conf, noNewFiles, stopTime, isLocalStreamAvailable);
   }
 
   private void initializeCurrentFileFromTimeStamp(Date timestamp)
@@ -112,10 +112,6 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   private boolean checkAnyReaderIsStopped() {
     return cReader.isStopped()
         || (isLocalStreamAvailable && lReader.isStopped());
-  }
-  
-  public static boolean isLocalStreamAvailable() {
-    return isLocalStreamAvailable;
   }
 
   private void initializeCurrentFileFromCheckpoint() 

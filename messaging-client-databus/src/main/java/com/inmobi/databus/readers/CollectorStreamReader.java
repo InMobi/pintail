@@ -42,12 +42,14 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   private Configuration conf;
   private StringBuilder builder = new StringBuilder();
   private boolean isS3Fs = false;
+  private boolean isLocalStreamAvailable;
 
   public CollectorStreamReader(PartitionId partitionId,
       FileSystem fs, String streamName, Path streamDir,
       long waitTimeForFlush,
       long waitTimeForCreate, CollectorReaderStatsExposer metrics,
-      Configuration conf, boolean noNewFiles, Date stopTime)
+      Configuration conf, boolean noNewFiles, Date stopTime,
+      boolean isLocalStreamAvailable)
           throws IOException {
     super(partitionId, fs, streamDir, waitTimeForCreate, metrics, noNewFiles,
         stopTime);
@@ -55,6 +57,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     this.waitTimeForFlush = waitTimeForFlush;
     this.collectorMetrics = (CollectorReaderStatsExposer)(this.metrics);
     this.conf = conf;
+    this.isLocalStreamAvailable = isLocalStreamAvailable;
     LOG.info("Collector reader initialized with partitionId:" + partitionId +
         " streamDir:" + streamDir + 
         " waitTimeForFlush:" + waitTimeForFlush +
@@ -225,7 +228,6 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
         break;
       }
       Path lastFile = getLastFile();
-      boolean isLocalStreamAvailable = CollectorReader.isLocalStreamAvailable();
       if (isLocalStreamAvailable) {
         build(); // rebuild file list
       }
