@@ -93,7 +93,7 @@ StreamReader<T> {
 
   private FileStatus getStartingDirFromStream() throws IOException {
     List<FileStatus> leastTimeStampFileStatus = new ArrayList<FileStatus>();
-    getStartingDirFromStream(fs, streamDir, 0, leastTimeStampFileStatus);
+    getStartingDirFromStream(streamDir, 0, leastTimeStampFileStatus);
     if (leastTimeStampFileStatus.size() > 0) {
       return leastTimeStampFileStatus.get(0);
     }
@@ -277,8 +277,8 @@ StreamReader<T> {
     return new Path(streamDir, minDirFormat.get().format(date));
   }
 
-  public List<FileStatus> getStartingDirFromStream(FileSystem fs, Path dir,
-      int depth, List<FileStatus> leastTimeStampFileStatusList)
+  public List<FileStatus> getStartingDirFromStream(Path dir, int depth,
+      List<FileStatus> leastTimeStampFileStatusList)
           throws IOException {
     FileStatus [] filestatuses = fsListFileStatus(dir);
     if (filestatuses != null && filestatuses.length > 0) {
@@ -292,8 +292,8 @@ StreamReader<T> {
       if (depth == 4) {
         leastTimeStampFileStatusList.add(leastTimeStampFileStatus);
       } else {
-        getStartingDirFromStream(fs, leastTimeStampFileStatus.getPath(),
-            depth + 1, leastTimeStampFileStatusList);
+        getStartingDirFromStream(leastTimeStampFileStatus.getPath(), depth + 1,
+            leastTimeStampFileStatusList);
       }
     }
     return leastTimeStampFileStatusList;
