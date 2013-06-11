@@ -373,7 +373,7 @@
     <module>messaging-client-scribe</module>
     <module>messaging-client-flume</module>
     <module>messaging-client-databus</module>
-    <module>messaging-client-dist</module>
     <module>messaging-client-audit-consumer</module>
+    <module>messaging-client-dist</module>
   </modules>
 </project>

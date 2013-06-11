@@ -37,6 +37,7 @@
         <include>com.inmobi.messaging:messaging-client-scribe</include>
         <include>com.inmobi.messaging:messaging-client-flume</include>
         <include>com.inmobi.messaging:messaging-client-databus</include>
+        <include>com.inmobi.messaging:messaging-client-audit-consumer</include>
       </includes>
 
       <binaries>
