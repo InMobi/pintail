@@ -50,12 +50,14 @@ public class TestClusterReaderEmptyStream {
   Configuration conf = new Configuration();
   String inputFormatClass;
   int consumerNumber;
+  String fsUri;
 
   @BeforeTest
   public void setup() throws Exception {
     // setup cluster
     consumerNumber = 1;
     fs = FileSystem.getLocal(conf);
+    fsUri = fs.getUri().toString();
     streamDir = new Path("/tmp/test/hadoop/" + this.getClass().getSimpleName(),
         testStream).makeQualified(fs);
     HadoopUtil.setupHadoopCluster(conf, null, null, null, streamDir);
@@ -77,7 +79,7 @@ public class TestClusterReaderEmptyStream {
   @Test
   public void testInitialize() throws Exception {
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
-        testStream, "c1", clusterId.toString(), consumerNumber);
+        testStream, "c1", clusterId.toString(), consumerNumber, fsUri);
     // Read from start time 
     preader = new PartitionReader(clusterId, null, fs, buffer,
         streamDir, conf, inputFormatClass,

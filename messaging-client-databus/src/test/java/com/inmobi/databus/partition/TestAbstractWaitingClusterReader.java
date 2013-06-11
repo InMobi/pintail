@@ -52,8 +52,9 @@ public abstract class TestAbstractWaitingClusterReader {
   }
 
   public void testReadFromStart() throws Exception {
+    String fsUri = fs.getUri().toString();
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     preader = new PartitionReader(partitionId, partitionCheckpointlist, fs, 
     		buffer, streamDir, conf, inputFormatClass,
         DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
@@ -65,8 +66,9 @@ public abstract class TestAbstractWaitingClusterReader {
   }
 
   public void testReadFromStartOfStream() throws Exception {
+    String fsUri = fs.getUri().toString();
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     preader = new PartitionReader(partitionId, partitionCheckpointlist, fs,
         buffer, streamDir, conf, inputFormatClass, null,
         1000, isDatabusData(), prMetrics, false, partitionMinList, null);

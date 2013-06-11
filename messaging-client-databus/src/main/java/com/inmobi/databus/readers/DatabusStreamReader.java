@@ -105,7 +105,7 @@ StreamReader<T> {
 
   protected void doRecursiveListing(Path dir, PathFilter pathFilter,
       FileMap<T> fmap) throws IOException {
-    FileStatus[] fileStatuses = fs.listStatus(dir, pathFilter);
+    FileStatus[] fileStatuses = fsListFileStatus(dir, pathFilter);
     if (fileStatuses == null || fileStatuses.length == 0) {
       LOG.debug("No files in directory:" + dir);
     } else {
@@ -151,12 +151,13 @@ StreamReader<T> {
     LOG.info("Opening file:" + getCurrentFile() + " NumLinesTobeSkipped when" +
         " opening:" + currentLineNum);
     try {
-      FileStatus status = fs.getFileStatus(getCurrentFile());
+      FileStatus status = fsGetFileStatus(getCurrentFile());
       if (status != null) {
         currentFileSplit = new FileSplit(getCurrentFile(), 0L,
             status.getLen(), new String[0]);
         recordReader = input.getRecordReader(currentFileSplit, new JobConf(conf),
             Reporter.NULL);
+        metrics.incrementNumberRecordReaders();
         msgKey = recordReader.createKey();
         msgValue = recordReader.createValue();
         if (msgValue instanceof Writable) {
@@ -279,7 +280,7 @@ StreamReader<T> {
   public List<FileStatus> getStartingDirFromStream(FileSystem fs, Path dir,
       int depth, List<FileStatus> leastTimeStampFileStatusList)
           throws IOException {
-    FileStatus [] filestatuses = fs.listStatus(dir);
+    FileStatus [] filestatuses = fsListFileStatus(dir);
     if (filestatuses != null && filestatuses.length > 0) {
       FileStatusComparator comparator = new FileStatusComparator();
       FileStatus leastTimeStampFileStatus = filestatuses[0];

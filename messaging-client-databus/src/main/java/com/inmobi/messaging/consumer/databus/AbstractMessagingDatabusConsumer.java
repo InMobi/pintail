@@ -256,11 +256,11 @@ public abstract class AbstractMessagingDatabusConsumer
     } else if (relativeStartTimeStr != null) {
       partitionTimestamp = findStartTimeStamp(relativeStartTimeStr);
       LOG.info("Checkpoint does not exists and relative start time is provided. " +
-          "Started from relative start time" + partitionTimestamp);
+          "Started from relative start time " + partitionTimestamp);
     } else if (startTime != null) {
       partitionTimestamp = startTime;
       LOG.info("There is no checkpoint and no relative start time is provided." +
-          " Starting from absolute start time" + partitionTimestamp);
+          " Starting from absolute start time " + partitionTimestamp);
     } else if (startOfStream == true) {
       LOG.info("Starting from start of the stream ");
     } else {
