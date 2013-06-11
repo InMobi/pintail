@@ -29,6 +29,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   private final CollectorReaderStatsExposer metrics;
   private Date stopTime;
   private boolean noNewFiles;
+  private boolean isLocalStreamAvailable = false;
 
   private boolean shouldBeClosed = false;
 
@@ -48,8 +49,11 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     this.stopTime = stopTime;
     this.metrics = metrics;
     this.noNewFiles = noNewFiles;
-    lReader = new LocalStreamCollectorReader(partitionId,  fs, streamName,
-        streamsLocalDir, conf, waitTimeForFileCreate, metrics, stopTime);
+    if (streamsLocalDir != null) {
+      lReader = new LocalStreamCollectorReader(partitionId,  fs, streamName,
+          streamsLocalDir, conf, waitTimeForFileCreate, metrics, stopTime);
+      isLocalStreamAvailable = true;
+    }
     cReader = new CollectorStreamReader(partitionId, fs, streamName,
         collectorDir, waitTimeForFlush, waitTimeForFileCreate, metrics,
         conf, noNewFiles, stopTime);

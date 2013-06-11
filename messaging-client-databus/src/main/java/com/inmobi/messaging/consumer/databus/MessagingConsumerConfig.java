@@ -52,4 +52,8 @@ public interface MessagingConsumerConfig {
   public static final String consumerIdInGroupConfig = 
       "messaging.consumer.group.membership";
   public static final String DEFAULT_CONSUMER_ID = "1/1";
+
+  public static final String readFromLocalStreamConfig =
+      "messaging.consumer.read.localstream";
+  public static final boolean DEFAULT_READ_LOCAL_STREAM = true;
 }
