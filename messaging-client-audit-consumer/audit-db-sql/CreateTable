@@ -1,7 +1,7 @@
 CREATE TABLE audit
 (
   TIMEINTERVAL bigint,
-  HOSTNAME varchar(25),
+  HOSTNAME varchar(50),
   TIER varchar(15),
   TOPIC varchar(25),
   CLUSTER varchar(50),
@@ -22,5 +22,6 @@ CREATE TABLE audit
   C60 bigint,
   C120 bigint,
   C240 bigint,
-  C600 bigint
+  C600 bigint,
+  PRIMARY KEY (TIMEINTERVAL,HOSTNAME,TIER,TOPIC,CLUSTER)
 )
