@@ -58,6 +58,16 @@
           <artifactId>messaging-client-core</artifactId>
           <version>${project.version}</version>
       </dependency>
-</dependencies>
+      <dependency>
+      	<groupId>com.inmobi.databus</groupId>
+      	<artifactId>databus-core</artifactId>
+      	<version>${databus.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.codahale.metrics</groupId>
+        <artifactId>metrics-core</artifactId>
+        <version>3.0.0-RC1</version>
+    </dependency>
+  </dependencies>
 
 </project>
