@@ -29,7 +29,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   private final CollectorReaderStatsExposer metrics;
   private Date stopTime;
   private boolean noNewFiles;
-  private boolean isLocalStreamAvailable = false;
+  private static boolean isLocalStreamAvailable = false;
 
   private boolean shouldBeClosed = false;
 
@@ -61,7 +61,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
 
   private void initializeCurrentFileFromTimeStamp(Date timestamp)
       throws IOException, InterruptedException {
-    if (lReader.initializeCurrentFile(timestamp)) {
+    if (isLocalStreamAvailable && lReader.initializeCurrentFile(timestamp)) {
       reader = lReader;
     } else {
       reader = cReader;
@@ -76,7 +76,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   private void initializeCurrentFileFromCheckpointLocalStream(
       String localStreamFileName) throws IOException, InterruptedException {
     String error = "Checkpoint file does not exist";
-    if (!lReader.isEmpty()) {
+    if (isLocalStreamAvailable && !lReader.isEmpty()) {
       if (lReader.initializeCurrentFile(new PartitionCheckpoint(
           DatabusStreamFile.create(streamName, localStreamFileName),
           partitionCheckpoint.getLineNum()))) {
@@ -92,21 +92,30 @@ public class CollectorReader extends AbstractPartitionStreamReader {
               localStreamFileName))) {
         reader = cReader;
         if (!reader.initFromStart()) {
-          throw new IllegalArgumentException(error);
+          throw new IllegalArgumentException(error); // dead code
         }
-      } else if (cReader.isStopped() || lReader.isStopped()) {
+      } else if (checkAnyReaderIsStopped()) {
         shouldBeClosed  = true;
       } else {
         throw new IllegalArgumentException(error);
       }
     } else {
       reader = cReader;
-      if (lReader.isStopped() || cReader.isStopped()) {
+      if (checkAnyReaderIsStopped()) {
         shouldBeClosed = true;
       } else {
         cReader.startFromBegining();
       }
     }
+  }
+
+  private boolean checkAnyReaderIsStopped() {
+    return cReader.isStopped()
+        || (isLocalStreamAvailable && lReader.isStopped());
+  }
+  
+  public static boolean isLocalStreamAvailable() {
+    return isLocalStreamAvailable;
   }
 
   private void initializeCurrentFileFromCheckpoint() 
@@ -131,19 +140,34 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     LOG.info("Initializing partition reader's current file");
     cReader.build();
 
+    if (isLocalStreamAvailable) {
+      if (partitionCheckpoint != null) {
+        lReader.build(LocalStreamCollectorReader.getBuildTimestamp(streamName,
+            partitionId.getCollector(), partitionCheckpoint));
+        initializeCurrentFileFromCheckpoint();
+      } else if (startTime != null) {
+        lReader.build(startTime);
+        initializeCurrentFileFromTimeStamp(startTime);
+      } else {
+        LOG.info("Would never reach here");
+      }
+    } else {
+      initializeCurrentFileFromCollectorStreamOnly();
+    }
+    if (reader != null) {
+      LOG.info("Intialized currentFile:" + reader.getCurrentFile()
+          + " currentLineNum:" + reader.getCurrentLineNum());
+    }
+  }
+
+  private void initializeCurrentFileFromCollectorStreamOnly()
+      throws IOException, InterruptedException {
     if (partitionCheckpoint != null) {
-      lReader.build(LocalStreamCollectorReader.getBuildTimestamp(
-          streamName, partitionId.getCollector(), partitionCheckpoint));
       initializeCurrentFileFromCheckpoint();
     } else if (startTime != null) {
-      lReader.build(startTime);
       initializeCurrentFileFromTimeStamp(startTime);
     } else {
       LOG.info("Would never reach here");
-    }
-    if (reader != null) {
-      LOG.info("Intialized currentFile:" + reader.getCurrentFile() +
-          " currentLineNum:" + reader.getCurrentLineNum());
     }
   }
 
@@ -158,36 +182,42 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       // check whether readers are stopped
       if (reader.isStopped()) {
         return null;
-      }
-      if (reader == lReader) {
-        lReader.closeStream();
-        LOG.info("Switching to collector stream as we reached end of" +
-            " stream on local stream");
-        LOG.info("current file:" + reader.getCurrentFile());
-        cReader.startFromNextHigher(
-            CollectorStreamReader.getCollectorFileName(
-                streamName,
-                reader.getCurrentFile().getName()));
-        reader = cReader;
-        metrics.incrementSwitchesFromLocalToCollector();
-      } else { // reader should be cReader
-        assert (reader == cReader);
-        cReader.closeStream();
-        LOG.info("Looking for current file in local stream");
-        lReader.build(CollectorStreamReader.getDateFromCollectorFile(
-            reader.getCurrentFile().getName()));
-        if (!lReader.setCurrentFile(
-            LocalStreamCollectorReader.getDatabusStreamFileName(
-                partitionId.getCollector(),
-                cReader.getCurrentFile().getName()),
-                cReader.getCurrentLineNum())) {
-          LOG.info("Did not find current file in local stream as well") ;
+      } else {
+        if (!isLocalStreamAvailable) {
+          cReader.startFromNextHigher(reader.getCurrentFile().getName());
+          reader = cReader;
+          // return line;
+        }
+        if (reader == lReader) {
+          lReader.closeStream();
+          LOG.info("Switching to collector stream as we reached end of" +
+              " stream on local stream");
+          LOG.info("current file:" + reader.getCurrentFile());
           cReader.startFromNextHigher(
-              reader.getCurrentFile().getName());
-        } else {
-          LOG.info("Switching to local stream as the file got moved");
-          reader = lReader;
-          metrics.incrementSwitchesFromCollectorToLocal();
+              CollectorStreamReader.getCollectorFileName(
+                  streamName,
+                  reader.getCurrentFile().getName()));
+          reader = cReader;
+          metrics.incrementSwitchesFromLocalToCollector();
+        } else { // reader should be cReader
+          assert (reader == cReader);
+          cReader.closeStream();
+          LOG.info("Looking for current file in local stream");
+          lReader.build(CollectorStreamReader.getDateFromCollectorFile(
+              reader.getCurrentFile().getName()));
+          if (!lReader.setCurrentFile(
+              LocalStreamCollectorReader.getDatabusStreamFileName(
+                  partitionId.getCollector(),
+                  cReader.getCurrentFile().getName()),
+                  cReader.getCurrentLineNum())) {
+            LOG.info("Did not find current file in local stream as well") ;
+            cReader.startFromNextHigher(
+                reader.getCurrentFile().getName());
+          } else {
+            LOG.info("Switching to local stream as the file got moved");
+            reader = lReader;
+            metrics.incrementSwitchesFromCollectorToLocal();
+          }
         }
       }
       boolean ret = reader.openStream();
