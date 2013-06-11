@@ -16,6 +16,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.thrift.TException;
 
+import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.util.AuditDBHelper;
 import com.inmobi.messaging.util.AuditUtil;
 
@@ -70,8 +71,10 @@ public class AuditDbQuery {
   void aggregateStats() {
     LOG.debug("To time:"+toTime);
     LOG.debug("From time:"+fromTime);
+    ClientConfig config = ClientConfig.loadFromClasspath(AuditStats.CONF_FILE);
+    AuditDBHelper dbHelper = new AuditDBHelper(config);
     tupleSet.addAll(
-        AuditDBHelper.retrieve(toTime, fromTime, filter, groupBy, dbConfFile));
+dbHelper.retrieve(toTime, fromTime, filter, groupBy));
     LOG.debug("Tuple set retrieved from DB: " + tupleSet);
     setReceivedAndSentStats();
     if (percentileSet != null) {

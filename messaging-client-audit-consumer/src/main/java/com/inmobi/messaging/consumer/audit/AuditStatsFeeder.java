@@ -39,7 +39,7 @@ import com.inmobi.messaging.util.AuditUtil;
  */
 class AuditStatsFeeder implements Runnable {
 
-  private class TupleKey {
+  class TupleKey {
     public TupleKey(Date timestamp, String tier, String topic, String hostname,
         String cluster) {
       this.timestamp = timestamp;
@@ -139,6 +139,7 @@ class AuditStatsFeeder implements Runnable {
   final MetricRegistry metrics = new MetricRegistry();
   private final Counter messagesProcessed;
   private final Timer timeTakenPerRun, timeTakenDbUpdate;
+  private final AuditDBHelper dbHelper;
   // TODO could change these reporters to may b ganglia or JMX
   final ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics)
       .convertRatesTo(TimeUnit.SECONDS)
@@ -161,6 +162,7 @@ class AuditStatsFeeder implements Runnable {
     this.clusterName = clusterName;
     this.config = config;
     this.rootDir = rootDir;
+    dbHelper = new AuditDBHelper(config);
     consumer = getConsumer(config);
     msgsPerBatch = config.getInteger(MESSAGES_PER_BATCH_KEY,
         DEFAULT_MSG_PER_BATCH);
@@ -317,10 +319,6 @@ class AuditStatsFeeder implements Runnable {
         AuditUtil.AUDIT_STREAM_TOPIC_NAME, consumerName);
   }
 
-  private boolean updateDB(Set<Tuple> tuples) {
-    return AuditDBHelper.update(tuples, config);
-  }
-
   public void stop() {
     isStop = true;
   }
@@ -390,7 +388,7 @@ class AuditStatsFeeder implements Runnable {
         tupleSet.addAll(tuples.values());
           final Timer.Context dbUpdate = timeTakenDbUpdate.time();
           try {
-        if (updateDB(tupleSet)) {
+            if (dbHelper.update(tupleSet)) {
           try {
             consumer.mark();
           } catch (Exception e) {

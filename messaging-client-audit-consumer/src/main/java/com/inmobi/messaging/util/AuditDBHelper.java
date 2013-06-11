@@ -24,9 +24,12 @@ import com.mysql.jdbc.Driver;
 
 public class AuditDBHelper {
 
-  private static final String AUDIT_DB_CONF_FILE = "audit-db-conf.properties";
   private static final Log LOG = LogFactory.getLog(AuditDBHelper.class);
+  private final ClientConfig config;
 
+  public AuditDBHelper(ClientConfig config) {
+    this.config = config;
+  }
   private static Connection getConnection(String url, String username,
                                           String password) {
     try {
@@ -45,7 +48,7 @@ public class AuditDBHelper {
     return connection;
   }
 
-  public static boolean update(Set<Tuple> tupleSet, ClientConfig config) {
+  public boolean update(Set<Tuple> tupleSet) {
 
     LOG.info("Connecting to DB ...");
     Connection connection =
@@ -230,18 +233,12 @@ public class AuditDBHelper {
 
 
 
-  public static Set<Tuple> retrieve(Date toDate, Date fromDate, Filter filter,
-                                    GroupBy groupBy, String confFileName) {
+  public Set<Tuple> retrieve(Date toDate, Date fromDate, Filter filter,
+      GroupBy groupBy) {
     LOG.debug("Retrieving from db  from-time :" + fromDate + " to-date :" +
-        ":" + toDate + " filter :" + filter.toString() +
-        " and conf-filename :" + confFileName);
+ ":"
+        + toDate + " filter :" + filter.toString());
     Set<Tuple> tupleSet = new HashSet<Tuple>();
-
-    ClientConfig config;
-    if (confFileName == null || confFileName.isEmpty())
-      config = ClientConfig.loadFromClasspath(AUDIT_DB_CONF_FILE);
-    else
-      config = ClientConfig.loadFromClasspath(confFileName);
 
     LOG.info("Connecting to DB ...");
     Connection connection =

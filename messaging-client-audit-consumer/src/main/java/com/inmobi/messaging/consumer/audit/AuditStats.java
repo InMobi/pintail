@@ -17,7 +17,7 @@ import com.inmobi.messaging.ClientConfig;
  * This class is responsible for launching multiple AuditStatsFeeder instances one per cluster
  */
 public class AuditStats {
-  private static final String CONF_FILE = "audit-feeder.properties";
+  public static final String CONF_FILE = "audit-feeder.properties";
   private static final String DATABUS_CONF_FILE_KEY = "feeder.conf";
   private static final String AUDIT_PATH_SUFFIX = "system/";
   private static final Log LOG = LogFactory.getLog(AuditStats.class);
