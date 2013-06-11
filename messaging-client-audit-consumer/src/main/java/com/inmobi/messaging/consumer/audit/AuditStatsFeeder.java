@@ -1,18 +1,26 @@
 package com.inmobi.messaging.consumer.audit;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.thrift.TDeserializer;
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import com.codahale.metrics.ConsoleReporter;
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.CsvReporter;
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Timer;
 import com.inmobi.audit.thrift.AuditMessage;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
@@ -100,13 +108,18 @@ class AuditStatsFeeder implements Runnable {
     private AuditStatsFeeder getOuterType() {
       return AuditStatsFeeder.this;
     }
+
+    @Override
+    public String toString() {
+      return "TupleKey [timestamp=" + timestamp + ", tier=" + tier + ", topic="
+          + topic + ", hostname=" + hostname + ", cluster=" + cluster + "]";
+    }
   }
 
-  private Map<TupleKey, Tuple> tuples = new HashMap<TupleKey, Tuple>();
-  private static final String MESSAGE_CLIENT_CONF_FILE = "audit-consumer-conf.properties";
+  Map<TupleKey, Tuple> tuples = new HashMap<TupleKey, Tuple>();
+
   private static final String ROOT_DIR_KEY = "databus.consumer.rootdirs";
-  private static final Logger LOG = LoggerFactory
-      .getLogger(AuditStatsFeeder.class);
+  private static final Log LOG = LogFactory.getLog(AuditStatsFeeder.class);
   private static final String CONSUMER_CLASSNAME = "com.inmobi.messaging.consumer.databus.DatabusConsumer";
 
   private final String clusterName;
@@ -119,12 +132,20 @@ class AuditStatsFeeder implements Runnable {
   private TDeserializer deserializer = new TDeserializer();
   private final ClientConfig config;
   private final static long RETRY_INTERVAL = 60000;
-  // TODO change checkpoint DIR to correct path
-  private final static String CHECKPOINT_DIR = "/tmp";
-  private final static String CHECKPOINT_DIR_KEY = "messaging.consumer.checkpoint.dir";
   private final String rootDir;
   private Thread thread;
   private static final String START_TIME_KEY = "messaging.consumer.absolute.starttime";
+  private static final int DEFAULT_TIMEOUT = 30;
+  final MetricRegistry metrics = new MetricRegistry();
+  private final Counter messagesProcessed;
+  private final Timer timeTakenPerRun, timeTakenDbUpdate;
+  // TODO could change these reporters to may b ganglia or JMX
+  final ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics)
+      .convertRatesTo(TimeUnit.SECONDS)
+      .convertDurationsTo(TimeUnit.MILLISECONDS).build();
+  final CsvReporter csvreporter = CsvReporter.forRegistry(metrics)
+      .formatFor(Locale.US).convertRatesTo(TimeUnit.SECONDS)
+      .convertDurationsTo(TimeUnit.MILLISECONDS).build(new File("/tmp"));
 
   /**
    * 
@@ -132,17 +153,23 @@ class AuditStatsFeeder implements Runnable {
    * @param fromTime
    * @param rootDir
    *          path of _audit stream till /databus/system
+   * @param config1
    * @throws IOException
    */
-  public AuditStatsFeeder(String clusterName, String rootDir)
+  public AuditStatsFeeder(String clusterName, String rootDir, ClientConfig config)
       throws IOException {
     this.clusterName = clusterName;
-    config = ClientConfig.loadFromClasspath(MESSAGE_CLIENT_CONF_FILE);
+    this.config = config;
     this.rootDir = rootDir;
     consumer = getConsumer(config);
     msgsPerBatch = config.getInteger(MESSAGES_PER_BATCH_KEY,
         DEFAULT_MSG_PER_BATCH);
     LOG.info("Messages per batch " + msgsPerBatch);
+    messagesProcessed = metrics.counter(clusterName + ".messagesProcessed");
+    timeTakenPerRun = metrics.timer(clusterName + ".timeTakenPerRun");
+    timeTakenDbUpdate = metrics.timer(clusterName + ".timeTakenDbUpdate");
+    reporter.start(1, TimeUnit.MINUTES);
+    csvreporter.start(1, TimeUnit.MINUTES);
 
   }
 
@@ -167,6 +194,8 @@ class AuditStatsFeeder implements Runnable {
       msg.setHostname(message.getHostname());
       msg.setTopic(message.getTopic());
       msg.setWindowSize(message.getWindowSize());
+      msg.setFilenames(message.getFilenames());
+      msg.setTags(message.getTags());
     }
     if (message.getReceived() != null) {
       for (Entry<Long, Long> entry : message.getReceived().entrySet()) {
@@ -217,7 +246,7 @@ class AuditStatsFeeder implements Runnable {
     return messages;
   }
 
-  private void addTuples(AuditMessage msg) {
+  void addTuples(AuditMessage msg) {
     if (msg == null)
       return;
     int windowSize = msg.getWindowSize();
@@ -227,14 +256,14 @@ class AuditStatsFeeder implements Runnable {
         for (long timestamp : message.getReceived().keySet()) {
           long upperBoundaryTime = timestamp + windowSize * 1000;
           long latency = messageReceivedTime - upperBoundaryTime;
-          LatencyColumns latencyColumn = LatencyColumns
-              .getLatencyColumn(latency);
           if (latency < 0) {
             LOG.error("Error scenario,check that time is in sync across tiers,audit"
                 + "message has time stamp "+ messageReceivedTime
                 + " and source time is "+ timestamp+ " for tier " + message.getTier());
             continue;
           }
+          LatencyColumns latencyColumn = LatencyColumns
+              .getLatencyColumn(latency);
           TupleKey key = new TupleKey(new Date(upperBoundaryTime),
               message.getTier(), message.getTopic(), message.getHostname(),
               clusterName);
@@ -242,6 +271,8 @@ class AuditStatsFeeder implements Runnable {
           Tuple tuple;
           if (tuples.containsKey(key)) {
             tuple = tuples.get(key);
+            LOG.debug("Tuple with key " + key + " found in memory with value "
+                + tuple);
           } else {
             tuple = new Tuple(message.getHostname(), message.getTier(),
                 clusterName, new Date(upperBoundaryTime), message.getTopic());
@@ -281,23 +312,17 @@ class AuditStatsFeeder implements Runnable {
 
   private MessageConsumer getConsumer(ClientConfig config) throws IOException {
     config.set(ROOT_DIR_KEY, rootDir);
-    config.set(CHECKPOINT_DIR_KEY, CHECKPOINT_DIR);
     String consumerName = clusterName + "_consumer";
     return MessageConsumerFactory.create(config, CONSUMER_CLASSNAME,
         AuditUtil.AUDIT_STREAM_TOPIC_NAME, consumerName);
   }
 
   private boolean updateDB(Set<Tuple> tuples) {
-    return AuditDBHelper.update(tuples, null);
+    return AuditDBHelper.update(tuples, config);
   }
 
   public void stop() {
     isStop = true;
-    // Interrupting the thread in case its waiting for next message to be
-    // available
-    if (thread != null) {
-      thread.interrupt();
-    }
   }
 
   public void start() {
@@ -323,6 +348,8 @@ class AuditStatsFeeder implements Runnable {
     AuditMessage auditMsg;
     try {
       while (!isStop) {
+        final Timer.Context runContext = timeTakenPerRun.time();
+        try {
         int numOfMsgs = 0;
         while (!isStop && consumer == null) {
           // if a checkpoint is already present than from time would be ignored.
@@ -340,23 +367,29 @@ class AuditStatsFeeder implements Runnable {
         }
         while (!isStop && numOfMsgs < msgsPerBatch) {
           try {
-            msg = consumer.next();
+              msg = consumer.next(DEFAULT_TIMEOUT, TimeUnit.SECONDS);
+              if (msg == null)// timeout occurred
+                continue;
             auditMsg = new AuditMessage();
             deserializer.deserialize(auditMsg, msg.getData().array());
             LOG.debug("Packet read is " + auditMsg);
             addTuples(auditMsg);
             numOfMsgs++;
+            messagesProcessed.inc();
           } catch (InterruptedException e) {
             LOG.error("Error while reading audit message ", e);
           } catch (TException e) {
             LOG.error("Exception in deserializing audit message");
           } catch (EndOfStreamException e) {
             LOG.info("End of stream reached,breaking the loop");
+            isStop = true;
             break;
           }
         }
         Set<Tuple> tupleSet = new HashSet<Tuple>();
         tupleSet.addAll(tuples.values());
+          final Timer.Context dbUpdate = timeTakenDbUpdate.time();
+          try {
         if (updateDB(tupleSet)) {
           try {
             consumer.mark();
@@ -374,8 +407,14 @@ class AuditStatsFeeder implements Runnable {
             consumer = null;
           }
         }
+          } finally {
+            dbUpdate.stop();
+          }
         // clearing of the tuples as they have been processed
         tuples.clear();
+        } finally {
+          runContext.stop();
+      }
       }
     } finally {
       if (consumer != null) {

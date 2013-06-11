@@ -45,13 +45,7 @@ public class AuditDBHelper {
     return connection;
   }
 
-  public static boolean update(Set<Tuple> tupleSet, String confFileName) {
-
-    ClientConfig config;
-    if (confFileName == null || confFileName.isEmpty())
-      config = ClientConfig.loadFromClasspath(AUDIT_DB_CONF_FILE);
-    else
-      config = ClientConfig.loadFromClasspath(confFileName);
+  public static boolean update(Set<Tuple> tupleSet, ClientConfig config) {
 
     LOG.info("Connecting to DB ...");
     Connection connection =
@@ -92,7 +86,9 @@ public class AuditDBHelper {
       return false;
     } finally {
       try {
-        rs.close();
+        if (rs != null) {
+          rs.close();
+        }
         selectPreparedStatement.close();
         insertPreparedStatement.close();
         updatePreparedStatement.close();
@@ -266,11 +262,13 @@ public class AuditDBHelper {
       int index = 1;
       preparedstatement.setLong(index++, fromDate.getTime());
       preparedstatement.setLong(index++, toDate.getTime());
+      if (filter.getFilters() != null) {
       for (Column column : Column.values()) {
         String value = filter.getFilters().get(column);
-        if ( value != null || !value.isEmpty() ) {
+        if (value != null && !value.isEmpty()) {
           preparedstatement.setString(index++, value);
         }
+      }
       }
       LOG.debug("Prepared statement is " + preparedstatement.toString());
       rs = preparedstatement.executeQuery();
@@ -328,11 +326,13 @@ public class AuditDBHelper {
       sumString += ", Sum(" + latencyColumn.toString() + ")";
       asString += ", " + latencyColumn.toString();
     }
+    if (filter.getFilters() != null) {
     for (Column column : Column.values()) {
       String value = filter.getFilters().get(column);
-      if ( value != null || !value.isEmpty() ) {
+      if (value != null && !value.isEmpty()) {
         whereString += " and " + column.toString() +" = ?";
       }
+    }
     }
     for (Column column : groupBy.getGroupByColumns()) {
       if (!groupByString.isEmpty()) {

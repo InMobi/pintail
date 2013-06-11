@@ -1,21 +1,28 @@
 package com.inmobi.messaging.consumer.audit;
 
-import com.inmobi.messaging.util.AuditDBHelper;
-import com.inmobi.messaging.util.AuditUtil;
-import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.thrift.TException;
+
+import com.inmobi.messaging.util.AuditDBHelper;
+import com.inmobi.messaging.util.AuditUtil;
 
 public class AuditDbQuery {
 
   private static final int minArgs = 2;
-  private static final Logger LOG =
-      LoggerFactory.getLogger(AuditDbQuery.class);
+  private static final Log LOG = LogFactory.getLog(AuditDbQuery.class);
 
   private String rootDir, filterString, groupByString, toTimeString,
       fromTimeString, percentileString, dbConfFile;
@@ -131,7 +138,7 @@ public class AuditDbQuery {
   }
 
   private Set<Float> getPercentileList(String percentileString) {
-    if (percentileString != null || !percentileString.isEmpty()) {
+    if (percentileString != null && !percentileString.isEmpty()) {
       Set<Float> percentileSet = new TreeSet<Float>();
       String[] percentiles = percentileString.split(",");
       for (String percentile : percentiles)
