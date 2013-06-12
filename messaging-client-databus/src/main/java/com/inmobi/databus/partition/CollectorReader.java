@@ -9,6 +9,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
+import com.inmobi.databus.files.CollectorFile;
 import com.inmobi.databus.files.DatabusStreamFile;
 import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.databus.readers.LocalStreamCollectorReader;
@@ -82,18 +83,22 @@ public class CollectorReader extends AbstractPartitionStreamReader {
         throw new IllegalArgumentException(error);
       } 
     } else {
-      initializeCurrentFileFromCheckpointCollectorStream();
+      reader = cReader;
+      String collectorFileName = CollectorStreamReader.getCollectorFileName(
+          streamName, localStreamFileName);
+      initializeCurrentFileFromCheckpointCollectorStream(collectorFileName);
     }
   }
 
-  private void initializeCurrentFileFromCheckpointCollectorStream()
+  private void initializeCurrentFileFromCheckpointCollectorStream(
+      String collectorFileName)
       throws IOException, InterruptedException {
-    String fileName = partitionCheckpoint.getFileName();
     String error = "Checkpoint file does not exist";
     if (!cReader.isEmpty()) {
-      if (!reader.initializeCurrentFile(partitionCheckpoint)) {
-        if (cReader.isBeforeStream(fileName)) {
-          reader = cReader;
+      if (!cReader.initializeCurrentFile(
+          new PartitionCheckpoint(CollectorFile.create(collectorFileName),
+          partitionCheckpoint.getLineNum()))) {
+        if (cReader.isBeforeStream(collectorFileName)) {
           reader.initFromStart();
         } else if (checkAnyReaderIsStopped()) {
           shouldBeClosed  = true;
@@ -102,7 +107,6 @@ public class CollectorReader extends AbstractPartitionStreamReader {
         }
       }
     } else {
-      reader = cReader;
       if (checkAnyReaderIsStopped()) {
         shouldBeClosed = true;
       } else {
@@ -174,7 +178,8 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   private void initializeCurrentFileFromCollectorStreamOnly()
       throws IOException, InterruptedException {
     if (partitionCheckpoint != null) {
-      initializeCurrentFileFromCheckpointCollectorStream();
+      initializeCurrentFileFromCheckpointCollectorStream(partitionCheckpoint
+          .getFileName());
     } else if (startTime != null) {
       reader.startFromTimestmp(startTime);
     } else {
