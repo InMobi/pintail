@@ -56,7 +56,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
 
   private void initializeCurrentFileFromTimeStamp(Date timestamp)
       throws IOException, InterruptedException {
-    if (isLocalStreamAvailable && lReader.initializeCurrentFile(timestamp)) {
+    if (lReader.initializeCurrentFile(timestamp)) {
       reader = lReader;
     } else {
       reader = cReader;
@@ -71,7 +71,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   private void initializeCurrentFileFromCheckpointLocalStream(
       String localStreamFileName) throws IOException, InterruptedException {
     String error = "Checkpoint file does not exist";
-    if (isLocalStreamAvailable && !lReader.isEmpty()) {
+    if (!lReader.isEmpty()) {
       if (lReader.initializeCurrentFile(new PartitionCheckpoint(
           DatabusStreamFile.create(streamName, localStreamFileName),
           partitionCheckpoint.getLineNum()))) {
@@ -105,8 +105,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   }
 
   private boolean checkAnyReaderIsStopped() {
-    return cReader.isStopped()
-        || (isLocalStreamAvailable && lReader.isStopped());
+    return cReader.isStopped() || lReader.isStopped();
   }
 
   private void initializeCurrentFileFromCheckpoint() 
