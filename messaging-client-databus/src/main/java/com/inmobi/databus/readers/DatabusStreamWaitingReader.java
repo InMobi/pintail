@@ -124,8 +124,8 @@ public class DatabusStreamWaitingReader
       Path checkpointedFileName =new Path(streamDir, 
           partitioncheckpoint.getFileName());
       if (!(currentFile.getPath()).equals(checkpointedFileName)) {
-        if(fs.exists(checkpointedFileName)) {
-          currentFile = fs.getFileStatus(checkpointedFileName);
+        if(fsIsPathExists(checkpointedFileName)) {
+          currentFile = fsGetFileStatus(checkpointedFileName);
           currentLineNum = partitioncheckpoint.getLineNum();
         } else {
           currentLineNum = 0;
@@ -152,7 +152,7 @@ public class DatabusStreamWaitingReader
     while (current.getTime().before(now)) {
       Path hhDir =  getHourDirPath(streamDir, current.getTime());
       int hour = current.get(Calendar.HOUR_OF_DAY);
-      if (fs.exists(hhDir)) {
+      if (fsIsPathExists(hhDir)) {
         while (current.getTime().before(now) && 
             hour  == current.get(Calendar.HOUR_OF_DAY)) {
           // stop the file listing if stop date is beyond current time.
@@ -167,9 +167,9 @@ public class DatabusStreamWaitingReader
           if (partitionMinList.contains(Integer.valueOf(min))
               && !isRead(currenTimestamp, min)) {
             Path dir = getMinuteDirPath(streamDir, currenTimestamp);
-            if (fs.exists(dir)) {
+            if (fsIsPathExists(dir)) {
               Path nextMinDir = getMinuteDirPath(streamDir, current.getTime());
-              if (fs.exists(nextMinDir)) {
+              if (fsIsPathExists(nextMinDir)) {
                 doRecursiveListing(dir, pathFilter, fmap);
               } else {
                 LOG.info("Reached end of file listing. Not looking at the last" +
@@ -251,8 +251,8 @@ public class DatabusStreamWaitingReader
             partitionCheckpoint.getFileName());
         //set iterator to checkpoointed file if there is a checkpoint
         if(!fileToRead.getPath().equals(checkPointedFileName)) {
-          if (fs.exists(checkPointedFileName)) {
-            fileToRead = fs.getFileStatus(checkPointedFileName);
+          if (fsIsPathExists(checkPointedFileName)) {
+            fileToRead = fsGetFileStatus(checkPointedFileName);
             currentLineNum = partitionCheckpoint.getLineNum();
           } else {
             currentLineNum = 0;

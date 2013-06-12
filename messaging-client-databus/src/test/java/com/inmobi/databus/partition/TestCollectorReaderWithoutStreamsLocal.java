@@ -60,8 +60,9 @@ public class TestCollectorReaderWithoutStreamsLocal {
 
   @Test
   public void testReadFromStart() throws Exception {
+    String fsUri = fs.getUri().toString();
     CollectorReaderStatsExposer prMetrics = new CollectorReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     preader = new PartitionReader(partitionId, null, conf, fs,
         collectorDir, null, buffer, testStream,
         CollectorStreamReader.getDateFromCollectorFile(files[0]), 10, 1000,

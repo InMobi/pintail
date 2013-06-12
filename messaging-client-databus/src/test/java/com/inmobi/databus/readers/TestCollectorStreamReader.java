@@ -35,6 +35,7 @@ public class TestCollectorStreamReader {
   private String doesNotExist3 = TestUtil.files[7];
   private Configuration conf;
   int consumerNumber;
+  String fsUri;
 
   @BeforeTest
   public void setup() throws Exception {
@@ -46,6 +47,7 @@ public class TestCollectorStreamReader {
         collectorName);
     conf = cluster.getHadoopConf();
     FileSystem fs = FileSystem.get(conf);
+    fsUri = fs.getUri().toString();
     TestUtil.createEmptyFile(fs, collectorDir, testStream + "_current");
     TestUtil.createEmptyFile(fs, collectorDir, "scribe_stats");
   }
@@ -59,7 +61,7 @@ public class TestCollectorStreamReader {
   public void testInitialize() throws Exception {
     CollectorReaderStatsExposer metrics = new 
         CollectorReaderStatsExposer(testStream, "c1", partitionId.toString(),
-            consumerNumber);
+            consumerNumber, fsUri);
     // Read from start
     cReader = new CollectorStreamReader(partitionId, FileSystem.get(
         cluster.getHadoopConf()), testStream,
@@ -150,7 +152,7 @@ public class TestCollectorStreamReader {
   public void testReadFromStart() throws Exception {
     CollectorReaderStatsExposer metrics = new 
         CollectorReaderStatsExposer(testStream, "c1", partitionId.toString(), 
-            consumerNumber);
+            consumerNumber, fsUri);
     cReader = new CollectorStreamReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
         CollectorStreamReader.getCollectorDir(cluster, testStream, collectorName),
@@ -168,13 +170,18 @@ public class TestCollectorStreamReader {
     Assert.assertEquals(metrics.getMessagesReadFromSource(), 300);
     Assert.assertEquals(metrics.getWaitTimeInSameFile(), 0);
     Assert.assertEquals(metrics.getWaitTimeUnitsNewFile(), 0);
+    Assert.assertTrue(metrics.getListOps() > 0);
+    Assert.assertTrue(metrics.getOpenOps() > 0);
+    Assert.assertTrue(metrics.getFileStatusOps() == 0);
+    Assert.assertTrue(metrics.getExistsOps() > 0);
+    Assert.assertTrue(metrics.getNumberRecordReaders() == 0);
   }
 
   @Test
   public void testReadFromCheckpoint() throws Exception {
     CollectorReaderStatsExposer metrics = new 
         CollectorReaderStatsExposer(testStream, "c1", partitionId.toString(), 
-            consumerNumber);
+            consumerNumber, fsUri);
     cReader = new CollectorStreamReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
         CollectorStreamReader.getCollectorDir(cluster, testStream, collectorName),
@@ -192,13 +199,18 @@ public class TestCollectorStreamReader {
     Assert.assertEquals(metrics.getMessagesReadFromSource(), 180);
     Assert.assertEquals(metrics.getWaitTimeInSameFile(), 0);
     Assert.assertEquals(metrics.getWaitTimeUnitsNewFile(), 0);
+    Assert.assertTrue(metrics.getListOps() > 0);
+    Assert.assertTrue(metrics.getOpenOps() > 0);
+    Assert.assertTrue(metrics.getFileStatusOps() == 0);
+    Assert.assertTrue(metrics.getExistsOps() > 0);
+    Assert.assertTrue(metrics.getNumberRecordReaders() == 0);
   }
 
   @Test
   public void testReadFromTimeStamp() throws Exception {
     CollectorReaderStatsExposer metrics = new 
         CollectorReaderStatsExposer(testStream, "c1", partitionId.toString(), 
-            consumerNumber);
+            consumerNumber, fsUri);
     cReader = new CollectorStreamReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
         CollectorStreamReader.getCollectorDir(cluster, testStream, collectorName),
@@ -215,6 +227,11 @@ public class TestCollectorStreamReader {
     Assert.assertEquals(metrics.getMessagesReadFromSource(), 200);
     Assert.assertEquals(metrics.getWaitTimeInSameFile(), 0);
     Assert.assertEquals(metrics.getWaitTimeUnitsNewFile(), 0);
+    Assert.assertTrue(metrics.getListOps() > 0);
+    Assert.assertTrue(metrics.getOpenOps() > 0);
+    Assert.assertTrue(metrics.getFileStatusOps() == 0);
+    Assert.assertTrue(metrics.getExistsOps() > 0);
+    Assert.assertTrue(metrics.getNumberRecordReaders() == 0);
   }
 
 }

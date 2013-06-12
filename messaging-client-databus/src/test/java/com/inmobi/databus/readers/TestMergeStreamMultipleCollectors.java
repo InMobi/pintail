@@ -41,6 +41,7 @@ public class TestMergeStreamMultipleCollectors {
   PartitionCheckpointList partitionCheckpointList;
   Map<Integer, PartitionCheckpoint> chkPoints;
   int conusmerNumber;
+  String fsUri;
 
   @BeforeTest
   public void setup() throws Exception {
@@ -52,6 +53,7 @@ public class TestMergeStreamMultipleCollectors {
     TestUtil.setUpFiles(cluster, collectors[1], files, null, databusFiles2, 0,
         3);
     conf = cluster.getHadoopConf();
+    fsUri = FileSystem.get(conf).getUri().toString();
     partitionMinList = new TreeSet<Integer>();
     for (int i = 0; i < 60; i++) {
       partitionMinList.add(i);
@@ -68,7 +70,7 @@ public class TestMergeStreamMultipleCollectors {
   @Test
   public void testReadFromStart() throws Exception {
     PartitionReaderStatsExposer metrics = new PartitionReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), conusmerNumber);
+        testStream, "c1", partitionId.toString(), conusmerNumber, fsUri);
     reader = new DatabusStreamWaitingReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()),
         DatabusStreamReader.getStreamsDir(cluster, testStream),
@@ -94,5 +96,10 @@ public class TestMergeStreamMultipleCollectors {
     reader.close();
     Assert.assertEquals(metrics.getHandledExceptions(), 0);
     Assert.assertEquals(metrics.getMessagesReadFromSource(), 600);
+    Assert.assertTrue(metrics.getListOps() > 0);
+    Assert.assertTrue(metrics.getOpenOps() == 0);
+    Assert.assertTrue(metrics.getFileStatusOps() > 0);
+    Assert.assertTrue(metrics.getExistsOps() > 0);
+    Assert.assertTrue(metrics.getNumberRecordReaders() > 0);
   }
 }
