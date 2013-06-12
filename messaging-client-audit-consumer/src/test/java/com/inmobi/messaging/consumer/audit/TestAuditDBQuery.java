@@ -3,13 +3,10 @@ package com.inmobi.messaging.consumer.audit;
 import com.inmobi.messaging.util.AuditDBUtil;
 import com.inmobi.messaging.util.AuditUtil;
 import junit.framework.Assert;
-import org.apache.thrift.TException;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -223,7 +220,6 @@ public class TestAuditDBQuery extends AuditDBUtil {
     String filterString = "";
     String percentileString =  "80,90,95,99,99.9";
     AuditDbQuery query;
-
     try {
       query = new AuditDbQuery(formatter.format(toDate),
           formatter.format(fromDate), filterString, groupByString, null,
@@ -233,7 +229,29 @@ public class TestAuditDBQuery extends AuditDBUtil {
       for (Map.Entry<Tuple, Map<Float, Integer>> entry : query.getPercentile
           ().entrySet()) {
         Assert.assertEquals(5, entry.getValue().size());
-
+        if (entry.getKey().getHostname().equals(tuple1.getHostname())) {
+          Assert.assertEquals(LatencyColumns.valueOf("C2"),
+              entry.getValue().get(80.00f));
+          Assert.assertEquals(LatencyColumns.valueOf("C3"),
+              entry.getValue().get(90.00f));
+          Assert.assertEquals(LatencyColumns.valueOf("C3"),
+              entry.getValue().get(95.00f));
+          Assert.assertEquals(LatencyColumns.valueOf("C3"),
+              entry.getValue().get(99.00f));
+          Assert.assertEquals(LatencyColumns.valueOf("C3"),
+              entry.getValue().get(99.9f));
+        } else if (entry.getKey().getHostname().equals(tuple4.getHostname())) {
+          Assert.assertEquals(LatencyColumns.valueOf("C1"),
+              entry.getValue().get(80.00f));
+          Assert.assertEquals(LatencyColumns.valueOf("C1"),
+              entry.getValue().get(90.00f));
+          Assert.assertEquals(LatencyColumns.valueOf("C1"),
+              entry.getValue().get(95.00f));
+          Assert.assertEquals(LatencyColumns.valueOf("C1"),
+              entry.getValue().get(99.00f));
+          Assert.assertEquals(LatencyColumns.valueOf("C1"),
+              entry.getValue().get(99.9f));
+        }
       }
     } catch (Exception e) {
       e.printStackTrace();

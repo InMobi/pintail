@@ -1,22 +1,23 @@
 package com.inmobi.messaging.consumer.audit;
 
-import com.inmobi.messaging.util.AuditDBHelper;
-import com.inmobi.messaging.util.AuditUtil;
-import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.thrift.TException;
+
+import com.inmobi.messaging.ClientConfig;
+import com.inmobi.messaging.util.AuditDBHelper;
+import com.inmobi.messaging.util.AuditUtil;
+
 public class AuditDbQuery {
 
   private static final int minArgs = 2;
   private static final  String DEFAULT_TIMEZONE = "GMT";
-  private static final Logger LOG =
-      LoggerFactory.getLogger(AuditDbQuery.class);
+  private static final Log LOG = LogFactory.getLog(AuditDbQuery.class);
 
   private String timeZone, filterString, groupByString, toTimeString,
       fromTimeString, percentileString, dbConfFile;
@@ -64,8 +65,9 @@ public class AuditDbQuery {
   void aggregateStats() {
     LOG.debug("To time:" + toTime);
     LOG.debug("From time:" + fromTime);
-    tupleSet.addAll(
-        AuditDBHelper.retrieve(toTime, fromTime, filter, groupBy, dbConfFile));
+    ClientConfig config = ClientConfig.loadFromClasspath(AuditStats.CONF_FILE);
+    AuditDBHelper dbHelper = new AuditDBHelper(config);
+    tupleSet.addAll(dbHelper.retrieve(toTime, fromTime, filter, groupBy));
     LOG.debug("Tuple set retrieved from DB: " + tupleSet);
     setReceivedAndSentStats();
     if (percentileSet != null) {

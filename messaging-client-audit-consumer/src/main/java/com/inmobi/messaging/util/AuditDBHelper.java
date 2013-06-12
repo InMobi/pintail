@@ -1,18 +1,34 @@
 package com.inmobi.messaging.util;
 
-import com.inmobi.messaging.ClientConfig;
-import com.inmobi.messaging.consumer.audit.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.sql.*;
-import java.util.Date;
-import java.util.*;
+import com.inmobi.messaging.ClientConfig;
+import com.inmobi.messaging.consumer.audit.Column;
+import com.inmobi.messaging.consumer.audit.Filter;
+import com.inmobi.messaging.consumer.audit.GroupBy;
+import com.inmobi.messaging.consumer.audit.LatencyColumns;
+import com.inmobi.messaging.consumer.audit.Tuple;
 
 public class AuditDBHelper {
 
-  private static final String AUDIT_DB_CONF_FILE = "audit-db-conf.properties";
   private static final Log LOG = LogFactory.getLog(AuditDBHelper.class);
+  private final ClientConfig config;
+
+  public AuditDBHelper(ClientConfig config) {
+    this.config = config;
+  }
 
   protected static Connection getConnection(String driverName, String url,
                                           String username, String password) {
@@ -31,13 +47,7 @@ public class AuditDBHelper {
     return connection;
   }
 
-  public static boolean update(Set<Tuple> tupleSet, String confFileName) {
-
-    ClientConfig config;
-    if (confFileName == null || confFileName.isEmpty())
-      config = ClientConfig.loadFromClasspath(AUDIT_DB_CONF_FILE);
-    else
-      config = ClientConfig.loadFromClasspath(confFileName);
+  public boolean update(Set<Tuple> tupleSet) {
 
     LOG.info("Connecting to DB ...");
     Connection connection =
@@ -84,7 +94,9 @@ public class AuditDBHelper {
       return false;
     } finally {
       try {
-        rs.close();
+        if (rs != null) {
+          rs.close();
+        }
         selectPreparedStatement.close();
         insertPreparedStatement.close();
         updatePreparedStatement.close();
@@ -224,18 +236,13 @@ public class AuditDBHelper {
   }
 
 
-  public static Set<Tuple> retrieve(Date toDate, Date fromDate, Filter filter,
-                                    GroupBy groupBy, String confFileName) {
-    LOG.debug("Retrieving from db  from-time :" + fromDate + " to-date :" +
-        ":" + toDate + " filter :" + filter.toString() +
-        " and conf-filename :" + confFileName);
-    Set<Tuple> tupleSet = new HashSet<Tuple>();
 
-    ClientConfig config;
-    if (confFileName == null || confFileName.isEmpty())
-      config = ClientConfig.loadFromClasspath(AUDIT_DB_CONF_FILE);
-    else
-      config = ClientConfig.loadFromClasspath(confFileName);
+  public Set<Tuple> retrieve(Date toDate, Date fromDate, Filter filter,
+      GroupBy groupBy) {
+    LOG.debug("Retrieving from db  from-time :" + fromDate + " to-date :" +
+ ":"
+        + toDate + " filter :" + filter.toString());
+    Set<Tuple> tupleSet = new HashSet<Tuple>();
 
     LOG.info("Connecting to DB ...");
     Connection connection =
@@ -258,12 +265,12 @@ public class AuditDBHelper {
       preparedstatement.setLong(index++, fromDate.getTime());
       preparedstatement.setLong(index++, toDate.getTime());
       if (filter.getFilters() != null) {
-        for (Column column : Column.values()) {
-          String value = filter.getFilters().get(column);
-          if (value != null && !value.isEmpty()) {
-            preparedstatement.setString(index++, value);
-          }
+      for (Column column : Column.values()) {
+        String value = filter.getFilters().get(column);
+        if (value != null && !value.isEmpty()) {
+          preparedstatement.setString(index++, value);
         }
+      }
       }
       LOG.debug("Prepared statement is " + preparedstatement.toString());
       rs = preparedstatement.executeQuery();
@@ -326,12 +333,13 @@ public class AuditDBHelper {
           latencyColumn.toString();
     }
     if (filter.getFilters() != null) {
-      for (Column column : Column.values()) {
-        String value = filter.getFilters().get(column);
-        if (value != null && !value.isEmpty()) {
-          whereString += " and " + column.toString() + " = ?";
-        }
+    for (Column column : Column.values()) {
+      String value = filter.getFilters().get(column);
+      if (value != null && !value.isEmpty()) {
+        whereString += " and " + column.toString() +" = ?";
+
       }
+    }
     }
     for (Column column : groupBy.getGroupByColumns()) {
       if (!groupByString.isEmpty()) {

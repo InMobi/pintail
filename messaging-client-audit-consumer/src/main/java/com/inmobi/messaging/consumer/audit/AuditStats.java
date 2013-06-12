@@ -5,29 +5,35 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.inmobi.databus.Cluster;
 import com.inmobi.databus.DatabusConfig;
 import com.inmobi.databus.DatabusConfigParser;
+import com.inmobi.messaging.ClientConfig;
 
 /*
  * This class is responsible for launching multiple AuditStatsFeeder instances one per cluster
  */
 public class AuditStats {
-
-  private static final String CONF_PATH = "/usr/local/databus/conf/databus.xml";
+  public static final String CONF_FILE = "audit-feeder.properties";
+  private static final String DATABUS_CONF_FILE_KEY = "feeder.conf";
   private static final String AUDIT_PATH_SUFFIX = "system/";
-  private static final Logger LOG = LoggerFactory.getLogger(AuditStats.class);
+  private static final Log LOG = LogFactory.getLog(AuditStats.class);
+
 
   private void start(List<AuditStatsFeeder> feeders) throws Exception {
-    DatabusConfigParser parser = new DatabusConfigParser(CONF_PATH);
-    DatabusConfig config = parser.getConfig();
-    for (Entry<String, Cluster> cluster : config.getClusters().entrySet()) {
+    ClientConfig config = ClientConfig.loadFromClasspath(CONF_FILE);
+    String databusConf = config.getString(DATABUS_CONF_FILE_KEY);
+    DatabusConfigParser parser = new DatabusConfigParser(databusConf);
+    DatabusConfig dataBusConfig = parser.getConfig();
+    for (Entry<String, Cluster> cluster : dataBusConfig.getClusters()
+        .entrySet()) {
       String rootDir = cluster.getValue().getRootDir() + File.separator
           + AUDIT_PATH_SUFFIX;
-      AuditStatsFeeder feeder = new AuditStatsFeeder(cluster.getKey(), rootDir);
+      AuditStatsFeeder feeder = new AuditStatsFeeder(cluster.getKey(), rootDir,
+          config);
       feeders.add(feeder);
     }
     // start all feeders
@@ -46,7 +52,7 @@ public class AuditStats {
   public static void stop(List<AuditStatsFeeder> feeders) {
 
     try {
-      LOG.info("Stoping Feeder...");
+      LOG.info("Stopping Feeder...");
       for (AuditStatsFeeder feeder : feeders) {
         feeder.stop();
       }

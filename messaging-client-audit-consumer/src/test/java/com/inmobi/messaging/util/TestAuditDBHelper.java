@@ -1,5 +1,6 @@
 package com.inmobi.messaging.util;
 
+import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.consumer.audit.*;
 import junit.framework.Assert;
 import org.testng.annotations.AfterTest;
@@ -9,7 +10,8 @@ import org.testng.annotations.Test;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.Iterator;
+import java.util.Set;
 
 public class TestAuditDBHelper extends  AuditDBUtil {
 
@@ -31,7 +33,10 @@ public class TestAuditDBHelper extends  AuditDBUtil {
     ResultSet rs = null;
     try {
       selectStatement = connection.prepareStatement(selectStmt);
-      boolean isSuccessful = AuditDBHelper.update(tupleSet1, null);
+      ClientConfig config = ClientConfig
+          .loadFromClasspath(AuditStats.CONF_FILE);
+      AuditDBHelper helper = new AuditDBHelper(config);
+      boolean isSuccessful = helper.update(tupleSet1);
       Assert.assertTrue(isSuccessful);
       selectStatement.setLong(index++, tuple1.getTimestamp().getTime());
       selectStatement.setString(index++, tuple1.getHostname());
@@ -49,7 +54,7 @@ public class TestAuditDBHelper extends  AuditDBUtil {
       }
       Assert.assertEquals(tuple1.getLostCount(),
           (Long) rs.getLong(LatencyColumns.C600.toString()));
-      isSuccessful = AuditDBHelper.update(tupleSet2, null);
+      isSuccessful = helper.update(tupleSet2);
       Assert.assertTrue(isSuccessful);
       index = 1;
       selectStatement.setLong(index++, tuple1.getTimestamp().getTime());
@@ -73,7 +78,7 @@ public class TestAuditDBHelper extends  AuditDBUtil {
       }
       Assert.assertEquals(tuple1.getLostCount() + tuple2.getLostCount(),
           rs.getLong(LatencyColumns.C600.toString()));
-      isSuccessful = AuditDBHelper.update(tupleSet3, null);
+      isSuccessful = helper.update(tupleSet3);
       Assert.assertTrue(isSuccessful);
     } catch (SQLException e) {
       e.printStackTrace();
@@ -95,8 +100,9 @@ public class TestAuditDBHelper extends  AuditDBUtil {
   public void testRetrieve() {
     GroupBy groupBy = new GroupBy("TIER,HOSTNAME,CLUSTER");
     Filter filter = new Filter("hostname="+tuple1.getHostname());
-    Set<Tuple> tupleSet = AuditDBHelper.retrieve(toDate, fromDate, filter,
-        groupBy, null);
+    AuditDBHelper helper = new AuditDBHelper(
+        ClientConfig.loadFromClasspath(AuditStats.CONF_FILE));
+    Set<Tuple> tupleSet = helper.retrieve(toDate, fromDate, filter, groupBy);
     Assert.assertEquals(1, tupleSet.size());
     Iterator<Tuple> tupleSetIter = tupleSet.iterator();
     Assert.assertTrue(tupleSetIter.hasNext());
@@ -125,7 +131,7 @@ public class TestAuditDBHelper extends  AuditDBUtil {
     Assert.assertEquals((Long) (tuple1.getLostCount() + tuple2.getLostCount() +
         tuple3.getLostCount()), returnedTuple.getLostCount());
     filter = new Filter(null);
-    tupleSet = AuditDBHelper.retrieve(toDate, fromDate, filter, groupBy, null);
+    tupleSet = helper.retrieve(toDate, fromDate, filter, groupBy);
     Assert.assertEquals(2, tupleSet.size());
   }
 }
