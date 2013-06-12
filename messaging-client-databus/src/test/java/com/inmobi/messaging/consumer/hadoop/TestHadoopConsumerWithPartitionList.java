@@ -49,7 +49,7 @@ public class TestHadoopConsumerWithPartitionList  {
 
     createFiles(consumer);
 
-    ck8 = "/tmp/test/hadoop/8/checkpoint";
+    ck8 = "/tmp/test/hadoop/consumergroup/checkpoint";
     consumer = new HadoopConsumer();
     secondConsumer = new HadoopConsumer();
   }
