@@ -256,7 +256,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
       } else {
         if (moveToNext
             || (!isLocalStreamAvailable
-                && !(lastFile != null && lastFile.equals(getCurrentFile())))) {
+                && lastFile != null && !(lastFile.equals(getCurrentFile())))) {
           setNextFile();
           LOG.info("Reading from next file: " + getCurrentFile());
         } else {
