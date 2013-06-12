@@ -18,7 +18,7 @@ import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 
 public class CollectorReader extends AbstractPartitionStreamReader {
 
-  private static final Log LOG = LogFactory.getLog(PartitionReader.class);
+  private static final Log LOG = LogFactory.getLog(CollectorReader.class);
 
   private final PartitionId partitionId;
   private final String streamName;
@@ -27,10 +27,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   private LocalStreamCollectorReader lReader;
   private CollectorStreamReader cReader;
   private final CollectorReaderStatsExposer metrics;
-  private Date stopTime;
-  private boolean noNewFiles;
   private boolean isLocalStreamAvailable = false;
-
   private boolean shouldBeClosed = false;
 
   CollectorReader(PartitionId partitionId,
@@ -46,9 +43,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     this.startTime = startTime;
     this.streamName = streamName;
     this.partitionCheckpoint = partitionCheckpoint;
-    this.stopTime = stopTime;
     this.metrics = metrics;
-    this.noNewFiles = noNewFiles;
     if (streamsLocalDir != null) {
       lReader = new LocalStreamCollectorReader(partitionId,  fs, streamName,
           streamsLocalDir, conf, waitTimeForFileCreate, metrics, stopTime);
@@ -117,7 +112,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   private void initializeCurrentFileFromCheckpoint() 
       throws IOException, InterruptedException {
     String fileName = partitionCheckpoint.getFileName();
-    if (cReader.isCollectorFile(fileName)) {
+    if (CollectorStreamReader.isCollectorFile(fileName)) {
       if (cReader.initializeCurrentFile(partitionCheckpoint)) {
         reader = cReader;
       } else { //file could be moved to local stream
@@ -130,6 +125,17 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       LOG.debug("Checkpointed file is in local stream directory");
       initializeCurrentFileFromCheckpointLocalStream(fileName);
     }
+  }
+
+  private void initializeCurrentFileFromStartOfStream()
+      throws IOException, InterruptedException {
+    if (!lReader.isEmpty()) {
+      reader =lReader;
+    } else {
+      reader = cReader;
+    }
+
+    reader.startFromBegining();
   }
 
   public void initializeCurrentFile() throws IOException, InterruptedException {
@@ -145,9 +151,11 @@ public class CollectorReader extends AbstractPartitionStreamReader {
         lReader.build(startTime);
         initializeCurrentFileFromTimeStamp(startTime);
       } else {
-        LOG.info("Would never reach here");
+        lReader.build(null);
+        initializeCurrentFileFromStartOfStream();
       }
     } else {
+      reader = cReader;
       initializeCurrentFileFromCollectorStreamOnly();
     }
     if (reader != null) {
@@ -163,7 +171,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     } else if (startTime != null) {
       cReader.startFromTimestmp(startTime);
     } else {
-      LOG.info("Would never reach here");
+      reader.startFromBegining();
     }
   }
 

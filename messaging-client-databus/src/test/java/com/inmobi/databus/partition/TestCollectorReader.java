@@ -78,18 +78,7 @@ public class TestCollectorReader {
   public void testInitialize() throws Exception {
     CollectorReaderStatsExposer prMetrics = new CollectorReaderStatsExposer(
         testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
-    // Read from no where
     Throwable th = null;
-    try {
-      preader = new PartitionReader(partitionId, null, conf, fs,
-        collectorDir, streamsLocalDir, buffer, testStream, null, 1000, 1000,
-        prMetrics, null);
-      preader.init();
-    } catch (Exception e) {
-      th = e;
-    }
-    Assert.assertNotNull(th);
-    Assert.assertTrue(th instanceof IllegalArgumentException);
 
     // Read from starttime of stream
     preader = new PartitionReader(partitionId, null, conf, fs,

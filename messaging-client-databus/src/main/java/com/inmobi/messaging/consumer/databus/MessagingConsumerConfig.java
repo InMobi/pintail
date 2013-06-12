@@ -42,6 +42,11 @@ public interface MessagingConsumerConfig {
   public static final String stopDateConfig =
       "messaging.consumer.absolute.stoptime";
 
+  public static final String startOfStreamConfig =
+      "messaging.consumer.startofstream";
+
+  public static final boolean DEFAULT_START_OF_STREAM = false;
+
   public static final String hadoopConfigFileKey =
       "messaging.consumer.hadoop.conf";
 

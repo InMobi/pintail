@@ -2,13 +2,13 @@ package com.inmobi.databus.partition;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
-import java.util.TreeSet;
 
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.testng.annotations.AfterTest;
-import org.testng.annotations.BeforeTest;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.inmobi.messaging.consumer.databus.StreamType;
@@ -19,7 +19,7 @@ import com.inmobi.messaging.consumer.util.TestUtil;
 public class TestPartitionReaderWaitingMergeStream
     extends TestAbstractWaitingClusterReader {
 
-  @BeforeTest
+  @BeforeMethod
   public void setup() throws Exception {
     files = new String[] {TestUtil.files[1],
         TestUtil.files[3], TestUtil.files[5]};
@@ -34,8 +34,8 @@ public class TestPartitionReaderWaitingMergeStream
     fs = FileSystem.get(conf);
     streamDir = DatabusUtil.getStreamDir(StreamType.MERGED,
         new Path(cluster.getRootDir()), testStream);
-    partitionMinList = new TreeSet<Integer>();
-    for (int i =0; i< 60; i++) {
+    partitionMinList = new HashSet<Integer>();
+    for (int i = 0; i < 60; i++) {
       partitionMinList.add(i);
     }
     Map<Integer, PartitionCheckpoint> list = new 
@@ -48,7 +48,7 @@ public class TestPartitionReaderWaitingMergeStream
         0, files.length);
   }
 
-  @AfterTest
+  @AfterMethod
   public void cleanup() throws IOException {
     super.cleanup();
   }
@@ -56,6 +56,11 @@ public class TestPartitionReaderWaitingMergeStream
   @Test
   public void testReadFromStart() throws Exception {
     super.testReadFromStart();
+  }
+
+  @Test
+  public void testReadFromStartOfStream() throws Exception {
+    super.testReadFromStartOfStream();
   }
 
   @Override

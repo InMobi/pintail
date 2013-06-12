@@ -62,6 +62,22 @@ public abstract class TestAbstractWaitingClusterReader {
         1000, isDatabusData(), prMetrics, false, partitionMinList,
         null);
 
+    testReader(preader, prMetrics);
+  }
+
+  public void testReadFromStartOfStream() throws Exception {
+    String fsUri = fs.getUri().toString();
+    PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
+    preader = new PartitionReader(partitionId, partitionCheckpointlist, fs,
+        buffer, streamDir, conf, inputFormatClass, null,
+        1000, isDatabusData(), prMetrics, false, partitionMinList, null);
+
+    testReader(preader, prMetrics);
+  }
+
+  private void testReader(PartitionReader preader,
+      PartitionReaderStatsExposer prMetrics) throws Exception {
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -86,7 +102,7 @@ public abstract class TestAbstractWaitingClusterReader {
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs1), 2, 0, 50, partitionId, buffer,
         isDatabusData());
-    
+
     while (buffer.remainingCapacity() > 0) {
       Thread.sleep(10);
     }

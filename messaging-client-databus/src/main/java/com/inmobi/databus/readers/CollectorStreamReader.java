@@ -92,16 +92,20 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
             LOG.info("No files in directory:" + streamDir);
             return;
           }
-          for (FileStatus file : fileStatuses) {
-            if (stopTime != null) {
+          if (stopTime == null) {
+            for (FileStatus file : fileStatuses) {
+              addPath(file);
+            }
+          } else {
+            for (FileStatus file : fileStatuses) {
               Date currentTimeStamp = getDateFromCollectorFile(
                   file.getPath().getName());
               if (stopTime.before(currentTimeStamp)) {
                 stopListing();
                 continue;
               }
+              addPath(file);
             }
-            addPath(file);
           }
         } else {
           LOG.info("Collector directory does not exist");
@@ -224,13 +228,10 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
       Path lastFile = getLastFile();
       // rebuild file list only if local stream is available because some files
       // may move to local stream
-      if (isLocalStreamAvailable) {
+      if (isLocalStreamAvailable || !hasNextFile()) {
         build(); // rebuild file list
       }
       if (!hasNextFile()) { //there is no next files
-        if (!isLocalStreamAvailable) {
-          build();
-        }
         // stop reading if it read till stopTime
         if (hasReadFully()) {
           LOG.info("read all files till stop date");
@@ -254,8 +255,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
         // reopen a file only if the file is last file on the stream
         // and local stream is not available
         if (moveToNext
-            || (!isLocalStreamAvailable
-                && lastFile != null && !(lastFile.equals(getCurrentFile())))) {
+            || (lastFile != null && !(lastFile.equals(getCurrentFile())))) {
           setNextFile();
           LOG.info("Reading from next file: " + getCurrentFile());
         } else {
