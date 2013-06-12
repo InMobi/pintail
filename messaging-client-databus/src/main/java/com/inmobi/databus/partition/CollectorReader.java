@@ -141,7 +141,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       lReader.build(startTime);
       initializeCurrentFileFromTimeStamp(startTime);
     } else {
-      lReader.build(true);
+      lReader.build(null);
       initializeCurrentFileFromStartOfStream();
     }
     if (reader != null) {

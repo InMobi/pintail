@@ -396,14 +396,12 @@ public abstract class StreamReader<T extends StreamFile> {
 
   protected FileStatus[] fsListFileStatus(Path baseDir, PathFilter pathFilter)
       throws IOException {
-    FileStatus[] fileStatusList = fs.listStatus(baseDir, pathFilter);
-    metrics.incrementListOps();
-    return fileStatusList;
-  }
- 
-  protected FileStatus[] fsListFileStatus(Path baseDir)
-      throws IOException {
-    FileStatus[] fileStatusList = fs.listStatus(baseDir);
+    FileStatus[] fileStatusList;
+    if (pathFilter != null) {
+      fileStatusList = fs.listStatus(baseDir, pathFilter);
+    } else {
+      fileStatusList = fs.listStatus(baseDir);
+    }
     metrics.incrementListOps();
     return fileStatusList;
   }

@@ -33,7 +33,6 @@ import com.inmobi.databus.files.StreamFile;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.Message;
-import com.inmobi.messaging.consumer.util.FileStatusComparator;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
 public abstract class DatabusStreamReader<T extends StreamFile> extends 
@@ -68,36 +67,9 @@ StreamReader<T> {
     }
   }
 
-  public Date getBuildTimestamp() {
-    return buildTimestamp;
-  }
-
   public void build(Date date) throws IOException {
-    if (date != null) {
-      this.buildTimestamp = date;
-      build();
-    } else {
-      build(true);
-    }
-  }
-
-  public void build(boolean startOfStream) throws IOException {
-    FileStatus startingDir = getStartingDirFromStream();
-    if (startingDir != null) {
-      Date startingDirTimeStamp = getDateFromStreamDir(streamDir,
-          startingDir.getPath());
-      // listing from start of the stream
-      build(startingDirTimeStamp);
-    }
-  }
-
-  private FileStatus getStartingDirFromStream() throws IOException {
-    List<FileStatus> leastTimeStampFileStatus = new ArrayList<FileStatus>();
-    getStartingDirFromStream(streamDir, 0, leastTimeStampFileStatus);
-    if (leastTimeStampFileStatus.size() > 0) {
-      return leastTimeStampFileStatus.get(0);
-    }
-    return null;
+    this.buildTimestamp = date;
+    build();
   }
 
   protected abstract void buildListing(FileMap<T> fmap, PathFilter pathFilter)
@@ -277,25 +249,38 @@ StreamReader<T> {
     return new Path(streamDir, minDirFormat.get().format(date));
   }
 
-  public List<FileStatus> getStartingDirFromStream(Path dir, int depth,
-      List<FileStatus> leastTimeStampFileStatusList)
-          throws IOException {
-    FileStatus [] filestatuses = fsListFileStatus(dir);
-    if (filestatuses != null && filestatuses.length > 0) {
-      FileStatusComparator comparator = new FileStatusComparator();
-      FileStatus leastTimeStampFileStatus = filestatuses[0];
-      for (int i = 1; i < filestatuses.length; i++) {
-        if (comparator.compare(leastTimeStampFileStatus, filestatuses[i]) < 0) {
-          leastTimeStampFileStatus = filestatuses[i];
-        }
-      }
-      if (depth == 4) {
-        leastTimeStampFileStatusList.add(leastTimeStampFileStatus);
+  protected boolean setBuildTimeStamp(PathFilter pathFilter) throws IOException {
+    if (buildTimestamp == null) {
+      Date tmp = getTimestampFromStartOfStream(pathFilter);
+      if (tmp != null) {
+        this.buildTimestamp = tmp;
       } else {
-        getStartingDirFromStream(leastTimeStampFileStatus.getPath(), depth + 1,
-            leastTimeStampFileStatusList);
+        LOG.info("Could not find start directory yet");
+        return false;
       }
     }
-    return leastTimeStampFileStatusList;
+    return true;
+  }
+
+  protected Date getTimestampFromStartOfStream(PathFilter pathFilter)
+      throws IOException {
+    FileStatus leastTimeStampFileStatus = null;
+    Path dir = streamDir;
+    for (int d = 0; d < 5; d++) {
+      FileStatus [] filestatuses = fsListFileStatus(dir, pathFilter);
+      if (filestatuses != null && filestatuses.length > 0) {
+        leastTimeStampFileStatus = filestatuses[0];
+        for (int i = 1; i < filestatuses.length; i++) {
+          if (leastTimeStampFileStatus.getPath().
+              compareTo(filestatuses[i].getPath()) > 0) {
+            leastTimeStampFileStatus = filestatuses[i];
+          }
+        }
+        dir = leastTimeStampFileStatus.getPath();
+      } else {
+        return null;
+      }
+    }
+    return getDateFromStreamDir(streamDir, leastTimeStampFileStatus.getPath());
   }
 }
