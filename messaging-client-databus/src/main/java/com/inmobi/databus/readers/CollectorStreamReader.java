@@ -227,10 +227,12 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
         break;
       }
       Path lastFile = getLastFile();
+      // rebuild file list only if local stream is available because some files
+      // may move to local stream
       if (isLocalStreamAvailable) {
         build(); // rebuild file list
       }
-      if (!hasNextFile()) { //there is no next file
+      if (!hasNextFile()) { //there is no next files
         if (!isLocalStreamAvailable) {
           build();
         }
@@ -254,6 +256,8 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
           LOG.info("Reading from the same file after reopen");
         }
       } else {
+        // reopen a file only if the file is last file on the stream
+        // and local stream is not available
         if (moveToNext
             || (!isLocalStreamAvailable
                 && lastFile != null && !(lastFile.equals(getCurrentFile())))) {
