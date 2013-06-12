@@ -81,18 +81,25 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       } else {
         throw new IllegalArgumentException(error);
       } 
-    } else if (!cReader.isEmpty()) {
-      if (cReader.isBeforeStream(
-          CollectorStreamReader.getCollectorFileName(streamName,
-              localStreamFileName))) {
-        reader = cReader;
-        if (!reader.initFromStart()) {
-          throw new IllegalArgumentException(error); // dead code
+    } else {
+      initializeCurrentFileFromCheckpointCollectorStream();
+    }
+  }
+
+  private void initializeCurrentFileFromCheckpointCollectorStream()
+      throws IOException, InterruptedException {
+    String fileName = partitionCheckpoint.getFileName();
+    String error = "Checkpoint file does not exist";
+    if (!cReader.isEmpty()) {
+      if (!reader.initializeCurrentFile(partitionCheckpoint)) {
+        if (cReader.isBeforeStream(fileName)) {
+          reader = cReader;
+          reader.initFromStart();
+        } else if (checkAnyReaderIsStopped()) {
+          shouldBeClosed  = true;
+        } else {
+          throw new IllegalArgumentException(error);
         }
-      } else if (checkAnyReaderIsStopped()) {
-        shouldBeClosed  = true;
-      } else {
-        throw new IllegalArgumentException(error);
       }
     } else {
       reader = cReader;
@@ -105,7 +112,8 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   }
 
   private boolean checkAnyReaderIsStopped() {
-    return cReader.isStopped() || lReader.isStopped();
+    return cReader.isStopped()
+        || (isLocalStreamAvailable && lReader.isStopped());
   }
 
   private void initializeCurrentFileFromCheckpoint() 
@@ -166,7 +174,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   private void initializeCurrentFileFromCollectorStreamOnly()
       throws IOException, InterruptedException {
     if (partitionCheckpoint != null) {
-      reader.initializeCurrentFile(partitionCheckpoint);
+      initializeCurrentFileFromCheckpointCollectorStream();
     } else if (startTime != null) {
       reader.startFromTimestmp(startTime);
     } else {
