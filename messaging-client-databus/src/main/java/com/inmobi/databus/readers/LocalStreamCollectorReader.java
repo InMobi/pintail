@@ -188,14 +188,14 @@ public class LocalStreamCollectorReader extends
       PartitionCheckpoint partitionCheckpoint) {
     String fileName = null;
     try {
-      if (partitionCheckpoint != null) {
-        fileName = partitionCheckpoint.getFileName();
-        if (fileName != null && 
-            !isDatabusStreamFile(streamName, fileName)) {
+      fileName = partitionCheckpoint.getFileName();
+      if (fileName != null) {
+        if (!isDatabusStreamFile(streamName, fileName)) {
           fileName = getDatabusStreamFileName(collectorName, fileName);
         }
+        return getDateFromStreamFile(streamName, fileName);
       }
-      return getDateFromStreamFile(streamName, fileName);
+      return null;
     } catch (Exception e) {
       throw new IllegalArgumentException("Invalid fileName:" + 
           fileName, e);

@@ -115,17 +115,17 @@ public abstract class FileMap<T extends StreamFile> {
   }
 
   public boolean setIterator(FileStatus cfile) {
-    createIterator();
-    T file = getStreamFile(cfile);
     if (cfile != null) {
+      createIterator();
+      T file = getStreamFile(cfile);
       while (fileNameIterator.hasNext()) {
         StreamFile nextfile = fileNameIterator.next();
         if (nextfile.equals(file)) {
           return true;
-        } 
+        }
       }
-    } 
-    LOG.info("Did not find file" + cfile.getPath());
+      LOG.info("Did not find file" + cfile.getPath());
+    }
     return false;
   }
 
