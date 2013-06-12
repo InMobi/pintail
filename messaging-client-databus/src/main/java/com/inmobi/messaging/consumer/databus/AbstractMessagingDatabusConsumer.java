@@ -266,7 +266,7 @@ public abstract class AbstractMessagingDatabusConsumer
     } else {
       throw new IllegalArgumentException("Invalid configuration to start" +
           " the consumer. " + "Provide a checkpoint or relative startTime" +
-          " or absolute startTime ");
+          " or absolute startTime or startOfStream ");
     }
     //check whether the given stop date is before/after the start time
     isValidStopDate(partitionTimestamp);
