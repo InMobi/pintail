@@ -159,9 +159,9 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   private void initializeCurrentFileFromCollectorStreamOnly()
       throws IOException, InterruptedException {
     if (partitionCheckpoint != null) {
-      initializeCurrentFileFromCheckpoint();
+      cReader.initializeCurrentFile(partitionCheckpoint);
     } else if (startTime != null) {
-      initializeCurrentFileFromTimeStamp(startTime);
+      cReader.startFromTimestmp(startTime);
     } else {
       LOG.info("Would never reach here");
     }
@@ -176,7 +176,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       }
 
       // check whether readers are stopped
-      if (reader.isStopped() || !isLocalStreamAvailable) {
+      if (reader.isStopped()) {
         return null;
       }
       if (reader == lReader) {

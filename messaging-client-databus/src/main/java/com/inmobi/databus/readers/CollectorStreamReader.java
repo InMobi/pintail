@@ -238,7 +238,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
         }
         if (!setIterator()) {
           LOG.info("Could not find current file in the stream");
-          if (isWithinStream(getCurrentFile().getName())) {
+          if (isWithinStream(getCurrentFile().getName()) || !isLocalStreamAvailable) {
             LOG.info("Staying in collector stream as earlier files still exist");
             startFromNextHigherAndOpen(getCurrentFile().getName());
             LOG.info("Reading from the next higher file");
