@@ -240,7 +240,6 @@ public abstract class StreamReader<T extends StreamFile> {
     return line;
   }
 
-
   protected void resetCurrentFileSettings() {
     currentLineNum = 0;
   }
@@ -397,7 +396,12 @@ public abstract class StreamReader<T extends StreamFile> {
 
   protected FileStatus[] fsListFileStatus(Path baseDir, PathFilter pathFilter)
       throws IOException {
-    FileStatus[] fileStatusList = fs.listStatus(baseDir, pathFilter);
+    FileStatus[] fileStatusList;
+    if (pathFilter != null) {
+      fileStatusList = fs.listStatus(baseDir, pathFilter);
+    } else {
+      fileStatusList = fs.listStatus(baseDir);
+    }
     metrics.incrementListOps();
     return fileStatusList;
   }

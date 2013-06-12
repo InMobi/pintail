@@ -2,8 +2,8 @@ package com.inmobi.databus.partition;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
-import java.util.TreeSet;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -11,8 +11,8 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.SequenceFileInputFormat;
-import org.testng.annotations.AfterTest;
-import org.testng.annotations.BeforeTest;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.inmobi.messaging.consumer.util.HadoopUtil;
@@ -21,7 +21,7 @@ public class TestPartitionReaderWaitingHadoopStream extends
     TestAbstractWaitingClusterReader {
   static final Log LOG = LogFactory.getLog(
       TestPartitionReaderWaitingHadoopStream.class);
-  @BeforeTest
+  @BeforeMethod
   public void setup() throws Exception {
     consumerNumber = 1;
     conf = new Configuration();
@@ -35,8 +35,8 @@ public class TestPartitionReaderWaitingHadoopStream extends
         testStream).makeQualified(fs);
     HadoopUtil.setupHadoopCluster(conf, files, null, databusFiles, streamDir);
     inputFormatClass = SequenceFileInputFormat.class.getName();
-    partitionMinList = new TreeSet<Integer>();
-    for (int i =0; i< 60; i++) {
+    partitionMinList = new HashSet<Integer>();
+    for (int i = 0; i < 60; i++) {
       partitionMinList.add(i);
     }
     Map<Integer, PartitionCheckpoint> list = new 
@@ -44,7 +44,7 @@ public class TestPartitionReaderWaitingHadoopStream extends
     partitionCheckpointlist = new PartitionCheckpointList(list);
   }
 
-  @AfterTest
+  @AfterMethod
   public void cleanup() throws IOException {
     LOG.debug("Cleaning up the dir: " + streamDir.getParent());
     fs.delete(streamDir.getParent(), true);
@@ -58,6 +58,11 @@ public class TestPartitionReaderWaitingHadoopStream extends
   @Test
   public void testReadFromStart() throws Exception {
     super.testReadFromStart();
+  }
+
+  @Test
+  public void testReadFormStartOfStream() throws Exception {
+    super.testReadFromStartOfStream();
   }
 
   @Override

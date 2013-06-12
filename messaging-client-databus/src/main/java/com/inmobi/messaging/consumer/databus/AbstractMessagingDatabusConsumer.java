@@ -47,6 +47,7 @@ public abstract class AbstractMessagingDatabusConsumer
   protected Set<Integer> partitionMinList;
   protected String relativeStartTimeStr;
   protected Date stopTime;
+  protected Boolean startOfStream;
   private int closedReadercount;
 
   @Override
@@ -145,6 +146,8 @@ public abstract class AbstractMessagingDatabusConsumer
     String stopTimeStr = config.getString(stopDateConfig);
     stopTime = getDateFromString(stopTimeStr);
 
+    startOfStream = config.getBoolean(startOfStreamConfig,
+        DEFAULT_START_OF_STREAM);
     closedReadercount = 0;
   }
 
@@ -258,10 +261,12 @@ public abstract class AbstractMessagingDatabusConsumer
       partitionTimestamp = startTime;
       LOG.info("There is no checkpoint and no relative start time is provided." +
           " Starting from absolute start time " + partitionTimestamp);
+    } else if (startOfStream == true) {
+      LOG.info("Starting from start of the stream ");
     } else {
       throw new IllegalArgumentException("Invalid configuration to start" +
           " the consumer. " + "Provide a checkpoint or relative startTime" +
-          " or absolute startTime ");
+          " or absolute startTime or startOfStream ");
     }
     //check whether the given stop date is before/after the start time
     isValidStopDate(partitionTimestamp);
