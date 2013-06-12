@@ -248,9 +248,9 @@ public class AuditDBHelper {
       return null;
     }
     LOG.info("Connected to DB");
-
     ResultSet rs = null;
     String statement = getSelectStmtForRetrieve(filter, groupBy);
+    LOG.debug("Select statement :" + statement);
     PreparedStatement preparedstatement = null;
     try {
       preparedstatement = connection.prepareStatement(statement);
