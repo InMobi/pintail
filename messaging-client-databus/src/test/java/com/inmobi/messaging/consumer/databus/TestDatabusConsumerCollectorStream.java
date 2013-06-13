@@ -18,6 +18,10 @@ public class TestDatabusConsumerCollectorStream
   private String ck2 = "/tmp/test/databustest7/checkpoint22";
   private String ck3 = "/tmp/test/databustest8/checkpoint12";
   private String ck4 = "/tmp/test/databustest8/checkpoint22";
+  private String ck5 = "/tmp/test/databustest8/checkpoint5";
+  private String ck6 = "/tmp/test/databustest8/checkpoint6";
+  private String ck7 = "/tmp/test/databustest8/checkpoint7";
+  private String ck8 = "/tmp/test/databustest8/checkpoint8";
 
   ClientConfig loadConfig() {
     return ClientConfig
@@ -76,6 +80,55 @@ public class TestDatabusConsumerCollectorStream
     config.set(DatabusConsumerConfig.checkpointDirConfig, ck4);
     config.set(MessagingConsumerConfig.relativeStartTimeConfig,
         relativeStartTime);
+    assertMessages(config, 3, 1);
+  }
+
+  @Test
+  public void testMarkAndResetWithoutLocalStream() throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+        rootDirs[0].toUri().toString());
+    config.set(DatabusConsumerConfig.checkpointDirConfig, ck5);
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        relativeStartTime);
+    config.set(MessagingConsumerConfig.readFromLocalStreamConfig, "false");
+    ConsumerUtil.testMarkAndReset(config, testStream, consumerName, false);
+  }
+
+  @Test
+  public void testMarkAndResetWithStartTimeWithoutLocalStream() throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+        rootDirs[0].toUri().toString());
+    config.set(DatabusConsumerConfig.checkpointDirConfig, ck6);
+    config.set(MessagingConsumerConfig.readFromLocalStreamConfig, "false");
+    ConsumerUtil.testMarkAndResetWithStartTime(config, testStream, consumerName,
+        CollectorStreamReader.getDateFromCollectorFile(dataFiles[1]), false);
+  }
+
+  @Test
+  public void testMultipleClustersWithoutLocalStream() throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+        rootDirs[0].toUri().toString() + "," + rootDirs[1].toUri().toString());
+    config.set(DatabusConsumerConfig.checkpointDirConfig, ck7);
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        relativeStartTime);
+    config.set(MessagingConsumerConfig.readFromLocalStreamConfig, "false");
+    assertMessages(config, 2, 1);
+  }
+
+  @Test
+  public void testMultipleClusters2WithoutLocalStream() throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+        rootDirs[0].toUri().toString() + "," +
+        rootDirs[1].toUri().toString() + "," +
+        rootDirs[0].toUri().toString());
+    config.set(DatabusConsumerConfig.checkpointDirConfig, ck8);
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
+        relativeStartTime);
+    config.set(MessagingConsumerConfig.readFromLocalStreamConfig, "false");
     assertMessages(config, 3, 1);
   }
 

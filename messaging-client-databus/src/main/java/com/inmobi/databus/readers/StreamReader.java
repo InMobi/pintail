@@ -176,6 +176,14 @@ public abstract class StreamReader<T extends StreamFile> {
       return null;
     return currentFile.getPath();
   }
+  
+  protected Path getLastFile() {
+    FileStatus lastFile = fileMap.getLastFile();
+    if (lastFile != null) {
+      return lastFile.getPath();
+    }
+    return null;
+  }
 
   public T getCurrentStreamFile() {
     if (currentFile == null) {
@@ -239,6 +247,7 @@ public abstract class StreamReader<T extends StreamFile> {
     }
     return line;
   }
+
 
   protected void resetCurrentFileSettings() {
     currentLineNum = 0;
