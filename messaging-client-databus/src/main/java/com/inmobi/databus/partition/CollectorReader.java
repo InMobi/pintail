@@ -9,7 +9,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
-import com.inmobi.databus.files.CollectorFile;
 import com.inmobi.databus.files.DatabusStreamFile;
 import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.databus.readers.LocalStreamCollectorReader;
@@ -86,25 +85,21 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       reader = cReader;
       String collectorFileName = CollectorStreamReader.getCollectorFileName(
           streamName, localStreamFileName);
-      initializeCurrentFileFromCheckpointCollectorStream(collectorFileName);
+      initializeCurrentFileFromFailedCheckpoint(collectorFileName);
     }
   }
 
-  private void initializeCurrentFileFromCheckpointCollectorStream(
+  private void initializeCurrentFileFromFailedCheckpoint(
       String collectorFileName)
       throws IOException, InterruptedException {
     String error = "Checkpoint file does not exist";
     if (!cReader.isEmpty()) {
-      if (!cReader.initializeCurrentFile(
-          new PartitionCheckpoint(CollectorFile.create(collectorFileName),
-          partitionCheckpoint.getLineNum()))) {
-        if (cReader.isBeforeStream(collectorFileName)) {
-          reader.initFromStart();
-        } else if (checkAnyReaderIsStopped()) {
-          shouldBeClosed  = true;
-        } else {
-          throw new IllegalArgumentException(error);
-        }
+      if (cReader.isBeforeStream(collectorFileName)) {
+        reader.initFromStart();
+      } else if (checkAnyReaderIsStopped()) {
+        shouldBeClosed  = true;
+      } else {
+        throw new IllegalArgumentException(error);
       }
     } else {
       if (checkAnyReaderIsStopped()) {
@@ -178,8 +173,10 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   private void initializeCurrentFileFromCollectorStreamOnly()
       throws IOException, InterruptedException {
     if (partitionCheckpoint != null) {
-      initializeCurrentFileFromCheckpointCollectorStream(partitionCheckpoint
-          .getFileName());
+      if (!reader.initializeCurrentFile(partitionCheckpoint)) {
+        initializeCurrentFileFromFailedCheckpoint(partitionCheckpoint
+            .getFileName());
+      }
     } else if (startTime != null) {
       reader.startFromTimestmp(startTime);
     } else {
