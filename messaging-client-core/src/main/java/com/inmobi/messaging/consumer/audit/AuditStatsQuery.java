@@ -68,7 +68,8 @@ public class AuditStatsQuery {
       "com.inmobi.messaging.consumer.databus.DatabusConsumer";
   public static final String CONSUMER_NAME = "audit-consumer";
   private static final int DEFAULT_CUTOFF_HRS = 1;
-  private static final String CONFIG_STOP_TIME = "messaging.consumer.absolute.stopdate";
+  private static final String CONFIG_STOP_TIME =
+      "messaging.consumer.absolute.stoptime";
 
   public AuditStatsQuery(String rootDir, String toTimeString,
       String fromTimeString, String filterString, String groupByString,
