@@ -6,7 +6,7 @@ import java.nio.ByteBuffer;
  *  Message class holding the data.
  *
  */
-public final class Message implements MessageBase {
+public final class Message implements MessageBase, Cloneable {
 
   private ByteBuffer data;
 
