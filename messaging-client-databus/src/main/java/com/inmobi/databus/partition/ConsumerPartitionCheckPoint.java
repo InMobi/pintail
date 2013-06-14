@@ -39,7 +39,7 @@ public class ConsumerPartitionCheckPoint extends PartitionCheckpoint {
   public int hashCode() {
     final int prime = 31;
     int hashCode = super.hashCode();
-    hashCode = prime * hashCode +  (minId ^ (minId >>> 32));
+    hashCode = prime * hashCode +  (minId);
     return hashCode;
   }
 
