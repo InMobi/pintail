@@ -60,7 +60,7 @@ StreamReader<T> {
       input = (InputFormat<Object, Object>) ReflectionUtils.newInstance(
           conf.getClassByName(inputFormatClass), conf);
     } catch (ClassNotFoundException e) {
-      throw new IllegalArgumentException("Input format class" 
+      throw new IllegalArgumentException("Input format class"
           + inputFormatClass + " not found", e);
     }
   }
@@ -118,8 +118,8 @@ StreamReader<T> {
     if (next) {
       resetCurrentFileSettings();
     }
-    LOG.info("Opening file:" + getCurrentFile() + " NumLinesTobeSkipped when" +
-        " opening:" + currentLineNum);
+    LOG.info("Opening file:" + getCurrentFile() + " NumLinesTobeSkipped when"
+        + " opening:" + currentLineNum);
     try {
       FileStatus status = fsGetFileStatus(getCurrentFile());
       if (status != null) {
@@ -138,7 +138,7 @@ StreamReader<T> {
         }
         skipLines(currentLineNum);
       } else {
-        LOG.info("CurrentFile:" + getCurrentFile() + " does not exist");        
+        LOG.info("CurrentFile:" + getCurrentFile() + " does not exist");
       }
     } catch (FileNotFoundException fnfe) {
       LOG.info("CurrentFile:" + getCurrentFile() + " does not exist");
@@ -211,10 +211,10 @@ StreamReader<T> {
     return null;
   }
 
-  static String minDirFormatStr = "yyyy" + File.separator + "MM" +
-      File.separator + "dd" + File.separator + "HH" + File.separator +"mm";
+  static String minDirFormatStr = "yyyy" + File.separator + "MM"
+      + File.separator + "dd" + File.separator + "HH" + File.separator + "mm";
 
-  static final ThreadLocal<DateFormat> minDirFormat = 
+  static final ThreadLocal<DateFormat> minDirFormat =
       new ThreadLocal<DateFormat>() {
     @Override
     protected SimpleDateFormat initialValue() {
@@ -222,13 +222,13 @@ StreamReader<T> {
     }    
   };
 
-  static final ThreadLocal<DateFormat> hhDirFormat = 
+  static final ThreadLocal<DateFormat> hhDirFormat =
       new ThreadLocal<DateFormat>() {
     @Override
     protected SimpleDateFormat initialValue() {
-      return new SimpleDateFormat("yyyy" + File.separator + "MM" +
-          File.separator + "dd" + File.separator + "HH");
-    }    
+      return new SimpleDateFormat("yyyy" + File.separator + "MM"
+          + File.separator + "dd" + File.separator + "HH");
+    }
   };
 
   public static Path getStreamsLocalDir(Cluster cluster, String streamName) {

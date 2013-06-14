@@ -60,8 +60,8 @@ public class LocalStreamCollectorReader extends
             Date currentTimeStamp = LocalStreamCollectorReader.
                 getDateFromStreamFile(streamName, file.getPath().getName());
             if (stopTime != null && stopTime.before(currentTimeStamp)) {
-              LOG.info("stopTime [ " + stopTime + " ] " + "is beyond the" +
-                  " current file timestamp [ " + currentTimeStamp +" ]");
+              LOG.info("stopTime [ " + stopTime + " ] " + "is beyond the"
+                  + " current file timestamp [ " + currentTimeStamp +" ]");
               stopListing();
             } else {
               fmap.addPath(file);
@@ -84,13 +84,13 @@ public class LocalStreamCollectorReader extends
       Path hhDir =  getHourDirPath(streamDir, current.getTime());
       int hour = current.get(Calendar.HOUR_OF_DAY);
       if (fsIsPathExists(hhDir)) {
-        while (current.getTime().before(now) && 
-            hour  == current.get(Calendar.HOUR_OF_DAY) && !isListingStopped()) {
+        while (current.getTime().before(now)
+            && hour  == current.get(Calendar.HOUR_OF_DAY) && !isListingStopped()) {
           Path dir = getMinuteDirPath(streamDir, current.getTime());
           // Move the current minute to next minute
           current.add(Calendar.MINUTE, 1);
           doRecursiveListing(dir, pathFilter, fmap);
-        } 
+        }
       } else {
         // go to next hour
         LOG.info("Hour directory " + hhDir + " does not exist");
@@ -140,7 +140,7 @@ public class LocalStreamCollectorReader extends
               return true;
             }
             return false;
-          }          
+          }
         };
       }
     };
@@ -166,8 +166,8 @@ public class LocalStreamCollectorReader extends
             return null;
           } else {
             // read line from next higher file
-            LOG.info("Reading from " + getCurrentFile() + ". The next higher file" +
-                " after rebuild");
+            LOG.info("Reading from " + getCurrentFile()
+                + ". The next higher file after rebuild");
           }
         } else if (!nextFile()) { // reached end of stream
           LOG.info("Reached end of stream");
@@ -197,8 +197,7 @@ public class LocalStreamCollectorReader extends
       }
       return null;
     } catch (Exception e) {
-      throw new IllegalArgumentException("Invalid fileName:" + 
-          fileName, e);
+      throw new IllegalArgumentException("Invalid fileName:" + fileName, e);
     }
   }
 
@@ -215,19 +214,19 @@ public class LocalStreamCollectorReader extends
 
   public static String getDatabusStreamFileName(String streamName,
       Date date) {
-    return getDatabusStreamFile(streamName, date).toString();  
+    return getDatabusStreamFile(streamName, date).toString();
   }
 
   public static DatabusStreamFile getDatabusStreamFile(String streamName,
       Date date) {
     return new DatabusStreamFile("", new CollectorFile(streamName, date, 0),
-        "gz");  
+        "gz");
   }
 
   public static DatabusStreamFile getDatabusStreamFileFromLocalStreamFile(
       String streamName,
       String localStreamfileName) {
-    return DatabusStreamFile.create(streamName, localStreamfileName);  
+    return DatabusStreamFile.create(streamName, localStreamfileName);
   }
 
   static boolean isDatabusStreamFile(String streamName, String fileName) {
@@ -241,13 +240,13 @@ public class LocalStreamCollectorReader extends
 
   public static String getDatabusStreamFileName(String collector,
       String collectorFile) {
-    return getDatabusStreamFile(collector, collectorFile).toString();  
+    return getDatabusStreamFile(collector, collectorFile).toString();
   }
 
   public static DatabusStreamFile getDatabusStreamFile(String collector,
       String collectorFileName) {
     return new DatabusStreamFile(collector,
-        CollectorFile.create(collectorFileName), "gz");  
+        CollectorFile.create(collectorFileName), "gz");
   }
 
 }
