@@ -48,7 +48,7 @@ public class DatabusStreamWaitingReader
     super(partitionId, fs, streamDir, inputFormatClass, conf,
         waitTimeForFileCreate, metrics, noNewFiles, stopTime);
     this.partitionCheckpointList = partitionCheckpointList;
-    this.partitionMinList = partitionMinList; 
+    this.partitionMinList = partitionMinList;
     this.stopTime = stopTime;
     currentMin = -1;
     numOfLinesReadInMinute = 0;
@@ -116,15 +116,15 @@ public class DatabusStreamWaitingReader
         currentFile.getPath().getParent());
     Calendar current = Calendar.getInstance();
     current.setTime(date);
-    int currentMinute =current.get(Calendar.MINUTE);
+    int currentMinute = current.get(Calendar.MINUTE);
     PartitionCheckpoint partitioncheckpoint = partitionCheckpointList.
         getCheckpoints().get(currentMinute);
 
     if (partitioncheckpoint != null) {
-      Path checkpointedFileName =new Path(streamDir, 
+      Path checkpointedFileName = new Path(streamDir, 
           partitioncheckpoint.getFileName());
       if (!(currentFile.getPath()).equals(checkpointedFileName)) {
-        if(fsIsPathExists(checkpointedFileName)) {
+        if (fsIsPathExists(checkpointedFileName)) {
           currentFile = fsGetFileStatus(checkpointedFileName);
           currentLineNum = partitioncheckpoint.getLineNum();
         } else {
@@ -135,8 +135,8 @@ public class DatabusStreamWaitingReader
       }
     }
     if (currentFile != null) {
-      LOG.debug("CurrentFile:" + getCurrentFile() + " currentLineNum:" +
-          currentLineNum);
+      LOG.debug("CurrentFile:" + getCurrentFile() + " currentLineNum:"
+          + currentLineNum);
       setIterator();
     }
     return currentFile != null;
@@ -153,8 +153,8 @@ public class DatabusStreamWaitingReader
       Path hhDir =  getHourDirPath(streamDir, current.getTime());
       int hour = current.get(Calendar.HOUR_OF_DAY);
       if (fsIsPathExists(hhDir)) {
-        while (current.getTime().before(now) && 
-            hour  == current.get(Calendar.HOUR_OF_DAY)) {
+        while (current.getTime().before(now)
+            && hour  == current.get(Calendar.HOUR_OF_DAY)) {
           // stop the file listing if stop date is beyond current time.
           if (checkAndSetstopTimeReached(current)) {
             breakListing = true;
@@ -172,8 +172,8 @@ public class DatabusStreamWaitingReader
               if (fsIsPathExists(nextMinDir)) {
                 doRecursiveListing(dir, pathFilter, fmap);
               } else {
-                LOG.info("Reached end of file listing. Not looking at the last" +
-                    " minute directory:" + dir);
+                LOG.info("Reached end of file listing. Not looking at the last"
+                    + " minute directory:" + dir);
                 breakListing = true;
                 break;
               }
@@ -202,8 +202,7 @@ public class DatabusStreamWaitingReader
    */
   private boolean checkAndSetstopTimeReached(Calendar current) {
     if (stopTime != null && stopTime.before(current.getTime())) {
-      LOG.info("Reached stopTime. Not listing from after" +
-          " the stop date ");
+      LOG.info("Reached stopTime. Not listing from after the stop date ");
       stopListing();
       return true;
     }
@@ -247,10 +246,10 @@ public class DatabusStreamWaitingReader
           getCheckpoints().get(currentMin);
       if (partitionCheckpoint != null && partitionCheckpoint.getLineNum() != -1)
       {
-        Path checkPointedFileName = new Path(streamDir, 
+        Path checkPointedFileName = new Path(streamDir,
             partitionCheckpoint.getFileName());
         //set iterator to checkpoointed file if there is a checkpoint
-        if(!fileToRead.getPath().equals(checkPointedFileName)) {
+        if (!fileToRead.getPath().equals(checkPointedFileName)) {
           if (fsIsPathExists(checkPointedFileName)) {
             fileToRead = fsGetFileStatus(checkPointedFileName);
             currentLineNum = partitionCheckpoint.getLineNum();
@@ -313,8 +312,8 @@ public class DatabusStreamWaitingReader
       }
       if (!nextFile()) { // reached end of file list
         LOG.info("could not find next file. Rebuilding");
-        build(getDateFromStreamDir(streamDir, 
-            getCurrentFile()));
+        build(getDateFromStreamDir(streamDir, getCurrentFile()));
+
         if (!nextFile()) { // reached end of stream
           // stop reading if read till stopTime
           if (hasReadFully()) {
@@ -323,7 +322,7 @@ public class DatabusStreamWaitingReader
           }
           LOG.info("Could not find next file");
           startFromNextHigher(currentFile);
-          LOG.info("Reading from next higher file "+ getCurrentFile());
+          LOG.info("Reading from next higher file " + getCurrentFile());
         } else {
           LOG.info("Reading from " + getCurrentFile() + " after rebuild");
         }
@@ -368,7 +367,7 @@ public class DatabusStreamWaitingReader
               return false;
             }
             return true;
-          }          
+          }
         };
       }
     };

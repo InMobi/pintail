@@ -54,16 +54,16 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     this.waitTimeForFlush = waitTimeForFlush;
     this.collectorMetrics = (CollectorReaderStatsExposer)(this.metrics);
     this.conf = conf;
-    LOG.info("Collector reader initialized with partitionId:" + partitionId +
-        " streamDir:" + streamDir + 
-        " waitTimeForFlush:" + waitTimeForFlush +
-        " waitTimeForCreate:" + waitTimeForCreate);
+    LOG.info("Collector reader initialized with partitionId:" + partitionId
+        + " streamDir:" + streamDir
+        + " waitTimeForFlush:" + waitTimeForFlush
+        + " waitTimeForCreate:" + waitTimeForCreate);
     isS3Fs = isFileSystemS3();
   }
 
   protected FileMap<CollectorFile> createFileMap() throws IOException {
     return new FileMap<CollectorFile>() {
-      
+
       @Override
       protected PathFilter createPathFilter() {
         return new PathFilter() {
@@ -135,9 +135,9 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     }
     if (next) {
       resetCurrentFileSettings();
-    } 
-    LOG.info("Opening file:" + getCurrentFile() + " NumLinesTobeSkipped when" +
-        " opening:" + currentLineNum);
+    }
+    LOG.info("Opening file:" + getCurrentFile() + " NumLinesTobeSkipped when"
+        + " opening:" + currentLineNum);
     if (fsIsPathExists(getCurrentFile())) {
 
       inStream = fsOpen(getCurrentFile());
@@ -256,7 +256,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   }
 
   private void reOpen() throws IOException {
-    openCurrentFile(false);    
+    openCurrentFile(false);
   }
 
   private void waitForFlushAndReOpen() 
