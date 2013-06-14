@@ -39,18 +39,30 @@ public class HadoopUtil {
   }
 
   public static void setUpHadoopFiles(Path streamDirPrefix, Configuration conf,
-      String[] files, String[] suffixDirs, Path[] finalFiles)
-          throws Exception {
+      String[] files, String[] suffixDirs, Path[] finalFiles) throws Exception {
+    setUpHadoopFiles(streamDirPrefix, conf, files, suffixDirs, finalFiles, false);
+  }
+
+  public static void setUpHadoopFiles(Path streamDirPrefix, Configuration conf,
+      String[] files, String[] suffixDirs, Path[] finalFiles,
+      boolean alternateEmptyFiles) throws Exception {
     FileSystem fs = streamDirPrefix.getFileSystem(conf);
     Path rootDir = streamDirPrefix.getParent();
     Path tmpDataDir = new Path(rootDir, "data");
+    boolean emptyFile = false;
     // setup data dirs
     if (files != null) {
       int i = 0;
       int j = 0;
       for (String file : files) {
-        MessageUtil.createMessageSequenceFile(file, fs, tmpDataDir, i, conf);
-        i += 100;
+        if (alternateEmptyFiles && emptyFile) {
+          MessageUtil.createEmptySequenceFile(file, fs, tmpDataDir, conf);
+          emptyFile = false;
+        } else {
+          MessageUtil.createMessageSequenceFile(file, fs, tmpDataDir, i, conf);
+          emptyFile = true;
+          i += 100;
+        }
         Path srcPath =  new Path(tmpDataDir, file);
         Date commitTime = getCommitDateForFile(file);
         TestUtil.publishMissingPaths(fs, streamDirPrefix, lastCommitTime,
@@ -112,10 +124,14 @@ public class HadoopUtil {
             cal.getTime()), "myfile", hs.getTimestamp() + 36000);
   }
 
-  public static void setupHadoopCluster(Configuration conf,
-      String[] files, String[] suffixDirs,
-      Path[] finalFiles, Path finalDir)
-          throws Exception {
+  public static void setupHadoopCluster(Configuration conf, String[] files,
+      String[] suffixDirs, Path[] finalFiles, Path finalDir) throws Exception {
+    setupHadoopCluster(conf, files, suffixDirs, finalFiles, finalDir, false);
+  }
+
+  public static void setupHadoopCluster(Configuration conf, String[] files,
+      String[] suffixDirs, Path[] finalFiles, Path finalDir,
+      boolean withEmptyFiles) throws Exception {
     FileSystem fs = finalDir.getFileSystem(conf);
     
     Path rootDir = finalDir.getParent();
@@ -123,7 +139,8 @@ public class HadoopUtil {
     Path tmpDataDir = new Path(rootDir, "data");
     fs.mkdirs(tmpDataDir);
     
-    setUpHadoopFiles(finalDir, conf, files, suffixDirs, finalFiles);
+    setUpHadoopFiles(finalDir, conf, files, suffixDirs, finalFiles,
+        withEmptyFiles);
   }
 
   private static Path getTargetDateDir(Path streamDirPrefix, Date commitTime)

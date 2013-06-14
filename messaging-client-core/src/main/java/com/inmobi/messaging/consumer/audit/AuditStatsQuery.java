@@ -1,5 +1,23 @@
 package com.inmobi.messaging.consumer.audit;
 
+
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TimeZone;
+import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.thrift.TDeserializer;
+import org.apache.thrift.TException;
+
 import com.inmobi.audit.thrift.AuditMessage;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
@@ -9,17 +27,6 @@ import com.inmobi.messaging.consumer.MessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
 import com.inmobi.messaging.consumer.audit.GroupBy.Group;
 import com.inmobi.messaging.util.AuditUtil;
-import org.apache.thrift.TDeserializer;
-import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.concurrent.TimeUnit;
 
 public class AuditStatsQuery {
 
@@ -36,8 +43,7 @@ public class AuditStatsQuery {
   Map<Group, Long> sent;
   private static final int minArgs = 2;
 
-  private static final Logger LOG = LoggerFactory
-      .getLogger(AuditStatsQuery.class);
+  private static final Log LOG = LogFactory.getLog(AuditStatsQuery.class);
   Date fromTime;
   Date toTime;
   int cutoffTime;
@@ -63,7 +69,8 @@ public class AuditStatsQuery {
       "com.inmobi.messaging.consumer.databus.DatabusConsumer";
   public static final String CONSUMER_NAME = "audit-consumer";
   private static final int DEFAULT_CUTOFF_HRS = 1;
-  private static final String CONFIG_STOP_TIME = "messaging.consumer.absolute.stopdate";
+  private static final String CONFIG_STOP_TIME =
+      "messaging.consumer.absolute.stoptime";
 
   public AuditStatsQuery(String rootDir, String toTimeString,
                          String fromTimeString, String filterString, String groupByString,

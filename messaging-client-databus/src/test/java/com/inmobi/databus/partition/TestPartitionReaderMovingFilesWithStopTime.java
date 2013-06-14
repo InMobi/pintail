@@ -43,6 +43,7 @@ public class TestPartitionReaderMovingFilesWithStopTime {
       TestUtil.files[8]};
   private Path[] databusFiles = new Path[8];
   int consumerNumber;
+  String fsUri;
 
   @BeforeTest
   public void setup() throws Exception {
@@ -56,6 +57,7 @@ public class TestPartitionReaderMovingFilesWithStopTime {
     streamsLocalDir = DatabusUtil.getStreamDir(StreamType.LOCAL,
         new Path(cluster.getRootDir()), testStream);
     fs = FileSystem.get(cluster.getHadoopConf());
+    fsUri = fs.getUri().toString();
   }
 
   @AfterTest
@@ -66,7 +68,7 @@ public class TestPartitionReaderMovingFilesWithStopTime {
   @Test
   public void testLocalStreamFileMovedWithStopDate() throws Exception {
     CollectorReaderStatsExposer prMetrics = new CollectorReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     preader = new PartitionReader(partitionId, null, conf, fs,
         collectorDir, streamsLocalDir, buffer,
         testStream, CollectorStreamReader.getDateFromCollectorFile(files[0]),

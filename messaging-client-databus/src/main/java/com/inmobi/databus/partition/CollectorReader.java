@@ -18,7 +18,7 @@ import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 
 public class CollectorReader extends AbstractPartitionStreamReader {
 
-  private static final Log LOG = LogFactory.getLog(PartitionReader.class);
+  private static final Log LOG = LogFactory.getLog(CollectorReader.class);
 
   private final PartitionId partitionId;
   private final String streamName;
@@ -27,9 +27,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   private LocalStreamCollectorReader lReader;
   private CollectorStreamReader cReader;
   private final CollectorReaderStatsExposer metrics;
-  private Date stopTime;
-  private boolean noNewFiles;
-
+  private boolean isLocalStreamAvailable = false;
   private boolean shouldBeClosed = false;
 
   CollectorReader(PartitionId partitionId,
@@ -45,14 +43,15 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     this.startTime = startTime;
     this.streamName = streamName;
     this.partitionCheckpoint = partitionCheckpoint;
-    this.stopTime = stopTime;
     this.metrics = metrics;
-    this.noNewFiles = noNewFiles;
-    lReader = new LocalStreamCollectorReader(partitionId,  fs, streamName,
-        streamsLocalDir, conf, waitTimeForFileCreate, metrics, stopTime);
+    if (streamsLocalDir != null) {
+      lReader = new LocalStreamCollectorReader(partitionId,  fs, streamName,
+          streamsLocalDir, conf, waitTimeForFileCreate, metrics, stopTime);
+      isLocalStreamAvailable = true;
+    }
     cReader = new CollectorStreamReader(partitionId, fs, streamName,
         collectorDir, waitTimeForFlush, waitTimeForFileCreate, metrics,
-        conf, noNewFiles, stopTime);
+        conf, noNewFiles, stopTime, isLocalStreamAvailable);
   }
 
   private void initializeCurrentFileFromTimeStamp(Date timestamp)
@@ -82,22 +81,28 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       } else {
         throw new IllegalArgumentException(error);
       } 
-    } else if (!cReader.isEmpty()) {
-      if (cReader.isBeforeStream(
-          CollectorStreamReader.getCollectorFileName(streamName,
-              localStreamFileName))) {
-        reader = cReader;
-        if (!reader.initFromStart()) {
-          throw new IllegalArgumentException(error);
-        }
-      } else if (cReader.isStopped() || lReader.isStopped()) {
+    } else {
+      reader = cReader;
+      String collectorFileName = CollectorStreamReader.getCollectorFileName(
+          streamName, localStreamFileName);
+      initializeCurrentFileFromFailedCheckpoint(collectorFileName);
+    }
+  }
+
+  private void initializeCurrentFileFromFailedCheckpoint(
+      String collectorFileName)
+      throws IOException, InterruptedException {
+    String error = "Checkpoint file does not exist";
+    if (!cReader.isEmpty()) {
+      if (cReader.isBeforeStream(collectorFileName)) {
+        reader.initFromStart();
+      } else if (checkAnyReaderIsStopped()) {
         shouldBeClosed  = true;
       } else {
         throw new IllegalArgumentException(error);
       }
     } else {
-      reader = cReader;
-      if (lReader.isStopped() || cReader.isStopped()) {
+      if (checkAnyReaderIsStopped()) {
         shouldBeClosed = true;
       } else {
         cReader.startFromBegining();
@@ -105,10 +110,15 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     }
   }
 
+  private boolean checkAnyReaderIsStopped() {
+    return cReader.isStopped()
+        || (isLocalStreamAvailable && lReader.isStopped());
+  }
+
   private void initializeCurrentFileFromCheckpoint() 
       throws IOException, InterruptedException {
     String fileName = partitionCheckpoint.getFileName();
-    if (cReader.isCollectorFile(fileName)) {
+    if (CollectorStreamReader.isCollectorFile(fileName)) {
       if (cReader.initializeCurrentFile(partitionCheckpoint)) {
         reader = cReader;
       } else { //file could be moved to local stream
@@ -123,23 +133,54 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     }
   }
 
+  private void initializeCurrentFileFromStartOfStream()
+      throws IOException, InterruptedException {
+    if (!lReader.isEmpty()) {
+      reader =lReader;
+    } else {
+      reader = cReader;
+    }
+
+    reader.startFromBegining();
+  }
+
   public void initializeCurrentFile() throws IOException, InterruptedException {
     LOG.info("Initializing partition reader's current file");
     cReader.build();
 
-    if (partitionCheckpoint != null) {
-      lReader.build(LocalStreamCollectorReader.getBuildTimestamp(
-          streamName, partitionId.getCollector(), partitionCheckpoint));
-      initializeCurrentFileFromCheckpoint();
-    } else if (startTime != null) {
-      lReader.build(startTime);
-      initializeCurrentFileFromTimeStamp(startTime);
+    if (isLocalStreamAvailable) {
+      if (partitionCheckpoint != null) {
+        lReader.build(LocalStreamCollectorReader.getBuildTimestamp(streamName,
+            partitionId.getCollector(), partitionCheckpoint));
+        initializeCurrentFileFromCheckpoint();
+      } else if (startTime != null) {
+        lReader.build(startTime);
+        initializeCurrentFileFromTimeStamp(startTime);
+      } else {
+        lReader.build(null);
+        initializeCurrentFileFromStartOfStream();
+      }
     } else {
-      LOG.info("Would never reach here");
+      reader = cReader;
+      initializeCurrentFileFromCollectorStreamOnly();
     }
     if (reader != null) {
-      LOG.info("Intialized currentFile:" + reader.getCurrentFile() +
-          " currentLineNum:" + reader.getCurrentLineNum());
+      LOG.info("Intialized currentFile:" + reader.getCurrentFile()
+          + " currentLineNum:" + reader.getCurrentLineNum());
+    }
+  }
+
+  private void initializeCurrentFileFromCollectorStreamOnly()
+      throws IOException, InterruptedException {
+    if (partitionCheckpoint != null) {
+      if (!reader.initializeCurrentFile(partitionCheckpoint)) {
+        initializeCurrentFileFromFailedCheckpoint(partitionCheckpoint
+            .getFileName());
+      }
+    } else if (startTime != null) {
+      reader.startFromTimestmp(startTime);
+    } else {
+      reader.startFromBegining();
     }
   }
 

@@ -3,8 +3,8 @@ package com.inmobi.messaging.publisher;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * This class is not thread safe in respect to increments and reset
@@ -14,8 +14,8 @@ import org.slf4j.LoggerFactory;
  * 
  */
 public class AuditCounterAccumulator {
-  private static final Logger LOG = LoggerFactory
-      .getLogger(AuditCounterAccumulator.class);
+  private static final Log LOG = LogFactory.
+      getLog(AuditCounterAccumulator.class);
   private Counters counters = new Counters(new HashMap<Long, Long>(),
       new HashMap<Long, Long>());
   private int windowSize;

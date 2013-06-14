@@ -6,8 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.inmobi.instrumentation.MessagingClientStatBuilder;
 import com.inmobi.instrumentation.TimingAccumulator;
@@ -26,8 +26,8 @@ import com.inmobi.stats.StatsExposer;
  */
 public abstract class AbstractMessagePublisher implements MessagePublisher {
 
-  private static final Logger LOG = LoggerFactory
-      .getLogger(AbstractMessagePublisher.class);
+  private static final Log LOG = LogFactory
+      .getLog(AbstractMessagePublisher.class);
   private Map<String, TopicStatsExposer> statsExposers =
       new HashMap<String, TopicStatsExposer>();
   private MessagingClientStatBuilder statsEmitter =

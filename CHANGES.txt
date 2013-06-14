@@ -1,3 +1,47 @@
+Release 3.0.0
+
+Incompatible Changes :
+
+    1. Changed the signature of next() to 
+      public Message next() throws InterruptedException, EndOfStreamException;
+ 
+Bug Fixes and Improvements :
+
+   14. Fix NPE while doing next in hadoop consumer with minute directories
+   containing zero byte files
+
+   13. Remove slf4j logs and use commons-logging instead
+
+   12. Fix starting file if checkpointed file is purged
+
+   11. Remove unnecessary remote fs.exists calls during start up
+
+   10. Fix test timeouts in messaging-client-scribe
+
+    9. Fix connectException handling in ScribeMessagePublisher
+
+    8. Use stop time in audit query client
+
+    7. Remove unnecessary transitive dependencies
+
+    6. Added commons-logging dependecy in parent pom
+
+    5. Add stop time feature to stop streaming the messages once stop time
+    is seen.
+
+    4. Added configuration for absolute stop time specified by the config '
+    messaging.consumer.absolute.stoptime' in the format 'yyyy/MM/dd/HH/mm'. 
+
+    3. Checkpoint takes precedence over relative and absolute start time.
+    Relative start time takes precedence over absolute starte time.
+
+    2. Added configuration messaging.consumer.absolute.starttime for
+    specifying the absolute start time in the format 'yyyy/MM/dd/HH/mm' 
+
+    1. Deprecate messaging.consumer.topic.retention.inhours. Add
+    messaging.consumer.relative.starttime.inminutes to specify relative time
+    to go back.
+
 Release 2.1.1
 
     1. Fix DatabusRecordReader to create message with proper byte array.

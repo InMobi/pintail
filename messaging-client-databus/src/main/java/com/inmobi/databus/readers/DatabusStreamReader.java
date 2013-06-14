@@ -8,7 +8,9 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -75,7 +77,7 @@ StreamReader<T> {
 
   protected void doRecursiveListing(Path dir, PathFilter pathFilter,
       FileMap<T> fmap) throws IOException {
-    FileStatus[] fileStatuses = fs.listStatus(dir, pathFilter);
+    FileStatus[] fileStatuses = fsListFileStatus(dir, pathFilter);
     if (fileStatuses == null || fileStatuses.length == 0) {
       LOG.debug("No files in directory:" + dir);
     } else {
@@ -121,12 +123,13 @@ StreamReader<T> {
     LOG.info("Opening file:" + getCurrentFile() + " NumLinesTobeSkipped when" +
         " opening:" + currentLineNum);
     try {
-      FileStatus status = fs.getFileStatus(getCurrentFile());
+      FileStatus status = fsGetFileStatus(getCurrentFile());
       if (status != null) {
         currentFileSplit = new FileSplit(getCurrentFile(), 0L,
             status.getLen(), new String[0]);
         recordReader = input.getRecordReader(currentFileSplit, new JobConf(conf),
             Reporter.NULL);
+        metrics.incrementNumberRecordReaders();
         msgKey = recordReader.createKey();
         msgValue = recordReader.createValue();
         if (msgValue instanceof Writable) {
@@ -244,5 +247,40 @@ StreamReader<T> {
 
   public static Path getMinuteDirPath(Path streamDir, Date date) {
     return new Path(streamDir, minDirFormat.get().format(date));
+  }
+
+  protected boolean setBuildTimeStamp(PathFilter pathFilter) throws IOException {
+    if (buildTimestamp == null) {
+      Date tmp = getTimestampFromStartOfStream(pathFilter);
+      if (tmp != null) {
+        this.buildTimestamp = tmp;
+      } else {
+        LOG.info("Could not find start directory yet");
+        return false;
+      }
+    }
+    return true;
+  }
+
+  protected Date getTimestampFromStartOfStream(PathFilter pathFilter)
+      throws IOException {
+    FileStatus leastTimeStampFileStatus = null;
+    Path dir = streamDir;
+    for (int d = 0; d < 5; d++) {
+      FileStatus [] filestatuses = fsListFileStatus(dir, pathFilter);
+      if (filestatuses != null && filestatuses.length > 0) {
+        leastTimeStampFileStatus = filestatuses[0];
+        for (int i = 1; i < filestatuses.length; i++) {
+          if (leastTimeStampFileStatus.getPath().
+              compareTo(filestatuses[i].getPath()) > 0) {
+            leastTimeStampFileStatus = filestatuses[i];
+          }
+        }
+        dir = leastTimeStampFileStatus.getPath();
+      } else {
+        return null;
+      }
+    }
+    return getDateFromStreamDir(streamDir, leastTimeStampFileStatus.getPath());
   }
 }

@@ -40,6 +40,7 @@ public class TestCollectorReaderEmptyStream {
   private Configuration conf = new Configuration();
   private FileSystem fs;
   int consumerNumber;
+  String fsUri;
 
   @BeforeTest
   public void setup() throws Exception {
@@ -53,6 +54,7 @@ public class TestCollectorReaderEmptyStream {
     streamsLocalDir = DatabusUtil.getStreamDir(StreamType.LOCAL,
         new Path(cluster.getRootDir()), testStream);
     fs = FileSystem.get(cluster.getHadoopConf());
+    fsUri = fs.getUri().toString();
 
   }
 
@@ -64,7 +66,7 @@ public class TestCollectorReaderEmptyStream {
   @Test
   public void testInitialize() throws Exception {
     CollectorReaderStatsExposer prMetrics = new CollectorReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
 
     // Read from start time 
     preader = new PartitionReader(partitionId, null, conf, fs,

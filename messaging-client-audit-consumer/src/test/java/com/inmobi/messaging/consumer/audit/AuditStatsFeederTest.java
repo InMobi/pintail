@@ -119,7 +119,7 @@ public class AuditStatsFeederTest {
 
   }
 
-  @Test
+  // @Test
   public void testMsgsAlignedAtMin() throws IOException {
     String tier = "agent", host = "localhost", topic = "testTopic", cluster = "testCluster";
     AuditMessage msg = new AuditMessage();
