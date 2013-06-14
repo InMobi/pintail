@@ -33,7 +33,7 @@ public class TestPartitionReaderWaitingHadoopStream extends
     fs = FileSystem.getLocal(conf);
     streamDir = new Path("/tmp/test/hadoop/" + this.getClass().getSimpleName(),
         testStream).makeQualified(fs);
-    HadoopUtil.setupHadoopCluster(conf, files, null, databusFiles, streamDir);
+    HadoopUtil.setupHadoopCluster(conf, files, null, databusFiles, streamDir, false);
     inputFormatClass = SequenceFileInputFormat.class.getName();
     partitionMinList = new HashSet<Integer>();
     for (int i = 0; i < 60; i++) {

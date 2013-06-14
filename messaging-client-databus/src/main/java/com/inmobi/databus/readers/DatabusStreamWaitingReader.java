@@ -124,7 +124,8 @@ public class DatabusStreamWaitingReader
       Path checkpointedFileName =new Path(streamDir, 
           partitioncheckpoint.getFileName());
       if (!(currentFile.getPath()).equals(checkpointedFileName)) {
-        if(fsIsPathExists(checkpointedFileName)) {
+        if (fsIsPathExists(checkpointedFileName)
+            && (partitioncheckpoint.getLineNum() != -1)) {
           currentFile = fsGetFileStatus(checkpointedFileName);
           currentLineNum = partitioncheckpoint.getLineNum();
         } else {

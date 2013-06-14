@@ -38,8 +38,8 @@ public abstract class TestAbstractClusterReader {
       new LinkedBlockingQueue<QueueEntry>(1000);
   protected PartitionReader preader;
   public Set<Integer> partitionMinList;                                             
-  PartitionCheckpointList partitionCheckpointList;                                                      
-  Map<Integer, PartitionCheckpoint> pchkPoints;                                        
+  PartitionCheckpointList partitionCheckpointList;
+  Map<Integer, PartitionCheckpoint> pchkPoints;
   int consumerNumber;
 
   protected String[] files = new String[] {TestUtil.files[1], TestUtil.files[3],

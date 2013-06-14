@@ -57,6 +57,7 @@ public abstract class TestAbstractHadoopConsumer {
   Path[][] finalPaths;
   Configuration conf;
   protected final String relativeStartTime = "30";
+  protected boolean createFilesInNextHour = false;
 
   abstract ClientConfig loadConfig();
 
@@ -75,7 +76,7 @@ public abstract class TestAbstractHadoopConsumer {
     finalPaths = new Path[rootDirs.length][numSuffixDirs * numDataFiles];
     for (int i = 0; i < rootDirs.length; i++) {
       HadoopUtil.setupHadoopCluster(conf, dataFiles, suffixDirs,
-          finalPaths[i], rootDirs[i], true);
+          finalPaths[i], rootDirs[i], true, createFilesInNextHour);
     }
     HadoopUtil.setUpHadoopFiles(rootDirs[0], conf,
       new String[]{"_SUCCESS", "_DONE"}, suffixDirs, null);

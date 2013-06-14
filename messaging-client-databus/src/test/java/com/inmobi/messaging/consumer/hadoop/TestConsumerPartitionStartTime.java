@@ -79,7 +79,7 @@ public class TestConsumerPartitionStartTime {
     finalPaths = new Path[rootDirs.length][numSuffixDirs * numDataFiles];
     for (int i = 0; i < rootDirs.length; i++) {
       HadoopUtil.setupHadoopCluster(
-          conf, dataFiles, suffixDirs, finalPaths[i], rootDirs[i]);
+          conf, dataFiles, suffixDirs, finalPaths[i], rootDirs[i], false);
     }
     HadoopUtil.setUpHadoopFiles(rootDirs[0], conf, 
         new String[] {"_SUCCESS", "_DONE"}, suffixDirs, null);
