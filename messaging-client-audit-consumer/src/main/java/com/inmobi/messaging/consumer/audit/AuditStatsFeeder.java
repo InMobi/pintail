@@ -180,7 +180,7 @@ class AuditStatsFeeder implements Runnable {
     return window;
   }
 
-  private AuditMessage[] getAuditMessagesAlignedAtMinuteBoundary(
+  AuditMessage[] getAuditMessagesAlignedAtMinuteBoundary(
       AuditMessage message) {
     AuditMessage[] messages = new AuditMessage[2];
     int windowSize = message.getWindowSize();
