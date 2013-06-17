@@ -8,7 +8,9 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -245,5 +247,40 @@ StreamReader<T> {
 
   public static Path getMinuteDirPath(Path streamDir, Date date) {
     return new Path(streamDir, minDirFormat.get().format(date));
+  }
+
+  protected boolean setBuildTimeStamp(PathFilter pathFilter) throws IOException {
+    if (buildTimestamp == null) {
+      Date tmp = getTimestampFromStartOfStream(pathFilter);
+      if (tmp != null) {
+        this.buildTimestamp = tmp;
+      } else {
+        LOG.info("Could not find start directory yet");
+        return false;
+      }
+    }
+    return true;
+  }
+
+  protected Date getTimestampFromStartOfStream(PathFilter pathFilter)
+      throws IOException {
+    FileStatus leastTimeStampFileStatus = null;
+    Path dir = streamDir;
+    for (int d = 0; d < 5; d++) {
+      FileStatus [] filestatuses = fsListFileStatus(dir, pathFilter);
+      if (filestatuses != null && filestatuses.length > 0) {
+        leastTimeStampFileStatus = filestatuses[0];
+        for (int i = 1; i < filestatuses.length; i++) {
+          if (leastTimeStampFileStatus.getPath().
+              compareTo(filestatuses[i].getPath()) > 0) {
+            leastTimeStampFileStatus = filestatuses[i];
+          }
+        }
+        dir = leastTimeStampFileStatus.getPath();
+      } else {
+        return null;
+      }
+    }
+    return getDateFromStreamDir(streamDir, leastTimeStampFileStatus.getPath());
   }
 }

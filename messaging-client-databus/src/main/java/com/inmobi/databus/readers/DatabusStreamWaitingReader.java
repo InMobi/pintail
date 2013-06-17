@@ -124,7 +124,8 @@ public class DatabusStreamWaitingReader
       Path checkpointedFileName = new Path(streamDir,
           partitioncheckpoint.getFileName());
       if (!(currentFile.getPath()).equals(checkpointedFileName)) {
-        if (fsIsPathExists(checkpointedFileName)) {
+        if (fsIsPathExists(checkpointedFileName)
+            && (partitioncheckpoint.getLineNum() != -1)) {
           currentFile = fsGetFileStatus(checkpointedFileName);
           currentLineNum = partitioncheckpoint.getLineNum();
         } else {
@@ -145,6 +146,9 @@ public class DatabusStreamWaitingReader
   @Override
   protected void buildListing(FileMap<HadoopStreamFile> fmap,
       PathFilter pathFilter) throws IOException {
+    if (!setBuildTimeStamp(pathFilter)) {
+      return;
+    }
     Calendar current = Calendar.getInstance();
     Date now = current.getTime();
     current.setTime(buildTimestamp);

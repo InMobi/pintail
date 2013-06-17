@@ -42,6 +42,11 @@ public interface MessagingConsumerConfig {
   public static final String stopDateConfig =
       "messaging.consumer.absolute.stoptime";
 
+  public static final String startOfStreamConfig =
+      "messaging.consumer.startofstream";
+
+  public static final boolean DEFAULT_START_OF_STREAM = false;
+
   public static final String hadoopConfigFileKey =
       "messaging.consumer.hadoop.conf";
 
@@ -52,4 +57,8 @@ public interface MessagingConsumerConfig {
   public static final String consumerIdInGroupConfig =
       "messaging.consumer.group.membership";
   public static final String DEFAULT_CONSUMER_ID = "1/1";
+
+  public static final String readFromLocalStreamConfig =
+      "messaging.consumer.read.localstream";
+  public static final boolean DEFAULT_READ_LOCAL_STREAM = true;
 }

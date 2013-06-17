@@ -76,6 +76,9 @@ public class LocalStreamCollectorReader extends
 
   protected void buildListing(FileMap<DatabusStreamFile> fmap, PathFilter pathFilter)
       throws IOException {
+    if (!setBuildTimeStamp(null)) {
+      return;
+    }
     Calendar current = Calendar.getInstance();
     Date now = current.getTime();
     current.setTime(buildTimestamp);

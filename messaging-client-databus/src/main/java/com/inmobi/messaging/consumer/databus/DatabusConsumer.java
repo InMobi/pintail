@@ -69,6 +69,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
   private StreamType streamType;
   private Configuration conf = new Configuration();
   public static String clusterNamePrefix = "databusCluster";
+  private Boolean readFromLocalStream;
   private int numList = 0;
 
   protected void initializeConfig(ClientConfig config) throws IOException {
@@ -78,6 +79,8 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
     waitTimeForFlush = config.getLong(waitTimeForFlushConfig,
         DEFAULT_WAIT_TIME_FOR_FLUSH);
     String rootDirsStr = config.getString(databusRootDirsConfig);
+    readFromLocalStream = config.getBoolean(readFromLocalStreamConfig,
+        DEFAULT_READ_LOCAL_STREAM);
     String[] rootDirSplits;
     if (rootDirsStr != null) {
       rootDirSplits = rootDirsStr.split(",");
@@ -141,13 +144,17 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
               CollectorReaderStatsExposer(topicName, consumerName,
                   id.toString(), consumerNumber, fsuri);
           addStatsExposer(collectorMetrics);
+          Path streamsLocalDir = null;
+          if (readFromLocalStream) {
+            streamsLocalDir = DatabusUtil.getStreamDir(StreamType.LOCAL,
+                rootDirs[i], topicName);
+          }
           for (int c = 0; c < numList; c++) {
             collectorMetrics.incrementListOps();
           }
           readers.put(id, new PartitionReader(id, partitionsChkPoints.get(id),
               conf, fs, new Path(streamDir, collector),
-              DatabusUtil.getStreamDir(StreamType.LOCAL, rootDirs[i], topicName),
-              buffer, topicName, partitionTimestamp,
+              streamsLocalDir, buffer, topicName, partitionTimestamp,
               waitTimeForFlush, waitTimeForFileCreate, collectorMetrics,
               stopTime));
           numList = 0;

@@ -103,12 +103,6 @@ public class PartitionReader {
       BlockingQueue<QueueEntry> buffer, Date startTime,
       PartitionReaderStatsExposer prMetrics)
           throws IOException {
-    if (startTime == null && msgCheckpoint == null) {
-      String msg = "StartTime and checkpoint both"
-          + " cannot be null in PartitionReader";
-      LOG.warn(msg);
-      throw new IllegalArgumentException(msg);
-    }
     this.partitionId = partitionId;
     this.buffer = buffer;
     this.prMetrics = prMetrics;

@@ -31,7 +31,7 @@ public class TestHadoopStreamReader extends TestAbstractDatabusWaitingReader{
     streamDir = new Path("/tmp/test/hadoop/" + this.getClass().getSimpleName(),
         testStream).makeQualified(fs);
     // initialize config
-    HadoopUtil.setupHadoopCluster(conf, files, null, finalFiles, streamDir);
+    HadoopUtil.setupHadoopCluster(conf, files, null, finalFiles, streamDir, false);
     inputFormatClass = SequenceFileInputFormat.class.getCanonicalName();
     encoded = false;
     partitionMinList = new TreeSet<Integer>();

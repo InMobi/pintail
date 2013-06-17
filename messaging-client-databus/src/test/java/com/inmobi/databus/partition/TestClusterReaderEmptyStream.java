@@ -60,7 +60,7 @@ public class TestClusterReaderEmptyStream {
     fsUri = fs.getUri().toString();
     streamDir = new Path("/tmp/test/hadoop/" + this.getClass().getSimpleName(),
         testStream).makeQualified(fs);
-    HadoopUtil.setupHadoopCluster(conf, null, null, null, streamDir);
+    HadoopUtil.setupHadoopCluster(conf, null, null, null, streamDir, false);
     inputFormatClass = SequenceFileInputFormat.class.getName();
     partitionMinList = new TreeSet<Integer>();
     for (int i = 0; i < 60; i++) {
