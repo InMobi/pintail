@@ -27,7 +27,8 @@ public class TestTopicSelector {
     String msg = "msg1";
     TopicSelector.setSelectorClass(conf, topic, 
         MsgValueTopicSelector.class.getName());
-    MsgValueTopicSelector selector = (MsgValueTopicSelector) TopicSelector.create(topic, conf);
+    MsgValueTopicSelector selector = (MsgValueTopicSelector)
+        TopicSelector.create(topic, conf);
     Assert.assertEquals(selector.selectTopic(msg), msg);
     Assert.assertEquals(selector.getLogicalTopic(), topic);
     selector.close();

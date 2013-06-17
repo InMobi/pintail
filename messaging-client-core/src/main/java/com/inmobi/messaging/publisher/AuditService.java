@@ -133,8 +133,8 @@ class AuditService {
     try {
       hostname = InetAddress.getLocalHost().getHostName();
     } catch (UnknownHostException e) {
-      LOG.error("Unable to find the hostanme of the local box,audit packets won'"
-          + "t contain hostname");
+      LOG.error("Unable to find the hostanme of the local box,audit packets"
+          + " won't contain hostname");
       hostname = "";
     }
     worker = new AuditWorker();

@@ -21,8 +21,10 @@ public class TopicSelectorSeqgen {
     String top = args[0];
     long maxSeq = Integer.parseInt(args[1]);
 
-    TopicSelector.setSelectorClass(conf, top, MsgValueTopicSelector.class.getName());
-    MsgValueTopicSelector selector = (MsgValueTopicSelector) TopicSelector.create(top, conf);
+    TopicSelector.setSelectorClass(conf, top,
+        MsgValueTopicSelector.class.getName());
+    MsgValueTopicSelector selector = (MsgValueTopicSelector)
+        TopicSelector.create(top, conf);
 
     for (long seq = 1; seq <= maxSeq; seq++) {
       String str1 = Long.toString(seq);
@@ -51,10 +53,10 @@ public class TopicSelectorSeqgen {
 
     System.out.println("Total topic invocations: "
         + publisher.getStats(top1).getInvocationCount());
-    System.out.println("Total topic success: " +
-        publisher.getStats(top1).getSuccessCount());
-    System.out.println("Total topic unhandledExceptions: " +
-        publisher.getStats(top1).getUnhandledExceptionCount());
+    System.out.println("Total topic success: "
+        + publisher.getStats(top1).getSuccessCount());
+    System.out.println("Total topic unhandledExceptions: "
+        + publisher.getStats(top1).getUnhandledExceptionCount());
 
     System.out.println("Total topic invocations: "
         + publisher.getStats(top2).getInvocationCount());
@@ -86,7 +88,7 @@ public class TopicSelectorSeqgen {
 class TopicMessage {
   int index;
   String message;
-  TopicMessage(int index, String message){
+  TopicMessage(int index, String message) {
     this.index = index;
     this.message = message;
   }

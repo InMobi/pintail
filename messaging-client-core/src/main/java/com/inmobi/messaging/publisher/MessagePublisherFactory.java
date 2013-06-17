@@ -53,7 +53,7 @@ public class MessagePublisherFactory {
    * @param config The {@link ClientConfig}
    *
    * @return {@link MessagePublisher} concrete object
-   * @throws IOException 
+   * @throws IOException
    */
   public static MessagePublisher create(ClientConfig config)
       throws IOException {

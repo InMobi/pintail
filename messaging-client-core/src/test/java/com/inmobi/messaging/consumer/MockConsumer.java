@@ -1,7 +1,6 @@
 package com.inmobi.messaging.consumer;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;

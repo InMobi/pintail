@@ -30,7 +30,7 @@ public class MultithreadSeqgen {
       p[thread] = new PublishThreadNew(topic, publisher, threadMaxSeq);
       p[thread].start();
     }
-    for (int thread = 0; thread < totalThread ; thread++) {
+    for (int thread = 0; thread < totalThread; thread++) {
       p[thread].join();
     }
 

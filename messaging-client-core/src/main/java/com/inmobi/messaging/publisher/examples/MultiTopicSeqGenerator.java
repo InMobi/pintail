@@ -8,7 +8,7 @@ public class MultiTopicSeqGenerator {
   public static void main(String[] args) throws Exception {
     if (args.length != 3) {
       System.err.println("Usage: MultiTopicSeqGenerator <topic1> <topic2> "
-      		+ "<maxSeq>");
+          + "<maxSeq>");
       return;
     }
     AbstractMessagePublisher publisher =

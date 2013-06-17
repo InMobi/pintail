@@ -11,7 +11,7 @@ import com.inmobi.messaging.Message;
 public class AuditUtil {
   static final byte[] magicBytes = {(byte) 0xAB, (byte) 0xCD, (byte) 0xEF };
   public static final String AUDIT_STREAM_TOPIC_NAME = "_audit";
-  private static final byte[] versions = { 1 };
+  private static final byte[] versions = {1};
   private static final int currentVersion = 1;
   private static final Log LOG = LogFactory.getLog(AuditUtil.class);
   static final int HEADER_LENGTH = 16;
