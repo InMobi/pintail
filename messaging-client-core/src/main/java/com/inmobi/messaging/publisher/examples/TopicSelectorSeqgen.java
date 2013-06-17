@@ -12,22 +12,22 @@ public class TopicSelectorSeqgen {
   public static void main(String[] args) throws Exception {
     ClientConfig conf = new ClientConfig();
     if (args.length != 2) {
-      System.err.println("Usage: TopicSelectorExample" +
-          " <topic> <maxSeq>");
+      System.err.println("Usage: TopicSelectorExample"
+          + " <topic> <maxSeq>");
       return;
     }
-    AbstractMessagePublisher publisher = 
+    AbstractMessagePublisher publisher =
         (AbstractMessagePublisher) MessagePublisherFactory.create();
     String top = args[0];
     long maxSeq = Integer.parseInt(args[1]);
 
     TopicSelector.setSelectorClass(conf, top, MsgValueTopicSelector.class.getName());
-    MsgValueTopicSelector selector = (MsgValueTopicSelector)TopicSelector.create(top, conf);
+    MsgValueTopicSelector selector = (MsgValueTopicSelector) TopicSelector.create(top, conf);
 
     for (long seq = 1; seq <= maxSeq; seq++) {
       String str1 = Long.toString(seq);
-      TopicMessage msg1 = new TopicMessage(1,str1);
-      TopicMessage msg2 = new TopicMessage(2,str1);
+      TopicMessage msg1 = new TopicMessage(1, str1);
+      TopicMessage msg2 = new TopicMessage(2, str1);
 
       Message msg = new Message(ByteBuffer.wrap((msg1.toString().getBytes())));
       publisher.publish(selector.selectTopic(msg1), msg);
@@ -43,48 +43,47 @@ public class TopicSelectorSeqgen {
         e.printStackTrace();
       }
     }
-    String top1 = selector.selectTopic(new TopicMessage(1,""));
-    String top2 = selector.selectTopic(new TopicMessage(2,""));
-    
+    String top1 = selector.selectTopic(new TopicMessage(1, ""));
+    String top2 = selector.selectTopic(new TopicMessage(2, ""));
+
     publisher.close();
     selector.close();
-    
-    System.out.println("Total topic invocations: " + 
-        publisher.getStats(top1).getInvocationCount());
+
+    System.out.println("Total topic invocations: "
+        + publisher.getStats(top1).getInvocationCount());
     System.out.println("Total topic success: " +
         publisher.getStats(top1).getSuccessCount());
     System.out.println("Total topic unhandledExceptions: " +
         publisher.getStats(top1).getUnhandledExceptionCount());
 
-    System.out.println("Total topic invocations: " + 
-        publisher.getStats(top2).getInvocationCount());
-    System.out.println("Total topic success: " +
-        publisher.getStats(top2).getSuccessCount());
-    System.out.println("Total topic unhandledExceptions: " +
-        publisher.getStats(top2).getUnhandledExceptionCount());
+    System.out.println("Total topic invocations: "
+        + publisher.getStats(top2).getInvocationCount());
+    System.out.println("Total topic success: "
+        + publisher.getStats(top2).getSuccessCount());
+    System.out.println("Total topic unhandledExceptions: "
+        + publisher.getStats(top2).getUnhandledExceptionCount());
   }
 
   public static class MsgValueTopicSelector extends TopicSelector<TopicMessage> {
     private String logicalTopic;
-    
+
     @Override
     protected void init(String logicalTopic, ClientConfig conf) {
       this.logicalTopic = logicalTopic;
     }
-    
+
     @Override
     public String selectTopic(TopicMessage object) {
-      return logicalTopic+object.getIndex();
+      return logicalTopic + object.getIndex();
     }
-    
+
     public String getLogicalTopic() {
       return logicalTopic;
     }
   }
 }
 
-class TopicMessage
-{
+class TopicMessage {
   int index;
   String message;
   TopicMessage(int index, String message){
@@ -92,7 +91,7 @@ class TopicMessage
     this.message = message;
   }
 
-  int getIndex(){
+  int getIndex() {
     return this.index;
   }
 }

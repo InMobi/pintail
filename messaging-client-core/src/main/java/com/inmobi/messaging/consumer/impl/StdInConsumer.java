@@ -74,8 +74,8 @@ public class StdInConsumer extends AbstractMessageConsumer {
     config.set("stdin.topic", "mytopic");
     config.set(MessageConsumerFactory.CONSUMER_CLASS_NAME_KEY,
       		  StdInConsumer.class.getName());
-    MessageConsumer consumer = MessageConsumerFactory.create(config );
-      
+    MessageConsumer consumer = MessageConsumerFactory.create(config);
+
     try {
       while (true) {
         Message msg = consumer.next();

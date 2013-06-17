@@ -9,13 +9,13 @@ import org.apache.commons.logging.LogFactory;
 import com.inmobi.messaging.Message;
 
 public class AuditUtil {
-  static final byte[] magicBytes = { (byte) 0xAB, (byte) 0xCD, (byte) 0xEF };
+  static final byte[] magicBytes = {(byte) 0xAB, (byte) 0xCD, (byte) 0xEF };
   public static final String AUDIT_STREAM_TOPIC_NAME = "_audit";
-  private static final byte versions[] = { 1 };
+  private static final byte[] versions = { 1 };
   private static final int currentVersion = 1;
   private static final Log LOG = LogFactory.getLog(AuditUtil.class);
   static final int HEADER_LENGTH = 16;
-  private static final long BASE_TIME = 1356998400000l;
+  private static final long BASE_TIME = 1356998400000L;
   public static final String DATE_FORMAT = "dd-MM-yyyy-HH:mm";
 
   public static void attachHeaders(Message m, Long timestamp) {
@@ -42,12 +42,13 @@ public class AuditUtil {
 
   }
 
-  public static ByteBuffer removeHeader(byte data[]) {
+  public static ByteBuffer removeHeader(byte[] data) {
     if (isValidHeaders(data)) {
       return ByteBuffer.wrap(Arrays.copyOfRange(data, HEADER_LENGTH,
           data.length));
-    } else
+    } else {
       return ByteBuffer.wrap(data);
+    }
   }
 
   private static boolean isValidHeaders(byte[] data) {

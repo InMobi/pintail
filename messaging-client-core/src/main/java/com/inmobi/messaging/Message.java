@@ -15,7 +15,7 @@ public final class Message implements MessageBase {
 
   /**
    * Create new message with {@link ByteBuffer}
-   * 
+   *
    * @param data The {@link ByteBuffer}
    */
   public Message(ByteBuffer data) {
@@ -24,7 +24,7 @@ public final class Message implements MessageBase {
 
   /**
    * Create new message with byte array
-   * 
+   *
    * @param data The byte array.
    */
   public Message(byte[] data) {
@@ -33,7 +33,7 @@ public final class Message implements MessageBase {
 
   /**
    * Get the data associated with message.
-   * 
+   *
    * @return {@link ByteBuffer} holding the data.
    */
   public ByteBuffer getData() {
@@ -58,18 +58,23 @@ public final class Message implements MessageBase {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
+    if (this == obj) {
       return true;
-    if (obj == null)
+    }
+    if (obj == null) {
       return false;
-    if (getClass() != obj.getClass())
+    }
+    if (getClass() != obj.getClass()) {
       return false;
+    }
     Message other = (Message) obj;
     if (data == null) {
-      if (other.data != null)
+      if (other.data != null) {
         return false;
-    } else if (!data.equals(other.data))
+      }
+    } else if (!data.equals(other.data)) {
       return false;
+    }
     return true;
   }
 

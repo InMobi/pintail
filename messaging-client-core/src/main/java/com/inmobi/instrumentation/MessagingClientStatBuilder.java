@@ -24,9 +24,9 @@ public class MessagingClientStatBuilder {
 
   /**
    * Initialize the emitter
-   * 
+   *
    * @param configFileName Emitter configuration file name
-   * 
+   *
    * @throws IOException
    */
   public void init(String configFileName) throws IOException {
@@ -34,14 +34,14 @@ public class MessagingClientStatBuilder {
       emitter = EmitterRegistry.lookup(configFileName);
       statEnabled = true;
     } catch (Exception e) {
-      throw new IOException("Couldn't find or initialize the configured stats" +
-          " emitter", e);
+      throw new IOException("Couldn't find or initialize the configured stats"
+          + " emitter", e);
     }
   }
 
   /**
    * Add the statsExposer to the emitter
-   * 
+   *
    * @param statsExposer
    */
   public void add(StatsExposer statsExposer) {

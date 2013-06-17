@@ -11,8 +11,8 @@ import com.inmobi.messaging.consumer.MessageConsumerFactory;
 
 /**
  * Creates DatabusConsumer from  configuration in classpath and
- * counts the messages. 
- * 
+ * counts the messages.
+ *
  * Starts consuming messages from specified time in the argument. Prints the
  * counter after every 1000 messages.
  * Does marking after every 5000 messages.
@@ -48,15 +48,15 @@ public class CounterClient {
       }
     } else {
       consumer = null;
-      System.out.println("Usage: counterclient [<minutes-to-read-from> " +
-          " <time-to-wait-NextMessage>]");
+      System.out.println("Usage: counterclient [<minutes-to-read-from> "
+          + " <time-to-wait-NextMessage>]");
       System.exit(-1);
     }
 
     if (min != -1) {
       Calendar now = Calendar.getInstance();
-      now.add(Calendar.MINUTE, - (min.intValue()));
-      consumer = MessageConsumerFactory.create(now.getTime());      
+      now.add(Calendar.MINUTE, -(min.intValue()));
+      consumer = MessageConsumerFactory.create(now.getTime());
     } else {
       consumer = MessageConsumerFactory.create();
     }
@@ -101,5 +101,5 @@ public class CounterClient {
       }
     }
     close();
-  } 
+  }
 }

@@ -19,7 +19,7 @@ import com.inmobi.stats.StatsExposer;
 
 /**
  * Abstract class implementing {@link MessagePublisher} interface.
- * 
+ *
  * Initializes {@link StatsEmitter} and {@link StatsExposer} with configuration
  * defined in file {@value MessagePublisherFactory#EMITTER_CONF_FILE_KEY}. If no
  * such file exists, statistics will be disabled.
@@ -37,7 +37,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
   private final AuditService auditService = new AuditService(this);
   public static final String AUDIT_ENABLED_KEY = "audit.enabled";
   private volatile boolean closing = false;
-  
+
   @Override
   public void publish(String topicName, Message m) {
     if (topicName == null) {
@@ -48,16 +48,16 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     }
     if (topicName.equals(AuditUtil.AUDIT_STREAM_TOPIC_NAME)) {
         // ensure that external publisher users don't write message on _audit topic
-        throw new IllegalArgumentException("publish cannot happen on " +
-        		AuditUtil.AUDIT_STREAM_TOPIC_NAME + "topic");
+      throw new IllegalArgumentException("publish cannot happen on "
+          + AuditUtil.AUDIT_STREAM_TOPIC_NAME + "topic");
     }
     if (closing) {
-      throw new IllegalStateException("publish cannot happen on closed " +
-      		"publisher");
+      throw new IllegalStateException("publish cannot happen on closed "
+          + "publisher");
     }
     publish(topicName, m, false);
   }
-  
+
   void publish(String topicName, Message m,
       boolean isPublishedByAuditService) {
     Long timestamp = null;
@@ -94,7 +94,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
 
   /**
    * Initializes stats for the topic
-   * 
+   *
    * @param topic
    * @param stats
    * @throws IOException
@@ -129,8 +129,9 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
           config.getString(MessagePublisherFactory.EMITTER_CONF_FILE_KEY);
       isAuditEnabled = config.getBoolean(AUDIT_ENABLED_KEY, false);
       LOG.info("Audit is enabled for this publisher :" + isAuditEnabled);
-      if (isAuditEnabled)
+      if (isAuditEnabled) {
         auditService.init(config);
+      }
       if (emitterConfig == null) {
         LOG.warn("Stat emitter is disabled as config "
             + MessagePublisherFactory.EMITTER_CONF_FILE_KEY + " is not set in"

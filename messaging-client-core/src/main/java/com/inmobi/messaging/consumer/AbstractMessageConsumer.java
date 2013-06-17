@@ -14,10 +14,10 @@ import com.inmobi.messaging.Message;
 
 /**
  * Abstract class implementing {@link MessageConsumer} interface.
- * 
+ *
  * It provides the access to configuration parameters({@link ClientConfig}) for
  * consumer interface
- * 
+ *
  * It initializes topic name, consumer name and startTime. startTime is the time
  * from which messages should be consumed.
  * <ul>
@@ -39,8 +39,8 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
   private BaseMessageConsumerStatsExposer metrics;
   private MessagingClientStatBuilder statsEmitter = new MessagingClientStatBuilder();
 
-  public static String minDirFormatStr = "yyyy" + File.separator + "MM" +
-      File.separator + "dd" + File.separator + "HH" + File.separator +"mm";
+  public static String minDirFormatStr = "yyyy" + File.separator + "MM"
+      + File.separator + "dd" + File.separator + "HH" + File.separator + "mm";
 
   public static final ThreadLocal<DateFormat> minDirFormat =
       new ThreadLocal<DateFormat>() {
@@ -52,7 +52,7 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
 
   /**
    * Initialize the consumer with passed configuration object
-   * 
+   *
    * @param config
    *          {@link ClientConfig} for the consumer
    * @throws IOException
@@ -108,7 +108,7 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
   /**
    * Initialize the consumer with passed configuration object, streamName and
    * consumerName and startTime.
-   * 
+   *
    * @param topicName
    *          Name of the topic being consumed
    * @param consumerName
@@ -141,7 +141,7 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
 
   /**
    * Get the configuration of the consumer.
-   * 
+   *
    * @return {@link ClientConfig} object
    */
   public ClientConfig getConfig() {
@@ -150,7 +150,7 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
 
   /**
    * Get the topic name being consumed.
-   * 
+   *
    * @return String topicName
    */
   public String getTopicName() {
@@ -159,7 +159,7 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
 
   /**
    * Get the consumer name
-   * 
+   *
    * @return String consumerName
    */
   public String getConsumerName() {
@@ -168,7 +168,7 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
 
   /**
    * Get the starting time of the consumption.
-   * 
+   *
    * @return Date object
    */
   public Date getStartTime() {
@@ -177,7 +177,7 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
 
   /**
    * Get the consumer metrics object
-   * 
+   *
    * @return MessageConsumerMetrics object
    */
   public AbstractMessagingClientStatsExposer getMetrics() {
@@ -191,9 +191,9 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
       try {
         return minDirFormat.get().parse(dateString);
       } catch (java.text.ParseException e) {
-        throw new IllegalArgumentException("Incorrect format of " +
-            "startTime/stopTime passed " +  " Absolute startTime/stopTime " +
-            "should be in this format: " +  minDirFormatStr);
+        throw new IllegalArgumentException("Incorrect format of "
+            + "startTime/stopTime passed " +  " Absolute startTime/stopTime "
+            + "should be in this format: " +  minDirFormatStr);
       }
     }
     return null;
@@ -205,7 +205,7 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
 
   /**
    * Add statsExposer to the emitter.
-   * 
+   *
    * @param statsExposer
    */
   protected void addStatsExposer(
@@ -215,7 +215,7 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
 
   /**
    * Remove statsExposer from the emitter.
-   * 
+   *
    * @param statsExposer
    */
   protected void removeStatsExposer(
@@ -225,7 +225,7 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
 
   /**
    * Get the client stats object
-   * 
+   *
    * @return MessagingClientStats object
    */
   MessagingClientStatBuilder getStatsBuilder() {

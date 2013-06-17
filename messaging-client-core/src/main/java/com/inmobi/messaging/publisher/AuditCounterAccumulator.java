@@ -9,9 +9,9 @@ import org.apache.commons.logging.LogFactory;
 /**
  * This class is not thread safe in respect to increments and reset
  * Responsibility is upon the caller
- * 
+ *
  * @author rohit.kochar
- * 
+ *
  */
 public class AuditCounterAccumulator {
   private static final Log LOG = LogFactory.
