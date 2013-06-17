@@ -2,7 +2,6 @@ package com.inmobi.messaging.consumer.databus.mapreduce;
 
 import java.io.IOException;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
@@ -16,7 +15,6 @@ import com.inmobi.messaging.consumer.util.DatabusUtil;
 public class DatabusRecordReader extends RecordReader<LongWritable, Message> {
 
   private LineRecordReader lineReader;
-  private Configuration conf;
 
   public DatabusRecordReader() {
     lineReader = new LineRecordReader();
@@ -26,7 +24,6 @@ public class DatabusRecordReader extends RecordReader<LongWritable, Message> {
   public void initialize(InputSplit split, TaskAttemptContext context)
       throws IOException, InterruptedException {
     lineReader.initialize(split, context);
-    conf = context.getConfiguration();
   }
 
   @Override

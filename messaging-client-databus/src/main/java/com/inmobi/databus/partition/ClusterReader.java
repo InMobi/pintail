@@ -24,7 +24,6 @@ public class ClusterReader extends AbstractPartitionStreamReader {
   private final PartitionCheckpointList partitionCheckpointList;
   private final Date startTime;
   private final Path streamDir;
-  private final boolean isDatabusData;
 
   ClusterReader(PartitionId partitionId,
       PartitionCheckpointList partitionCheckpointList, FileSystem fs,
@@ -36,7 +35,6 @@ public class ClusterReader extends AbstractPartitionStreamReader {
     this.startTime = startTime;
     this.streamDir = streamDir;
     this.partitionCheckpointList = partitionCheckpointList;
-    this.isDatabusData = isDatabusData;
 
     reader = new DatabusStreamWaitingReader(partitionId, fs, streamDir,
         inputFormatClass, conf, waitTimeForFileCreate, metrics, noNewFiles,

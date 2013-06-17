@@ -2,7 +2,6 @@ package com.inmobi.messaging.consumer.databus.mapred;
 
 import java.io.IOException;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.FileSplit;
@@ -18,10 +17,9 @@ public class DatabusRecordReader implements RecordReader<LongWritable, Message> 
 
   private LineRecordReader lineReader;
   private Text textValue;
-  private Configuration conf;
+
   public DatabusRecordReader(JobConf job, InputSplit split) throws IOException {
     lineReader = new LineRecordReader(job, (FileSplit) split);
-    this.conf = job;
   }
 
   public LongWritable createKey() {

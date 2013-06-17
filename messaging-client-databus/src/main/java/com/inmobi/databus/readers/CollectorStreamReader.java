@@ -23,8 +23,6 @@ import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.util.DatabusUtil;
 import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
-import org.apache.hadoop.fs.s3.S3FileSystem;
-import org.apache.hadoop.fs.s3native.NativeS3FileSystem;
 
 public class CollectorStreamReader extends StreamReader<CollectorFile> {
 
@@ -38,7 +36,6 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   protected final String streamName;
   private boolean moveToNext = false;
   private CollectorReaderStatsExposer collectorMetrics;
-  private Configuration conf;
   private StringBuilder builder = new StringBuilder();
   private boolean isS3Fs = false;
   private boolean isLocalStreamAvailable;
@@ -55,7 +52,6 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     this.streamName = streamName;
     this.waitTimeForFlush = waitTimeForFlush;
     this.collectorMetrics = (CollectorReaderStatsExposer) (this.metrics);
-    this.conf = conf;
     this.isLocalStreamAvailable = isLocalStreamAvailable;
     LOG.info("Collector reader initialized with partitionId:" + partitionId
         + " streamDir:" + streamDir
