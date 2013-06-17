@@ -9,7 +9,7 @@ import org.testng.annotations.Test;
 
 import com.inmobi.messaging.ClientConfig;
 
-public class TestHadoopConsumerMultipleSuffixDirs 
+public class TestHadoopConsumerMultipleSuffixDirs
     extends TestAbstractHadoopConsumer {
 
   ClientConfig loadConfig() {

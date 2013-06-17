@@ -17,7 +17,7 @@ import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.messaging.consumer.databus.mapred.DatabusInputFormat;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
-public class TestLocalStreamReader extends TestAbstractDatabusWaitingReader{
+public class TestLocalStreamReader extends TestAbstractDatabusWaitingReader {
   protected Cluster cluster;
 
   @BeforeTest

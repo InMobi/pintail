@@ -38,7 +38,7 @@ public class TestPartitionReaderWaitingLocalStream
     for (int i = 0; i < 60; i++) {
       partitionMinList.add(i);
     }
-    Map<Integer, PartitionCheckpoint> list = new 
+    Map<Integer, PartitionCheckpoint> list = new
         HashMap<Integer, PartitionCheckpoint>();
     partitionCheckpointlist = new PartitionCheckpointList(list);
     consumerNumber = 1;

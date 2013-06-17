@@ -54,7 +54,7 @@ public class TestLocalStreamCollectorReader {
 
   @Test
   public void testInitialize() throws Exception {
-    CollectorReaderStatsExposer metrics = new 
+    CollectorReaderStatsExposer metrics = new
         CollectorReaderStatsExposer(testStream, "c1", partitionId.toString(),
             consumerNumber, fsUri);
     // Read from start
@@ -87,16 +87,16 @@ public class TestLocalStreamCollectorReader {
     lreader.initializeCurrentFile(new PartitionCheckpoint(
         LocalStreamCollectorReader.getDatabusStreamFile(collectorName,
             doesNotExist3), 20));
-    Assert.assertNull(lreader.getCurrentFile());  
+    Assert.assertNull(lreader.getCurrentFile());
 
     // Read from checkpoint with local stream file name, which does not exist
     // with file timestamp within the stream
     lreader.initializeCurrentFile(new PartitionCheckpoint(
         LocalStreamCollectorReader.getDatabusStreamFile(collectorName,
             doesNotExist2), 20));
-    Assert.assertNull(lreader.getCurrentFile());  
+    Assert.assertNull(lreader.getCurrentFile());
 
-    //Read from startTime in local stream directory 
+    //Read from startTime in local stream directory
     lreader.initializeCurrentFile(
         CollectorStreamReader.getDateFromCollectorFile(files[1]));
     Assert.assertEquals(lreader.getCurrentFile(),
@@ -117,7 +117,7 @@ public class TestLocalStreamCollectorReader {
     //Read from startTime after stream
     lreader.initializeCurrentFile(
         CollectorStreamReader.getDateFromCollectorFile(doesNotExist3));
-    Assert.assertNull(lreader.getCurrentFile());  
+    Assert.assertNull(lreader.getCurrentFile());
 
   }
 
@@ -136,8 +136,8 @@ public class TestLocalStreamCollectorReader {
 
   @Test
   public void testReadFromStart() throws Exception {
-    CollectorReaderStatsExposer metrics = new 
-        CollectorReaderStatsExposer(testStream, "c1", partitionId.toString(), 
+    CollectorReaderStatsExposer metrics = new
+        CollectorReaderStatsExposer(testStream, "c1", partitionId.toString(),
             consumerNumber, fsUri);
     lreader = new LocalStreamCollectorReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
@@ -166,7 +166,7 @@ public class TestLocalStreamCollectorReader {
   @Test
   public void testReadFromCheckpoint() throws Exception {
     CollectorReaderStatsExposer metrics = new 
-        CollectorReaderStatsExposer(testStream, "c1", partitionId.toString(), 
+        CollectorReaderStatsExposer(testStream, "c1", partitionId.toString(),
             consumerNumber, fsUri);
     lreader = new LocalStreamCollectorReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
@@ -175,7 +175,7 @@ public class TestLocalStreamCollectorReader {
     PartitionCheckpoint pcp = new PartitionCheckpoint(
         LocalStreamCollectorReader.getDatabusStreamFile(collectorName,
             files[1]), 20);
-    lreader.build(LocalStreamCollectorReader.getBuildTimestamp(testStream, 
+    lreader.build(LocalStreamCollectorReader.getBuildTimestamp(testStream,
         collectorName, pcp));
     lreader.initializeCurrentFile(pcp);
     Assert.assertNotNull(lreader.getCurrentFile());
@@ -196,8 +196,8 @@ public class TestLocalStreamCollectorReader {
 
   @Test
   public void testReadFromTimeStamp() throws Exception {
-    CollectorReaderStatsExposer metrics = new 
-        CollectorReaderStatsExposer(testStream, "c1", partitionId.toString(), 
+    CollectorReaderStatsExposer metrics = new
+        CollectorReaderStatsExposer(testStream, "c1", partitionId.toString(),
             consumerNumber, fsUri);
     lreader = new LocalStreamCollectorReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,

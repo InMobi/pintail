@@ -28,7 +28,7 @@ public class TestPartitionReaderMovingFilesWithStopTime {
   private static final String clusterName = "testCluster";
   private PartitionId partitionId = new PartitionId(clusterName, collectorName);
 
-  private LinkedBlockingQueue<QueueEntry> buffer = 
+  private LinkedBlockingQueue<QueueEntry> buffer =
       new LinkedBlockingQueue<QueueEntry>(149);
   private Cluster cluster;
   private PartitionReader preader;
@@ -72,13 +72,14 @@ public class TestPartitionReaderMovingFilesWithStopTime {
     preader = new PartitionReader(partitionId, null, conf, fs,
         collectorDir, streamsLocalDir, buffer,
         testStream, CollectorStreamReader.getDateFromCollectorFile(files[0]),
-        1000, 1000, prMetrics, CollectorStreamReader.getDateFromCollectorFile(files[6]));
+        1000, 1000, prMetrics,
+        CollectorStreamReader.getDateFromCollectorFile(files[6]));
 
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         LocalStreamCollectorReader.class.getName());
 
@@ -108,7 +109,7 @@ public class TestPartitionReaderMovingFilesWithStopTime {
       Thread.sleep(10);
     }
 
-    Assert.assertEquals(((CollectorReader)preader.getReader()).
+    Assert.assertEquals(((CollectorReader) preader.getReader()).
         getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
 
@@ -127,7 +128,7 @@ public class TestPartitionReaderMovingFilesWithStopTime {
       Thread.sleep(10);
     }
 
-    Assert.assertEquals(((CollectorReader)preader.getReader()).
+    Assert.assertEquals(((CollectorReader) preader.getReader()).
         getReader().getClass().getName(),
         LocalStreamCollectorReader.class.getName());
 

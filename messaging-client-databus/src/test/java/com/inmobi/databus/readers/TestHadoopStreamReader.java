@@ -18,9 +18,9 @@ import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionCheckpointList;
 import com.inmobi.messaging.consumer.util.HadoopUtil;
 
-public class TestHadoopStreamReader extends TestAbstractDatabusWaitingReader{
+public class TestHadoopStreamReader extends TestAbstractDatabusWaitingReader {
   static final Log LOG = LogFactory.getLog(TestHadoopStreamReader.class);
-  
+
   @BeforeTest
   public void setup() throws Exception {
     consumerNumber = 1;
@@ -56,7 +56,7 @@ public class TestHadoopStreamReader extends TestAbstractDatabusWaitingReader{
   @Test
   public void testReadFromStart() throws Exception {
     super.testReadFromStart();
-  } 
+  }
 
   @Test
   public void testReadFromCheckpoint() throws Exception {

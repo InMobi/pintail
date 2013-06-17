@@ -11,7 +11,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 public class TestHadoopStreamFile {
-  
+
   @Test
   public void testHadoopStreamFile() throws IOException {
     FileSystem fs = FileSystem.getLocal(new Configuration());
@@ -37,7 +37,7 @@ public class TestHadoopStreamFile {
     Assert.assertTrue(h11.compareTo(h12) < 0);
     Assert.assertTrue(h12.compareTo(h21) < 0);
     Assert.assertTrue(h21.compareTo(h22) < 0);
-    
+
     fs.mkdirs(p1);
     Path pf11 = new Path(p1, f1);
     fs.create(pf11);
@@ -50,7 +50,7 @@ public class TestHadoopStreamFile {
 
   @Test
   public void testCeiling() {
-    TreeMap<HadoopStreamFile,String> fileMap = new TreeMap<HadoopStreamFile, String>();
+    TreeMap<HadoopStreamFile, String> fileMap = new TreeMap<HadoopStreamFile, String>();
     fileMap.put(new HadoopStreamFile(new Path(
         "hdfs://localhost:9000/databus/streams_local/stream1/2013/05/29/08/46/"),
         "localhost-stream1-2013-05-29-08-44_00000.gz", 1369817168983L), "1");

@@ -30,7 +30,7 @@ public class TestCollectorStreamWithEmptyFiles {
   private Cluster cluster;
   private String[] files = new String[] {TestUtil.files[0]};
   private String[] emptyfiles = new String[] {TestUtil.files[1]};
-  private LinkedBlockingQueue<QueueEntry> buffer = 
+  private LinkedBlockingQueue<QueueEntry> buffer =
       new LinkedBlockingQueue<QueueEntry>(101);
 
   private Path collectorDir;
@@ -72,7 +72,7 @@ public class TestCollectorStreamWithEmptyFiles {
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.start();
@@ -86,21 +86,21 @@ public class TestCollectorStreamWithEmptyFiles {
     Thread.sleep(20);
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     String dataFile = TestUtil.files[2];
-    
+
     TestUtil.setUpCollectorDataFiles(fs, collectorDir, dataFile);
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[0]), 1,
         0, 100, partitionId, buffer, true);
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(dataFile), 1,
         0, 100, partitionId, buffer, true);
-    
+
     // Test the path for current file getting created late.
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     String emptyFile = TestUtil.files[3];

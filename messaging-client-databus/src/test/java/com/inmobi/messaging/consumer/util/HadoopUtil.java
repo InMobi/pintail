@@ -136,12 +136,12 @@ public class HadoopUtil {
       String[] suffixDirs, Path[] finalFiles, Path finalDir,
       boolean withEmptyFiles, boolean createFilesInNextHour) throws Exception {
     FileSystem fs = finalDir.getFileSystem(conf);
-    
+
     Path rootDir = finalDir.getParent();
     fs.delete(rootDir, true);
     Path tmpDataDir = new Path(rootDir, "data");
     fs.mkdirs(tmpDataDir);
-    
+
     if (!createFilesInNextHour) {
       setUpHadoopFiles(finalDir, conf, files, suffixDirs, finalFiles,
           withEmptyFiles, null, 0);

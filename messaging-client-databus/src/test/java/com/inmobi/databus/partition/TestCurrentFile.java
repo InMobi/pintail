@@ -30,7 +30,7 @@ public class TestCurrentFile {
   private static final String collectorName = "collector1";
   private static final String clusterName = "testDFSCluster";
 
-  private LinkedBlockingQueue<QueueEntry> buffer = 
+  private LinkedBlockingQueue<QueueEntry> buffer =
       new LinkedBlockingQueue<QueueEntry>(1000);
 
   private FileSystem fs;
@@ -54,7 +54,7 @@ public class TestCurrentFile {
           MessageUtil.constructMessage(msgIndex).getBytes()));
       out.write('\n');
       msgIndex++;
-    }  
+    }
     out.sync();
   }
 
@@ -117,7 +117,7 @@ public class TestCurrentFile {
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.close();

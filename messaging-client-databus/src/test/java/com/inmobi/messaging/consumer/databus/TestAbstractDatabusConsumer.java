@@ -43,20 +43,20 @@ public abstract class TestAbstractDatabusConsumer {
     sourceNames.add(testStream);
 
     rootDirs = testConsumer.getRootDirs();
-    for (int i =0; i <rootDirs.length; i++) {
+    for (int i = 0; i < rootDirs.length; i++) {
       Map<String, String> clusterConf = new HashMap<String, String>();
       FileSystem fs = rootDirs[i].getFileSystem(conf);
       clusterConf.put("hdfsurl", fs.getUri().toString());
       clusterConf.put("jturl", "local");
       clusterConf.put("name", "databusCluster" + i);
       clusterConf.put("jobqueuename", "default");
-      
+
       String rootDir = rootDirs[i].toUri().toString();
       if (rootDirs[i].toString().startsWith("file:")) {
         String[] rootDirSplit = rootDirs[i].toString().split("file:");
         rootDir = rootDirSplit[1];
       }
-      Cluster cluster = new Cluster(clusterConf, 
+      Cluster cluster = new Cluster(clusterConf,
           rootDir, null, sourceNames);
       fs.delete(new Path(cluster.getRootDir()), true);
       Path streamDir = new Path(cluster.getDataDir(), testStream);
@@ -79,7 +79,7 @@ public abstract class TestAbstractDatabusConsumer {
   abstract ClientConfig loadConfig();
 
   void assertMessages(
-      ClientConfig config, int numClusters, int numCollectors) 
+      ClientConfig config, int numClusters, int numCollectors)
       throws Exception {
     ConsumerUtil.assertMessages(config, testStream, consumerName, numClusters,
         numCollectors,

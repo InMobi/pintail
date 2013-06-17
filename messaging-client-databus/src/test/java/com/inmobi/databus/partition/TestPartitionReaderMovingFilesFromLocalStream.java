@@ -29,7 +29,7 @@ public class TestPartitionReaderMovingFilesFromLocalStream {
   private static final String clusterName = "testCluster";
   private PartitionId partitionId = new PartitionId(clusterName, collectorName);
 
-  private LinkedBlockingQueue<QueueEntry> buffer = 
+  private LinkedBlockingQueue<QueueEntry> buffer =
       new LinkedBlockingQueue<QueueEntry>(149);
   private Cluster cluster;
   private PartitionReader preader;
@@ -79,7 +79,7 @@ public class TestPartitionReaderMovingFilesFromLocalStream {
         CollectorReader.class.getName());
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         LocalStreamCollectorReader.class.getName());
 
@@ -139,7 +139,7 @@ public class TestPartitionReaderMovingFilesFromLocalStream {
         collectorName, files[6]), 7, 0, 100, partitionId, buffer, true);
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[7]),
         8, 0, 100, partitionId, buffer, true);
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     Assert.assertTrue(buffer.isEmpty());

@@ -23,7 +23,7 @@ public class MiniClusterUtil {
     numAccess++;
     return dfsCluster;
   }
-  
+
   public static synchronized void shutdownDFSCluster() throws IOException {
     numAccess--;
     if (numAccess == 0) {

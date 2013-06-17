@@ -31,7 +31,7 @@ public class TestPartitionReaderCollectorStream {
   private static final String clusterName = "testCluster";
   private PartitionId partitionId = new PartitionId(clusterName, collectorName);
 
-  private LinkedBlockingQueue<QueueEntry> buffer = 
+  private LinkedBlockingQueue<QueueEntry> buffer =
       new LinkedBlockingQueue<QueueEntry>(1000);
   private Cluster cluster;
   private PartitionReader preader;
@@ -99,7 +99,7 @@ public class TestPartitionReaderCollectorStream {
         CollectorStreamReader.getDateFromCollectorFile(files[1]), 1000, 1000,
         prMetrics, null);
     preader.init();
-    Assert.assertEquals(preader.getCurrentFile().toString(), files[1]); 
+    Assert.assertEquals(preader.getCurrentFile().toString(), files[1]);
 
     //Read from checkpoint with start time
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
@@ -119,8 +119,7 @@ public class TestPartitionReaderCollectorStream {
             conf, fs, collectorDir, streamsLocalDir, buffer, testStream, null,
             1000, 1000, prMetrics, null);
     preader.init();
-    Assert.assertEquals(preader.getCurrentFile().toString(), 
-        files[0]);
+    Assert.assertEquals(preader.getCurrentFile().toString(), files[0]);
 
     // Read from checkpoint with collector file name and file in collector
     // stream
@@ -129,7 +128,7 @@ public class TestPartitionReaderCollectorStream {
         collectorDir, streamsLocalDir, buffer, testStream, null,
         1000, 1000, prMetrics, null);
     preader.init();
-    Assert.assertEquals(preader.getCurrentFile().toString(), files[1]);    
+    Assert.assertEquals(preader.getCurrentFile().toString(), files[1]);
 
     // Read from checkpoint with collector file name which does not exist
     // and is before the stream
@@ -217,7 +216,7 @@ public class TestPartitionReaderCollectorStream {
         CollectorStreamReader.getDateFromCollectorFile(files[1]), 1000, 1000,
         prMetrics, null);
     preader.init();
-    Assert.assertEquals(preader.getCurrentFile().toString(), files[1]);    
+    Assert.assertEquals(preader.getCurrentFile().toString(), files[1]);
 
     //Read from checkpoint, with startTime in collector dir
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
@@ -238,7 +237,7 @@ public class TestPartitionReaderCollectorStream {
         CollectorStreamReader.getDateFromCollectorFile(doesNotExist2), 1000,
         1000, prMetrics, null);
     preader.init();
-    Assert.assertEquals(preader.getCurrentFile().toString(), files[1]);    
+    Assert.assertEquals(preader.getCurrentFile().toString(), files[1]);
 
     //Read from checkpoint, with startTime in collector dir, with no timestamp
     //file
@@ -269,7 +268,7 @@ public class TestPartitionReaderCollectorStream {
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     Assert.assertNull(preader.getCurrentFile());
@@ -292,7 +291,7 @@ public class TestPartitionReaderCollectorStream {
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     Assert.assertNotNull(preader.getCurrentFile());
@@ -311,7 +310,7 @@ public class TestPartitionReaderCollectorStream {
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.execute();
@@ -326,7 +325,7 @@ public class TestPartitionReaderCollectorStream {
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     Assert.assertEquals(prMetrics.getHandledExceptions(), 0);
@@ -352,7 +351,7 @@ public class TestPartitionReaderCollectorStream {
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.execute();
@@ -406,7 +405,7 @@ public class TestPartitionReaderCollectorStream {
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     Assert.assertEquals(prMetrics.getHandledExceptions(), 0);
@@ -480,7 +479,7 @@ public class TestPartitionReaderCollectorStream {
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     Assert.assertEquals(prMetrics.getHandledExceptions(), 0);
@@ -505,7 +504,7 @@ public class TestPartitionReaderCollectorStream {
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.execute();
@@ -543,7 +542,7 @@ public class TestPartitionReaderCollectorStream {
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.execute();
@@ -558,7 +557,7 @@ public class TestPartitionReaderCollectorStream {
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     Assert.assertEquals(prMetrics.getHandledExceptions(), 0);
@@ -584,7 +583,7 @@ public class TestPartitionReaderCollectorStream {
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     Assert.assertEquals(prMetrics.getHandledExceptions(), 0);

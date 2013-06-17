@@ -17,7 +17,7 @@ import org.testng.annotations.Test;
 
 import com.inmobi.messaging.consumer.util.HadoopUtil;
 
-public class TestPartitionReaderWaitingHadoopStream extends 
+public class TestPartitionReaderWaitingHadoopStream extends
     TestAbstractWaitingClusterReader {
   static final Log LOG = LogFactory.getLog(
       TestPartitionReaderWaitingHadoopStream.class);
@@ -39,7 +39,7 @@ public class TestPartitionReaderWaitingHadoopStream extends
     for (int i = 0; i < 60; i++) {
       partitionMinList.add(i);
     }
-    Map<Integer, PartitionCheckpoint> list = new 
+    Map<Integer, PartitionCheckpoint> list = new
         HashMap<Integer, PartitionCheckpoint>();
     partitionCheckpointlist = new PartitionCheckpointList(list);
   }
@@ -52,7 +52,7 @@ public class TestPartitionReaderWaitingHadoopStream extends
 
   @Override
   void setupFiles(String[] files, Path[] newDatabusFiles) throws Exception {
-    HadoopUtil.setUpHadoopFiles(streamDir, conf, files, null, newDatabusFiles);    
+    HadoopUtil.setUpHadoopFiles(streamDir, conf, files, null, newDatabusFiles);
   }
 
   @Test

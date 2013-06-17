@@ -36,7 +36,7 @@ public class TestPartitionReaderMergedStream extends TestAbstractClusterReader {
   public void cleanup() throws IOException {
     super.cleanup();
     LOG.debug("Cleaning up the dir: " + cluster.getRootDir());
-    fs.delete(new Path(cluster.getRootDir()), true);    
+    fs.delete(new Path(cluster.getRootDir()), true);
   }
 
   @Test
