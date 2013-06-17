@@ -261,7 +261,7 @@ public abstract class AbstractMessagingDatabusConsumer
       partitionTimestamp = startTime;
       LOG.info("There is no checkpoint and no relative start time is provided."
           + " Starting from absolute start time " + partitionTimestamp);
-    } else if (startOfStream == true) {
+    } else if (startOfStream) {
       LOG.info("Starting from start of the stream ");
     } else {
       throw new IllegalArgumentException("Invalid configuration to start"

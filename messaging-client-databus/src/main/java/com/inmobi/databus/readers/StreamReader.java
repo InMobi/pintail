@@ -296,11 +296,7 @@ public abstract class StreamReader<T extends StreamFile> {
     } else {
       LOG.info("Did not find current file." + streamFileName
           + " Trying to set next higher");
-      if (!setNextHigher(streamFileName)) {
-        return false;
-      } else {
-        return true;
-      }
+      return setNextHigher(streamFileName);
     }
   }
 

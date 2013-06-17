@@ -49,11 +49,7 @@ public class ConsumerPartitionCheckPoint extends PartitionCheckpoint {
     if (equals) {
       if (obj instanceof ConsumerPartitionCheckPoint) {
         ConsumerPartitionCheckPoint other = (ConsumerPartitionCheckPoint) obj;
-        if (this.minId.equals(other.minId)) {
-          return true;
-        } else {
-          return false;
-        }
+        return this.minId.equals(other.minId);
       } else {
         return false;
       }
