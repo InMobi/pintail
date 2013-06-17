@@ -68,7 +68,9 @@ public class LogEntry implements TBase<LogEntry, LogEntry._Fields>, java.io.Seri
      */
     public static _Fields findByThriftIdOrThrow(int fieldId) {
       _Fields fields = findByThriftId(fieldId);
-      if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+      if (fields == null) {
+        throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+      }
       return fields;
     }
 
@@ -114,8 +116,7 @@ public class LogEntry implements TBase<LogEntry, LogEntry._Fields>, java.io.Seri
 
   public LogEntry(
     String category,
-    String message)
-  {
+    String message) {
     this();
     this.category = category;
     this.message = message;
@@ -254,33 +255,40 @@ public class LogEntry implements TBase<LogEntry, LogEntry._Fields>, java.io.Seri
 
   @Override
   public boolean equals(Object that) {
-    if (that == null)
+    if (that == null) {
       return false;
-    if (that instanceof LogEntry)
-      return this.equals((LogEntry)that);
+    }
+    if (that instanceof LogEntry) {
+      return this.equals((LogEntry) that);
+    }
     return false;
   }
 
   public boolean equals(LogEntry that) {
-    if (that == null)
+    if (that == null) {
       return false;
+    }
 
     boolean this_present_category = true && this.isSetCategory();
     boolean that_present_category = true && that.isSetCategory();
     if (this_present_category || that_present_category) {
-      if (!(this_present_category && that_present_category))
+      if (!(this_present_category && that_present_category)) {
         return false;
-      if (!this.category.equals(that.category))
+      }
+      if (!this.category.equals(that.category)) {
         return false;
+      }
     }
 
     boolean this_present_message = true && this.isSetMessage();
     boolean that_present_message = true && that.isSetMessage();
     if (this_present_message || that_present_message) {
-      if (!(this_present_message && that_present_message))
+      if (!(this_present_message && that_present_message)) {
         return false;
-      if (!this.message.equals(that.message))
+      }
+      if (!this.message.equals(that.message)) {
         return false;
+      }
     }
 
     return true;
@@ -297,13 +305,14 @@ public class LogEntry implements TBase<LogEntry, LogEntry._Fields>, java.io.Seri
     }
 
     int lastComparison = 0;
-    LogEntry typedOther = (LogEntry)other;
+    LogEntry typedOther = (LogEntry) other;
 
     lastComparison = Boolean.valueOf(isSetCategory()).compareTo(typedOther.isSetCategory());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetCategory()) {      lastComparison = TBaseHelper.compareTo(this.category, typedOther.category);
+    if (isSetCategory()) {
+      lastComparison = TBaseHelper.compareTo(this.category, typedOther.category);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -312,7 +321,8 @@ public class LogEntry implements TBase<LogEntry, LogEntry._Fields>, java.io.Seri
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetMessage()) {      lastComparison = TBaseHelper.compareTo(this.message, typedOther.message);
+    if (isSetMessage()) {
+      lastComparison = TBaseHelper.compareTo(this.message, typedOther.message);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -323,8 +333,7 @@ public class LogEntry implements TBase<LogEntry, LogEntry._Fields>, java.io.Seri
   public void read(TProtocol iprot) throws TException {
     TField field;
     iprot.readStructBegin();
-    while (true)
-    {
+    while (true) {
       field = iprot.readFieldBegin();
       if (field.type == TType.STOP) { 
         break;
@@ -333,14 +342,14 @@ public class LogEntry implements TBase<LogEntry, LogEntry._Fields>, java.io.Seri
         case 1: // CATEGORY
           if (field.type == TType.STRING) {
             this.category = iprot.readString();
-          } else { 
+          } else {
             TProtocolUtil.skip(iprot, field.type);
           }
           break;
         case 2: // MESSAGE
           if (field.type == TType.STRING) {
             this.message = iprot.readString();
-          } else { 
+          } else {
             TProtocolUtil.skip(iprot, field.type);
           }
           break;
@@ -385,7 +394,9 @@ public class LogEntry implements TBase<LogEntry, LogEntry._Fields>, java.io.Seri
       sb.append(this.category);
     }
     first = false;
-    if (!first) sb.append(", ");
+    if (!first) {
+      sb.append(", ");
+    }
     sb.append("message:");
     if (this.message == null) {
       sb.append("null");

@@ -31,7 +31,7 @@ public enum ResultCode implements TEnum {
    * Find a the enum type by its integer value, as defined in the Thrift IDL.
    * @return null if the value is not found.
    */
-  public static ResultCode findByValue(int value) { 
+  public static ResultCode findByValue(int value) {
     switch (value) {
       case 0:
         return OK;

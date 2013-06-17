@@ -6,10 +6,10 @@ import org.jboss.netty.buffer.ChannelBuffer;
 
 /**
  * Thrift transport based on JBoss Netty's ChannelBuffers
- * 
+ *
  * @author <a href="http://www.pedantique.org/">Carl Bystr&ouml;m</a>
  *         https://github.com/cgbystrom/netty-tools
- * 
+ *
  *         Licensed under the MIT license
  */
 public class TNettyChannelBuffer extends TTransport {
