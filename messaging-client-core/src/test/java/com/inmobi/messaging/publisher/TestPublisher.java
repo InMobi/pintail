@@ -83,8 +83,8 @@ public class TestPublisher {
             MockPublisher.class.getName());
     doTest(publisher);
     Assert.assertTrue(publisher.getMetrics().statEmissionEnabled());
-    Assert
-        .assertTrue((publisher.getMetrics().getStatsEmitter()) instanceof EmitMondemand);
+    Assert.assertTrue(
+        (publisher.getMetrics().getStatsEmitter()) instanceof EmitMondemand);
   }
 
   @Test
@@ -217,13 +217,13 @@ public class TestPublisher {
     // publishing to audit topic
     try {
       publisher.publish(AuditUtil.AUDIT_STREAM_TOPIC_NAME, msg);
-    } catch(Throwable t) {
+    } catch (Throwable t) {
       th = t;
     }
     Assert.assertTrue(th instanceof IllegalArgumentException);
   }
-  
-  @Test (expectedExceptions = {IllegalStateException.class})
+
+  @Test (expectedExceptions = {IllegalStateException.class })
   public void testPublishAfterClose() throws IOException {
     ClientConfig conf = new ClientConfig();
     conf.set(MessagePublisherFactory.PUBLISHER_CLASS_NAME_KEY,

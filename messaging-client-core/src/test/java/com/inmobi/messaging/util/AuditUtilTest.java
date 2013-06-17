@@ -42,7 +42,7 @@ public class AuditUtilTest {
     ByteBuffer buffer = ByteBuffer.allocate(data.getBytes().length
         + AuditUtil.HEADER_LENGTH);
     buffer.put((byte) 1);
-    byte[] invalidMagic = { (byte) 1, (byte) 2, (byte) 3 };
+    byte[] invalidMagic = {(byte) 1, (byte) 2, (byte) 3 };
     buffer.put(invalidMagic);
     buffer.putLong(System.currentTimeMillis());
     buffer.putInt(data.length());

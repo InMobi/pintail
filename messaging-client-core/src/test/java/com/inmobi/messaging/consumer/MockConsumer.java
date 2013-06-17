@@ -12,7 +12,7 @@ public class MockConsumer extends AbstractMessageConsumer {
   public static String mockMsg = "mock msg";
   boolean initedConf = false;
   public static boolean block = false;
-  
+
   protected void init(ClientConfig config) throws IOException {
     super.init(config);
     initedConf = true;
@@ -31,9 +31,8 @@ public class MockConsumer extends AbstractMessageConsumer {
   }
 
   @Override
-  public void close() {
-    
-  }
+  public void close() { }
+
   @Override
   protected AbstractMessagingClientStatsExposer getMetricsImpl() {
     return new BaseMessageConsumerStatsExposer(topicName, consumerName);
@@ -44,9 +43,8 @@ public class MockConsumer extends AbstractMessageConsumer {
   }
 
   @Override
-  protected void doReset() throws IOException {
-  }
-  
+  protected void doReset() throws IOException { }
+
   @Override
   protected Message getNext(long timeout, TimeUnit timeunit)
       throws InterruptedException, EndOfStreamException {
