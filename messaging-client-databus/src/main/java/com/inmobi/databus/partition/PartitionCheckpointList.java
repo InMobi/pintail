@@ -3,7 +3,6 @@ package com.inmobi.databus.partition;
 import java.util.Map;
 import java.util.TreeMap;
 
-import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.messaging.consumer.databus.MessageCheckpoint;
 
 /**
