@@ -5,19 +5,19 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class PartitionReaderStatsExposer extends
     DatabusConsumerStatsExposer {
-  public final static String MESSAGES_READ_FROM_SOURCE =
+  public static final String MESSAGES_READ_FROM_SOURCE =
       "messagesReadFromSource";
-  public final static String MESSAGES_ADDED_TO_BUFFER = "messagesAddedToBuffer";
-  public final static String HANDLED_EXCEPTIONS = "handledExceptions";
-  public final static String WAIT_TIME_UNITS_NEW_FILE = "waitTimeUnitsNewFile";
-  public final static String PARTITION_CONTEXT = "PartitionId";
-  public final static String CUMULATIVE_NANOS_FETCH_MESSAGE =
+  public static final String MESSAGES_ADDED_TO_BUFFER = "messagesAddedToBuffer";
+  public static final String HANDLED_EXCEPTIONS = "handledExceptions";
+  public static final String WAIT_TIME_UNITS_NEW_FILE = "waitTimeUnitsNewFile";
+  public static final String PARTITION_CONTEXT = "PartitionId";
+  public static final String CUMULATIVE_NANOS_FETCH_MESSAGE =
       "cumulativeNanosForFecthMessage";
-  public final static String NUMBER_RECORD_READERS = "numberRecordReaders";
-  public final static String LIST = "list";
-  public final static String OPEN = "open";
-  public final static String GET_FILE_STATUS = "getFileStatus";
-  public final static String EXISTS = "exists";
+  public static final String NUMBER_RECORD_READERS = "numberRecordReaders";
+  public static final String LIST = "list";
+  public static final String OPEN = "open";
+  public static final String GET_FILE_STATUS = "getFileStatus";
+  public static final String EXISTS = "exists";
 
   private final AtomicLong numMessagesReadFromSource = new AtomicLong(0);
   private final AtomicLong numMessagesAddedToBuffer = new AtomicLong(0);
@@ -64,7 +64,7 @@ public class PartitionReaderStatsExposer extends
     cumulativeNanosForFecthMessage.addAndGet(nanos);
   }
 
-  public void incrementListOps(){
+  public void incrementListOps() {
     listOps.incrementAndGet();
   }
 
