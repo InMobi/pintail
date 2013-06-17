@@ -110,7 +110,7 @@ public class ClusterReader extends AbstractPartitionStreamReader {
         reader.startFromTimestmp(startTime);
       }
     } else {
-      ((DatabusStreamWaitingReader)reader).build(null);
+      ((DatabusStreamWaitingReader) reader).build(null);
       reader.startFromBegining();
     }
     LOG.info("Intialized currentFile:" + reader.getCurrentFile()
