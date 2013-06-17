@@ -60,18 +60,18 @@ public class Checkpoint implements Writable, ConsumerCheckpoint {
   }
 
   @Override
-    public void read(CheckpointProvider checkpointProvider, String key)
-    		throws IOException {
-  	byte[] chkpointData = checkpointProvider.read(key);
-  	if (chkpointData != null) {
-  		readFields(new DataInputStream(new ByteArrayInputStream(chkpointData)));
-  	}
+  public void read(CheckpointProvider checkpointProvider, String key)
+      throws IOException {
+    byte[] chkpointData = checkpointProvider.read(key);
+    if (chkpointData != null) {
+      readFields(new DataInputStream(new ByteArrayInputStream(chkpointData)));
+    }
   }
 
   @Override
   public void write(CheckpointProvider checkpointProvider, String key)
-  		throws IOException {
-  	checkpointProvider.checkpoint(key, this.toBytes());
+      throws IOException {
+    checkpointProvider.checkpoint(key, this.toBytes());
   }
 
 

@@ -80,7 +80,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
         shouldBeClosed  = true;
       } else {
         throw new IllegalArgumentException(error);
-      } 
+      }
     } else {
       reader = cReader;
       String collectorFileName = CollectorStreamReader.getCollectorFileName(
@@ -115,7 +115,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
         || (isLocalStreamAvailable && lReader.isStopped());
   }
 
-  private void initializeCurrentFileFromCheckpoint() 
+  private void initializeCurrentFileFromCheckpoint()
       throws IOException, InterruptedException {
     String fileName = partitionCheckpoint.getFileName();
     if (CollectorStreamReader.isCollectorFile(fileName)) {
@@ -136,7 +136,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   private void initializeCurrentFileFromStartOfStream()
       throws IOException, InterruptedException {
     if (!lReader.isEmpty()) {
-      reader =lReader;
+      reader = lReader;
     } else {
       reader = cReader;
     }
