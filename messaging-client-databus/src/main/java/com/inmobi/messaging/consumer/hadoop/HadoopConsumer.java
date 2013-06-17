@@ -72,7 +72,7 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
 
       PartitionCheckpointList partitionCheckpointList = new
           PartitionCheckpointList(listofPartitionCheckpoints);
-      ((CheckpointList)currentCheckpoint).preaprePartitionCheckPointList(id,
+      ((CheckpointList) currentCheckpoint).preaprePartitionCheckPointList(id,
           partitionCheckpointList);
 
       Date partitionTimestamp = getPartitionTimestamp(id,
