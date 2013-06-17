@@ -94,7 +94,7 @@ public class StreamingBenchmark {
               numProducerThreads = Integer.parseInt(args[6]);
               consumerOptionIndex = 7;
             } else {
-              consumerOptionIndex = 6; 
+              consumerOptionIndex = 6;
             }
           } else {
             consumerOptionIndex = 5;
@@ -135,7 +135,7 @@ public class StreamingBenchmark {
       return printUsage();
     }
 
-    assert (runProducer || runConsumer == true);
+    assert (runProducer || runConsumer);
     Producer producer = null;
     Consumer consumer = null;
     StatusLogger statusPrinter;
@@ -335,9 +335,9 @@ public class StreamingBenchmark {
             + " Producer worker started!");
         long msgIndex = 1;
         boolean sentAll = false;
-        long startTime = 0l;
-        long endTime = 0l;
-        long publishTime = 0l;
+        long startTime = 0L;
+        long endTime = 0L;
+        long publishTime = 0L;
 
         while (true) {
           for (long j = 0; j < numMsgsPerSleepInterval; j++) {
@@ -648,7 +648,7 @@ public class StreamingBenchmark {
           break;
         }
       }
-      if (match == true) {
+      if (match) {
         success = true;
       }
 

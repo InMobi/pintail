@@ -24,7 +24,7 @@ public class CounterClient {
   static volatile boolean keepRunnig = true;
   static boolean closed = false;
 
-  public synchronized static void close() throws IOException {
+  public static synchronized void close() throws IOException {
     if (!closed) {
       if (consumer != null) {
         consumer.mark();

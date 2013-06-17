@@ -10,7 +10,7 @@ import com.inmobi.stats.StatsExposer;
  *
  * Provides ability for derived classes to add metrics and contexts.
  */
-public abstract class AbstractMessagingClientStatsExposer implements 
+public abstract class AbstractMessagingClientStatsExposer implements
     StatsExposer {
 
   /**

@@ -29,39 +29,50 @@ import org.apache.thrift.protocol.*;
 public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, java.io.Serializable, Cloneable {
   private static final TStruct STRUCT_DESC = new TStruct("AuditMessage");
 
-  private static final TField TIMESTAMP_FIELD_DESC = new TField("timestamp", TType.I64, (short)1);
-  private static final TField TOPIC_FIELD_DESC = new TField("topic", TType.STRING, (short)2);
-  private static final TField TIER_FIELD_DESC = new TField("tier", TType.STRING, (short)3);
-  private static final TField HOSTNAME_FIELD_DESC = new TField("hostname", TType.STRING, (short)4);
-  private static final TField WINDOW_SIZE_FIELD_DESC = new TField("windowSize", TType.I32, (short)5);
-  private static final TField RECEIVED_FIELD_DESC = new TField("received", TType.MAP, (short)6);
-  private static final TField SENT_FIELD_DESC = new TField("sent", TType.MAP, (short)7);
-  private static final TField FILENAMES_FIELD_DESC = new TField("filenames", TType.LIST, (short)8);
-  private static final TField TAGS_FIELD_DESC = new TField("tags", TType.MAP, (short)9);
+  private static final TField TIMESTAMP_FIELD_DESC = new TField("timestamp",
+      TType.I64, (short) 1);
+  private static final TField TOPIC_FIELD_DESC = new TField("topic",
+      TType.STRING, (short) 2);
+  private static final TField TIER_FIELD_DESC = new TField("tier",
+      TType.STRING, (short) 3);
+  private static final TField HOSTNAME_FIELD_DESC = new TField("hostname",
+      TType.STRING, (short) 4);
+  private static final TField WINDOW_SIZE_FIELD_DESC = new TField("windowSize",
+      TType.I32, (short) 5);
+  private static final TField RECEIVED_FIELD_DESC = new TField("received",
+      TType.MAP, (short) 6);
+  private static final TField SENT_FIELD_DESC = new TField("sent", TType.MAP,
+      (short) 7);
+  private static final TField FILENAMES_FIELD_DESC = new TField("filenames",
+      TType.LIST, (short) 8);
+  private static final TField TAGS_FIELD_DESC = new TField("tags", TType.MAP,
+      (short) 9);
 
   public long timestamp;
   public String topic;
   public String tier;
   public String hostname;
   public int windowSize;
-  public Map<Long,Long> received;
-  public Map<Long,Long> sent;
+  public Map<Long, Long> received;
+  public Map<Long, Long> sent;
   public List<String> filenames;
-  public Map<String,String> tags;
+  public Map<String, String> tags;
 
-  /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+  /** The set of fields this struct contains, along with convenience methods
+   *  for finding and manipulating them. */
   public enum _Fields implements TFieldIdEnum {
-    TIMESTAMP((short)1, "timestamp"),
-    TOPIC((short)2, "topic"),
-    TIER((short)3, "tier"),
-    HOSTNAME((short)4, "hostname"),
-    WINDOW_SIZE((short)5, "windowSize"),
-    RECEIVED((short)6, "received"),
-    SENT((short)7, "sent"),
-    FILENAMES((short)8, "filenames"),
-    TAGS((short)9, "tags");
+    TIMESTAMP((short) 1, "timestamp"),
+    TOPIC((short) 2, "topic"),
+    TIER((short) 3, "tier"),
+    HOSTNAME((short) 4, "hostname"),
+    WINDOW_SIZE((short) 5, "windowSize"),
+    RECEIVED((short) 6, "received"),
+    SENT((short) 7, "sent"),
+    FILENAMES((short) 8, "filenames"),
+    TAGS((short) 9, "tags");
 
-    private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+    private static final Map<String, _Fields> byName = new HashMap<String,
+        _Fields>();
 
     static {
       for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -140,31 +151,41 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
 
   public static final Map<_Fields, FieldMetaData> metaDataMap;
   static {
-    Map<_Fields, FieldMetaData> tmpMap = new EnumMap<_Fields, FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.TIMESTAMP, new FieldMetaData("timestamp", TFieldRequirementType.DEFAULT,
-        new FieldValueMetaData(TType.I64)));
-    tmpMap.put(_Fields.TOPIC, new FieldMetaData("topic", TFieldRequirementType.DEFAULT,
-        new FieldValueMetaData(TType.STRING)));
-    tmpMap.put(_Fields.TIER, new FieldMetaData("tier", TFieldRequirementType.DEFAULT,
-        new FieldValueMetaData(TType.STRING)));
-    tmpMap.put(_Fields.HOSTNAME, new FieldMetaData("hostname", TFieldRequirementType.DEFAULT,
-        new FieldValueMetaData(TType.STRING)));
-    tmpMap.put(_Fields.WINDOW_SIZE, new FieldMetaData("windowSize", TFieldRequirementType.DEFAULT,
-        new FieldValueMetaData(TType.I32)));
-    tmpMap.put(_Fields.RECEIVED, new FieldMetaData("received", TFieldRequirementType.DEFAULT,
-        new MapMetaData(TType.MAP,
-            new FieldValueMetaData(TType.I64),
+    Map<_Fields, FieldMetaData> tmpMap = new EnumMap<_Fields, FieldMetaData>(
+        _Fields.class);
+
+    tmpMap.put(_Fields.TIMESTAMP, new FieldMetaData("timestamp",
+        TFieldRequirementType.DEFAULT, new FieldValueMetaData(TType.I64)));
+
+    tmpMap.put(_Fields.TOPIC, new FieldMetaData("topic",
+        TFieldRequirementType.DEFAULT, new FieldValueMetaData(TType.STRING)));
+
+    tmpMap.put(_Fields.TIER, new FieldMetaData("tier",
+        TFieldRequirementType.DEFAULT, new FieldValueMetaData(TType.STRING)));
+
+    tmpMap.put(_Fields.HOSTNAME, new FieldMetaData("hostname",
+        TFieldRequirementType.DEFAULT, new FieldValueMetaData(TType.STRING)));
+
+    tmpMap.put(_Fields.WINDOW_SIZE, new FieldMetaData("windowSize",
+        TFieldRequirementType.DEFAULT, new FieldValueMetaData(TType.I32)));
+
+    tmpMap.put(_Fields.RECEIVED, new FieldMetaData("received",
+        TFieldRequirementType.DEFAULT,
+        new MapMetaData(TType.MAP, new FieldValueMetaData(TType.I64),
             new FieldValueMetaData(TType.I64))));
-    tmpMap.put(_Fields.SENT, new FieldMetaData("sent", TFieldRequirementType.DEFAULT,
-        new MapMetaData(TType.MAP,
-            new FieldValueMetaData(TType.I64),
+
+    tmpMap.put(_Fields.SENT, new FieldMetaData("sent",
+        TFieldRequirementType.DEFAULT,
+        new MapMetaData(TType.MAP, new FieldValueMetaData(TType.I64),
             new FieldValueMetaData(TType.I64))));
-    tmpMap.put(_Fields.FILENAMES, new FieldMetaData("filenames", TFieldRequirementType.DEFAULT,
-        new ListMetaData(TType.LIST,
-            new FieldValueMetaData(TType.STRING))));
-    tmpMap.put(_Fields.TAGS, new FieldMetaData("tags", TFieldRequirementType.DEFAULT,
-        new MapMetaData(TType.MAP,
-            new FieldValueMetaData(TType.STRING),
+
+    tmpMap.put(_Fields.FILENAMES, new FieldMetaData("filenames",
+        TFieldRequirementType.DEFAULT,
+        new ListMetaData(TType.LIST, new FieldValueMetaData(TType.STRING))));
+
+    tmpMap.put(_Fields.TAGS, new FieldMetaData("tags",
+        TFieldRequirementType.DEFAULT,
+        new MapMetaData(TType.MAP, new FieldValueMetaData(TType.STRING),
             new FieldValueMetaData(TType.STRING))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     FieldMetaData.addStructMetaDataMap(AuditMessage.class, metaDataMap);
@@ -225,7 +246,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
 
         Long __this__received_copy_value = other_element_value;
 
-        __this__received.put(__this__received_copy_key, __this__received_copy_value);
+        __this__received.put(__this__received_copy_key,
+            __this__received_copy_value);
       }
       this.received = __this__received;
     }
@@ -306,7 +328,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     __isset_bit_vector.clear(__TIMESTAMP_ISSET_ID);
   }
 
-  /** Returns true if field timestamp is set (has been asigned a value) and false otherwise */
+  /** Returns true if field timestamp is set (has been asigned a value) and
+   *  false otherwise */
   public boolean isSetTimestamp() {
     return __isset_bit_vector.get(__TIMESTAMP_ISSET_ID);
   }
@@ -328,7 +351,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     this.topic = null;
   }
 
-  /** Returns true if field topic is set (has been asigned a value) and false otherwise */
+  /** Returns true if field topic is set (has been asigned a value) and false
+   *  otherwise */
   public boolean isSetTopic() {
     return this.topic != null;
   }
@@ -352,7 +376,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     this.tier = null;
   }
 
-  /** Returns true if field tier is set (has been asigned a value) and false otherwise */
+  /** Returns true if field tier is set (has been asigned a value) and false
+   *  otherwise */
   public boolean isSetTier() {
     return this.tier != null;
   }
@@ -376,7 +401,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     this.hostname = null;
   }
 
-  /** Returns true if field hostname is set (has been asigned a value) and false otherwise */
+  /** Returns true if field hostname is set (has been asigned a value) and
+   *  false otherwise */
   public boolean isSetHostname() {
     return this.hostname != null;
   }
@@ -401,7 +427,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     __isset_bit_vector.clear(__WINDOWSIZE_ISSET_ID);
   }
 
-  /** Returns true if field windowSize is set (has been asigned a value) and false otherwise */
+  /** Returns true if field windowSize is set (has been asigned a value) and
+   *  false otherwise */
   public boolean isSetWindowSize() {
     return __isset_bit_vector.get(__WINDOWSIZE_ISSET_ID);
   }
@@ -434,7 +461,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     this.received = null;
   }
 
-  /** Returns true if field received is set (has been asigned a value) and false otherwise */
+  /** Returns true if field received is set (has been asigned a value) and
+   *  false otherwise */
   public boolean isSetReceived() {
     return this.received != null;
   }
@@ -469,7 +497,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     this.sent = null;
   }
 
-  /** Returns true if field sent is set (has been asigned a value) and false otherwise */
+  /** Returns true if field sent is set (has been asigned a value) and false
+   *  otherwise */
   public boolean isSetSent() {
     return this.sent != null;
   }
@@ -508,7 +537,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     this.filenames = null;
   }
 
-  /** Returns true if field filenames is set (has been asigned a value) and false otherwise */
+  /** Returns true if field filenames is set (has been asigned a value) and
+   *  false otherwise */
   public boolean isSetFilenames() {
     return this.filenames != null;
   }
@@ -543,7 +573,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     this.tags = null;
   }
 
-  /** Returns true if field tags is set (has been asigned a value) and false otherwise */
+  /** Returns true if field tags is set (has been asigned a value) and false
+   *  otherwise */
   public boolean isSetTags() {
     return this.tags != null;
   }
@@ -616,7 +647,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       if (value == null) {
         unsetFilenames();
       } else {
-        setFilenames((List<String>)value);
+        setFilenames((List<String>) value);
       }
       break;
 
@@ -672,7 +703,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     return getFieldValue(_Fields.findByThriftIdOrThrow(fieldId));
   }
 
-  /** Returns true if field corresponding to fieldID is set (has been asigned a value) and false otherwise */
+  /** Returns true if field corresponding to fieldID is set (has been asigned a
+   *  value) and false otherwise */
   public boolean isSet(_Fields field) {
     switch (field) {
     case TIMESTAMP:
@@ -838,12 +870,14 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       return lastComparison;
     }
     if (isSetTimestamp()) {
-      lastComparison = TBaseHelper.compareTo(this.timestamp, typedOther.timestamp);
+      lastComparison = TBaseHelper.compareTo(this.timestamp,
+          typedOther.timestamp);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetTopic()).compareTo(typedOther.isSetTopic());
+    lastComparison = Boolean.valueOf(isSetTopic()).compareTo(
+        typedOther.isSetTopic());
     if (lastComparison != 0) {
       return lastComparison;
     }
@@ -853,7 +887,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetTier()).compareTo(typedOther.isSetTier());
+    lastComparison = Boolean.valueOf(isSetTier()).compareTo(
+        typedOther.isSetTier());
     if (lastComparison != 0) {
       return lastComparison;
     }
@@ -863,7 +898,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetHostname()).compareTo(typedOther.isSetHostname());
+    lastComparison = Boolean.valueOf(isSetHostname()).compareTo(
+        typedOther.isSetHostname());
     if (lastComparison != 0) {
       return lastComparison;
     }
@@ -873,27 +909,32 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetWindowSize()).compareTo(typedOther.isSetWindowSize());
+    lastComparison = Boolean.valueOf(isSetWindowSize()).compareTo(
+        typedOther.isSetWindowSize());
     if (lastComparison != 0) {
       return lastComparison;
     }
     if (isSetWindowSize()) {
-      lastComparison = TBaseHelper.compareTo(this.windowSize, typedOther.windowSize);
+      lastComparison = TBaseHelper.compareTo(this.windowSize,
+          typedOther.windowSize);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetReceived()).compareTo(typedOther.isSetReceived());
+    lastComparison = Boolean.valueOf(isSetReceived()).compareTo(
+        typedOther.isSetReceived());
     if (lastComparison != 0) {
       return lastComparison;
     }
     if (isSetReceived()) {
-      lastComparison = TBaseHelper.compareTo(this.received, typedOther.received);
+      lastComparison = TBaseHelper.compareTo(this.received,
+          typedOther.received);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetSent()).compareTo(typedOther.isSetSent());
+    lastComparison = Boolean.valueOf(isSetSent()).compareTo(
+        typedOther.isSetSent());
     if (lastComparison != 0) {
       return lastComparison;
     }
@@ -903,17 +944,20 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetFilenames()).compareTo(typedOther.isSetFilenames());
+    lastComparison = Boolean.valueOf(isSetFilenames()).compareTo(
+        typedOther.isSetFilenames());
     if (lastComparison != 0) {
       return lastComparison;
     }
     if (isSetFilenames()) {
-      lastComparison = TBaseHelper.compareTo(this.filenames, typedOther.filenames);
+      lastComparison = TBaseHelper.compareTo(this.filenames,
+          typedOther.filenames);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetTags()).compareTo(typedOther.isSetTags());
+    lastComparison = Boolean.valueOf(isSetTags()).compareTo(
+        typedOther.isSetTags());
     if (lastComparison != 0) {
       return lastComparison;
     }
@@ -995,8 +1039,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
             {
               TMap _map4 = iprot.readMapBegin();
               this.sent = new HashMap<Long, Long>(2 * _map4.size);
-              for (int _i5 = 0; _i5 < _map4.size; ++_i5)
-              {
+              for (int _i5 = 0; _i5 < _map4.size; ++_i5) {
                 long _key6;
                 long _val7;
                 _key6 = iprot.readI64();
@@ -1014,8 +1057,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
             {
               TList _list8 = iprot.readListBegin();
               this.filenames = new ArrayList<String>(_list8.size);
-              for (int _i9 = 0; _i9 < _list8.size; ++_i9)
-              {
+              for (int _i9 = 0; _i9 < _list8.size; ++_i9) {
                 String _elem10;
                 _elem10 = iprot.readString();
                 this.filenames.add(_elem10);
@@ -1031,8 +1073,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
             {
               TMap _map11 = iprot.readMapBegin();
               this.tags = new HashMap<String, String>(2 * _map11.size);
-              for (int _i12 = 0; _i12 < _map11.size; ++_i12)
-              {
+              for (int _i12 = 0; _i12 < _map11.size; ++_i12) {
                 String _key13;
                 String _val14;
                 _key13 = iprot.readString();
@@ -1052,7 +1093,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     }
     iprot.readStructEnd();
 
-    // check for required fields of primitive type, which can't be checked in the validate method
+    // check for required fields of primitive type, which can't be checked in
+    // the validate method
     validate();
   }
 
@@ -1084,7 +1126,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     if (this.received != null) {
       oprot.writeFieldBegin(RECEIVED_FIELD_DESC);
       {
-        oprot.writeMapBegin(new TMap(TType.I64, TType.I64, this.received.size()));
+        oprot.writeMapBegin(new TMap(TType.I64, TType.I64,
+            this.received.size()));
         for (Map.Entry<Long, Long> _iter15 : this.received.entrySet()) {
           oprot.writeI64(_iter15.getKey());
           oprot.writeI64(_iter15.getValue());
@@ -1119,7 +1162,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     if (this.tags != null) {
       oprot.writeFieldBegin(TAGS_FIELD_DESC);
       {
-        oprot.writeMapBegin(new TMap(TType.STRING, TType.STRING, this.tags.size()));
+        oprot.writeMapBegin(new TMap(TType.STRING, TType.STRING,
+            this.tags.size()));
         for (Map.Entry<String, String> _iter18 : this.tags.entrySet()) {
           oprot.writeString(_iter18.getKey());
           oprot.writeString(_iter18.getValue());

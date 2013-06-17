@@ -131,10 +131,10 @@ public class AuditStatsQuery {
         Long alreadyReceived = received.get(group);
         Long alreadySent = sent.get(group);
         if (alreadyReceived == null) {
-          alreadyReceived = 0l;
+          alreadyReceived = 0L;
         }
         if (alreadySent == null) {
-          alreadySent = 0l;
+          alreadySent = 0L;
         }
         Long receivedCount = getSum(packet.getReceived());
         alreadyReceived += receivedCount;
@@ -155,7 +155,7 @@ public class AuditStatsQuery {
   }
 
   private Long getSum(Map<Long, Long> counters) {
-    Long result = 0l;
+    Long result = 0L;
     for (Entry<Long, Long> entry : counters.entrySet()) {
       long timestamp = entry.getKey();
       if (timestamp >= fromTime.getTime() && timestamp <= toTime.getTime()) {

@@ -28,7 +28,7 @@ public class MessageConsumerFactory {
    * Creates concrete class extending {@link AbstractMessageConsumer} given by
    * name {@value #CONSUMER_CLASS_NAME_KEY}, by loading the properties from
    * configuration file named {@value #MESSAGE_CLIENT_CONF_FILE} from classpath.
-   * 
+   *
    * Initializes the consumer class with passed configuration, topicName with
    * the value of {@value #TOPIC_NAME_KEY}, consumerName with the value of
    * {@value #CONSUMER_NAME_KEY}.
@@ -44,13 +44,13 @@ public class MessageConsumerFactory {
    * Creates concrete class extending {@link AbstractMessageConsumer} given by
    * name {@value #CONSUMER_CLASS_NAME_KEY}, by loading the properties from
    * configuration file named {@value #MESSAGE_CLIENT_CONF_FILE} from classpath.
-   * 
+   *
    * Initializes the consumer class with passed configuration, topicName with
    * the value of {@value #TOPIC_NAME_KEY}, consumerName with the value of
    * {@value #CONSUMER_NAME_KEY} and the startTime.
    *
    * @param startTime The startTime from which messages should be read
-   * 
+   *
    * @return {@link MessageConsumer} concrete object
    * @throws IOException
    */
@@ -64,7 +64,7 @@ public class MessageConsumerFactory {
    * Creates concrete class extending {@link AbstractMessageConsumer} given by
    * name {@value #CONSUMER_CLASS_NAME_KEY}, by loading the passed
    * configuration file.
-   * 
+   *
    * Initializes the consumer class with passed configuration, topicName with
    * the value of {@value #TOPIC_NAME_KEY}, consumerName with the value of
    * {@value #CONSUMER_NAME_KEY}.
@@ -101,7 +101,7 @@ public class MessageConsumerFactory {
    * Creates concrete class extending {@link AbstractMessageConsumer} given by
    * name {@value #CONSUMER_CLASS_NAME_KEY}, using the passed configuration
    * object.
-   * 
+   *
    * Initializes the consumer class with passed configuration, topicName with
    * the value of {@value #TOPIC_NAME_KEY}, consumerName with the value of
    * {@value #CONSUMER_NAME_KEY}.
@@ -120,7 +120,7 @@ public class MessageConsumerFactory {
    * Creates concrete class extending {@link AbstractMessageConsumer} given by
    * name {@value #CONSUMER_CLASS_NAME_KEY}, using the passed configuration
    * object.
-   * 
+   *
    * Initializes the consumer class with passed configuration, topicName with
    * the value of {@value #TOPIC_NAME_KEY}, consumerName with the value of
    * {@value #CONSUMER_NAME_KEY} and the startTime.
@@ -141,7 +141,7 @@ public class MessageConsumerFactory {
   /**
    * Creates concrete class extending {@link AbstractMessageConsumer} with
    * passed class name and using the passed configuration object.
-   * 
+   *
    * Initializes the consumer class with passed configuration, topicName with
    * the value of {@value #TOPIC_NAME_KEY}, consumerName with the value of
    * {@value #CONSUMER_NAME_KEY}.
