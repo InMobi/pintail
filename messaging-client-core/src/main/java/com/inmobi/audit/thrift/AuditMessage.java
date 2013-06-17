@@ -669,7 +669,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
   public Object getFieldValue(_Fields field) {
     switch (field) {
     case TIMESTAMP:
-      return new Long(getTimestamp());
+      return Long.valueOf(getTimestamp());
 
     case TOPIC:
       return getTopic();
@@ -681,7 +681,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       return getHostname();
 
     case WINDOW_SIZE:
-      return new Integer(getWindowSize());
+      return Integer.valueOf(getWindowSize());
 
     case RECEIVED:
       return getReceived();

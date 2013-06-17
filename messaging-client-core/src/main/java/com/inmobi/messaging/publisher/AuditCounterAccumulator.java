@@ -51,7 +51,7 @@ public class AuditCounterAccumulator {
   void incrementReceived(Long timestamp) {
     Long window = getWindow(timestamp);
     if (!counters.received.containsKey(window)) {
-      counters.received.put(window, new Long(0));
+      counters.received.put(window, Long.valueOf(0));
     }
     counters.received.put(window, counters.received.get(window) + 1);
   }
@@ -59,7 +59,7 @@ public class AuditCounterAccumulator {
   void incrementSent(Long timestamp) {
     Long window = getWindow(timestamp);
     if (!counters.sent.containsKey(window)) {
-      counters.sent.put(window, new Long(0));
+      counters.sent.put(window, Long.valueOf(0));
     }
     counters.sent.put(window, counters.sent.get(window) + 1);
 
