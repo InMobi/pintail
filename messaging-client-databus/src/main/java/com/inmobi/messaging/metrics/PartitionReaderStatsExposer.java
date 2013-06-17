@@ -3,15 +3,15 @@ package com.inmobi.messaging.metrics;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class PartitionReaderStatsExposer extends 
+public class PartitionReaderStatsExposer extends
     DatabusConsumerStatsExposer {
-  public final static String MESSAGES_READ_FROM_SOURCE = 
+  public final static String MESSAGES_READ_FROM_SOURCE =
       "messagesReadFromSource";
   public final static String MESSAGES_ADDED_TO_BUFFER = "messagesAddedToBuffer";
   public final static String HANDLED_EXCEPTIONS = "handledExceptions";
   public final static String WAIT_TIME_UNITS_NEW_FILE = "waitTimeUnitsNewFile";
   public final static String PARTITION_CONTEXT = "PartitionId";
-  public final static String CUMULATIVE_NANOS_FETCH_MESSAGE = 
+  public final static String CUMULATIVE_NANOS_FETCH_MESSAGE =
       "cumulativeNanosForFecthMessage";
   public final static String NUMBER_RECORD_READERS = "numberRecordReaders";
   public final static String LIST = "list";

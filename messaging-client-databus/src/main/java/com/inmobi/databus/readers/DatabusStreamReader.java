@@ -33,7 +33,7 @@ import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
-public abstract class DatabusStreamReader<T extends StreamFile> extends 
+public abstract class DatabusStreamReader<T extends StreamFile> extends
 StreamReader<T> {
 
   private static final Log LOG = LogFactory.getLog(DatabusStreamReader.class);
@@ -98,7 +98,7 @@ StreamReader<T> {
       throws IOException {
     boolean ret = super.initializeCurrentFile(checkpoint);
     if (!ret) {
-      T streamFile = (T)checkpoint.getStreamFile();
+      T streamFile = (T) checkpoint.getStreamFile();
       LOG.info("Could not find checkpointed file: " + streamFile);
       if (isBeforeStream(streamFile)) {
         LOG.info("Reading from start of the stream");
@@ -163,10 +163,10 @@ StreamReader<T> {
       if (ret) {
         if (needsSerialize) {
           baos.reset();
-          ((Writable)msgValue).write(new DataOutputStream(baos));
+          ((Writable) msgValue).write(new DataOutputStream(baos));
           return new Message(baos.toByteArray());
         } else {
-          return ((Message)msgValue);
+          return ((Message) msgValue);
         }
       }
     }
@@ -219,7 +219,7 @@ StreamReader<T> {
     @Override
     protected SimpleDateFormat initialValue() {
       return new SimpleDateFormat(minDirFormatStr);
-    }    
+    }
   };
 
   static final ThreadLocal<DateFormat> hhDirFormat =

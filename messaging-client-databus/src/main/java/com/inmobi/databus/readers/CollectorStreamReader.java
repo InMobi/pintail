@@ -52,7 +52,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
         stopTime);
     this.streamName = streamName;
     this.waitTimeForFlush = waitTimeForFlush;
-    this.collectorMetrics = (CollectorReaderStatsExposer)(this.metrics);
+    this.collectorMetrics = (CollectorReaderStatsExposer) (this.metrics);
     this.conf = conf;
     LOG.info("Collector reader initialized with partitionId:" + partitionId
         + " streamDir:" + streamDir
@@ -187,7 +187,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     }
     return line;
   }
-  
+
   protected void resetCurrentFileSettings() {
     super.resetCurrentFileSettings();
     currentOffset = 0;
@@ -259,7 +259,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     openCurrentFile(false);
   }
 
-  private void waitForFlushAndReOpen() 
+  private void waitForFlushAndReOpen()
       throws IOException, InterruptedException {
     if (!closed) {
       LOG.info("Waiting for flush");
@@ -269,7 +269,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     }
   }
 
-  private void startFromNextHigherAndOpen(String fileName) 
+  private void startFromNextHigherAndOpen(String fileName)
       throws IOException, InterruptedException {
     boolean ret = startFromNextHigher(fileName);
     if (ret) {
@@ -277,7 +277,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     }
   }
 
-  public boolean startFromNextHigher(String fileName) 
+  public boolean startFromNextHigher(String fileName)
       throws IOException, InterruptedException {
     if (!setNextHigher(fileName)) {
       waitForNextFileCreation(fileName);
@@ -285,7 +285,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     return true;
   }
 
-  private void waitForNextFileCreation(String fileName) 
+  private void waitForNextFileCreation(String fileName)
       throws IOException, InterruptedException {
     while (!closed && !setNextHigher(fileName) && !hasReadFully()) {
       LOG.info("Waiting for next file creation");

@@ -32,7 +32,7 @@ public class LocalStreamCollectorReader extends
 
   private final String collector;
 
-  public LocalStreamCollectorReader(PartitionId partitionId, 
+  public LocalStreamCollectorReader(PartitionId partitionId,
       FileSystem fs, String streamName, Path streamDir, Configuration conf,
       long waitTimeForFileCreate, CollectorReaderStatsExposer metrics,
       Date stopTime)
@@ -61,7 +61,7 @@ public class LocalStreamCollectorReader extends
                 getDateFromStreamFile(streamName, file.getPath().getName());
             if (stopTime != null && stopTime.before(currentTimeStamp)) {
               LOG.info("stopTime [ " + stopTime + " ] " + "is beyond the"
-                  + " current file timestamp [ " + currentTimeStamp +" ]");
+                  + " current file timestamp [ " + currentTimeStamp + " ]");
               stopListing();
             } else {
               fmap.addPath(file);

@@ -40,7 +40,7 @@ public abstract class StreamReader<T extends StreamFile> {
 
   private boolean listingStopped = false;
 
-  protected StreamReader(PartitionId partitionId, FileSystem fs, 
+  protected StreamReader(PartitionId partitionId, FileSystem fs,
       Path streamDir, long waitTimeForCreate,
       PartitionReaderStatsExposer metrics, boolean noNewFiles, Date stopTime)
           throws IOException {
@@ -65,7 +65,7 @@ public abstract class StreamReader<T extends StreamFile> {
   }
 
   public void closeStream() throws IOException {
-    closeCurrentFile();    
+    closeCurrentFile();
   }
 
   public void close() throws IOException {
@@ -85,7 +85,7 @@ public abstract class StreamReader<T extends StreamFile> {
 
   protected abstract boolean openCurrentFile(boolean next) throws IOException;
 
-  protected abstract void closeCurrentFile() throws IOException; 
+  protected abstract void closeCurrentFile() throws IOException;
   protected void initCurrentFile() {
     currentFile = null;
     resetCurrentFile();
@@ -95,8 +95,8 @@ public abstract class StreamReader<T extends StreamFile> {
     initCurrentFile();
     this.timestamp = timestamp;
     T file = getStreamFile(timestamp);
-    LOG.debug("Stream file corresponding to timestamp:" + timestamp +
-        " is " + file);
+    LOG.debug("Stream file corresponding to timestamp:" + timestamp
+        + " is " + file);
     currentFile = fileMap.getCeilingValue(file);
 
     if (currentFile != null) {
@@ -120,7 +120,7 @@ public abstract class StreamReader<T extends StreamFile> {
       LOG.debug("CurrentFile:" + getCurrentFile() + " currentLineNum:"
           + currentLineNum);
       setIterator();
-    } 
+    }
     return currentFile != null;
   }
 
@@ -193,7 +193,7 @@ public abstract class StreamReader<T extends StreamFile> {
 
   protected abstract T getStreamFile(FileStatus status);
 
-  /** 
+  /**
    * Returns null when reached end of stream
    */
   public abstract Message readLine() throws IOException, InterruptedException;
@@ -224,9 +224,9 @@ public abstract class StreamReader<T extends StreamFile> {
   }
 
   /**
-   * Read the next line in the current file. 
+   * Read the next line in the current file.
    * @return Null if end of file is reached, the line itself if read successfully
-   * 
+   *
    * @throws IOException
    */
   protected Message readNextLine() throws IOException {
@@ -282,12 +282,12 @@ public abstract class StreamReader<T extends StreamFile> {
       currentFile = fileMap.getValue(streamFileName);
       setIterator();
       this.currentLineNum = currentLineNum;
-      LOG.info("Set current file:" + getCurrentFile() +
-          "currentLineNum:" + currentLineNum);
+      LOG.info("Set current file:" + getCurrentFile()
+          + "currentLineNum:" + currentLineNum);
       return true;
     } else {
-      LOG.info("Did not find current file." + streamFileName +
-          " Trying to set next higher");
+      LOG.info("Did not find current file." + streamFileName
+          + " Trying to set next higher");
       if (!setNextHigher(streamFileName)) {
         return false;
       } else {

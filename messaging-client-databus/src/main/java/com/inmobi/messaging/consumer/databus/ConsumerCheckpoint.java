@@ -9,7 +9,7 @@ public interface ConsumerCheckpoint {
 	public void set(PartitionId pid, MessageCheckpoint pckList);
 
 	public void read(CheckpointProvider checkpointProvider, String key)
-			throws IOException;  
+			throws IOException;
 
 	public void write(CheckpointProvider checkpointProvider, String key)
 			throws IOException;

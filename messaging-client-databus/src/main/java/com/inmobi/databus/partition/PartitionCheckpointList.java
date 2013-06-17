@@ -7,9 +7,9 @@ import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.messaging.consumer.databus.MessageCheckpoint;
 
 /**
- * Checkpoint for the segments of databus stream consumer. 
- * this class is used to construct the checkpoint list for partition. Partition 
- * checkpoint list contains the segment ids and respective partition checkpoints. 
+ * Checkpoint for the segments of databus stream consumer.
+ * this class is used to construct the checkpoint list for partition. Partition
+ * checkpoint list contains the segment ids and respective partition checkpoints.
  */
 public class PartitionCheckpointList implements MessageCheckpoint {
 
@@ -32,16 +32,16 @@ public class PartitionCheckpointList implements MessageCheckpoint {
   public void set(int segmentId, PartitionCheckpoint pck) {
     pChkpoints.put(segmentId, pck);
   }
-  
+
   /**
    * Checks the partition checkpoint list is empty or not..
-   * @return false if the partition checkpoint list contains at least one entry. 
+   * @return false if the partition checkpoint list contains at least one entry.
    */
   @Override
   public boolean isNULL() {
     if (!pChkpoints.isEmpty()) {
-      for (Map.Entry<Integer, PartitionCheckpoint> entry : 
-        pChkpoints.entrySet()) {
+      for (Map.Entry<Integer, PartitionCheckpoint> entry
+          : pChkpoints.entrySet()) {
         if (entry.getValue() != null) {
           return false;
         }

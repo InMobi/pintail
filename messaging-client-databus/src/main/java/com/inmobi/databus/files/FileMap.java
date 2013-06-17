@@ -27,13 +27,13 @@ public abstract class FileMap<T extends StreamFile> {
 
   protected abstract T getStreamFile(String fileName);
 
-  protected abstract PathFilter createPathFilter(); 
+  protected abstract PathFilter createPathFilter();
 
   protected abstract void buildList() throws IOException;
 
 
   private void createIterator() {
-    fileNameIterator = files.navigableKeySet().iterator();    
+    fileNameIterator = files.navigableKeySet().iterator();
   }
 
   public void addPath(FileStatus path) {
@@ -111,7 +111,7 @@ public abstract class FileMap<T extends StreamFile> {
   }
 
   public boolean containsFile(String fileName) {
-    return files.containsKey(getStreamFile(fileName)); 
+    return files.containsKey(getStreamFile(fileName));
   }
 
   public boolean setIterator(FileStatus cfile) {

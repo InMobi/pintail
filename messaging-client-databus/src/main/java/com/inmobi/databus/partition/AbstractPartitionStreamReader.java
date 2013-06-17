@@ -6,12 +6,12 @@ import com.inmobi.databus.files.StreamFile;
 import com.inmobi.databus.readers.StreamReader;
 import com.inmobi.messaging.Message;
 
-public abstract class AbstractPartitionStreamReader implements 
+public abstract class AbstractPartitionStreamReader implements
      PartitionStreamReader {
 
   protected StreamReader reader;
   protected boolean closed = false;
-  
+
   protected StreamReader getReader() {
     return this.reader;
   }

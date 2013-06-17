@@ -21,13 +21,13 @@ public class CollectorFile implements StreamFile {
     idFormat.setMinimumIntegerDigits(5);
   }
 
-  public static final ThreadLocal<DateFormat> fileFormat = 
+  public static final ThreadLocal<DateFormat> fileFormat =
       new ThreadLocal<DateFormat>() {
     @Override
     protected SimpleDateFormat initialValue() {
-      return new SimpleDateFormat("yyyy" + "-" + "MM" + "-" + "dd" + "-" +
-          "HH" + "-" + "mm");
-    }    
+      return new SimpleDateFormat("yyyy" + "-" + "MM" + "-" + "dd" + "-"
+          + "HH" + "-" + "mm");
+    }
   };
 
   public CollectorFile(String streamName, Date timestamp, int id) {
@@ -35,7 +35,7 @@ public class CollectorFile implements StreamFile {
     this.timestamp = fileFormat.get().format(timestamp);
     this.id = id;
   }
-  
+
   /**
    * Used only during serialization
    */
@@ -43,13 +43,13 @@ public class CollectorFile implements StreamFile {
   }
 
   public static CollectorFile create(String fileName) {
-    String strs[] = fileName.split("-");
+    String[] strs = fileName.split("-");
     if (strs.length < 2) {
       throw new IllegalArgumentException("Invalid file name:" + fileName);
     }
     String streamName = strs[0];
     String dateSubStr = fileName.substring(streamName.length() + 1);
-    String str2[] = dateSubStr.split("_");
+    String[] str2 = dateSubStr.split("_");
     if (str2.length < 2) {
       throw new IllegalArgumentException("Invalid file name:" + fileName);
     }
@@ -60,7 +60,7 @@ public class CollectorFile implements StreamFile {
       throw new IllegalArgumentException("Invalid file name:" + fileName, e);
     }
     int id = Integer.parseInt(str2[1]);
-    
+
     return new CollectorFile(streamName, timestamp, id);
   }
 
@@ -113,7 +113,7 @@ public class CollectorFile implements StreamFile {
 
   @Override
   public int compareTo(Object o) {
-    CollectorFile other = (CollectorFile)o;
+    CollectorFile other = (CollectorFile) o;
     return this.toString().compareTo(other.toString());
   }
 
@@ -128,7 +128,7 @@ public class CollectorFile implements StreamFile {
   public String getStreamName() {
     return streamName;
   }
-  
+
   public int getId() {
     return id;
   }

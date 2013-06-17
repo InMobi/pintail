@@ -20,7 +20,7 @@ public class DatabusRecordReader implements RecordReader<LongWritable, Message> 
   private Text textValue;
   private Configuration conf;
   public DatabusRecordReader(JobConf job, InputSplit split) throws IOException {
-    lineReader = new LineRecordReader(job, (FileSplit)split);
+    lineReader = new LineRecordReader(job, (FileSplit) split);
     this.conf = job;
   }
 

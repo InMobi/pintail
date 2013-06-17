@@ -6,5 +6,5 @@ public interface HadoopConsumerConfig extends MessagingConsumerConfig {
 
   public static final String rootDirsConfig =
       "hadoop.consumer.rootdirs";
-  
+
 }

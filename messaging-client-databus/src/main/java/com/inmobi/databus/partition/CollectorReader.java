@@ -81,7 +81,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
         shouldBeClosed  = true;
       } else {
         throw new IllegalArgumentException(error);
-      } 
+      }
     } else if (!cReader.isEmpty()) {
       if (cReader.isBeforeStream(
           CollectorStreamReader.getCollectorFileName(streamName,
@@ -105,14 +105,14 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     }
   }
 
-  private void initializeCurrentFileFromCheckpoint() 
+  private void initializeCurrentFileFromCheckpoint()
       throws IOException, InterruptedException {
     String fileName = partitionCheckpoint.getFileName();
     if (cReader.isCollectorFile(fileName)) {
       if (cReader.initializeCurrentFile(partitionCheckpoint)) {
         reader = cReader;
       } else { //file could be moved to local stream
-        String localStreamFileName = 
+        String localStreamFileName =
             LocalStreamCollectorReader.getDatabusStreamFileName(
                 partitionId.getCollector(), fileName);
         initializeCurrentFileFromCheckpointLocalStream(localStreamFileName);
@@ -138,8 +138,8 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       LOG.info("Would never reach here");
     }
     if (reader != null) {
-      LOG.info("Intialized currentFile:" + reader.getCurrentFile() +
-          " currentLineNum:" + reader.getCurrentLineNum());
+      LOG.info("Intialized currentFile:" + reader.getCurrentFile()
+          + " currentLineNum:" + reader.getCurrentLineNum());
     }
   }
 
@@ -157,8 +157,8 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       }
       if (reader == lReader) {
         lReader.closeStream();
-        LOG.info("Switching to collector stream as we reached end of" +
-            " stream on local stream");
+        LOG.info("Switching to collector stream as we reached end of"
+            + " stream on local stream");
         LOG.info("current file:" + reader.getCurrentFile());
         cReader.startFromNextHigher(
             CollectorStreamReader.getCollectorFileName(
@@ -177,7 +177,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
                 partitionId.getCollector(),
                 cReader.getCurrentFile().getName()),
                 cReader.getCurrentLineNum())) {
-          LOG.info("Did not find current file in local stream as well") ;
+          LOG.info("Did not find current file in local stream as well");
           cReader.startFromNextHigher(
               reader.getCurrentFile().getName());
         } else {
@@ -188,8 +188,8 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       }
       boolean ret = reader.openStream();
       if (ret) {
-        LOG.info("Reading file " + reader.getCurrentFile() +
-            " and lineNum:" + reader.getCurrentLineNum());
+        LOG.info("Reading file " + reader.getCurrentFile()
+            + " and lineNum:" + reader.getCurrentLineNum());
         line = super.readLine();
       } else {
         return null;

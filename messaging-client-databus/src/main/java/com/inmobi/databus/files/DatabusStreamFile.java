@@ -24,7 +24,7 @@ public class DatabusStreamFile implements StreamFile {
   public DatabusStreamFile() {
   }
   public static DatabusStreamFile create(String streamName, String fileName) {
-    String strs[] = fileName.split(streamName);
+    String[] strs = fileName.split(streamName);
     if (strs.length < 2) {
       throw new IllegalArgumentException("Invalid file name:" + fileName);
     }
@@ -34,7 +34,7 @@ public class DatabusStreamFile implements StreamFile {
     String collectorName = strs[0].substring(0, strs[0].length() - 1);
 
     String cfSubString = fileName.substring(collectorName.length() + 1);
-    String str2[] = cfSubString.split("\\.");
+    String[] str2 = cfSubString.split("\\.");
 
     if (str2.length < 2) {
       throw new IllegalArgumentException("Invalid file name:" + fileName);
@@ -99,13 +99,13 @@ public class DatabusStreamFile implements StreamFile {
 
   @Override
   public int compareTo(Object o) {
-    DatabusStreamFile other = (DatabusStreamFile)o;
+    DatabusStreamFile other = (DatabusStreamFile) o;
     int cfComp = collectorFile.compareTo(other.collectorFile);
-    if ( cfComp== 0) {
+    if (cfComp == 0) {
       int cnComp = collectorName.compareTo(other.collectorName);
-      if ( cnComp == 0) {
+      if (cnComp == 0) {
         return extension.compareTo(other.extension);
-      }else {
+      } else {
         return cnComp;
       }
     } else {
@@ -130,7 +130,6 @@ public class DatabusStreamFile implements StreamFile {
     collectorFile = new CollectorFile();
     collectorFile.readFields(in);
     extension = in.readUTF();
-    
   }
 
 }
