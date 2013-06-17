@@ -728,8 +728,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       }
     }
 
-    boolean this_present_topic = true && this.isSetTopic();
-    boolean that_present_topic = true && that.isSetTopic();
+    boolean this_present_topic = this.isSetTopic();
+    boolean that_present_topic = that.isSetTopic();
     if (this_present_topic || that_present_topic) {
       if (!(this_present_topic && that_present_topic)) {
         return false;
@@ -739,8 +739,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       }
     }
 
-    boolean this_present_tier = true && this.isSetTier();
-    boolean that_present_tier = true && that.isSetTier();
+    boolean this_present_tier = this.isSetTier();
+    boolean that_present_tier = that.isSetTier();
     if (this_present_tier || that_present_tier) {
       if (!(this_present_tier && that_present_tier)) {
         return false;
@@ -750,8 +750,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       }
     }
 
-    boolean this_present_hostname = true && this.isSetHostname();
-    boolean that_present_hostname = true && that.isSetHostname();
+    boolean this_present_hostname = this.isSetHostname();
+    boolean that_present_hostname = that.isSetHostname();
     if (this_present_hostname || that_present_hostname) {
       if (!(this_present_hostname && that_present_hostname)) {
         return false;
@@ -772,8 +772,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       }
     }
 
-    boolean this_present_received = true && this.isSetReceived();
-    boolean that_present_received = true && that.isSetReceived();
+    boolean this_present_received = this.isSetReceived();
+    boolean that_present_received = that.isSetReceived();
     if (this_present_received || that_present_received) {
       if (!(this_present_received && that_present_received)) {
         return false;
@@ -783,8 +783,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       }
     }
 
-    boolean this_present_sent = true && this.isSetSent();
-    boolean that_present_sent = true && that.isSetSent();
+    boolean this_present_sent = this.isSetSent();
+    boolean that_present_sent = that.isSetSent();
     if (this_present_sent || that_present_sent) {
       if (!(this_present_sent && that_present_sent)) {
         return false;
@@ -794,8 +794,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       }
     }
 
-    boolean this_present_filenames = true && this.isSetFilenames();
-    boolean that_present_filenames = true && that.isSetFilenames();
+    boolean this_present_filenames = this.isSetFilenames();
+    boolean that_present_filenames = that.isSetFilenames();
     if (this_present_filenames || that_present_filenames) {
       if (!(this_present_filenames && that_present_filenames)) {
         return false;
@@ -805,8 +805,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       }
     }
 
-    boolean this_present_tags = true && this.isSetTags();
-    boolean that_present_tags = true && that.isSetTags();
+    boolean this_present_tags = this.isSetTags();
+    boolean that_present_tags = that.isSetTags();
     if (this_present_tags || that_present_tags) {
       if (!(this_present_tags && that_present_tags)) {
         return false;
