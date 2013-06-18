@@ -29,50 +29,39 @@ import org.apache.thrift.protocol.*;
 public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, java.io.Serializable, Cloneable {
   private static final TStruct STRUCT_DESC = new TStruct("AuditMessage");
 
-  private static final TField TIMESTAMP_FIELD_DESC = new TField("timestamp",
-      TType.I64, (short) 1);
-  private static final TField TOPIC_FIELD_DESC = new TField("topic",
-      TType.STRING, (short) 2);
-  private static final TField TIER_FIELD_DESC = new TField("tier",
-      TType.STRING, (short) 3);
-  private static final TField HOSTNAME_FIELD_DESC = new TField("hostname",
-      TType.STRING, (short) 4);
-  private static final TField WINDOW_SIZE_FIELD_DESC = new TField("windowSize",
-      TType.I32, (short) 5);
-  private static final TField RECEIVED_FIELD_DESC = new TField("received",
-      TType.MAP, (short) 6);
-  private static final TField SENT_FIELD_DESC = new TField("sent", TType.MAP,
-      (short) 7);
-  private static final TField FILENAMES_FIELD_DESC = new TField("filenames",
-      TType.LIST, (short) 8);
-  private static final TField TAGS_FIELD_DESC = new TField("tags", TType.MAP,
-      (short) 9);
+  private static final TField TIMESTAMP_FIELD_DESC = new TField("timestamp", TType.I64, (short)1);
+  private static final TField TOPIC_FIELD_DESC = new TField("topic", TType.STRING, (short)2);
+  private static final TField TIER_FIELD_DESC = new TField("tier", TType.STRING, (short)3);
+  private static final TField HOSTNAME_FIELD_DESC = new TField("hostname", TType.STRING, (short)4);
+  private static final TField WINDOW_SIZE_FIELD_DESC = new TField("windowSize", TType.I32, (short)5);
+  private static final TField RECEIVED_FIELD_DESC = new TField("received", TType.MAP, (short)6);
+  private static final TField SENT_FIELD_DESC = new TField("sent", TType.MAP, (short)7);
+  private static final TField FILENAMES_FIELD_DESC = new TField("filenames", TType.LIST, (short)8);
+  private static final TField TAGS_FIELD_DESC = new TField("tags", TType.MAP, (short)9);
 
   public long timestamp;
   public String topic;
   public String tier;
   public String hostname;
   public int windowSize;
-  public Map<Long, Long> received;
-  public Map<Long, Long> sent;
+  public Map<Long,Long> received;
+  public Map<Long,Long> sent;
   public List<String> filenames;
-  public Map<String, String> tags;
+  public Map<String,String> tags;
 
-  /** The set of fields this struct contains, along with convenience methods
-   *  for finding and manipulating them. */
+  /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements TFieldIdEnum {
-    TIMESTAMP((short) 1, "timestamp"),
-    TOPIC((short) 2, "topic"),
-    TIER((short) 3, "tier"),
-    HOSTNAME((short) 4, "hostname"),
-    WINDOW_SIZE((short) 5, "windowSize"),
-    RECEIVED((short) 6, "received"),
-    SENT((short) 7, "sent"),
-    FILENAMES((short) 8, "filenames"),
-    TAGS((short) 9, "tags");
+    TIMESTAMP((short)1, "timestamp"),
+    TOPIC((short)2, "topic"),
+    TIER((short)3, "tier"),
+    HOSTNAME((short)4, "hostname"),
+    WINDOW_SIZE((short)5, "windowSize"),
+    RECEIVED((short)6, "received"),
+    SENT((short)7, "sent"),
+    FILENAMES((short)8, "filenames"),
+    TAGS((short)9, "tags");
 
-    private static final Map<String, _Fields> byName = new HashMap<String,
-        _Fields>();
+    private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
     static {
       for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -114,9 +103,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
      */
     public static _Fields findByThriftIdOrThrow(int fieldId) {
       _Fields fields = findByThriftId(fieldId);
-      if (fields == null) {
-        throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-      }
+      if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
       return fields;
     }
 
@@ -151,41 +138,31 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
 
   public static final Map<_Fields, FieldMetaData> metaDataMap;
   static {
-    Map<_Fields, FieldMetaData> tmpMap = new EnumMap<_Fields, FieldMetaData>(
-        _Fields.class);
-
-    tmpMap.put(_Fields.TIMESTAMP, new FieldMetaData("timestamp",
-        TFieldRequirementType.DEFAULT, new FieldValueMetaData(TType.I64)));
-
-    tmpMap.put(_Fields.TOPIC, new FieldMetaData("topic",
-        TFieldRequirementType.DEFAULT, new FieldValueMetaData(TType.STRING)));
-
-    tmpMap.put(_Fields.TIER, new FieldMetaData("tier",
-        TFieldRequirementType.DEFAULT, new FieldValueMetaData(TType.STRING)));
-
-    tmpMap.put(_Fields.HOSTNAME, new FieldMetaData("hostname",
-        TFieldRequirementType.DEFAULT, new FieldValueMetaData(TType.STRING)));
-
-    tmpMap.put(_Fields.WINDOW_SIZE, new FieldMetaData("windowSize",
-        TFieldRequirementType.DEFAULT, new FieldValueMetaData(TType.I32)));
-
-    tmpMap.put(_Fields.RECEIVED, new FieldMetaData("received",
-        TFieldRequirementType.DEFAULT,
-        new MapMetaData(TType.MAP, new FieldValueMetaData(TType.I64),
+    Map<_Fields, FieldMetaData> tmpMap = new EnumMap<_Fields, FieldMetaData>(_Fields.class);
+    tmpMap.put(_Fields.TIMESTAMP, new FieldMetaData("timestamp", TFieldRequirementType.DEFAULT, 
+        new FieldValueMetaData(TType.I64)));
+    tmpMap.put(_Fields.TOPIC, new FieldMetaData("topic", TFieldRequirementType.DEFAULT, 
+        new FieldValueMetaData(TType.STRING)));
+    tmpMap.put(_Fields.TIER, new FieldMetaData("tier", TFieldRequirementType.DEFAULT, 
+        new FieldValueMetaData(TType.STRING)));
+    tmpMap.put(_Fields.HOSTNAME, new FieldMetaData("hostname", TFieldRequirementType.DEFAULT, 
+        new FieldValueMetaData(TType.STRING)));
+    tmpMap.put(_Fields.WINDOW_SIZE, new FieldMetaData("windowSize", TFieldRequirementType.DEFAULT, 
+        new FieldValueMetaData(TType.I32)));
+    tmpMap.put(_Fields.RECEIVED, new FieldMetaData("received", TFieldRequirementType.DEFAULT, 
+        new MapMetaData(TType.MAP, 
+            new FieldValueMetaData(TType.I64), 
             new FieldValueMetaData(TType.I64))));
-
-    tmpMap.put(_Fields.SENT, new FieldMetaData("sent",
-        TFieldRequirementType.DEFAULT,
-        new MapMetaData(TType.MAP, new FieldValueMetaData(TType.I64),
+    tmpMap.put(_Fields.SENT, new FieldMetaData("sent", TFieldRequirementType.DEFAULT, 
+        new MapMetaData(TType.MAP, 
+            new FieldValueMetaData(TType.I64), 
             new FieldValueMetaData(TType.I64))));
-
-    tmpMap.put(_Fields.FILENAMES, new FieldMetaData("filenames",
-        TFieldRequirementType.DEFAULT,
-        new ListMetaData(TType.LIST, new FieldValueMetaData(TType.STRING))));
-
-    tmpMap.put(_Fields.TAGS, new FieldMetaData("tags",
-        TFieldRequirementType.DEFAULT,
-        new MapMetaData(TType.MAP, new FieldValueMetaData(TType.STRING),
+    tmpMap.put(_Fields.FILENAMES, new FieldMetaData("filenames", TFieldRequirementType.DEFAULT, 
+        new ListMetaData(TType.LIST, 
+            new FieldValueMetaData(TType.STRING))));
+    tmpMap.put(_Fields.TAGS, new FieldMetaData("tags", TFieldRequirementType.DEFAULT, 
+        new MapMetaData(TType.MAP, 
+            new FieldValueMetaData(TType.STRING), 
             new FieldValueMetaData(TType.STRING))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     FieldMetaData.addStructMetaDataMap(AuditMessage.class, metaDataMap);
@@ -200,10 +177,11 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     String tier,
     String hostname,
     int windowSize,
-    Map<Long, Long> received,
-    Map<Long, Long> sent,
+    Map<Long,Long> received,
+    Map<Long,Long> sent,
     List<String> filenames,
-    Map<String, String> tags) {
+    Map<String,String> tags)
+  {
     this();
     this.timestamp = timestamp;
     setTimestampIsSet(true);
@@ -236,7 +214,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     }
     this.windowSize = other.windowSize;
     if (other.isSetReceived()) {
-      Map<Long, Long> __this__received = new HashMap<Long, Long>();
+      Map<Long,Long> __this__received = new HashMap<Long,Long>();
       for (Map.Entry<Long, Long> other_element : other.received.entrySet()) {
 
         Long other_element_key = other_element.getKey();
@@ -246,13 +224,12 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
 
         Long __this__received_copy_value = other_element_value;
 
-        __this__received.put(__this__received_copy_key,
-            __this__received_copy_value);
+        __this__received.put(__this__received_copy_key, __this__received_copy_value);
       }
       this.received = __this__received;
     }
     if (other.isSetSent()) {
-      Map<Long, Long> __this__sent = new HashMap<Long, Long>();
+      Map<Long,Long> __this__sent = new HashMap<Long,Long>();
       for (Map.Entry<Long, Long> other_element : other.sent.entrySet()) {
 
         Long other_element_key = other_element.getKey();
@@ -274,7 +251,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       this.filenames = __this__filenames;
     }
     if (other.isSetTags()) {
-      Map<String, String> __this__tags = new HashMap<String, String>();
+      Map<String,String> __this__tags = new HashMap<String,String>();
       for (Map.Entry<String, String> other_element : other.tags.entrySet()) {
 
         String other_element_key = other_element.getKey();
@@ -328,8 +305,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     __isset_bit_vector.clear(__TIMESTAMP_ISSET_ID);
   }
 
-  /** Returns true if field timestamp is set (has been asigned a value) and
-   *  false otherwise */
+  /** Returns true if field timestamp is set (has been asigned a value) and false otherwise */
   public boolean isSetTimestamp() {
     return __isset_bit_vector.get(__TIMESTAMP_ISSET_ID);
   }
@@ -351,8 +327,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     this.topic = null;
   }
 
-  /** Returns true if field topic is set (has been asigned a value) and false
-   *  otherwise */
+  /** Returns true if field topic is set (has been asigned a value) and false otherwise */
   public boolean isSetTopic() {
     return this.topic != null;
   }
@@ -376,8 +351,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     this.tier = null;
   }
 
-  /** Returns true if field tier is set (has been asigned a value) and false
-   *  otherwise */
+  /** Returns true if field tier is set (has been asigned a value) and false otherwise */
   public boolean isSetTier() {
     return this.tier != null;
   }
@@ -401,8 +375,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     this.hostname = null;
   }
 
-  /** Returns true if field hostname is set (has been asigned a value) and
-   *  false otherwise */
+  /** Returns true if field hostname is set (has been asigned a value) and false otherwise */
   public boolean isSetHostname() {
     return this.hostname != null;
   }
@@ -427,8 +400,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     __isset_bit_vector.clear(__WINDOWSIZE_ISSET_ID);
   }
 
-  /** Returns true if field windowSize is set (has been asigned a value) and
-   *  false otherwise */
+  /** Returns true if field windowSize is set (has been asigned a value) and false otherwise */
   public boolean isSetWindowSize() {
     return __isset_bit_vector.get(__WINDOWSIZE_ISSET_ID);
   }
@@ -443,16 +415,16 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
 
   public void putToReceived(long key, long val) {
     if (this.received == null) {
-      this.received = new HashMap<Long, Long>();
+      this.received = new HashMap<Long,Long>();
     }
     this.received.put(key, val);
   }
 
-  public Map<Long, Long> getReceived() {
+  public Map<Long,Long> getReceived() {
     return this.received;
   }
 
-  public AuditMessage setReceived(Map<Long, Long> received) {
+  public AuditMessage setReceived(Map<Long,Long> received) {
     this.received = received;
     return this;
   }
@@ -461,8 +433,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     this.received = null;
   }
 
-  /** Returns true if field received is set (has been asigned a value) and
-   *  false otherwise */
+  /** Returns true if field received is set (has been asigned a value) and false otherwise */
   public boolean isSetReceived() {
     return this.received != null;
   }
@@ -479,16 +450,16 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
 
   public void putToSent(long key, long val) {
     if (this.sent == null) {
-      this.sent = new HashMap<Long, Long>();
+      this.sent = new HashMap<Long,Long>();
     }
     this.sent.put(key, val);
   }
 
-  public Map<Long, Long> getSent() {
+  public Map<Long,Long> getSent() {
     return this.sent;
   }
 
-  public AuditMessage setSent(Map<Long, Long> sent) {
+  public AuditMessage setSent(Map<Long,Long> sent) {
     this.sent = sent;
     return this;
   }
@@ -497,8 +468,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     this.sent = null;
   }
 
-  /** Returns true if field sent is set (has been asigned a value) and false
-   *  otherwise */
+  /** Returns true if field sent is set (has been asigned a value) and false otherwise */
   public boolean isSetSent() {
     return this.sent != null;
   }
@@ -537,8 +507,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     this.filenames = null;
   }
 
-  /** Returns true if field filenames is set (has been asigned a value) and
-   *  false otherwise */
+  /** Returns true if field filenames is set (has been asigned a value) and false otherwise */
   public boolean isSetFilenames() {
     return this.filenames != null;
   }
@@ -555,16 +524,16 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
 
   public void putToTags(String key, String val) {
     if (this.tags == null) {
-      this.tags = new HashMap<String, String>();
+      this.tags = new HashMap<String,String>();
     }
     this.tags.put(key, val);
   }
 
-  public Map<String, String> getTags() {
+  public Map<String,String> getTags() {
     return this.tags;
   }
 
-  public AuditMessage setTags(Map<String, String> tags) {
+  public AuditMessage setTags(Map<String,String> tags) {
     this.tags = tags;
     return this;
   }
@@ -573,8 +542,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     this.tags = null;
   }
 
-  /** Returns true if field tags is set (has been asigned a value) and false
-   *  otherwise */
+  /** Returns true if field tags is set (has been asigned a value) and false otherwise */
   public boolean isSetTags() {
     return this.tags != null;
   }
@@ -591,7 +559,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       if (value == null) {
         unsetTimestamp();
       } else {
-        setTimestamp((Long) value);
+        setTimestamp((Long)value);
       }
       break;
 
@@ -599,7 +567,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       if (value == null) {
         unsetTopic();
       } else {
-        setTopic((String) value);
+        setTopic((String)value);
       }
       break;
 
@@ -607,7 +575,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       if (value == null) {
         unsetTier();
       } else {
-        setTier((String) value);
+        setTier((String)value);
       }
       break;
 
@@ -615,7 +583,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       if (value == null) {
         unsetHostname();
       } else {
-        setHostname((String) value);
+        setHostname((String)value);
       }
       break;
 
@@ -623,7 +591,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       if (value == null) {
         unsetWindowSize();
       } else {
-        setWindowSize((Integer) value);
+        setWindowSize((Integer)value);
       }
       break;
 
@@ -631,7 +599,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       if (value == null) {
         unsetReceived();
       } else {
-        setReceived((Map<Long, Long>) value);
+        setReceived((Map<Long,Long>)value);
       }
       break;
 
@@ -639,7 +607,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       if (value == null) {
         unsetSent();
       } else {
-        setSent((Map<Long, Long>) value);
+        setSent((Map<Long,Long>)value);
       }
       break;
 
@@ -647,7 +615,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       if (value == null) {
         unsetFilenames();
       } else {
-        setFilenames((List<String>) value);
+        setFilenames((List<String>)value);
       }
       break;
 
@@ -655,7 +623,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       if (value == null) {
         unsetTags();
       } else {
-        setTags((Map<String, String>) value);
+        setTags((Map<String,String>)value);
       }
       break;
 
@@ -669,7 +637,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
   public Object getFieldValue(_Fields field) {
     switch (field) {
     case TIMESTAMP:
-      return Long.valueOf(getTimestamp());
+      return new Long(getTimestamp());
 
     case TOPIC:
       return getTopic();
@@ -681,7 +649,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       return getHostname();
 
     case WINDOW_SIZE:
-      return Integer.valueOf(getWindowSize());
+      return new Integer(getWindowSize());
 
     case RECEIVED:
       return getReceived();
@@ -703,8 +671,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     return getFieldValue(_Fields.findByThriftIdOrThrow(fieldId));
   }
 
-  /** Returns true if field corresponding to fieldID is set (has been asigned a
-   *  value) and false otherwise */
+  /** Returns true if field corresponding to fieldID is set (has been asigned a value) and false otherwise */
   public boolean isSet(_Fields field) {
     switch (field) {
     case TIMESTAMP:
@@ -735,117 +702,96 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
 
   @Override
   public boolean equals(Object that) {
-    if (that == null) {
+    if (that == null)
       return false;
-    }
-    if (that instanceof AuditMessage) {
-      return this.equals((AuditMessage) that);
-    }
+    if (that instanceof AuditMessage)
+      return this.equals((AuditMessage)that);
     return false;
   }
 
   public boolean equals(AuditMessage that) {
-    if (that == null) {
+    if (that == null)
       return false;
-    }
 
     boolean this_present_timestamp = true;
     boolean that_present_timestamp = true;
     if (this_present_timestamp || that_present_timestamp) {
-      if (!(this_present_timestamp && that_present_timestamp)) {
+      if (!(this_present_timestamp && that_present_timestamp))
         return false;
-      }
-      if (this.timestamp != that.timestamp) {
+      if (this.timestamp != that.timestamp)
         return false;
-      }
     }
 
-    boolean this_present_topic = this.isSetTopic();
-    boolean that_present_topic = that.isSetTopic();
+    boolean this_present_topic = true && this.isSetTopic();
+    boolean that_present_topic = true && that.isSetTopic();
     if (this_present_topic || that_present_topic) {
-      if (!(this_present_topic && that_present_topic)) {
+      if (!(this_present_topic && that_present_topic))
         return false;
-      }
-      if (!this.topic.equals(that.topic)) {
+      if (!this.topic.equals(that.topic))
         return false;
-      }
     }
 
-    boolean this_present_tier = this.isSetTier();
-    boolean that_present_tier = that.isSetTier();
+    boolean this_present_tier = true && this.isSetTier();
+    boolean that_present_tier = true && that.isSetTier();
     if (this_present_tier || that_present_tier) {
-      if (!(this_present_tier && that_present_tier)) {
+      if (!(this_present_tier && that_present_tier))
         return false;
-      }
-      if (!this.tier.equals(that.tier)) {
+      if (!this.tier.equals(that.tier))
         return false;
-      }
     }
 
-    boolean this_present_hostname = this.isSetHostname();
-    boolean that_present_hostname = that.isSetHostname();
+    boolean this_present_hostname = true && this.isSetHostname();
+    boolean that_present_hostname = true && that.isSetHostname();
     if (this_present_hostname || that_present_hostname) {
-      if (!(this_present_hostname && that_present_hostname)) {
+      if (!(this_present_hostname && that_present_hostname))
         return false;
-      }
-      if (!this.hostname.equals(that.hostname)) {
+      if (!this.hostname.equals(that.hostname))
         return false;
-      }
     }
 
     boolean this_present_windowSize = true;
     boolean that_present_windowSize = true;
     if (this_present_windowSize || that_present_windowSize) {
-      if (!(this_present_windowSize && that_present_windowSize)) {
+      if (!(this_present_windowSize && that_present_windowSize))
         return false;
-      }
-      if (this.windowSize != that.windowSize) {
+      if (this.windowSize != that.windowSize)
         return false;
-      }
     }
 
-    boolean this_present_received = this.isSetReceived();
-    boolean that_present_received = that.isSetReceived();
+    boolean this_present_received = true && this.isSetReceived();
+    boolean that_present_received = true && that.isSetReceived();
     if (this_present_received || that_present_received) {
-      if (!(this_present_received && that_present_received)) {
+      if (!(this_present_received && that_present_received))
         return false;
-      }
-      if (!this.received.equals(that.received)) {
+      if (!this.received.equals(that.received))
         return false;
-      }
     }
 
-    boolean this_present_sent = this.isSetSent();
-    boolean that_present_sent = that.isSetSent();
+    boolean this_present_sent = true && this.isSetSent();
+    boolean that_present_sent = true && that.isSetSent();
     if (this_present_sent || that_present_sent) {
-      if (!(this_present_sent && that_present_sent)) {
+      if (!(this_present_sent && that_present_sent))
         return false;
-      }
-      if (!this.sent.equals(that.sent)) {
+      if (!this.sent.equals(that.sent))
         return false;
-      }
     }
 
-    boolean this_present_filenames = this.isSetFilenames();
-    boolean that_present_filenames = that.isSetFilenames();
+    boolean this_present_filenames = true && this.isSetFilenames();
+    boolean that_present_filenames = true && that.isSetFilenames();
     if (this_present_filenames || that_present_filenames) {
-      if (!(this_present_filenames && that_present_filenames)) {
+      if (!(this_present_filenames && that_present_filenames))
         return false;
-      }
-      if (!this.filenames.equals(that.filenames)) {
+      if (!this.filenames.equals(that.filenames))
         return false;
-      }
     }
 
-    boolean this_present_tags = this.isSetTags();
-    boolean that_present_tags = that.isSetTags();
+    boolean this_present_tags = true && this.isSetTags();
+    boolean that_present_tags = true && that.isSetTags();
     if (this_present_tags || that_present_tags) {
-      if (!(this_present_tags && that_present_tags)) {
+      if (!(this_present_tags && that_present_tags))
         return false;
-      }
-      if (!this.tags.equals(that.tags)) {
+      if (!this.tags.equals(that.tags))
         return false;
-      }
     }
 
     return true;
@@ -862,107 +808,85 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     }
 
     int lastComparison = 0;
-    AuditMessage typedOther = (AuditMessage) other;
+    AuditMessage typedOther = (AuditMessage)other;
 
-    lastComparison = Boolean.valueOf(
-        isSetTimestamp()).compareTo(typedOther.isSetTimestamp());
+    lastComparison = Boolean.valueOf(isSetTimestamp()).compareTo(typedOther.isSetTimestamp());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetTimestamp()) {
-      lastComparison = TBaseHelper.compareTo(this.timestamp,
-          typedOther.timestamp);
+    if (isSetTimestamp()) {      lastComparison = TBaseHelper.compareTo(this.timestamp, typedOther.timestamp);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetTopic()).compareTo(
-        typedOther.isSetTopic());
+    lastComparison = Boolean.valueOf(isSetTopic()).compareTo(typedOther.isSetTopic());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetTopic()) {
-      lastComparison = TBaseHelper.compareTo(this.topic, typedOther.topic);
+    if (isSetTopic()) {      lastComparison = TBaseHelper.compareTo(this.topic, typedOther.topic);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetTier()).compareTo(
-        typedOther.isSetTier());
+    lastComparison = Boolean.valueOf(isSetTier()).compareTo(typedOther.isSetTier());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetTier()) {
-      lastComparison = TBaseHelper.compareTo(this.tier, typedOther.tier);
+    if (isSetTier()) {      lastComparison = TBaseHelper.compareTo(this.tier, typedOther.tier);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetHostname()).compareTo(
-        typedOther.isSetHostname());
+    lastComparison = Boolean.valueOf(isSetHostname()).compareTo(typedOther.isSetHostname());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetHostname()) {
-      lastComparison = TBaseHelper.compareTo(this.hostname, typedOther.hostname);
+    if (isSetHostname()) {      lastComparison = TBaseHelper.compareTo(this.hostname, typedOther.hostname);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetWindowSize()).compareTo(
-        typedOther.isSetWindowSize());
+    lastComparison = Boolean.valueOf(isSetWindowSize()).compareTo(typedOther.isSetWindowSize());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetWindowSize()) {
-      lastComparison = TBaseHelper.compareTo(this.windowSize,
-          typedOther.windowSize);
+    if (isSetWindowSize()) {      lastComparison = TBaseHelper.compareTo(this.windowSize, typedOther.windowSize);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetReceived()).compareTo(
-        typedOther.isSetReceived());
+    lastComparison = Boolean.valueOf(isSetReceived()).compareTo(typedOther.isSetReceived());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetReceived()) {
-      lastComparison = TBaseHelper.compareTo(this.received,
-          typedOther.received);
+    if (isSetReceived()) {      lastComparison = TBaseHelper.compareTo(this.received, typedOther.received);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetSent()).compareTo(
-        typedOther.isSetSent());
+    lastComparison = Boolean.valueOf(isSetSent()).compareTo(typedOther.isSetSent());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetSent()) {
-      lastComparison = TBaseHelper.compareTo(this.sent, typedOther.sent);
+    if (isSetSent()) {      lastComparison = TBaseHelper.compareTo(this.sent, typedOther.sent);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetFilenames()).compareTo(
-        typedOther.isSetFilenames());
+    lastComparison = Boolean.valueOf(isSetFilenames()).compareTo(typedOther.isSetFilenames());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetFilenames()) {
-      lastComparison = TBaseHelper.compareTo(this.filenames,
-          typedOther.filenames);
+    if (isSetFilenames()) {      lastComparison = TBaseHelper.compareTo(this.filenames, typedOther.filenames);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetTags()).compareTo(
-        typedOther.isSetTags());
+    lastComparison = Boolean.valueOf(isSetTags()).compareTo(typedOther.isSetTags());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetTags()) {
-      lastComparison = TBaseHelper.compareTo(this.tags, typedOther.tags);
+    if (isSetTags()) {      lastComparison = TBaseHelper.compareTo(this.tags, typedOther.tags);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -973,9 +897,10 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
   public void read(TProtocol iprot) throws TException {
     TField field;
     iprot.readStructBegin();
-    while (true) {
+    while (true)
+    {
       field = iprot.readFieldBegin();
-      if (field.type == TType.STOP) {
+      if (field.type == TType.STOP) { 
         break;
       }
       switch (field.id) {
@@ -983,28 +908,28 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
           if (field.type == TType.I64) {
             this.timestamp = iprot.readI64();
             setTimestampIsSet(true);
-          } else {
+          } else { 
             TProtocolUtil.skip(iprot, field.type);
           }
           break;
         case 2: // TOPIC
           if (field.type == TType.STRING) {
             this.topic = iprot.readString();
-          } else {
+          } else { 
             TProtocolUtil.skip(iprot, field.type);
           }
           break;
         case 3: // TIER
           if (field.type == TType.STRING) {
             this.tier = iprot.readString();
-          } else {
+          } else { 
             TProtocolUtil.skip(iprot, field.type);
           }
           break;
         case 4: // HOSTNAME
           if (field.type == TType.STRING) {
             this.hostname = iprot.readString();
-          } else {
+          } else { 
             TProtocolUtil.skip(iprot, field.type);
           }
           break;
@@ -1012,7 +937,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
           if (field.type == TType.I32) {
             this.windowSize = iprot.readI32();
             setWindowSizeIsSet(true);
-          } else {
+          } else { 
             TProtocolUtil.skip(iprot, field.type);
           }
           break;
@@ -1020,8 +945,9 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
           if (field.type == TType.MAP) {
             {
               TMap _map0 = iprot.readMapBegin();
-              this.received = new HashMap<Long, Long>(2 * _map0.size);
-              for (int _i1 = 0; _i1 < _map0.size; ++_i1) {
+              this.received = new HashMap<Long,Long>(2*_map0.size);
+              for (int _i1 = 0; _i1 < _map0.size; ++_i1)
+              {
                 long _key2;
                 long _val3;
                 _key2 = iprot.readI64();
@@ -1030,7 +956,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
               }
               iprot.readMapEnd();
             }
-          } else {
+          } else { 
             TProtocolUtil.skip(iprot, field.type);
           }
           break;
@@ -1038,8 +964,9 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
           if (field.type == TType.MAP) {
             {
               TMap _map4 = iprot.readMapBegin();
-              this.sent = new HashMap<Long, Long>(2 * _map4.size);
-              for (int _i5 = 0; _i5 < _map4.size; ++_i5) {
+              this.sent = new HashMap<Long,Long>(2*_map4.size);
+              for (int _i5 = 0; _i5 < _map4.size; ++_i5)
+              {
                 long _key6;
                 long _val7;
                 _key6 = iprot.readI64();
@@ -1048,7 +975,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
               }
               iprot.readMapEnd();
             }
-          } else {
+          } else { 
             TProtocolUtil.skip(iprot, field.type);
           }
           break;
@@ -1057,14 +984,15 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
             {
               TList _list8 = iprot.readListBegin();
               this.filenames = new ArrayList<String>(_list8.size);
-              for (int _i9 = 0; _i9 < _list8.size; ++_i9) {
+              for (int _i9 = 0; _i9 < _list8.size; ++_i9)
+              {
                 String _elem10;
                 _elem10 = iprot.readString();
                 this.filenames.add(_elem10);
               }
               iprot.readListEnd();
             }
-          } else {
+          } else { 
             TProtocolUtil.skip(iprot, field.type);
           }
           break;
@@ -1072,8 +1000,9 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
           if (field.type == TType.MAP) {
             {
               TMap _map11 = iprot.readMapBegin();
-              this.tags = new HashMap<String, String>(2 * _map11.size);
-              for (int _i12 = 0; _i12 < _map11.size; ++_i12) {
+              this.tags = new HashMap<String,String>(2*_map11.size);
+              for (int _i12 = 0; _i12 < _map11.size; ++_i12)
+              {
                 String _key13;
                 String _val14;
                 _key13 = iprot.readString();
@@ -1082,7 +1011,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
               }
               iprot.readMapEnd();
             }
-          } else {
+          } else { 
             TProtocolUtil.skip(iprot, field.type);
           }
           break;
@@ -1093,8 +1022,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     }
     iprot.readStructEnd();
 
-    // check for required fields of primitive type, which can't be checked in
-    // the validate method
+    // check for required fields of primitive type, which can't be checked in the validate method
     validate();
   }
 
@@ -1126,9 +1054,9 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     if (this.received != null) {
       oprot.writeFieldBegin(RECEIVED_FIELD_DESC);
       {
-        oprot.writeMapBegin(new TMap(TType.I64, TType.I64,
-            this.received.size()));
-        for (Map.Entry<Long, Long> _iter15 : this.received.entrySet()) {
+        oprot.writeMapBegin(new TMap(TType.I64, TType.I64, this.received.size()));
+        for (Map.Entry<Long, Long> _iter15 : this.received.entrySet())
+        {
           oprot.writeI64(_iter15.getKey());
           oprot.writeI64(_iter15.getValue());
         }
@@ -1140,7 +1068,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       oprot.writeFieldBegin(SENT_FIELD_DESC);
       {
         oprot.writeMapBegin(new TMap(TType.I64, TType.I64, this.sent.size()));
-        for (Map.Entry<Long, Long> _iter16 : this.sent.entrySet()) {
+        for (Map.Entry<Long, Long> _iter16 : this.sent.entrySet())
+        {
           oprot.writeI64(_iter16.getKey());
           oprot.writeI64(_iter16.getValue());
         }
@@ -1152,7 +1081,8 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       oprot.writeFieldBegin(FILENAMES_FIELD_DESC);
       {
         oprot.writeListBegin(new TList(TType.STRING, this.filenames.size()));
-        for (String _iter17 : this.filenames) {
+        for (String _iter17 : this.filenames)
+        {
           oprot.writeString(_iter17);
         }
         oprot.writeListEnd();
@@ -1162,9 +1092,9 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     if (this.tags != null) {
       oprot.writeFieldBegin(TAGS_FIELD_DESC);
       {
-        oprot.writeMapBegin(new TMap(TType.STRING, TType.STRING,
-            this.tags.size()));
-        for (Map.Entry<String, String> _iter18 : this.tags.entrySet()) {
+        oprot.writeMapBegin(new TMap(TType.STRING, TType.STRING, this.tags.size()));
+        for (Map.Entry<String, String> _iter18 : this.tags.entrySet())
+        {
           oprot.writeString(_iter18.getKey());
           oprot.writeString(_iter18.getValue());
         }
@@ -1184,9 +1114,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
     sb.append("timestamp:");
     sb.append(this.timestamp);
     first = false;
-    if (!first) {
-      sb.append(", ");
-    }
+    if (!first) sb.append(", ");
     sb.append("topic:");
     if (this.topic == null) {
       sb.append("null");
@@ -1194,9 +1122,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       sb.append(this.topic);
     }
     first = false;
-    if (!first) {
-      sb.append(", ");
-    }
+    if (!first) sb.append(", ");
     sb.append("tier:");
     if (this.tier == null) {
       sb.append("null");
@@ -1204,9 +1130,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       sb.append(this.tier);
     }
     first = false;
-    if (!first) {
-      sb.append(", ");
-    }
+    if (!first) sb.append(", ");
     sb.append("hostname:");
     if (this.hostname == null) {
       sb.append("null");
@@ -1214,15 +1138,11 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       sb.append(this.hostname);
     }
     first = false;
-    if (!first) {
-      sb.append(", ");
-    }
+    if (!first) sb.append(", ");
     sb.append("windowSize:");
     sb.append(this.windowSize);
     first = false;
-    if (!first) {
-      sb.append(", ");
-    }
+    if (!first) sb.append(", ");
     sb.append("received:");
     if (this.received == null) {
       sb.append("null");
@@ -1230,9 +1150,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       sb.append(this.received);
     }
     first = false;
-    if (!first) {
-      sb.append(", ");
-    }
+    if (!first) sb.append(", ");
     sb.append("sent:");
     if (this.sent == null) {
       sb.append("null");
@@ -1240,9 +1158,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       sb.append(this.sent);
     }
     first = false;
-    if (!first) {
-      sb.append(", ");
-    }
+    if (!first) sb.append(", ");
     sb.append("filenames:");
     if (this.filenames == null) {
       sb.append("null");
@@ -1250,9 +1166,7 @@ public class AuditMessage implements TBase<AuditMessage, AuditMessage._Fields>, 
       sb.append(this.filenames);
     }
     first = false;
-    if (!first) {
-      sb.append(", ");
-    }
+    if (!first) sb.append(", ");
     sb.append("tags:");
     if (this.tags == null) {
       sb.append("null");
