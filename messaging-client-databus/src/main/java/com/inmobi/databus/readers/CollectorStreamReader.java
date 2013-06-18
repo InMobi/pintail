@@ -23,8 +23,6 @@ import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.util.DatabusUtil;
 import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
-import org.apache.hadoop.fs.s3.S3FileSystem;
-import org.apache.hadoop.fs.s3native.NativeS3FileSystem;
 
 public class CollectorStreamReader extends StreamReader<CollectorFile> {
 
@@ -38,7 +36,6 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   protected final String streamName;
   private boolean moveToNext = false;
   private CollectorReaderStatsExposer collectorMetrics;
-  private Configuration conf;
   private StringBuilder builder = new StringBuilder();
   private boolean isS3Fs = false;
   private boolean isLocalStreamAvailable;
@@ -54,19 +51,18 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
         stopTime);
     this.streamName = streamName;
     this.waitTimeForFlush = waitTimeForFlush;
-    this.collectorMetrics = (CollectorReaderStatsExposer)(this.metrics);
-    this.conf = conf;
+    this.collectorMetrics = (CollectorReaderStatsExposer) (this.metrics);
     this.isLocalStreamAvailable = isLocalStreamAvailable;
-    LOG.info("Collector reader initialized with partitionId:" + partitionId +
-        " streamDir:" + streamDir + 
-        " waitTimeForFlush:" + waitTimeForFlush +
-        " waitTimeForCreate:" + waitTimeForCreate);
+    LOG.info("Collector reader initialized with partitionId:" + partitionId
+        + " streamDir:" + streamDir
+        + " waitTimeForFlush:" + waitTimeForFlush
+        + " waitTimeForCreate:" + waitTimeForCreate);
     isS3Fs = isFileSystemS3();
   }
 
   protected FileMap<CollectorFile> createFileMap() throws IOException {
     return new FileMap<CollectorFile>() {
-      
+
       @Override
       protected PathFilter createPathFilter() {
         return new PathFilter() {
@@ -142,9 +138,9 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     }
     if (next) {
       resetCurrentFileSettings();
-    } 
-    LOG.info("Opening file:" + getCurrentFile() + " NumLinesTobeSkipped when" +
-        " opening:" + currentLineNum);
+    }
+    LOG.info("Opening file:" + getCurrentFile() + " NumLinesTobeSkipped when"
+        + " opening:" + currentLineNum);
     if (fsIsPathExists(getCurrentFile())) {
 
       inStream = fsOpen(getCurrentFile());
@@ -194,7 +190,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     }
     return line;
   }
-  
+
   protected void resetCurrentFileSettings() {
     super.resetCurrentFileSettings();
     currentOffset = 0;
@@ -271,10 +267,10 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   }
 
   private void reOpen() throws IOException {
-    openCurrentFile(false);    
+    openCurrentFile(false);
   }
 
-  private void waitForFlushAndReOpen() 
+  private void waitForFlushAndReOpen()
       throws IOException, InterruptedException {
     if (!closed) {
       LOG.info("Waiting for flush");
@@ -284,7 +280,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     }
   }
 
-  private void startFromNextHigherAndOpen(String fileName) 
+  private void startFromNextHigherAndOpen(String fileName)
       throws IOException, InterruptedException {
     boolean ret = startFromNextHigher(fileName);
     if (ret) {
@@ -292,7 +288,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     }
   }
 
-  public boolean startFromNextHigher(String fileName) 
+  public boolean startFromNextHigher(String fileName)
       throws IOException, InterruptedException {
     if (!setNextHigher(fileName)) {
       waitForNextFileCreation(fileName);
@@ -300,7 +296,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     return true;
   }
 
-  private void waitForNextFileCreation(String fileName) 
+  private void waitForNextFileCreation(String fileName)
       throws IOException, InterruptedException {
     while (!closed && !setNextHigher(fileName) && !hasReadFully()) {
       LOG.info("Waiting for next file creation");

@@ -47,7 +47,7 @@ public class ScribeTopicPublisher {
   /**
    * This is meant to be a way for async callbacks to set the channel on a
    * successful connection
-   * 
+   *
    * Java does not have pointers to pointers. So have to resort to sending in a
    * wrapper object that knows to update our pointer
    */
@@ -71,7 +71,7 @@ public class ScribeTopicPublisher {
     public Channel connect() throws Exception {
       Channel channel = null;
       try {
-        LOG.info("Connecting to scribe host:" + host 
+        LOG.info("Connecting to scribe host:" + host
             + " port:" + port);
         ChannelFuture future = bootstrap.connect(new InetSocketAddress(host,
             port));
@@ -80,7 +80,7 @@ public class ScribeTopicPublisher {
         if (!future.isSuccess()) {
           LOG.info("Could not connect to Scribe. Error:", future.getCause());
           if (future.getCause() instanceof Exception) {
-            throw (Exception)future.getCause();
+            throw (Exception) future.getCause();
           } else {
             throw new RuntimeException(future.getCause());
           }
@@ -130,7 +130,7 @@ public class ScribeTopicPublisher {
     }
     handler.setInited();
     senderThread = new Thread(new AsyncSender());
-    senderThread.start();    
+    senderThread.start();
   }
 
   protected void publish(Message m) {
@@ -140,8 +140,8 @@ public class ScribeTopicPublisher {
 
   private boolean addToSend(Message m) {
     if (!toBeSent.offer(m)) {
-      LOG.warn("Messages to be sent Queue is full," +
-          " dropping the message");
+      LOG.warn("Messages to be sent Queue is full,"
+          + " dropping the message");
       stats.accumulateOutcomeWithDelta(Outcome.LOST, 0);
       return false;
     }
@@ -172,16 +172,16 @@ public class ScribeTopicPublisher {
             return;
           }
         }
-        
+
         try {
           Message m = null;
           while ((m = toBeSent.peek()) != null) {
             // Add this message to ack queue before writing the message.
             // Also add a clone of this message to ack queue.
-            if (enabledRetries && (toBeAcked.remainingCapacity() == 0 ||
-                !toBeAcked.offer(m.clone()))) {
-              LOG.info("Could not send earlier messages successfully, not" +
-                  " sending right now.");
+            if (enabledRetries && (toBeAcked.remainingCapacity() == 0
+                || !toBeAcked.offer(m.clone()))) {
+              LOG.info("Could not send earlier messages successfully, not"
+                  + " sending right now.");
               break;
             }
             // write the current message
@@ -189,15 +189,16 @@ public class ScribeTopicPublisher {
             // remove the message from sent queue
             toBeSent.poll();
             // check if the next message can be written immediately
-            if (!isChannelWritable())
+            if (!isChannelWritable()) {
               break;
+            }
           }
         } finally {
           sendLock.unlock();
         }
       }
     } else {
-      suggestReconnect(); 
+      suggestReconnect();
     }
   }
 
@@ -252,8 +253,8 @@ public class ScribeTopicPublisher {
         break;
       }
       if ((numDrainsOnClose != -1 && numRetries > numDrainsOnClose)) {
-        LOG.info("Dropping messages as channel is not connected or number of" +
-            " retries exhausted");
+        LOG.info("Dropping messages as channel is not connected or number of"
+            + " retries exhausted");
         emptyAckQueue();
         emptyMsgQueue();
       }
@@ -277,9 +278,9 @@ public class ScribeTopicPublisher {
   }
 
   void emptyAckQueue() {
-    if (!enabledRetries)
+    if (!enabledRetries) {
       return;
-    
+    }
     if (resendOnAckLost) {
       Message m = null;
       while ((m = toBeAcked.poll()) != null) {
@@ -333,7 +334,7 @@ public class ScribeTopicPublisher {
       }
       stats.accumulateOutcomeWithDelta(Outcome.SUCCESS, 0);
     } else {
-      // else if it is try later, then remove the message from ack queue 
+      // else if it is try later, then remove the message from ack queue
       // and add to send queue
       if (enabledRetries) {
         LOG.info("Could not send the message successfully, resending");

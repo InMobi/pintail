@@ -10,8 +10,8 @@ public interface MessagePublisher {
 
   /**
    * Publishes the message onto the configured concrete MessagePublisher.
-   * 
-   * This method should return very fast and do most of its processing 
+   *
+   * This method should return very fast and do most of its processing
    * asynchronously.
    *
    * @param topicName The topic on which message should be published
@@ -21,7 +21,7 @@ public interface MessagePublisher {
 
   /**
    * Closes and cleans up any connections, file handles etc.
-   * 
+   *
    */
   public void close();
 }

@@ -31,11 +31,11 @@ public class TestDatabusStreamFile {
     DatabusStreamFile df3 = new DatabusStreamFile(collector1, cf2, "gz");
     Assert.assertTrue(df1.hashCode() < df3.hashCode());
     Assert.assertTrue(df1.hashCode() < df2.hashCode());
-    
+
     Assert.assertTrue(df2.compareTo(df1) > 0);
     Assert.assertTrue(df3.compareTo(df1) > 0);
     Assert.assertTrue(df3.compareTo(df2) > 0);
-    
+
     Throwable th = null;
     try {
       df1 = DatabusStreamFile.create(stream1, "invalid");
@@ -44,7 +44,7 @@ public class TestDatabusStreamFile {
     }
     Assert.assertNotNull(th);
     Assert.assertTrue(th instanceof IllegalArgumentException);
-    
+
     th = null;
     try {
       df1 = DatabusStreamFile.create(stream1, cf1.toString());

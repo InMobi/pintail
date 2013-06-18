@@ -31,7 +31,7 @@ public class TestAuditStatsQuery {
   private SimpleDateFormat formatter = new SimpleDateFormat(
       AuditUtil.DATE_FORMAT);
 
-  private int totalData = 10;// put an even no.
+  private int totalData = 10; // put an even no.
   String topic = "topic1";
   String topic1 = "topic2";
   String topic2 = "topic3";

@@ -11,9 +11,9 @@ import java.util.Properties;
 
 /**
  * Provides access to Configuration parameters for the messaging client.
- * 
+ *
  * Configuration parameters are defined as name, value pairs.
- * 
+ *
  */
 public class ClientConfig {
 
@@ -27,7 +27,7 @@ public class ClientConfig {
 
   /**
    * Create a new client configuration with passed parameters
-   * 
+   *
    * @param parameters The {@link Map} holding configuration parameters
    */
   public ClientConfig(Map<String, String> parameters) {
@@ -36,12 +36,12 @@ public class ClientConfig {
 
   /**
    * Load configuration from of the passed filename from the classpath.
-   * 
-   * The data is in a simple line-oriented format as in 
+   *
+   * The data is in a simple line-oriented format as in
    * {@link Properties#load(InputStream)}
 
    * @param confFile The file name to be loaded
-   * 
+   *
    * @return The loaded {@link ClientConfig} object
    */
   public static ClientConfig loadFromClasspath(String confFile) {
@@ -56,12 +56,12 @@ public class ClientConfig {
 
   /**
    * Load configuration from the passed configuration file.
-   * 
-   * The data is in a simple line-oriented format as in 
+   *
+   * The data is in a simple line-oriented format as in
    * {@link Properties#load(InputStream)}
 
    * @param confFile The file name to be loaded
-   * 
+   *
    * @return The loaded {@link ClientConfig} object
    */
   public static ClientConfig load(String confFile) {
@@ -74,12 +74,12 @@ public class ClientConfig {
 
   /**
    * Load configuration parameters from the passed input stream.
-   * 
-   * The input stream is in a simple line-oriented format as in 
+   *
+   * The input stream is in a simple line-oriented format as in
    * {@link Properties#load(InputStream)}
-   * 
+   *
    * @param in The {@link InputStream} to be loaded
-   * 
+   *
    * @return The loaded {@link ClientConfig} object
    */
   public static ClientConfig load(InputStream in) {
@@ -100,7 +100,7 @@ public class ClientConfig {
 
   /**
    * Set a configuration parameter with passed name and value
-   * 
+   *
    * @param name  {@link String} parameter name
    * @param value  {@link String} parameter value
    */
@@ -112,11 +112,11 @@ public class ClientConfig {
    * Get the boolean value associated with passed parameter <code>name</code>.
    * If no such name exists in configuration parameters, the default value
    * passed will be returned
-   *  
+   *
    * @param name {@link String} configuration parameter name
    * @param defaultValue {@link Boolean} default value if the name does not
    * exist in configuration parameters.
-   *  
+   *
    * @return {@link Boolean}
    */
   public Boolean getBoolean(String name, Boolean defaultValue) {
@@ -129,9 +129,9 @@ public class ClientConfig {
 
   /**
    * Get the boolean value associated with passed parameter <code>name</code>
-   *  
+   *
    * @param name {@link String} configuration parameter name.
-   *  
+   *
    * @return {@link Boolean} object
    */
   public Boolean getBoolean(String name) {
@@ -142,11 +142,11 @@ public class ClientConfig {
    * Get the integer value associated with passed parameter <code>name</code>
    * If no such name exists in configuration parameters, the default value
    * passed will be returned
-   *  
+   *
    * @param name {@link String} configuration parameter name
    * @param defaultValue {@link Integer} default value if the name does not
    * exist in configuration parameters.
-   *  
+   *
    * @return {@link Integer}
    */
   public Integer getInteger(String name, Integer defaultValue) {
@@ -159,9 +159,9 @@ public class ClientConfig {
 
   /**
    * Get the integer value associated with passed parameter <code>name</code>
-   *  
+   *
    * @param name {@link String} configuration parameter name
-   *  
+   *
    * @return {@link Integer} object
    */
   public Integer getInteger(String name) {
@@ -172,11 +172,11 @@ public class ClientConfig {
    * Get the long value associated with passed parameter <code>name</code>
    * If no such name exists in configuration parameters, the default value
    * passed will be returned
-   *  
+   *
    * @param name {@link String} configuration parameter name
    * @param defaultValue {@link Long} default value if the name does not
    * exist in configuration parameters.
-   *  
+   *
    * @return {@link Long} object
    */
   public Long getLong(String name, Long defaultValue) {
@@ -189,9 +189,9 @@ public class ClientConfig {
 
   /**
    * Get the long value associated with passed parameter <code>name</code>
-   *  
+   *
    * @param name {@link String} configuration parameter name
-   *  
+   *
    * @return {@link Long} object
    */
   public Long getLong(String name) {
@@ -202,11 +202,11 @@ public class ClientConfig {
    * Get the value associated with passed parameter <code>name</code>
    * If no such name exists in configuration parameters, the default value
    * passed will be returned
-   *  
+   *
    * @param name {@link String} configuration parameter name
    * @param defaultValue {@link String} default value if the name does not
    * exist in configuration parameters.
-   *  
+   *
    * @return {@link String} object
    */
   public String getString(String name, String defaultValue) {
@@ -215,9 +215,9 @@ public class ClientConfig {
 
   /**
    * Get the value associated with passed parameter <code>name</code>
-   *  
+   *
    * @param name {@link String} configuration parameter name
-   *  
+   *
    * @return {@link String} object
    */
   public String getString(String name) {

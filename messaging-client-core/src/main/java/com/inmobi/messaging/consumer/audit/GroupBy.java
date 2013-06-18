@@ -23,20 +23,26 @@ public class GroupBy {
 
     @Override
     public boolean equals(Object obj) {
-      if (this == obj)
+      if (this == obj) {
         return true;
-      if (obj == null)
+      }
+      if (obj == null) {
         return false;
-      if (getClass() != obj.getClass())
+      }
+      if (getClass() != obj.getClass()) {
         return false;
+      }
       Group other = (Group) obj;
-      if (!getOuterType().equals(other.getOuterType()))
+      if (!getOuterType().equals(other.getOuterType())) {
         return false;
+      }
       if (columns == null) {
-        if (other.columns != null)
+        if (other.columns != null) {
           return false;
-      } else if (!columns.equals(other.columns))
+        }
+      } else if (!columns.equals(other.columns)) {
         return false;
+      }
       return true;
     }
 
@@ -58,22 +64,25 @@ public class GroupBy {
         Tier tier1 = Tier.valueOf(columns.get(Column.TIER).toUpperCase());
         Tier tier2 = Tier.valueOf(group.columns.get(Column.TIER).toUpperCase());
         result = tier1.compareTo(tier2);
-        if (result != 0)
+        if (result != 0) {
           return result;
+        }
       }
       if (columns.containsKey(Column.TOPIC)) {
         String topic1 = columns.get(Column.TOPIC);
         String topic2 = group.columns.get(Column.TOPIC);
         result = topic1.compareTo(topic2);
-        if (result != 0)
+        if (result != 0) {
           return result;
+        }
       }
       if (columns.containsKey(Column.HOSTNAME)) {
         String hostname1 = columns.get(Column.HOSTNAME);
         String hostname2 = group.columns.get(Column.HOSTNAME);
         result = hostname1.compareTo(hostname2);
-        if (result != 0)
+        if (result != 0) {
           return result;
+        }
       }
       return 0;
     }
@@ -88,8 +97,9 @@ public class GroupBy {
 
   public GroupBy(String input) {
     isSet = new HashSet<Column>();
-    if (input == null)
+    if (input == null) {
       return;
+    }
     String[] columns = input.split(",");
     for (String s : columns) {
       isSet.add(Column.valueOf(s.toUpperCase()));
@@ -106,18 +116,23 @@ public class GroupBy {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
+    if (this == obj) {
       return true;
-    if (obj == null)
+    }
+    if (obj == null) {
       return false;
-    if (getClass() != obj.getClass())
+    }
+    if (getClass() != obj.getClass()) {
       return false;
+    }
     GroupBy other = (GroupBy) obj;
     if (isSet == null) {
-      if (other.isSet != null)
+      if (other.isSet != null) {
         return false;
-    } else if (!isSet.equals(other.isSet))
+      }
+    } else if (!isSet.equals(other.isSet)) {
       return false;
+    }
     return true;
   }
 

@@ -25,42 +25,42 @@ import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
 /**
- * Consumes data from the configured databus stream topic. 
- * 
+ * Consumes data from the configured databus stream topic.
+ *
  * Initializes the databus configuration from the configuration file specified
  * by the configuration {@value DatabusConsumerConfig#databusConfigFileKey},
  * the default value is
- * {@value DatabusConsumerConfig#DEFAULT_DATABUS_CONFIG_FILE} 
+ * {@value DatabusConsumerConfig#DEFAULT_DATABUS_CONFIG_FILE}
  *
  * Consumer can specify a comma separated list of clusters from which the stream
- * should be streamed via configuration 
+ * should be streamed via configuration
  * {@value DatabusConsumerConfig#databusClustersConfig}. If no
- * such configuration exists, it will stream from all the source clusters of the 
+ * such configuration exists, it will stream from all the source clusters of the
  * stream.
- *  
+ *
  * This consumer supports mark and reset. Whenever user calls mark, the current
- * consumption will be check-pointed in a directory configurable via 
+ * consumption will be check-pointed in a directory configurable via
  * {@value DatabusConsumerConfig#checkpointDirConfig}. The default value for
  * value for checkpoint
  * directory is {@value DatabusConsumerConfig#DEFAULT_CHECKPOINT_DIR}. After
  * reset(), consumer will start reading
  * messages from last check-pointed position.
- * 
- * Maximum consumer buffer size is configurable via 
- * {@value DatabusConsumerConfig#queueSizeConfig}. 
+ *
+ * Maximum consumer buffer size is configurable via
+ * {@value DatabusConsumerConfig#queueSizeConfig}.
  * The default value is {@value DatabusConsumerConfig#DEFAULT_QUEUE_SIZE}.
- * 
+ *
  * If consumer is reading from the file that is currently being written by
  * producer, consumer will wait for flush to happen on the file. The wait time
- * for flush is configurable via 
+ * for flush is configurable via
  * {@value DatabusConsumerConfig#waitTimeForFlushConfig}, and default
  * value is {@value DatabusConsumerConfig#DEFAULT_WAIT_TIME_FOR_FLUSH}
  *
  * Initializes partition readers for each active collector on the stream.
  * TODO: Dynamically detect if new collectors are added and start readers for
- *  them 
+ *  them
  */
-public class DatabusConsumer extends AbstractMessagingDatabusConsumer 
+public class DatabusConsumer extends AbstractMessagingDatabusConsumer
     implements DatabusConsumerConfig {
   private static final Log LOG = LogFactory.getLog(DatabusConsumer.class);
 
@@ -94,19 +94,19 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
     }
     if (streamType.equals(StreamType.MERGED)) {
       if (rootDirs.length > 1) {
-        throw new IllegalArgumentException("Multiple directories are not" +
-            " allowed for merge stream");
+        throw new IllegalArgumentException("Multiple directories are not"
+            + " allowed for merge stream");
       }
     }
-    LOG.info("Databus consumer initialized with streamName:" + topicName +
-        " consumerName:" + consumerName + " startTime:" + startTime +
-        " queueSize:" + bufferSize + " checkPoint:" + currentCheckpoint +
-        " streamType:" + streamType);
+    LOG.info("Databus consumer initialized with streamName:" + topicName
+        + " consumerName:" + consumerName + " startTime:" + startTime
+        + " queueSize:" + bufferSize + " checkPoint:" + currentCheckpoint
+        + " streamType:" + streamType);
   }
 
   private List<String> getCollectors(FileSystem fs, Path baseDir)
       throws IOException {
-    List<String> collectors = new ArrayList<String>();    
+    List<String> collectors = new ArrayList<String>();
     LOG.debug("Stream dir: " + baseDir);
     FileStatus[] list = fs.listStatus(baseDir);
     numList++;
@@ -129,8 +129,8 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
           topicName);
       String clusterName = clusterNamePrefix + i;
       if (streamType.equals(StreamType.COLLECTOR)) {
-        Map<PartitionId, PartitionCheckpoint> partitionsChkPoints = 
-            ((Checkpoint)currentCheckpoint).getPartitionsCheckpoint();
+        Map<PartitionId, PartitionCheckpoint> partitionsChkPoints =
+            ((Checkpoint) currentCheckpoint).getPartitionsCheckpoint();
         LOG.info("Creating partition readers for all the collectors");
         for (String collector : getCollectors(fs, streamDir)) {
           PartitionId id = new PartitionId(clusterName, collector);
@@ -140,7 +140,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
           Date partitionTimestamp = getPartitionTimestamp(id,
               partitionsChkPoints.get(id));
           LOG.debug("Creating partition " + id);
-          PartitionReaderStatsExposer collectorMetrics = new 
+          PartitionReaderStatsExposer collectorMetrics = new
               CollectorReaderStatsExposer(topicName, consumerName,
                   id.toString(), consumerNumber, fsuri);
           addStatsExposer(collectorMetrics);
@@ -152,8 +152,8 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
           for (int c = 0; c < numList; c++) {
             collectorMetrics.incrementListOps();
           }
-          readers.put(id, new PartitionReader(id,
-              partitionsChkPoints.get(id), conf, fs, new Path(streamDir, collector), 
+          readers.put(id, new PartitionReader(id, partitionsChkPoints.get(id),
+              conf, fs, new Path(streamDir, collector),
               streamsLocalDir, buffer, topicName, partitionTimestamp,
               waitTimeForFlush, waitTimeForFileCreate, collectorMetrics,
               stopTime));
@@ -162,16 +162,16 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
       } else {
         LOG.info("Creating partition reader for cluster");
         PartitionId id = new PartitionId(clusterName, null);
-        Map<Integer, PartitionCheckpoint> listofPartitionCheckpoints = new 
+        Map<Integer, PartitionCheckpoint> listofPartitionCheckpoints = new
             HashMap<Integer, PartitionCheckpoint>();
-        PartitionCheckpointList partitionCheckpointList = new 
+        PartitionCheckpointList partitionCheckpointList = new
             PartitionCheckpointList(listofPartitionCheckpoints);
-        ((CheckpointList)currentCheckpoint).preaprePartitionCheckPointList(id, 
+        ((CheckpointList) currentCheckpoint).preaprePartitionCheckPointList(id,
             partitionCheckpointList);
         Date partitionTimestamp = getPartitionTimestamp(id,
             partitionCheckpointList);
         LOG.debug("Creating partition " + id);
-        PartitionReaderStatsExposer clusterMetrics = 
+        PartitionReaderStatsExposer clusterMetrics =
             new PartitionReaderStatsExposer(topicName, consumerName,
                 id.toString(), consumerNumber, fsuri);
         addStatsExposer(clusterMetrics);

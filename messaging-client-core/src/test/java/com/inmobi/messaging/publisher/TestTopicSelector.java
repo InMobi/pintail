@@ -25,9 +25,10 @@ public class TestTopicSelector {
     ClientConfig conf = new ClientConfig();
     String topic = "logicalTopic";
     String msg = "msg1";
-    TopicSelector.setSelectorClass(conf, topic, 
+    TopicSelector.setSelectorClass(conf, topic,
         MsgValueTopicSelector.class.getName());
-    MsgValueTopicSelector selector = (MsgValueTopicSelector) TopicSelector.create(topic, conf);
+    MsgValueTopicSelector selector = (MsgValueTopicSelector)
+        TopicSelector.create(topic, conf);
     Assert.assertEquals(selector.selectTopic(msg), msg);
     Assert.assertEquals(selector.getLogicalTopic(), topic);
     selector.close();
@@ -36,17 +37,17 @@ public class TestTopicSelector {
   //selects the topic based on the message string
   public static class MsgValueTopicSelector extends TopicSelector<String> {
     private String logicalTopic;
-    
+
     @Override
     protected void init(String logicalTopic, ClientConfig conf) {
       this.logicalTopic = logicalTopic;
     }
-    
+
     @Override
     public String selectTopic(String object) {
       return object;
     }
-    
+
     public String getLogicalTopic() {
       return logicalTopic;
     }

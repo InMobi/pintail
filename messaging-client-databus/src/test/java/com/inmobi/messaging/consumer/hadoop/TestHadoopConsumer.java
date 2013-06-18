@@ -37,7 +37,7 @@ public class TestHadoopConsumer extends TestAbstractHadoopConsumer {
     ck16 = "/tmp/test/hadoop/2/checkpoint13";
     ck17 = "/tmp/test/hadoop/2/checkpoint14";
     ck18 = "/tmp/test/hadoop/2/checkpoint15";
-    
+
     super.setup();
     Assert.assertEquals(rootDirs.length, 3);
   }
@@ -46,7 +46,7 @@ public class TestHadoopConsumer extends TestAbstractHadoopConsumer {
   public void testMarkAndReset() throws Exception {
     super.testMarkAndReset();
   }
- 
+
   @Test
   public void testMarkAndResetWithStartTime() throws Exception {
     super.testMarkAndResetWithStartTime();
@@ -61,7 +61,7 @@ public class TestHadoopConsumer extends TestAbstractHadoopConsumer {
   public void testMultipleClusters2() throws Exception {
     super.testMultipleClusters2();
   }
-  
+
   @Test
   public void testTimeoutStats() throws Exception {
     super.testTimeoutStats();
@@ -106,12 +106,12 @@ public class TestHadoopConsumer extends TestAbstractHadoopConsumer {
   public void testConsumerWithAbsoluteStartTimeAndStopTime() throws Exception {
     super.testConsumerWithAbsoluteStartTimeAndStopTime();
   }
-  
+
   @Test
   public void testConsumerWithAbsoluteStopTime() throws Exception {
     super.testConsumerWithAbsoluteStopTime();
   }
-  
+
   @Test
   public void testConsumerWithStopTimeBeyondCheckpoint() throws Exception {
     super.testConsumerWithStopTimeBeyondCheckpoint();

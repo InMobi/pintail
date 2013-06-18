@@ -9,7 +9,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.hadoop.io.Writable;
 
@@ -18,8 +17,8 @@ import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 
 /**
- * Checkpoint for the databus stream. 
- * 
+ * Checkpoint for the databus stream.
+ *
  * It holds checkpoint for all the partitions.
  *
  */
@@ -30,8 +29,9 @@ public class Checkpoint implements Writable, ConsumerCheckpoint {
       new HashMap<PartitionId, PartitionCheckpoint>();
 
   public Checkpoint() {
-  	
+
   }
+
   public Checkpoint(byte[] bytes) throws IOException {
     readFields(new DataInputStream(new ByteArrayInputStream(bytes)));
   }
@@ -50,28 +50,28 @@ public class Checkpoint implements Writable, ConsumerCheckpoint {
   public Map<PartitionId, PartitionCheckpoint> getPartitionsCheckpoint() {
     return partitionsChkPoint;
   }
-  
+
   public void set(PartitionId partitionId, MessageCheckpoint partCheckpoint) {
-  	this.set(partitionId, (PartitionCheckpoint)partCheckpoint);
+    this.set(partitionId, (PartitionCheckpoint) partCheckpoint);
   }
 
   void set(PartitionId partitionId, PartitionCheckpoint partCheckpoint) {
     partitionsChkPoint.put(partitionId, partCheckpoint);
   }
-  
+
   @Override
-    public void read(CheckpointProvider checkpointProvider, String key)
-    		throws IOException {
-  	byte[] chkpointData = checkpointProvider.read(key);
-  	if (chkpointData != null) {
-  		readFields(new DataInputStream(new ByteArrayInputStream(chkpointData)));
-  	}
+  public void read(CheckpointProvider checkpointProvider, String key)
+      throws IOException {
+    byte[] chkpointData = checkpointProvider.read(key);
+    if (chkpointData != null) {
+      readFields(new DataInputStream(new ByteArrayInputStream(chkpointData)));
+    }
   }
 
   @Override
   public void write(CheckpointProvider checkpointProvider, String key)
-  		throws IOException {
-  	checkpointProvider.checkpoint(key, this.toBytes());    
+      throws IOException {
+    checkpointProvider.checkpoint(key, this.toBytes());
   }
 
 
@@ -84,7 +84,7 @@ public class Checkpoint implements Writable, ConsumerCheckpoint {
       if (valueNotNull) {
         partitionsChkPoint.put(pid, new PartitionCheckpoint(in));
       } else {
-        partitionsChkPoint.put(pid, null);        
+        partitionsChkPoint.put(pid, null);
       }
     }
   }
@@ -103,7 +103,7 @@ public class Checkpoint implements Writable, ConsumerCheckpoint {
       }
     }
   }
-  
+
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -115,18 +115,23 @@ public class Checkpoint implements Writable, ConsumerCheckpoint {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
+    if (this == obj) {
       return true;
-    if (obj == null)
+    }
+    if (obj == null) {
       return false;
-    if (getClass() != obj.getClass())
+    }
+    if (getClass() != obj.getClass()) {
       return false;
+    }
     Checkpoint other = (Checkpoint) obj;
     if (partitionsChkPoint == null) {
-      if (other.partitionsChkPoint != null)
+      if (other.partitionsChkPoint != null) {
         return false;
-    } else if (!partitionsChkPoint.equals(other.partitionsChkPoint))
+      }
+    } else if (!partitionsChkPoint.equals(other.partitionsChkPoint)) {
       return false;
+    }
     return true;
   }
 

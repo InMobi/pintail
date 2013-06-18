@@ -14,7 +14,7 @@ public abstract class TopicSelector<T> {
 
   /*
    * Creates the TopicSelector for a given logical topic. If no topic selector
-   * set for the class then return the default selector which selects same 
+   * set for the class then return the default selector which selects same
    * topic as the logical topic.
    */
   public static TopicSelector create(String logicalTopic) {
@@ -51,22 +51,18 @@ public abstract class TopicSelector<T> {
     conf.set(logicalTopic + CLASS_SUFFIX, classname);
   }
 
-  /*
-   * 
-   */
   public static class DefaultTopicSelector extends TopicSelector {
     private String topic;
     protected ClientConfig conf;
-    
-    public DefaultTopicSelector() {
-    }
-    
+
+    public DefaultTopicSelector() { }
+
     @Override
     protected void init(String logicalTopic, ClientConfig conf) {
       this.topic = logicalTopic;
       this.conf = conf;
     }
-    
+
     @Override
     public String selectTopic(Object object) {
       return topic;

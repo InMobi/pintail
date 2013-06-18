@@ -93,7 +93,7 @@ public class TestUtil {
   }
 
   private static Path getTargetPath(FileSystem fs, String streamName,
-      String collectorName, Cluster cluster, 
+      String collectorName, Cluster cluster,
       String collectorfileName, StreamType streamType) throws IOException {
     String streamFileName = LocalStreamCollectorReader.getDatabusStreamFileName(
         collectorName, collectorfileName);
@@ -106,7 +106,7 @@ public class TestUtil {
     return new Path(streamMinDir, streamFileName);
   }
 
-  private static Path copyCollectorFile(Path targetFile, Cluster cluster, 
+  private static Path copyCollectorFile(Path targetFile, Cluster cluster,
       Path collectorDir, String collectorfileName) throws IOException {
     Path collectorPath = new Path(collectorDir, collectorfileName);
     FileUtil.gzip(collectorPath, targetFile, cluster.getHadoopConf());
@@ -140,18 +140,17 @@ public class TestUtil {
       int numMsgs, PartitionId pid, LinkedBlockingQueue<QueueEntry> buffer,
       boolean isDatabusData)
           throws InterruptedException, IOException {
-  	
-  
+
     int fileIndex = (fileNum - 1) * 100 ;
     for (int i = startIndex; i < (startIndex + numMsgs); i++) {
       QueueEntry entry = buffer.take();
       Assert.assertEquals(entry.getPartitionId(), pid);
       if (entry.getMessageChkpoint() instanceof ConsumerPartitionCheckPoint) {
         int min = Integer.parseInt(new Path(file.toString()).getParent().getName());
-        Assert.assertEquals(entry.getMessageChkpoint(),                            
-            new ConsumerPartitionCheckPoint(file, i + 1, min)); 
+        Assert.assertEquals(entry.getMessageChkpoint(),
+            new ConsumerPartitionCheckPoint(file, i + 1, min));
       } else {
-        Assert.assertEquals(entry.getMessageChkpoint(),                            
+        Assert.assertEquals(entry.getMessageChkpoint(),
             new PartitionCheckpoint(file, i + 1));
       }
       if (isDatabusData) {
@@ -183,7 +182,7 @@ public class TestUtil {
 
   public static Cluster setupLocalCluster(String className, String testStream,
       PartitionId pid, String[] collectorFiles,
-      String[] emptyFiles, Path[] databusFiles, 
+      String[] emptyFiles, Path[] databusFiles,
       int numFilesToMoveToStreamLocal) throws Exception {
     return setupCluster(className, testStream, pid, "file:///", collectorFiles,
         emptyFiles, databusFiles, numFilesToMoveToStreamLocal, 0);
@@ -191,7 +190,7 @@ public class TestUtil {
 
   public static Cluster setupLocalCluster(String className, String testStream,
       PartitionId pid, String[] collectorFiles,
-      String[] emptyFiles,  
+      String[] emptyFiles,
       int numFilesToMoveToStreamLocal) throws Exception {
     return setupCluster(className, testStream, pid, "file:///", collectorFiles,
         emptyFiles, null, numFilesToMoveToStreamLocal, 0);
@@ -199,7 +198,7 @@ public class TestUtil {
 
   public static Cluster setupLocalCluster(String className, String testStream,
       PartitionId pid, String[] collectorFiles,
-      String[] emptyFiles, Path[] databusFiles, 
+      String[] emptyFiles, Path[] databusFiles,
       int numFilesToMoveToStreamLocal, int numFilesToMoveToStreams)
           throws Exception {
     return setupCluster(className, testStream, pid, "file:///", collectorFiles,
@@ -214,8 +213,8 @@ public class TestUtil {
   }
 
   private static Cluster setupCluster(String className, String testStream,
-      PartitionId pid, String hdfsUrl, String[] collectorFiles, 
-      String[] emptyFiles, Path[] databusFiles, 
+      PartitionId pid, String hdfsUrl, String[] collectorFiles,
+      String[] emptyFiles, Path[] databusFiles,
       int numFilesToMoveToStreamLocal, int numFilesToMoveToStreams)
           throws Exception {
     Set<String> sourceNames = new HashSet<String>();
@@ -226,7 +225,7 @@ public class TestUtil {
     clusterConf.put("name", pid.getCluster());
     clusterConf.put("jobqueuename", "default");
     
-    Cluster cluster = new Cluster(clusterConf, 
+    Cluster cluster = new Cluster(clusterConf,
         "/tmp/test/databus/" + className,
          null, sourceNames);
 
@@ -237,16 +236,16 @@ public class TestUtil {
     fs.delete(new Path(cluster.getLocalFinalDestDirRoot()), true);
     fs.delete(new Path(cluster.getFinalDestDirRoot()), true);
     fs.mkdirs(collectorDir);
-    
+
     setUpFiles(cluster, pid.getCollector(), collectorFiles, emptyFiles,
         databusFiles, numFilesToMoveToStreamLocal, numFilesToMoveToStreams);
 
     return cluster;
   }
 
-  public static void setUpFiles(Cluster cluster, String collectorName, 
-      String[] collectorFiles, 
-      String[] emptyFiles, Path[] databusFiles, 
+  public static void setUpFiles(Cluster cluster, String collectorName,
+      String[] collectorFiles,
+      String[] emptyFiles, Path[] databusFiles,
       int numFilesToMoveToStreamLocal, int numFilesToMoveToStreams)
           throws Exception {
     FileSystem fs = FileSystem.get(cluster.getHadoopConf());
@@ -281,7 +280,7 @@ public class TestUtil {
           new Path(cluster.getRootDir()), testStream),
           lastCommitTimes.get(cluster));
     }
-    
+
     if (numFilesToMoveToStreams > 0 && collectorFiles != null) {
       for (int i = 0; i < numFilesToMoveToStreams; i++) {
         Path movedPath = TestUtil.moveFileToStreams(fs,
@@ -293,19 +292,19 @@ public class TestUtil {
       }
       publishLastPath(fs, DatabusUtil.getStreamDir(StreamType.MERGED,
           new Path(cluster.getRootDir()), testStream), lastCommitTimes.get(cluster));
-    }    
+    }
   }
 
   public static Cluster setupDFSCluster(String className, String testStream,
       PartitionId pid, String hdfsUrl, String[] collectorFiles,
-      String[] emptyFiles, Path[] databusFiles, 
+      String[] emptyFiles, Path[] databusFiles,
       int numFilesToMoveToStreamLocal, int numFilesToMoveToStreams)
           throws Exception {
     return setupCluster(className, testStream, pid, hdfsUrl, collectorFiles,
         emptyFiles, databusFiles, numFilesToMoveToStreamLocal,
         numFilesToMoveToStreams);
   }
-  
+
   public static Cluster setupDFSCluster(String className, String testStream,
       PartitionId pid, String hdfsUrl, String[] collectorFiles,
       String[] emptyFiles, int numFilesToMoveToStreamLocal) throws Exception {
@@ -315,20 +314,21 @@ public class TestUtil {
 
   public static void cleanupCluster(Cluster cluster) throws IOException {
     FileSystem fs = FileSystem.get(cluster.getHadoopConf());
-    LOG.debug("Cleaning up the dir: "+ cluster.getRootDir());
-    fs.delete(new Path(cluster.getRootDir()), true);    
+    LOG.debug("Cleaning up the dir: " + cluster.getRootDir());
+    fs.delete(new Path(cluster.getRootDir()), true);
   }
 
-  static void publishMissingPaths(FileSystem fs, Path baseDir, 
+  static void publishMissingPaths(FileSystem fs, Path baseDir,
       Date lastCommitTime, Date uptoCommit) throws IOException {
-    LOG.debug("publishMissingPaths lastCommitTime:" + lastCommitTime + 
-        " uptoCommit:" + uptoCommit);
+    LOG.debug("publishMissingPaths lastCommitTime:" + lastCommitTime
+        + " uptoCommit:" + uptoCommit);
     if (lastCommitTime != null) {
       Calendar cal = Calendar.getInstance();
       cal.setTime(lastCommitTime);
       cal.add(Calendar.MINUTE, 1);
       while (cal.getTime().before(uptoCommit)) {
-        Path minDir = DatabusStreamReader.getMinuteDirPath(baseDir, cal.getTime()); 
+        Path minDir = DatabusStreamReader.getMinuteDirPath(baseDir,
+            cal.getTime());
         fs.mkdirs(minDir);
         LOG.info("Created minDir:" + minDir);
         cal.add(Calendar.MINUTE, 1);
@@ -344,10 +344,11 @@ public class TestUtil {
       Calendar cal = Calendar.getInstance();
       cal.setTime(lastCommitTime);
       cal.add(Calendar.MINUTE, 1);
-      Path minDir = DatabusStreamReader.getMinuteDirPath(baseDir, cal.getTime()); 
+      Path minDir = DatabusStreamReader.getMinuteDirPath(baseDir,
+          cal.getTime());
       fs.mkdirs(minDir);
       LOG.info("Created minDir:" + minDir);
-    }    
+    }
   }
 
   public static void publishLastPathForStreamsDir(FileSystem fs,

@@ -9,21 +9,21 @@ public interface MessagingConsumerConfig {
   public static final String queueSizeConfig = "messaging.consumer.buffer.size";
   public static final int DEFAULT_QUEUE_SIZE = 5000;
 
-  public static final String chkProviderConfig = 
+  public static final String chkProviderConfig =
       "messaging.consumer.chkpoint.provider.classname";
   public static final String DEFAULT_CHK_PROVIDER = FSCheckpointProvider.class
       .getName();
 
-  public static final String checkpointDirConfig = 
+  public static final String checkpointDirConfig =
       "messaging.consumer.checkpoint.dir";
   public static final String DEFAULT_CHECKPOINT_DIR = ".";
 
-  public static final String consumerPrincipal = 
+  public static final String consumerPrincipal =
       "messaging.consumer.principal.name";
-  public static final String consumerKeytab = 
+  public static final String consumerKeytab =
       "messaging.consumer.keytab.path";
 
-  public static final String waitTimeForFileCreateConfig = 
+  public static final String waitTimeForFileCreateConfig =
       "messaging.consumer.waittime.forfilecreate";
   public static final long DEFAULT_WAIT_TIME_FOR_FILE_CREATE = 1000; //1 second
 
@@ -54,7 +54,7 @@ public interface MessagingConsumerConfig {
    * The consumer id is used in case of groups. The number associated with
    * consumer in the group, for eg. 2/5
    */
-  public static final String consumerIdInGroupConfig = 
+  public static final String consumerIdInGroupConfig =
       "messaging.consumer.group.membership";
   public static final String DEFAULT_CONSUMER_ID = "1/1";
 

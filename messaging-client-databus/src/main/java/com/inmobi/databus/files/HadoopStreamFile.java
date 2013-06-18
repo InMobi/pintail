@@ -15,7 +15,7 @@ public class HadoopStreamFile implements StreamFile {
   //file creation time
   private Long timeStamp;
   private String checkpointPath;
-  
+
   /**
    * Used only during serialization
    */
@@ -29,15 +29,15 @@ public class HadoopStreamFile implements StreamFile {
     constructCheckpointPath();
   }
 
-  static String minDirFormatStr = "yyyy" + File.separator + "MM" +
-      File.separator + "dd" + File.separator + "HH" + File.separator +"mm";
-  
-  public void constructCheckpointPath(){
+  static String minDirFormatStr = "yyyy" + File.separator + "MM"
+      + File.separator + "dd" + File.separator + "HH" + File.separator + "mm";
+
+  public void constructCheckpointPath() {
     String parentDir = parent.toString();
-    String str[] = parentDir.split("[0-9]{4}.[0-9]{2}.[0-9]{2}.[0-9]{2}.[0-9]{2}");
+    String[] str = parentDir.split("[0-9]{4}.[0-9]{2}.[0-9]{2}.[0-9]{2}.[0-9]{2}");
     checkpointPath = parentDir.substring(str[0].length());
   }
-  
+
   public static HadoopStreamFile create(FileStatus status) {
     return new HadoopStreamFile(status.getPath().getParent(),
         status.getPath().getName(),  status.getModificationTime());
@@ -92,13 +92,13 @@ public class HadoopStreamFile implements StreamFile {
 
   @Override
   public int compareTo(Object o) {
-    HadoopStreamFile other = (HadoopStreamFile)o;
+    HadoopStreamFile other = (HadoopStreamFile) o;
     int cComp = checkpointPath.compareTo(other.checkpointPath);
-    if ( cComp== 0) {
-      if (timeStamp != null ) {
+    if (cComp == 0) {
+      if (timeStamp != null) {
         if (other.timeStamp != null) {
           int tComp = timeStamp.compareTo(other.timeStamp);
-          if ( tComp == 0) {
+          if (tComp == 0) {
             if (fileName != null && other.fileName != null) {
               return fileName.compareTo(other.fileName);
             }
@@ -144,7 +144,7 @@ public class HadoopStreamFile implements StreamFile {
   public String getFileName() {
     return fileName;
   }
-  
+
   public String getCheckpointPath() {
     return checkpointPath;
   }

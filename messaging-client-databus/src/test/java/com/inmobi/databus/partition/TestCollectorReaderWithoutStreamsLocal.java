@@ -26,7 +26,7 @@ public class TestCollectorReaderWithoutStreamsLocal {
   private static final String clusterName = "testCluster";
   private PartitionId partitionId = new PartitionId(clusterName, collectorName);
 
-  private LinkedBlockingQueue<QueueEntry> buffer = 
+  private LinkedBlockingQueue<QueueEntry> buffer =
       new LinkedBlockingQueue<QueueEntry>(1000);
   private Cluster cluster;
   private PartitionReader preader;
@@ -71,7 +71,7 @@ public class TestCollectorReaderWithoutStreamsLocal {
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.execute();
@@ -86,7 +86,7 @@ public class TestCollectorReaderWithoutStreamsLocal {
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.close();

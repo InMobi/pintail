@@ -39,15 +39,15 @@ public class TestDatabusInputFormatMapReduce extends TestAbstractInputFormat {
    * read the the given split.
    * @return List : List of read messages
    */
-  private List<Message> readSplit(DatabusInputFormat format, 
-      org.apache.hadoop.mapreduce.InputSplit split, 
+  private List<Message> readSplit(DatabusInputFormat format,
+      org.apache.hadoop.mapreduce.InputSplit split,
       JobConf job) throws IOException,
       InterruptedException {
     List<Message> result = new ArrayList<Message>();
     RecordReader<LongWritable, Message> reader =
         format.createRecordReader((org.apache.hadoop.mapreduce.InputSplit) split,
             context);
-    ((DatabusRecordReader)reader).initialize(split, context);
+    ((DatabusRecordReader) reader).initialize(split, context);
     while (reader.nextKeyValue()) {
       result.add(reader.getCurrentValue());
     }
@@ -64,20 +64,20 @@ public class TestDatabusInputFormatMapReduce extends TestAbstractInputFormat {
     } else {
       LOG.info("not splittable " + inputPath);
       List<org.apache.hadoop.mapreduce.InputSplit> inputSplit = getInputSplits();
-      readMessages.addAll(readSplit(databusInputFormat, inputSplit.get(0), 
+      readMessages.addAll(readSplit(databusInputFormat, inputSplit.get(0),
           defaultConf));
     }
   }
 
   protected List<org.apache.hadoop.mapreduce.InputSplit> getInputSplits()
       throws IOException {
-    List<org.apache.hadoop.mapreduce.InputSplit> inputSplit = 
+    List<org.apache.hadoop.mapreduce.InputSplit> inputSplit =
         databusInputFormat.getSplits(context);
     return inputSplit;
   }
 
   /**
-   * It reads the collector file (i.e. non compressed file) and assert on the 
+   * It reads the collector file (i.e. non compressed file) and assert on the
    * read messages
    */
   @Test
@@ -94,12 +94,12 @@ public class TestDatabusInputFormatMapReduce extends TestAbstractInputFormat {
   }
 
   /**
-   * It reads the local stream file(i.e. compressed file) and assert on the 
+   * It reads the local stream file(i.e. compressed file) and assert on the
    * read messages
    */
   @Test
   protected void testGZFile() throws Exception {
-    Path localstreamDir = new Path(cluster.getLocalFinalDestDirRoot(), 
+    Path localstreamDir = new Path(cluster.getLocalFinalDestDirRoot(),
         testStream);
     List<Path> minuteDirs = new ArrayList<Path>();
     listAllPaths(localstreamDir, minuteDirs);
@@ -108,7 +108,7 @@ public class TestDatabusInputFormatMapReduce extends TestAbstractInputFormat {
       context = new TaskAttemptContext(defaultConf, taskId);
       readMessages = new ArrayList<Message>();
       splitFile(1, minuteDirs.get(0));
-      LOG.info("number msgs read from gz files  "+ readMessages.size());
+      LOG.info("number msgs read from gz files  " + readMessages.size());
       assertMessages(0);
     }
   }

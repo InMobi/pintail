@@ -30,17 +30,17 @@ public class TestPartitionReaderHadoopStream extends TestAbstractClusterReader {
     HadoopUtil.setupHadoopCluster(conf, files, null, databusFiles, streamDir, false);
     inputFormatClass = SequenceFileInputFormat.class.getName();
     partitionMinList = new TreeSet<Integer>();
-    for (int i =0; i < 60; i++) {
+    for (int i = 0; i < 60; i++) {
       partitionMinList.add(i);
     }
-    Map<Integer, PartitionCheckpoint> chkpoints = new TreeMap<Integer, 
+    Map<Integer, PartitionCheckpoint> chkpoints = new TreeMap<Integer,
         PartitionCheckpoint>();
-    partitionCheckpointList = new PartitionCheckpointList(chkpoints); 
+    partitionCheckpointList = new PartitionCheckpointList(chkpoints);
   }
 
   @AfterTest
   public void cleanup() throws IOException {
-    LOG.debug("Cleaning up the dir: "+ streamDir.getParent());
+    LOG.debug("Cleaning up the dir: " + streamDir.getParent());
     fs.delete(streamDir.getParent(), true);
   }
 
@@ -62,28 +62,28 @@ public class TestPartitionReaderHadoopStream extends TestAbstractClusterReader {
   @Test
   public void testReadFromCheckpointWhichDoesNotExist() throws Exception {
     super.testReadFromCheckpointWhichDoesNotExist();
-  } 
+  }
 
   @Test
   public void testReadFromStartTime() throws Exception {
     super.testReadFromStartTime();
-  } 
+  }
 
   @Test
   public void testReadFromStartTimeWithinStream() throws Exception {
     super.testReadFromStartTimeWithinStream();
-  } 
+  }
 
 
   @Test
   public void testReadFromStartTimeBeforeStream() throws Exception {
     super.testReadFromStartTimeBeforeStream();
-  } 
+  }
 
   @Test
   public void testReadFromStartTimeAfterStream() throws Exception {
     super.testReadFromStartTimeAfterStream();
-  } 
+  }
 
   @Test
   public void testReadFromCheckpointWithSingleMinute() throws Exception {
@@ -93,12 +93,12 @@ public class TestPartitionReaderHadoopStream extends TestAbstractClusterReader {
   @Test
   public void testReadFromCheckpointMultipleMinutes() throws Exception {
     super.testReadFromCheckpointMultipleMinutes();
-  } 
+  }
 
   @Test
   public void testReadFromCheckpointSomeMinutes() throws Exception {
     super.testReadFromCheckpointSomeMinutes();
-  }  
+  }
 
   @Test
   public void testReadFromMultipleCompleteCheckpoints() throws Exception {
@@ -121,7 +121,7 @@ public class TestPartitionReaderHadoopStream extends TestAbstractClusterReader {
   }
 
   @Test
-  public void testReadFromExistingCompletedCheckpointAndCheckpointNotExists() 
+  public void testReadFromExistingCompletedCheckpointAndCheckpointNotExists()
       throws Exception {
     super.testReadFromExistingCompletedCheckpointAndCheckpointNotExists();
   }

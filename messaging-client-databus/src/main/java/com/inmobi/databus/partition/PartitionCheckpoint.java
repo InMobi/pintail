@@ -50,7 +50,7 @@ public class PartitionCheckpoint implements Writable, MessageCheckpoint {
       throw new IllegalArgumentException("Invalid checkpoint");
     }
     streamFile.readFields(in);
-    lineNum = in.readLong(); 
+    lineNum = in.readLong();
   }
 
   @Override

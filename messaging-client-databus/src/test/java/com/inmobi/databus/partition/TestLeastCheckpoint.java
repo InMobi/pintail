@@ -15,28 +15,27 @@ import com.inmobi.databus.files.HadoopStreamFile;
 
 public class TestLeastCheckpoint {
   
-  FileSystem fs ;
+  FileSystem fs;
   Map<Integer, PartitionCheckpoint> chkPoints;
   PartitionCheckpoint expectedLeastPck;
-  
+
   public TestLeastCheckpoint() {
-    
+
   }
-  
+
   @BeforeTest
   public void setup() throws Exception {
-    fs =  FileSystem.getLocal(new Configuration()); 
+    fs =  FileSystem.getLocal(new Configuration());
     chkPoints = new HashMap<Integer, PartitionCheckpoint>();
     createCheckpointList();
   }
-  
+
   public HadoopStreamFile createPaths(Path p1, int minute) throws Exception {
     fs.mkdirs(p1);
     Path pf11 = new Path(p1, "f1");
     fs.create(pf11);
     FileStatus fs11 = fs.getFileStatus(pf11);
     return HadoopStreamFile.create(fs11);
-    
   }
   private void createCheckpointList() throws Exception {
     Path p1 = new Path("/tmp/test/2012/12/26/05/00");
@@ -56,10 +55,10 @@ public class TestLeastCheckpoint {
     chkPoints.put(3, null);
     chkPoints.put(04, new PartitionCheckpoint(streamfile4, 0));
     chkPoints.put(05, new PartitionCheckpoint(streamfile5, 100));
-    
+
     expectedLeastPck = new PartitionCheckpoint(streamfile4, 0);
   }
- 
+
   @Test
   public void testLeastCheckpoint() throws Exception {
     PartitionCheckpoint leastPartitionCheckpoint = ClusterReader.

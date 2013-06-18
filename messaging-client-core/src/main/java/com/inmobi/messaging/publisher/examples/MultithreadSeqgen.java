@@ -4,33 +4,33 @@ import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 import com.inmobi.messaging.publisher.MessagePublisherFactory;
 
 /**
- * Sends messages from multiple threads. 
+ * Sends messages from multiple threads.
  *
  */
 public class MultithreadSeqgen {
 
   /**
    * @param args
-   * @throws Exception 
+   * @throws Exception
    */
   public static void main(String[] args) throws Exception {
     if (args.length != 3) {
-      System.err.println("Usage: MultithreadSeqGeneratorClient <topic>" +
-      		" <maxSeq> <number_of_threads>");
+      System.err.println("Usage: MultithreadSeqGeneratorClient <topic>"
+          + " <maxSeq> <number_of_threads>");
       return;
     }
-    AbstractMessagePublisher publisher = 
+    AbstractMessagePublisher publisher =
         (AbstractMessagePublisher) MessagePublisherFactory.create();
     String topic = args[0];
     long maxSeq = Integer.parseInt(args[1]);
     int totalThread = Integer.parseInt(args[2]);
     PublishThreadNew[] p = new PublishThreadNew[totalThread];
-    long threadMaxSeq = maxSeq / totalThread ;
-    for(int thread = 0; thread < totalThread; thread++){
-      p[thread] = new PublishThreadNew(topic, publisher,threadMaxSeq);
+    long threadMaxSeq = maxSeq / totalThread;
+    for (int thread = 0; thread < totalThread; thread++) {
+      p[thread] = new PublishThreadNew(topic, publisher, threadMaxSeq);
       p[thread].start();
     }
-    for(int thread = 0; thread < totalThread ; thread++){
+    for (int thread = 0; thread < totalThread; thread++) {
       p[thread].join();
     }
 
@@ -38,10 +38,10 @@ public class MultithreadSeqgen {
     publisher.close();
     long invocation = publisher.getStats(topic).getInvocationCount();
     System.out.println("Total invocations: " + invocation);
-    System.out.println("Total success: " +
-        publisher.getStats(topic).getSuccessCount());
-    System.out.println("Total unhandledExceptions: " +
-        publisher.getStats(topic).getUnhandledExceptionCount());
+    System.out.println("Total success: "
+        + publisher.getStats(topic).getSuccessCount());
+    System.out.println("Total unhandledExceptions: "
+        + publisher.getStats(topic).getUnhandledExceptionCount());
   }
 
   private static class PublishThreadNew extends Thread {

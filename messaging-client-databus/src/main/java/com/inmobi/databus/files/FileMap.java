@@ -27,13 +27,13 @@ public abstract class FileMap<T extends StreamFile> {
 
   protected abstract T getStreamFile(String fileName);
 
-  protected abstract PathFilter createPathFilter(); 
+  protected abstract PathFilter createPathFilter();
 
   protected abstract void buildList() throws IOException;
 
 
   private void createIterator() {
-    fileNameIterator = files.navigableKeySet().iterator();    
+    fileNameIterator = files.navigableKeySet().iterator();
   }
 
   public void addPath(FileStatus path) {
@@ -111,21 +111,21 @@ public abstract class FileMap<T extends StreamFile> {
   }
 
   public boolean containsFile(String fileName) {
-    return files.containsKey(getStreamFile(fileName)); 
+    return files.containsKey(getStreamFile(fileName));
   }
 
   public boolean setIterator(FileStatus cfile) {
-    createIterator();
-    T file = getStreamFile(cfile);
     if (cfile != null) {
+      createIterator();
+      T file = getStreamFile(cfile);
       while (fileNameIterator.hasNext()) {
         StreamFile nextfile = fileNameIterator.next();
         if (nextfile.equals(file)) {
           return true;
-        } 
+        }
       }
-    } 
-    LOG.info("Did not find file" + cfile.getPath());
+      LOG.info("Did not find file" + cfile.getPath());
+    }
     return false;
   }
 

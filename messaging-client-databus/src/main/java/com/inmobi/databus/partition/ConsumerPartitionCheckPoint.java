@@ -10,7 +10,7 @@ public class ConsumerPartitionCheckPoint extends PartitionCheckpoint {
   private boolean eofPrevFile;
   private Integer prevMinId;
 
-  public ConsumerPartitionCheckPoint(StreamFile streamFile, long lineNum, 
+  public ConsumerPartitionCheckPoint(StreamFile streamFile, long lineNum,
       Integer minId) {
     this(streamFile, lineNum);
     this.minId = minId;
@@ -22,7 +22,7 @@ public class ConsumerPartitionCheckPoint extends PartitionCheckpoint {
 
   public ConsumerPartitionCheckPoint(DataInput in) throws IOException {
     super(in);
-    //This method is stub for as we are extending the Parent, since this class 
+    //This method is stub for as we are extending the Parent, since this class
     //is not serialized we don't need to
     //worry about constructor being called.
   }
@@ -39,7 +39,7 @@ public class ConsumerPartitionCheckPoint extends PartitionCheckpoint {
   public int hashCode() {
     final int prime = 31;
     int hashCode = super.hashCode();
-    hashCode = prime * hashCode +  (minId ^ (minId >>> 32));
+    hashCode = prime * hashCode +  (minId);
     return hashCode;
   }
 
@@ -49,11 +49,7 @@ public class ConsumerPartitionCheckPoint extends PartitionCheckpoint {
     if (equals) {
       if (obj instanceof ConsumerPartitionCheckPoint) {
         ConsumerPartitionCheckPoint other = (ConsumerPartitionCheckPoint) obj;
-        if (this.minId == other.minId) {
-          return true;
-        } else {
-          return false;
-        }
+        return this.minId.equals(other.minId);
       } else {
         return false;
       }

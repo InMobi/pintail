@@ -26,11 +26,11 @@ public interface ScribePublisherConfiguration {
   public static final String retryConfig = "scribe.enable.retries";
   public static final boolean DEFAULT_ENABLE_RETRIES = true;
 
-  public static final String asyncSenderSleepMillis = 
+  public static final String asyncSenderSleepMillis =
       "scribe.async.sender.sleep.millis";
   public static final long DEFAULT_ASYNC_SENDER_SLEEP = 10;
 
-  public static final String drainRetriesOnCloseConfig = 
+  public static final String drainRetriesOnCloseConfig =
       "scribe.numdrains.onclose";
   public static final int DEFAULT_NUM_DRAINS_ONCLOSE = -1;
 }

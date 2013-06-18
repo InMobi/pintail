@@ -17,11 +17,11 @@ import com.inmobi.messaging.Message;
  * Emulation of Scribe RPC using TBinaryProtobol
  */
 public class ScribeBites {
-  private static final byte SINGLE_ENTRY_PREFIX[] = { (byte) 0x80, 0x01, 0x00,
+  private static final byte[] SINGLE_ENTRY_PREFIX = {(byte) 0x80, 0x01, 0x00,
       0x01, 0x00, 0x00, 0x00, 0x03, 0x4c, 0x6f, 0x67, 0x00, 0x00, 0x00, 0x00,
       0x0f, 0x00, 0x01, 0x0c, 0x00, 0x00, 0x00, 0x01, 0x0b, 0x00, 0x01 };
-  private static final byte BODY_MARKER[] = { 0x0b, 0x00, 0x02 };
-  private static final byte TRAILER[] = { 0x00, 0x00 };
+  private static final byte[] BODY_MARKER = {0x0b, 0x00, 0x02 };
+  private static final byte[] TRAILER = { 0x00, 0x00 };
 
   public static void publish(Channel ch, String category, Message m) {
     ChannelBuffer output = ChannelBuffers.dynamicBuffer(ByteOrder.BIG_ENDIAN,
@@ -42,7 +42,7 @@ public class ScribeBites {
   }
 
   public static void publish(Channel ch, ChannelBuffer categoryAsByteStream,
-      byte stream[]) {
+      byte[] stream) {
     ChannelBuffer output = ChannelBuffers.dynamicBuffer(ByteOrder.BIG_ENDIAN,
         2048);
 

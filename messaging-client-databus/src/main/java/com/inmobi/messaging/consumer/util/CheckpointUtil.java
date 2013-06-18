@@ -39,12 +39,12 @@ import com.inmobi.messaging.consumer.hadoop.HadoopConsumerConfig;
 
 /**
  * This Utility takes consumer configuration as input and creates a list of new
- * checkpoints. This utility is applicable for only where the stream types of 
- * consumers  are “LOCAL” or “MERGED”. This utility reads the consumer 
- * configuration file and read the checkpoint from “consumername_topicname.ck” 
- * file and creates a list of 60 new checkpoint files with the names of 
- * “consumername_topicname_id.ck”.Ex: if old checkpoint file is 
- * l1_benchmark_local.ck then new checkpoint files will be 
+ * checkpoints. This utility is applicable for only where the stream types of
+ * consumers  are “LOCAL” or “MERGED”. This utility reads the consumer
+ * configuration file and read the checkpoint from “consumername_topicname.ck”
+ * file and creates a list of 60 new checkpoint files with the names of
+ * “consumername_topicname_id.ck”.Ex: if old checkpoint file is
+ * l1_benchmark_local.ck then new checkpoint files will bes
  * l1_benchmark_local_0.ck,l1_benchmark_local_1.ck,....,l1_benchmark_local_59.ck.
  */
 
@@ -55,7 +55,7 @@ public class CheckpointUtil implements DatabusConsumerConfig {
   public static void prepareCheckpointList(String superKey,
       CheckpointProvider provider, Set<Integer> idList,
       Map<PartitionId, Path> streamDirs,
-      CheckpointList checkpointList) 
+      CheckpointList checkpointList)
           throws IOException {
     Checkpoint oldCheckpoint = null;
     byte[] chkpointData = provider.read(superKey);
@@ -68,13 +68,13 @@ public class CheckpointUtil implements DatabusConsumerConfig {
       return;
     }
 
-    Map<PartitionId, PartitionCheckpoint> partitionCheckpoints = 
+    Map<PartitionId, PartitionCheckpoint> partitionCheckpoints =
         oldCheckpoint.getPartitionsCheckpoint();
-    for (Map.Entry<PartitionId, PartitionCheckpoint> entry : 
-      partitionCheckpoints.entrySet()) {
+    for (Map.Entry<PartitionId, PartitionCheckpoint> entry
+        : partitionCheckpoints.entrySet()) {
       PartitionId pid = entry.getKey();
       Path streamDir = streamDirs.get(pid);
-      HadoopStreamFile streamFile = (HadoopStreamFile)entry.getValue().
+      HadoopStreamFile streamFile = (HadoopStreamFile) entry.getValue().
           getStreamFile();
       Map<Integer, PartitionCheckpoint> thisChkpoint =
           new TreeMap<Integer, PartitionCheckpoint>();
@@ -86,12 +86,12 @@ public class CheckpointUtil implements DatabusConsumerConfig {
       Calendar chkPrevHrCal = Calendar.getInstance();
       chkPrevHrCal.setTime(checkpointDate);
       /*
-       * if the old checkpoint is on 2nd hour 05th minute, minutes [06-59], the 
-       * checkpoint will be having the last file of the previous hour directory. 
-       * All these checkpoints should constructed and given to the consumer to 
+       * if the old checkpoint is on 2nd hour 05th minute, minutes [06-59], the
+       * checkpoint will be having the last file of the previous hour directory.
+       * All these checkpoints should constructed and given to the consumer to
        * start.
        */
-      
+
       chkPrevHrCal.add(Calendar.MINUTE, 1);
       chkPrevHrCal.add(Calendar.HOUR, -1);
       while (chkPrevHrCal.before(chkCal)) {
@@ -111,11 +111,11 @@ public class CheckpointUtil implements DatabusConsumerConfig {
         }
         chkPrevHrCal.add(Calendar.MINUTE, 1);
       }
-      
+
       /*
-       * if the old checkpoint is on 2nd hour 05th minute, Then for the minutes 
-       * of [00 - 04], the checkpoint should be constructed as 2nd hour 
-       * minute directory with last file in the directory. 05th minute will 
+       * if the old checkpoint is on 2nd hour 05th minute, Then for the minutes
+       * of [00 - 04], the checkpoint should be constructed as 2nd hour
+       * minute directory with last file in the directory. 05th minute will
        * have same checkpoint as the one read.
        */
       Calendar chkHrCal = Calendar.getInstance();
@@ -136,12 +136,12 @@ public class CheckpointUtil implements DatabusConsumerConfig {
         chkHrCal.add(Calendar.MINUTE, 1);
       }
       /*
-       * if the old checkpoint is on 2nd hour 05th minute, 05th minute will 
+       * if the old checkpoint is on 2nd hour 05th minute, 05th minute will
        * have same checkpoint as the one read.
        */
       thisChkpoint.put(checkpointMin, entry.getValue());
-      checkpointList.setForCheckpointUtil(entry.getKey(), new 
-          PartitionCheckpointList(thisChkpoint));  
+      checkpointList.setForCheckpointUtil(entry.getKey(), new
+          PartitionCheckpointList(thisChkpoint));
     }
   }
 
@@ -174,7 +174,7 @@ public class CheckpointUtil implements DatabusConsumerConfig {
               return false;
             }
             return true;
-          }          
+          }
         };
       }
 
@@ -207,7 +207,7 @@ public class CheckpointUtil implements DatabusConsumerConfig {
     }
   }
 
-  public static void run(String args[]) throws Exception {
+  public static void run(String[] args) throws Exception {
     String confFile = args[0];
     ClientConfig config;
     CheckpointProvider checkpointProvider;
@@ -215,7 +215,7 @@ public class CheckpointUtil implements DatabusConsumerConfig {
     config = ClientConfig.load(confFile);
     String chkpointProviderClassName = config.getString(
         chkProviderConfig, DEFAULT_CHK_PROVIDER);
-    String databusCheckpointDir = config.getString(checkpointDirConfig, 
+    String databusCheckpointDir = config.getString(checkpointDirConfig,
         DEFAULT_CHECKPOINT_DIR);
     checkpointProvider = AbstractMessagingDatabusConsumer.createCheckpointProvider(
         chkpointProviderClassName, databusCheckpointDir);
@@ -244,7 +244,7 @@ public class CheckpointUtil implements DatabusConsumerConfig {
       for (String rootDir : rootDirs) {
         Path streamDir = DatabusUtil.getStreamDir(streamType, new Path(rootDir),
             topicName);
-        streamDirs.put(new PartitionId(DatabusConsumer.clusterNamePrefix + i, 
+        streamDirs.put(new PartitionId(DatabusConsumer.clusterNamePrefix + i,
             null), streamDir);
         i++;
       }
@@ -254,7 +254,7 @@ public class CheckpointUtil implements DatabusConsumerConfig {
       int i = 0;
       for (String rootDir : rootDirs) {
         Path streamDir = new Path(rootDir);
-        streamDirs.put(new PartitionId(HadoopConsumer.clusterNamePrefix + i, 
+        streamDirs.put(new PartitionId(HadoopConsumer.clusterNamePrefix + i,
             null), streamDir);
         i++;
       }
@@ -264,15 +264,15 @@ public class CheckpointUtil implements DatabusConsumerConfig {
         streamDirs, checkpointList);
     checkpointList.write(checkpointProvider, superKey);
     LOG.info("migrated checkpoint " + checkpointList);
-    checkpointList.read(checkpointProvider, superKey); 
+    checkpointList.read(checkpointProvider, superKey);
   }
 
   public static void main(String [] args) throws Exception {
     if (args.length == 1) {
       run(args);
     } else {
-      System.out.println("incorrect number of arguments. provide one " +
-          "argument : " + "path to configuration file ");
+      System.out.println("incorrect number of arguments. provide one "
+          + "argument : " + "path to configuration file ");
       System.exit(1);
     }
   }

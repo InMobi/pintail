@@ -99,7 +99,6 @@ public class FlumeMessagePublisher extends AbstractMessagePublisher {
             if (queue.size() >= batchSize) {
               for (int i = 0; i < batchSize; i++) {
                 batch.add(queue.remove());
-                
               }
             }
           }

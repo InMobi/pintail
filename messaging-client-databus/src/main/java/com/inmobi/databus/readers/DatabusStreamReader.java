@@ -8,9 +8,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -35,7 +33,7 @@ import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
-public abstract class DatabusStreamReader<T extends StreamFile> extends 
+public abstract class DatabusStreamReader<T extends StreamFile> extends
 StreamReader<T> {
 
   private static final Log LOG = LogFactory.getLog(DatabusStreamReader.class);
@@ -62,7 +60,7 @@ StreamReader<T> {
       input = (InputFormat<Object, Object>) ReflectionUtils.newInstance(
           conf.getClassByName(inputFormatClass), conf);
     } catch (ClassNotFoundException e) {
-      throw new IllegalArgumentException("Input format class" 
+      throw new IllegalArgumentException("Input format class"
           + inputFormatClass + " not found", e);
     }
   }
@@ -100,7 +98,7 @@ StreamReader<T> {
       throws IOException {
     boolean ret = super.initializeCurrentFile(checkpoint);
     if (!ret) {
-      T streamFile = (T)checkpoint.getStreamFile();
+      T streamFile = (T) checkpoint.getStreamFile();
       LOG.info("Could not find checkpointed file: " + streamFile);
       if (isBeforeStream(streamFile)) {
         LOG.info("Reading from start of the stream");
@@ -120,8 +118,8 @@ StreamReader<T> {
     if (next) {
       resetCurrentFileSettings();
     }
-    LOG.info("Opening file:" + getCurrentFile() + " NumLinesTobeSkipped when" +
-        " opening:" + currentLineNum);
+    LOG.info("Opening file:" + getCurrentFile() + " NumLinesTobeSkipped when"
+        + " opening:" + currentLineNum);
     try {
       FileStatus status = fsGetFileStatus(getCurrentFile());
       if (status != null) {
@@ -140,7 +138,7 @@ StreamReader<T> {
         }
         skipLines(currentLineNum);
       } else {
-        LOG.info("CurrentFile:" + getCurrentFile() + " does not exist");        
+        LOG.info("CurrentFile:" + getCurrentFile() + " does not exist");
       }
     } catch (FileNotFoundException fnfe) {
       LOG.info("CurrentFile:" + getCurrentFile() + " does not exist");
@@ -165,10 +163,10 @@ StreamReader<T> {
       if (ret) {
         if (needsSerialize) {
           baos.reset();
-          ((Writable)msgValue).write(new DataOutputStream(baos));
+          ((Writable) msgValue).write(new DataOutputStream(baos));
           return new Message(baos.toByteArray());
         } else {
-          return ((Message)msgValue);
+          return ((Message) msgValue);
         }
       }
     }
@@ -213,24 +211,24 @@ StreamReader<T> {
     return null;
   }
 
-  static String minDirFormatStr = "yyyy" + File.separator + "MM" +
-      File.separator + "dd" + File.separator + "HH" + File.separator +"mm";
+  static String minDirFormatStr = "yyyy" + File.separator + "MM"
+      + File.separator + "dd" + File.separator + "HH" + File.separator + "mm";
 
-  static final ThreadLocal<DateFormat> minDirFormat = 
+  static final ThreadLocal<DateFormat> minDirFormat =
       new ThreadLocal<DateFormat>() {
     @Override
     protected SimpleDateFormat initialValue() {
       return new SimpleDateFormat(minDirFormatStr);
-    }    
+    }
   };
 
-  static final ThreadLocal<DateFormat> hhDirFormat = 
+  static final ThreadLocal<DateFormat> hhDirFormat =
       new ThreadLocal<DateFormat>() {
     @Override
     protected SimpleDateFormat initialValue() {
-      return new SimpleDateFormat("yyyy" + File.separator + "MM" +
-          File.separator + "dd" + File.separator + "HH");
-    }    
+      return new SimpleDateFormat("yyyy" + File.separator + "MM"
+          + File.separator + "dd" + File.separator + "HH");
+    }
   };
 
   public static Path getStreamsLocalDir(Cluster cluster, String streamName) {

@@ -30,7 +30,7 @@ public class TestPartitionReaderMovingFilesFromCollectorStream {
   private static final String clusterName = "testCluster";
   private PartitionId partitionId = new PartitionId(clusterName, collectorName);
 
-  private LinkedBlockingQueue<QueueEntry> buffer = 
+  private LinkedBlockingQueue<QueueEntry> buffer =
       new LinkedBlockingQueue<QueueEntry>(149);
   private Cluster cluster;
   private Path collectorDir;
@@ -81,7 +81,7 @@ public class TestPartitionReaderMovingFilesFromCollectorStream {
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader()).
+    Assert.assertEquals(((CollectorReader) preader.getReader()).
         getReader().getClass().getName(),
         LocalStreamCollectorReader.class.getName());
 
@@ -89,7 +89,7 @@ public class TestPartitionReaderMovingFilesFromCollectorStream {
     while (buffer.remainingCapacity() > 0) {
       Thread.sleep(10);
     }
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
 
@@ -109,7 +109,7 @@ public class TestPartitionReaderMovingFilesFromCollectorStream {
     while (buffer.remainingCapacity() > 0) {
       Thread.sleep(10);
     }
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         LocalStreamCollectorReader.class.getName());
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[1]), 2,
@@ -120,7 +120,7 @@ public class TestPartitionReaderMovingFilesFromCollectorStream {
     while (buffer.remainingCapacity() > 0) {
       Thread.sleep(10);
     }
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
 
@@ -145,17 +145,17 @@ public class TestPartitionReaderMovingFilesFromCollectorStream {
     while (buffer.remainingCapacity() > 0) {
       Thread.sleep(10);
     }
-    Assert.assertEquals(((CollectorReader)preader.getReader()).
+    Assert.assertEquals(((CollectorReader) preader.getReader()).
         getReader().getClass().getName(),
         LocalStreamCollectorReader.class.getName());
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[4]),
         5, 50, 50, partitionId, buffer, true);
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
-        collectorName, files[5]), 6, 0, 100, partitionId, buffer, true); 
+        collectorName, files[5]), 6, 0, 100, partitionId, buffer, true);
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
-        collectorName, files[6]), 7, 0, 100, partitionId, buffer, true); 
+        collectorName, files[6]), 7, 0, 100, partitionId, buffer, true);
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
-        collectorName, files[7]), 8, 0, 100, partitionId, buffer, true); 
+        collectorName, files[7]), 8, 0, 100, partitionId, buffer, true);
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[8]),
         9, 0, 100, partitionId, buffer, true);
     Assert.assertTrue(buffer.isEmpty());

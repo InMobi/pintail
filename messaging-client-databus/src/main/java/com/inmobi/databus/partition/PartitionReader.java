@@ -61,7 +61,7 @@ public class PartitionReader {
       PartitionCheckpoint partitionCheckpoint, Configuration conf,
       FileSystem fs,
       Path collectorDataDir,
-      Path streamLocalDir, 
+      Path streamLocalDir,
       BlockingQueue<QueueEntry> buffer, String streamName, Date startTime,
       long waitTimeForFlush, long waitTimeForFileCreate,
       PartitionReaderStatsExposer prMetrics, boolean noNewFiles, Date stopTime)
@@ -70,12 +70,12 @@ public class PartitionReader {
     reader = new CollectorReader(partitionId, partitionCheckpoint, fs,
         streamName, collectorDataDir, streamLocalDir, conf,
         startTime, waitTimeForFlush, waitTimeForFileCreate,
-        ((CollectorReaderStatsExposer)prMetrics), noNewFiles, stopTime);
+        ((CollectorReaderStatsExposer) prMetrics), noNewFiles, stopTime);
     // initialize cluster and its directories
-    LOG.info("Partition reader initialized with partitionId:" + partitionId +
-        " checkPoint:" + partitionCheckpoint +  
-        " startTime:" + startTime + " stopTime:" + stopTime +
-        " currentReader:" + reader);
+    LOG.info("Partition reader initialized with partitionId:" + partitionId
+        + " checkPoint:" + partitionCheckpoint
+        + " startTime:" + startTime + " stopTime:" + stopTime
+        + " currentReader:" + reader);
   }
 
   PartitionReader(PartitionId partitionId,
@@ -89,13 +89,13 @@ public class PartitionReader {
     this(partitionId, partitionCheckpointList, buffer, startTime, prMetrics);
     reader = new ClusterReader(partitionId, partitionCheckpointList,
         fs, streamDir, conf, inputFormatClass, startTime,
-        waitTimeForFileCreate, isDatabusData, prMetrics, noNewFiles, 
+        waitTimeForFileCreate, isDatabusData, prMetrics, noNewFiles,
         partitionMinList, stopTime);
     // initialize cluster and its directories
-    LOG.info("Partition reader initialized with partitionId:" + partitionId +
-        " checkPoint:" + partitionCheckpointList +  
-        " startTime:" + startTime + " stopTime:" + stopTime +
-        " currentReader:" + reader);
+    LOG.info("Partition reader initialized with partitionId:" + partitionId
+        + " checkPoint:" + partitionCheckpointList
+        + " startTime:" + startTime + " stopTime:" + stopTime
+        + " currentReader:" + reader);
   }
 
   private PartitionReader(PartitionId partitionId,
@@ -120,8 +120,9 @@ public class PartitionReader {
             }
             LOG.info("Started streaming the data from reader:" + reader);
             execute();
-            if (stopped || thread.isInterrupted())
+            if (stopped || thread.isInterrupted()) {
               return;
+            }
           } catch (Throwable e) {
             LOG.warn("Error in run", e);
             prMetrics.incrementHandledExceptions();
@@ -196,8 +197,8 @@ public class PartitionReader {
         closeReader = !(reader.openStream());
       }
       if (!closeReader) {
-        LOG.info("Reading file " + reader.getCurrentFile() + 
-            " and lineNum:" + reader.getCurrentLineNum());
+        LOG.info("Reading file " + reader.getCurrentFile()
+            + " and lineNum:" + reader.getCurrentLineNum());
       }
       while (!stopped && !closeReader) {
         Message msg = reader.readLine();

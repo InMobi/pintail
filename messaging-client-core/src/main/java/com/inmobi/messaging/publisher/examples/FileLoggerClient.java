@@ -10,9 +10,9 @@ import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 import com.inmobi.messaging.publisher.MessagePublisherFactory;
 
 /**
- * Publishes each line of of the <code>file</code> as a message on the 
+ * Publishes each line of of the <code>file</code> as a message on the
  * <code>topic</code>.
- * 
+ *
  * Prints out the publisher statistics at the end of the publishing.
  */
 public class FileLoggerClient {
@@ -24,7 +24,7 @@ public class FileLoggerClient {
     }
     String topic = args[0];
     String file = args[1];
-    AbstractMessagePublisher publisher = 
+    AbstractMessagePublisher publisher =
         (AbstractMessagePublisher) MessagePublisherFactory
         .create();
     BufferedReader in = new BufferedReader(new FileReader(new File(file)));
@@ -40,7 +40,7 @@ public class FileLoggerClient {
     System.out.println("Total invocations: " + invocation);
     System.out.println("Total success: " + publisher.getStats(topic)
         .getSuccessCount());
-    System.out.println("Total unhandledExceptions: " +
-      publisher.getStats(topic).getUnhandledExceptionCount());
+    System.out.println("Total unhandledExceptions: "
+        + publisher.getStats(topic).getUnhandledExceptionCount());
   }
 }

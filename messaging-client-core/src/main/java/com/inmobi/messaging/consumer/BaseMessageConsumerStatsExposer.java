@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Base metrics class for MessageConsumer.
  */
-public class BaseMessageConsumerStatsExposer extends 
+public class BaseMessageConsumerStatsExposer extends
     AbstractMessageConsumerStatsExposer {
   private final AtomicLong numMessagesConsumed = new AtomicLong(0);
   private final AtomicLong numMarkCalls = new AtomicLong(0);
@@ -29,7 +29,7 @@ public class BaseMessageConsumerStatsExposer extends
   public void incrementResetCalls() {
     numResetCalls.incrementAndGet();
   }
-  
+
   public void incrementTimeOutsOnNext() {
     numOfTimeoutsOnNextCall.incrementAndGet();
   }
@@ -37,7 +37,7 @@ public class BaseMessageConsumerStatsExposer extends
   public long getNumMessagesConsumed() {
     return numMessagesConsumed.get();
   }
-  
+
   public long getNumMarkCalls() {
     return numMarkCalls.get();
   }
@@ -45,7 +45,7 @@ public class BaseMessageConsumerStatsExposer extends
   public long getNumResetCalls() {
     return numResetCalls.get();
   }
-  
+
   public long getNumOfTiemOutsOnNext() {
     return numOfTimeoutsOnNextCall.get();
   }

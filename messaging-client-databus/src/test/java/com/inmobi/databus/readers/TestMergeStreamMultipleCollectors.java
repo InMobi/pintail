@@ -37,7 +37,7 @@ public class TestMergeStreamMultipleCollectors {
   Path[] databusFiles2 = new Path[3];
   Configuration conf;
   boolean encoded = true;
-  Set<Integer> partitionMinList;                                                     
+  Set<Integer> partitionMinList;
   PartitionCheckpointList partitionCheckpointList;
   Map<Integer, PartitionCheckpoint> chkPoints;
   int conusmerNumber;

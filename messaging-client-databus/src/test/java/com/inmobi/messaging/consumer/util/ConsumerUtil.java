@@ -29,32 +29,32 @@ import com.inmobi.messaging.consumer.hadoop.HadoopConsumerConfig;
 
 public class ConsumerUtil {
 
-  public static void createCheckpointList(ConsumerCheckpoint temp, 
-      Map<Integer, Checkpoint> checkpointMap, 
-      Map<PartitionId, PartitionCheckpoint> lastCheckpoint, 
+  public static void createCheckpointList(ConsumerCheckpoint temp,
+      Map<Integer, Checkpoint> checkpointMap,
+      Map<PartitionId, PartitionCheckpoint> lastCheckpoint,
       AbstractMessagingDatabusConsumer consumer) throws Exception {
-    if(temp instanceof CheckpointList) {
+    if (temp instanceof CheckpointList) {
       //Do a deep copy of the Tree Map, as the entry sets in original map can 
       //change
-      for(Map.Entry<Integer,Checkpoint> entry: ((CheckpointList) temp).
+      for (Map.Entry<Integer, Checkpoint> entry: ((CheckpointList) temp).
           getCheckpoints().entrySet()) {
         checkpointMap.put(entry.getKey(), new Checkpoint(entry.getValue().
             toBytes()));
       }
     } else {
-      lastCheckpoint.putAll(((Checkpoint)temp).getPartitionsCheckpoint());
-    } 
+      lastCheckpoint.putAll(((Checkpoint) temp).getPartitionsCheckpoint());
+    }
   }
 
-  public static void compareConsumerCheckpoints(ConsumerCheckpoint temp, 
-      Map<Integer, Checkpoint> checkpointMap, 
-      Map<PartitionId, PartitionCheckpoint> lastCheckpoint, 
+  public static void compareConsumerCheckpoints(ConsumerCheckpoint temp,
+      Map<Integer, Checkpoint> checkpointMap,
+      Map<PartitionId, PartitionCheckpoint> lastCheckpoint,
       AbstractMessagingDatabusConsumer consumer) {
-    if(temp instanceof CheckpointList) {
-      Assert.assertEquals(((CheckpointList)consumer.getCurrentCheckpoint()).
+    if (temp instanceof CheckpointList) {
+      Assert.assertEquals(((CheckpointList) consumer.getCurrentCheckpoint()).
           getCheckpoints(), checkpointMap);
     } else {
-      Assert.assertEquals(((Checkpoint)consumer.getCurrentCheckpoint()).
+      Assert.assertEquals(((Checkpoint) consumer.getCurrentCheckpoint()).
           getPartitionsCheckpoint(), lastCheckpoint);
     }
   }
@@ -65,7 +65,7 @@ public class ConsumerUtil {
     int numCounters = numClusters * numCollectors;
     int totalMessages = numCounters * numDataFiles * numMessagesPerFile;
     int[] counter = new int[numCounters];
-    for (int i = 0; i <numCounters; i++) {
+    for (int i = 0; i < numCounters; i++) {
       counter[i] = 0;
     }
     int[] markedcounter1 = new int[numCounters];
@@ -76,7 +76,7 @@ public class ConsumerUtil {
     Assert.assertEquals(consumer.getTopicName(), streamName);
     Assert.assertEquals(consumer.getConsumerName(), consumerName);
 
-    for (int i = 0; i < totalMessages/2; i++) {
+    for (int i = 0; i < totalMessages / 2; i++) {
       Message msg = consumer.next();
       String msgStr = getMessage(msg.getData().array(), hadoop);
       for (int m = 0;  m < numCounters; m++) {
@@ -88,7 +88,7 @@ public class ConsumerUtil {
     }
     consumer.mark();
     ConsumerCheckpoint temp = consumer.getCurrentCheckpoint();
-    Map<PartitionId, PartitionCheckpoint> lastCheckpoint = new 
+    Map<PartitionId, PartitionCheckpoint> lastCheckpoint = new
         HashMap<PartitionId, PartitionCheckpoint>();
     Map<Integer, Checkpoint> checkpointMap = new HashMap<Integer, Checkpoint>();
     //create consumer checkpoint
@@ -103,7 +103,7 @@ public class ConsumerUtil {
       markedcounter2[i] = counter[i];
     }
 
-    for (int i = 0; i < totalMessages/2; i++) {
+    for (int i = 0; i < totalMessages / 2; i++) {
       Message msg = consumer.next();
       String msgStr = getMessage(msg.getData().array(), hadoop);
       for (int m = 0;  m < numCounters; m++) {
@@ -112,14 +112,14 @@ public class ConsumerUtil {
           break;
         }
       }
-    }    
-    for (int i= 0; i < numCounters; i++) {
+    }
+    for (int i = 0; i < numCounters; i++) {
       Assert.assertEquals(counter[i], numDataFiles * numMessagesPerFile);
     }
 
     consumer.reset();
 
-    for (int i = 0; i < totalMessages/2; i++) {
+    for (int i = 0; i < totalMessages / 2; i++) {
       Message msg = consumer.next();
       String msgStr = getMessage(msg.getData().array(), hadoop);
       for (int m = 0;  m < numCounters; m++) {
@@ -130,17 +130,17 @@ public class ConsumerUtil {
       }
     }
 
-    for (int i= 0; i < numCounters; i++) {
+    for (int i = 0; i < numCounters; i++) {
       Assert.assertEquals(markedcounter1[i], numDataFiles * numMessagesPerFile);
     }
     consumer.close();
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMarkCalls(), 1);
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumResetCalls(), 1);
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMessagesConsumed(),
-        (totalMessages + totalMessages/2));
+        (totalMessages + totalMessages / 2));
 
     // test checkpoint and consumer crash
     consumer = createConsumer(hadoop);
@@ -149,7 +149,7 @@ public class ConsumerUtil {
 
     compareConsumerCheckpoints(temp, checkpointMap, lastCheckpoint, consumer);
 
-    for (int i = 0; i < totalMessages/2; i++) {
+    for (int i = 0; i < totalMessages / 2; i++) {
       Message msg = consumer.next();
       String msgStr = getMessage(msg.getData().array(), hadoop);
       for (int m = 0;  m < numCounters; m++) {
@@ -164,13 +164,13 @@ public class ConsumerUtil {
       Assert.assertEquals(markedcounter2[i], numDataFiles * numMessagesPerFile);
     }
     consumer.close();
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMarkCalls(), 0);
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumResetCalls(), 0);
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMessagesConsumed(),
-        (totalMessages/2));
+        (totalMessages / 2));
   }
 
   private static AbstractMessagingDatabusConsumer createConsumer(boolean hadoop) {
@@ -181,8 +181,8 @@ public class ConsumerUtil {
     }
   }
 
-  private static String getMessage(byte[] array, boolean hadoop) throws 
-  IOException {
+  private static String getMessage(byte[] array, boolean hadoop)
+      throws IOException {
     if (hadoop) {
       return MessageUtil.getTextMessage(array).toString();
     } else {
@@ -202,12 +202,12 @@ public class ConsumerUtil {
 
 
     int i;
-    for (i = 100; i < 120; i++) {                                                       
+    for (i = 100; i < 120; i++) {
       Message msg = consumer.next();
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
-    consumer.mark(); 
+    consumer.mark();
     for (i = 120; i < 130; i++) {
       Message msg = consumer.next();
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
@@ -219,12 +219,12 @@ public class ConsumerUtil {
     for (i = 120; i < 240; i++) {
       Message msg = consumer.next();
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
-          MessageUtil.constructMessage(i)); 
+          MessageUtil.constructMessage(i));
     }
 
     consumer.mark();
     ConsumerCheckpoint temp = consumer.getCurrentCheckpoint();
-    Map<PartitionId, PartitionCheckpoint> lastCheckpoint = new 
+    Map<PartitionId, PartitionCheckpoint> lastCheckpoint = new
         HashMap<PartitionId, PartitionCheckpoint>();
     Map<Integer, Checkpoint> checkpointMap = new HashMap<Integer, Checkpoint>();
     //create consumer checkpoint
@@ -244,11 +244,11 @@ public class ConsumerUtil {
     }
 
     consumer.close();
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMarkCalls(), 2);
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumResetCalls(), 2);
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMessagesConsumed(), 230);
 
     // test checkpoint and consumer crash
@@ -263,11 +263,11 @@ public class ConsumerUtil {
     consumer.mark();
 
     consumer.close();
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMarkCalls(), 1);
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumResetCalls(), 0);
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMessagesConsumed(), 60); 
   }
 
@@ -301,7 +301,7 @@ public class ConsumerUtil {
           MessageUtil.constructMessage(i));
     }
     consumer.close();
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMessagesConsumed(), 250);
     consumer = createConsumer(hadoop);
     consumer.init(streamName, consumerName, absoluteStartTime, config);
@@ -324,7 +324,7 @@ public class ConsumerUtil {
           MessageUtil.constructMessage(i));
     }
     consumer.close();
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMessagesConsumed(), 140);
 
     consumer = createConsumer(hadoop);
@@ -352,12 +352,12 @@ public class ConsumerUtil {
           MessageUtil.constructMessage(i));
     }
     consumer.close();
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMessagesConsumed(), 200);
   }
 
   public static void testTimeoutStats(ClientConfig config, String streamName,
-      String consumerName, Date startTime, boolean hadoop) 
+      String consumerName, Date startTime, boolean hadoop)
           throws Exception {
     AbstractMessagingDatabusConsumer consumer = createConsumer(hadoop);
     consumer.init(streamName, consumerName, startTime, config);
@@ -369,20 +369,20 @@ public class ConsumerUtil {
     consumer.mark();
 
     ConsumerCheckpoint expectedCheckpoint = consumer.getCurrentCheckpoint();
-    Map<PartitionId, PartitionCheckpoint> lastCheckpoint = new 
+    Map<PartitionId, PartitionCheckpoint> lastCheckpoint = new
         HashMap<PartitionId, PartitionCheckpoint>();
-    Map<Integer, Checkpoint> checkpointMap = new 
+    Map<Integer, Checkpoint> checkpointMap = new
         HashMap<Integer, Checkpoint>();
     //create consumer checkpoint
-    createCheckpointList(expectedCheckpoint, checkpointMap, lastCheckpoint, 
+    createCheckpointList(expectedCheckpoint, checkpointMap, lastCheckpoint,
         consumer);
     for (int i = 300; i < 310; i++) {
       consumer.next(1, TimeUnit.SECONDS);
     }
-    compareConsumerCheckpoints(expectedCheckpoint, checkpointMap, 
+    compareConsumerCheckpoints(expectedCheckpoint, checkpointMap,
         lastCheckpoint, consumer);
     consumer.close();
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMessagesConsumed(), 300);
     Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
         consumer.getMetrics())).getNumOfTiemOutsOnNext(), 10);
@@ -403,7 +403,7 @@ public class ConsumerUtil {
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
-    consumer.mark(); 
+    consumer.mark();
     for (i = 20; i < 30; i++) {
       Message msg = consumer.next();
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
@@ -419,9 +419,9 @@ public class ConsumerUtil {
 
     consumer.mark();
     ConsumerCheckpoint temp = consumer.getCurrentCheckpoint();
-    Map<PartitionId, PartitionCheckpoint> lastCheckpoint = new 
+    Map<PartitionId, PartitionCheckpoint> lastCheckpoint = new
         HashMap<PartitionId, PartitionCheckpoint>();
-    Map<Integer, Checkpoint> checkpointMap = new 
+    Map<Integer, Checkpoint> checkpointMap = new
         HashMap<Integer, Checkpoint>();
     //create consumer checkpoint
     createCheckpointList(temp, checkpointMap, lastCheckpoint, consumer);
@@ -440,11 +440,11 @@ public class ConsumerUtil {
     }
 
     consumer.close();
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMarkCalls(), 2);
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumResetCalls(), 2);
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMessagesConsumed(), 330);
 
     // test checkpoint and consumer crash
@@ -459,11 +459,11 @@ public class ConsumerUtil {
     consumer.mark();
 
     consumer.close();
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMarkCalls(), 1);
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumResetCalls(), 0);
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMessagesConsumed(), 160);
 
   }
@@ -484,29 +484,28 @@ public class ConsumerUtil {
     Assert.assertEquals(consumer.getStartTime(), secondConsumer.getStartTime());
 
     int i;
-    for (i = 0; i < 5; i++) {                                                       
+    for (i = 0; i < 5; i++) {
       secondConsumer.next();
-    } 
+    }
     secondConsumer.mark();
     for (i = 0; i < 25; i++) {
       consumer.next();
     }
     consumer.mark();
-    for (i = 5; i < 10; i++) {                                                       
+    for (i = 5; i < 10; i++) {
       secondConsumer.next();
-    } 
+    }
     secondConsumer.reset();
 
-    for (i = 5; i < 10; i++) {                                                       
+    for (i = 5; i < 10; i++) {
       secondConsumer.next();
-
-    } 
+    }
     secondConsumer.mark();
 
-    for (i = 25; i < 75; i++) {                                                       
+    for (i = 25; i < 75; i++) {
       consumer.next();
     }
-    consumer.mark(); 
+    consumer.mark();
 
     for (i = 75; i < 80; i++) {
       consumer.next();
@@ -518,8 +517,8 @@ public class ConsumerUtil {
       consumer.next();
     }
     consumer.mark();
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
-        consumer.getMetrics())).getNumMessagesConsumed(), 85); 
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
+        consumer.getMetrics())).getNumMessagesConsumed(), 85);
     for (i = 80; i < 82; i++) {
       consumer.next();
     }
@@ -538,18 +537,18 @@ public class ConsumerUtil {
     //create consumer checkpoint
     createCheckpointList(temp, checkpointMap, null, consumer);
 
-    Assert.assertEquals(((CheckpointList)consumer.getCurrentCheckpoint()).
+    Assert.assertEquals(((CheckpointList) consumer.getCurrentCheckpoint()).
         getCheckpoints(), checkpointMap);
 
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMarkCalls(), 4);
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumResetCalls(), 2);
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         secondConsumer.getMetrics())).getNumMarkCalls(), 2);
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         secondConsumer.getMetrics())).getNumResetCalls(), 1);
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMessagesConsumed(),89);
   }
 
@@ -580,11 +579,11 @@ public class ConsumerUtil {
           MessageUtil.constructMessage(i));
     }
     consumer.close();
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMarkCalls(), 1);
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumResetCalls(), 1);
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMessagesConsumed(), 220);
   }
 
@@ -623,7 +622,7 @@ public class ConsumerUtil {
     }
     consumer.mark();
     consumer.close();
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMessagesConsumed(), 200);
     consumer = createConsumer(hadoop);
     consumer.init(streamName, consumerName, null, config);
@@ -633,7 +632,7 @@ public class ConsumerUtil {
           MessageUtil.constructMessage(i));
     }
     consumer.close();
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMessagesConsumed(), 100);
   }
 
@@ -649,7 +648,7 @@ public class ConsumerUtil {
           MessageUtil.constructMessage(i));
     }
     consumer.close();
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMessagesConsumed(), 300);
   }
 
@@ -666,7 +665,7 @@ public class ConsumerUtil {
           MessageUtil.constructMessage(i));
     }
     consumer.close();
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMessagesConsumed(), 300);
   }
 
@@ -684,7 +683,7 @@ public class ConsumerUtil {
     }
     consumer.mark();
     consumer.close();
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMessagesConsumed(), 120);
     consumer.init(streamName, consumerName, startTime, config);
     for (i = 120; i < 200; i++) {
@@ -692,7 +691,7 @@ public class ConsumerUtil {
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMessagesConsumed(), 80);
     Throwable th = null;
     try {
@@ -723,7 +722,7 @@ public class ConsumerUtil {
     }
     consumer.reset();
     consumer.close();
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMessagesConsumed(), 40);
     consumer.init(streamName, consumerName, startTime, config);
     for (i = 20; i < 100; i++) {
@@ -731,7 +730,7 @@ public class ConsumerUtil {
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMessagesConsumed(), 80);
     // throw an EndOfStreamException if consumer consumes one EOFMessage
     // (one partitionReader only)
@@ -771,7 +770,7 @@ public class ConsumerUtil {
     }
     consumer.mark();
     consumer.close();
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMessagesConsumed(), 200);
     config.set(HadoopConsumerConfig.stopDateConfig,
         AbstractMessageConsumer.minDirFormat.get().format(stopDate));
@@ -809,11 +808,11 @@ public class ConsumerUtil {
           MessageUtil.constructMessage(i));
     }
     consumer.close();
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMarkCalls(), 1);
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumResetCalls(), 1);
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMessagesConsumed(), 320);
   }
 
@@ -828,7 +827,7 @@ public class ConsumerUtil {
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMessagesConsumed(), 200);
 
     Throwable th = null;

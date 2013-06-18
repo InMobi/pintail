@@ -40,7 +40,7 @@ class Counters {
 
 public class RandomizedMultiTopicSeqGenerator {
 
-  public static final String[] tiers = { "publisher", "agent", "collector",
+  public static final String[] tiers = {"publisher", "agent", "collector",
       "hdfs" };
   public static final String OVERALL_RECEIVED_GOOD =
       "scribe_overall:received good";
@@ -81,7 +81,7 @@ public class RandomizedMultiTopicSeqGenerator {
       return;
     }
 
-    String topics[] = new String[numTopics];
+    String[] topics = new String[numTopics];
     topics[0] = args[0];
     topics[1] = args[1];
     topics[2] = AuditUtil.AUDIT_STREAM_TOPIC_NAME;
@@ -113,14 +113,14 @@ public class RandomizedMultiTopicSeqGenerator {
     latch.await();
     int i = 0;
 
-    Counters total_counters[] = new Counters[numTopics];
+    Counters[] total_counters = new Counters[numTopics];
     for (int j = 0; j < total_counters.length; j++) {
       total_counters[j] = new Counters();
     }
     for (AbstractMessagePublisher publisher : publishers) {
       publisher.close();
       i++;
-      Counters counters[] = new Counters[numTopics];
+      Counters[] counters = new Counters[numTopics];
       for (int j = 0; j < counters.length; j++) {
         counters[j] = new Counters();
         TimingAccumulator accum = publisher.getStats(topics[j]);
@@ -199,8 +199,9 @@ public class RandomizedMultiTopicSeqGenerator {
         + finalScribeCollector);
 
     if (sum.graceful != 0 || sum.lost != 0 || sum.reconnect != 0
-        || sum.retry != 0 || sum.unhandled != 0)
+        || sum.retry != 0 || sum.unhandled != 0) {
       isWarn = true;
+    }
     isFail =
         validateCounters(start, end, topics, totalMsgs, failureReason, sum,
             total_counters);
@@ -233,7 +234,7 @@ public class RandomizedMultiTopicSeqGenerator {
       StringBuffer failureReason, Counters sum, Counters[] total_counters) {
     boolean isFail = false;
 
-    Integer agentRec[] = new Integer[2];
+    Integer[] agentRec = new Integer[2];
     agentRec[0] =
         finalScribeAgent.get(topics[0] + TOPIC_RECEIVED_SUFFIX)
             - initialScribeAgent.get(topics[0] + TOPIC_RECEIVED_SUFFIX);
@@ -255,7 +256,7 @@ public class RandomizedMultiTopicSeqGenerator {
 
     }
 
-    Integer collectorRec[] = new Integer[2];
+    Integer[] collectorRec = new Integer[2];
     collectorRec[0] =
         finalScribeCollector.get(topics[0] + TOPIC_RECEIVED_SUFFIX)
             - initialScribeCollector.get(topics[0] + TOPIC_RECEIVED_SUFFIX);
@@ -299,7 +300,7 @@ public class RandomizedMultiTopicSeqGenerator {
 
   }
 
-  private static boolean validateHDFSCount(Date start, String topics[],
+  private static boolean validateHDFSCount(Date start, String[] topics,
       Counters[] total_counters, StringBuffer failureReason)
       throws IOException, InterruptedException, EndOfStreamException {
     boolean isFail = false;
@@ -365,10 +366,12 @@ public class RandomizedMultiTopicSeqGenerator {
       }
     }
     long count = 0;
-    if (receivedCount[0] != null)
+    if (receivedCount[0] != null) {
       count += receivedCount[0];
-    if (receivedCount[2] != null)
+    }
+    if (receivedCount[2] != null) {
       count += receivedCount[1];
+    }
     if (count != totalMsgs) {
       isFail = true;
       failureReason.append("Expected count of messages accross topics is"
@@ -404,7 +407,7 @@ public class RandomizedMultiTopicSeqGenerator {
   }
 
   private static class PublishThreadNew extends Thread {
-    private String topics[];
+    private String[] topics;
 
     private List<AbstractMessagePublisher> publishers;
     private long maxSeq;

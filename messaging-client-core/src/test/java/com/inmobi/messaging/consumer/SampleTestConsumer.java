@@ -25,7 +25,7 @@ public class SampleTestConsumer extends MockConsumer {
     Map<Long, Long> received = new HashMap<Long, Long>();
     long time = System.currentTimeMillis() - 60000;
     long window = time - time % 60000;
-    received.put(window, 100l);
+    received.put(window, 100L);
     AuditMessage packet = new AuditMessage(System.currentTimeMillis(),
         "testTopic", "publisher", "localhost", 1, received, received, null,
         null);
@@ -55,9 +55,9 @@ public class SampleTestConsumer extends MockConsumer {
 
 
   @Override
-  protected Message getNext() throws InterruptedException, EndOfStreamException {
+  protected Message getNext()
+      throws InterruptedException, EndOfStreamException {
     return new Message(messages.take());
-    
   }
 
 }

@@ -130,10 +130,12 @@ public class AuditStatsQuery {
         Group group = groupBy.getGroup(values);
         Long alreadyReceived = received.get(group);
         Long alreadySent = sent.get(group);
-        if (alreadyReceived == null)
-          alreadyReceived = 0l;
-        if (alreadySent == null)
-          alreadySent = 0l;
+        if (alreadyReceived == null) {
+          alreadyReceived = 0L;
+        }
+        if (alreadySent == null) {
+          alreadySent = 0L;
+        }
         Long receivedCount = getSum(packet.getReceived());
         alreadyReceived += receivedCount;
         alreadySent += getSum(packet.getSent());
@@ -142,20 +144,23 @@ public class AuditStatsQuery {
             && packet.getTier().equalsIgnoreCase(cutoffTier.toString())) {
           messageCount += receivedCount;
         }
-        if (alreadyReceived > 0)
-        received.put(group, alreadyReceived);
-        if (alreadySent > 0)
-        sent.put(group, alreadySent);
+        if (alreadyReceived > 0) {
+          received.put(group, alreadyReceived);
+        }
+        if (alreadySent > 0) {
+          sent.put(group, alreadySent);
+        }
       }
     }
   }
 
   private Long getSum(Map<Long, Long> counters) {
-    Long result = 0l;
+    Long result = 0L;
     for (Entry<Long, Long> entry : counters.entrySet()) {
       long timestamp = entry.getKey();
-      if (timestamp >= fromTime.getTime() && timestamp <= toTime.getTime())
+      if (timestamp >= fromTime.getTime() && timestamp <= toTime.getTime()) {
         result += entry.getValue();
+      }
     }
     return result;
 
@@ -163,8 +168,9 @@ public class AuditStatsQuery {
 
   private Date getDate(String date) throws ParseException {
     SimpleDateFormat formatter = new SimpleDateFormat(AuditUtil.DATE_FORMAT);
-    if (timezone != null)
+    if (timezone != null) {
       formatter.setTimeZone(TimeZone.getTimeZone(timezone));
+    }
     return formatter.parse(date);
   }
 
@@ -174,20 +180,23 @@ public class AuditStatsQuery {
       parseAndSetArguments();
       aggregateStats(consumer);
     } finally {
-      if (consumer != null)
+      if (consumer != null) {
         consumer.close();
+      }
     }
   }
 
   void parseAndSetArguments() throws ParseException, IOException {
-    if (cuttoffString == null)
+    if (cuttoffString == null) {
       cutoffTime = DEFAULT_CUTOFF_HRS;
-    else
+    } else {
       cutoffTime = Integer.parseInt(cuttoffString);
-    if (timeOutString == null)
+    }
+    if (timeOutString == null) {
       timeout = 120000;
-    else
+    } else {
       timeout = Long.parseLong(timeOutString) * 60 * 1000;
+    }
     groupBy = new GroupBy(groupByString);
     filter = new Filter(filterString);
     fromTime = getDate(fromTimeString);
@@ -195,7 +204,7 @@ public class AuditStatsQuery {
     consumer = getConsumer(fromTime, toTime, rootDir);
   }
 
-  public static void main(String args[]) {
+  public static void main(String[] args) {
     String cutoffString = null, timeoutString = null;
     String groupByKeys = null;
     String filterKeys = null;
@@ -267,8 +276,9 @@ public class AuditStatsQuery {
   @Override
   public String toString() {
     SimpleDateFormat formatter = new SimpleDateFormat("dd-MM HH:mm");
-    if (timezone != null)
+    if (timezone != null) {
       formatter.setTimeZone(TimeZone.getTimeZone(timezone));
+    }
     return "AuditStatsQuery [fromTime=" + formatter.format(fromTime)
         + ", toTime=" + formatter.format(toTime) + ", cutoffTime=" + cutoffTime
         + ", groupBy=" + groupBy + ", filter=" + filter + ", timeout="
@@ -280,8 +290,9 @@ public class AuditStatsQuery {
       System.out
           .println("Query was stopped due to timeout limit,Partial Result Possible");
       SimpleDateFormat formatter = new SimpleDateFormat();
-      if (timezone != null)
+      if (timezone != null) {
         formatter.setTimeZone(TimeZone.getTimeZone(timezone));
+      }
       String date = formatter.format(new Date(currentTime));
       System.out.println("Time of Last Processed Audit Message [ " + date
           + " ]");
@@ -299,8 +310,9 @@ public class AuditStatsQuery {
       throws IOException {
     Calendar calendar = Calendar.getInstance();
     Date startTime, stopTime;
-    if (timezone != null)
+    if (timezone != null) {
       calendar.setTimeZone(TimeZone.getTimeZone(timezone));
+    }
     calendar.setTime(fromTime);
     // since audit topic is getting rolled every hour hence starting the
     // consumer from 1 hour behind
