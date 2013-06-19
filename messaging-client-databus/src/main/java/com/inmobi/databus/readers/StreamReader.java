@@ -226,7 +226,7 @@ public abstract class StreamReader<T extends StreamFile> {
     if (lineNum != numLines) {
       LOG.warn("Skipped wrong number of lines");
       throw new IOException("Skipped wrong number of lines while "
-          + "skipping old data in CollectorStreamReader");
+          + "skipping old data in " + this.getClass().getSimpleName());
     }
     return lineNum;
   }
