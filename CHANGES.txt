@@ -1,3 +1,19 @@
+Release 3.1.0
+
+Bug fixes and Improvements :
+
+    6. Fix the warnings which were identified by findbugs plugin and check-style
+
+    5. Fix consumer stuck in infinite loop
+
+    4. Fix the stopTime configuration in AuditStatsQuery
+
+    3. Provide a hook for starting from the start of the stream
+
+    2. Make reading from streams_local optional incase of COLLECTOR Reader
+
+    1. Add file system statistics
+
 Release 3.0.0
 
 Incompatible Changes :
