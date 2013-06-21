@@ -26,9 +26,9 @@ public class AuditDbQuery {
   private static final Log LOG = LogFactory.getLog(AuditDbQuery.class);
 
   private String rootDir, filterString, groupByString, toTimeString,
-      fromTimeString, percentileString, dbConfFile;
+      fromTimeString, percentileString;
 
-  Map<Tuple, Map<Float, Integer>> percentile;
+  Map<Tuple, Map<Float, Integer>> percentile=new HashMap<Tuple, Map<Float,Integer>>();
   Date fromTime;
   Date toTime;
   GroupBy groupBy;
@@ -38,24 +38,18 @@ public class AuditDbQuery {
   Map<GroupBy.Group, Long> received;
   Map<GroupBy.Group, Long> sent;
 
+
   public AuditDbQuery(String rootDir, String toTimeString,
                          String fromTimeString, String filterString,
-                         String groupByString, String percentile) {
+ String groupByString) {
     this(rootDir, toTimeString, fromTimeString, filterString, groupByString,
-        percentile, null);
+        null);
   }
 
   public AuditDbQuery(String rootDir, String toTimeString,
                          String fromTimeString, String filterString,
-                         String groupByString) {
-    this(rootDir, toTimeString, fromTimeString, filterString, groupByString,
-        null, null);
-  }
-
-  public AuditDbQuery(String rootDir, String toTimeString,
-                         String fromTimeString, String filterString,
-                         String groupByString, String percentileString,
-                         String dbConfFile) {
+ String groupByString,
+      String percentileString) {
     received = new TreeMap<GroupBy.Group, Long>();
     sent = new TreeMap<GroupBy.Group, Long>();
     tupleSet = new HashSet<Tuple>();
@@ -65,7 +59,6 @@ public class AuditDbQuery {
     this.filterString = filterString;
     this.groupByString = groupByString;
     this.percentileString = percentileString;
-    this.dbConfFile = dbConfFile;
   }
 
   void aggregateStats() {

@@ -119,7 +119,7 @@ public class AuditStatsFeederTest {
 
   }
 
-  // @Test
+  @Test
   public void testMsgsAlignedAtMin() throws IOException {
     String tier = "agent", host = "localhost", topic = "testTopic", cluster = "testCluster";
     AuditMessage msg = new AuditMessage();
@@ -127,6 +127,7 @@ public class AuditStatsFeederTest {
     cal.set(Calendar.SECOND, 20);
     cal.set(Calendar.MILLISECOND, 0);
     long msgReceived = cal.getTimeInMillis();
+    System.out.println("Message received at " + new Date(msgReceived));
     msg.setTimestamp(msgReceived);
     msg.setWindowSize(60);
     msg.setTopic(topic);
@@ -135,18 +136,28 @@ public class AuditStatsFeederTest {
     cal.set(Calendar.SECOND, 0);
     cal.set(Calendar.MILLISECOND, 0);
     long received1 = cal.getTimeInMillis();
-    msg.putToReceived(received1, 9);
+    System.out.println("Received 5 packets of " + new Date(received1));
+    msg.putToReceived(received1, 5);
     cal.add(Calendar.MINUTE, -1);
     long received2 = cal.getTimeInMillis();
-    msg.putToReceived(received2, 7);
-    msg.putToSent(cal.getTimeInMillis(), 5);
+    System.out.println("Received 9 packets of " + new Date(received2));
+    msg.putToReceived(received2, 9);
+    System.out.println("Sent 5 packets of " + new Date(received2));
+    msg.putToSent(received2, 6);
     AuditStatsFeeder feeder = new AuditStatsFeeder(cluster, "emtpyRootDir",
         new ClientConfig());
     AuditMessage[] msgs = feeder.getAuditMessagesAlignedAtMinuteBoundary(msg);
     assert (msgs.length == 2);
     System.out.println(msgs[0].getReceived());
     System.out.println(received1);
-    assert (msgs[0].getReceived().get(received1) == 6);
+    System.out.println(received2);
+    System.out.println(new Date(received1));
+    System.out.println(new Date(received2));
+    assert (msgs[0].getReceived().get(received2) == 6);
+    assert (msgs[1].getReceived().get(received2) == 3);
+    assert (msgs[1].getReceived().get(received1) == 5);
+    assert (msgs[0].getSent().get(received2) == 4);
+    assert (msgs[1].getSent().get(received2) == 2);
   }
 
 
