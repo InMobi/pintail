@@ -7,12 +7,12 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.flume.Event;
 import org.apache.flume.api.RpcClient;
 import org.apache.flume.api.RpcClientFactory;
 import org.apache.flume.event.EventBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.inmobi.instrumentation.TimingAccumulator.Outcome;
 import com.inmobi.messaging.ClientConfig;
@@ -21,8 +21,7 @@ import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 
 public class FlumeMessagePublisher extends AbstractMessagePublisher {
 
-  private static final Logger LOG = LoggerFactory
-      .getLogger(FlumeMessagePublisher.class);
+  private static final Log LOG = LogFactory.getLog(FlumeMessagePublisher.class);
 
   private static final int BUFFER_SIZE = 10000;
   //private static final int CONCURRENT_SENDERS = 3;

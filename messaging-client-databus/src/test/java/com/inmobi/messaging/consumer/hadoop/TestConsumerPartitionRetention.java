@@ -76,12 +76,9 @@ public class TestConsumerPartitionRetention {
 
   @Test
   public void testWithRetentionPeriod() throws Exception {
-    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
-        "20");
-    secondconfig.set(MessagingConsumerConfig.relativeStartTimeConfig,
-        "20");
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig, "30");
+    secondconfig.set(MessagingConsumerConfig.relativeStartTimeConfig, "30");
     consumer.init(streamName, consumerName, null, config);
-    LOG.info("topicname is" + streamName + consumer.getTopicName());
     Assert.assertEquals(consumer.getTopicName(), streamName);
     Assert.assertEquals(consumer.getConsumerName(), consumerName);
 
@@ -98,7 +95,7 @@ public class TestConsumerPartitionRetention {
       firstConsumedMessages.add(getMessage(msg.getData().array()));
     }
     consumer.close();
-    LOG.info("number of msgs consumed by first consumer" + 
+    LOG.debug("number of msgs consumed by first consumer" +
         firstConsumedMessages.size());
 
     while (secondConsumedMessages.size() < 600) {
@@ -106,7 +103,7 @@ public class TestConsumerPartitionRetention {
       secondConsumedMessages.add(getMessage(msgs.getData().array()));
     }
     secondConsumer.close();
-    LOG.info("number of messages consumed messages by second consumer " + 
+    LOG.debug("number of messages consumed messages by second consumer " +
         secondConsumedMessages.size());
 
     Assert.assertEquals(firstConsumedMessages.size() + 

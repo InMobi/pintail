@@ -46,8 +46,9 @@ public abstract class TestAbstractDatabusWaitingReader {
   abstract Path getStreamsDir();
 
   public void testInitialize() throws Exception {
+    String fsUri = fs.getUri().toString();
     PartitionReaderStatsExposer metrics = new PartitionReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     // Read from start
     lreader = new DatabusStreamWaitingReader(partitionId,
         fs, streamDir,
@@ -135,8 +136,9 @@ public abstract class TestAbstractDatabusWaitingReader {
 
   public void testReadFromStart() throws Exception {
     initializePartitionCheckpointList();
+    String fsUri = fs.getUri().toString();
     PartitionReaderStatsExposer metrics = new PartitionReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     lreader = new DatabusStreamWaitingReader(partitionId,
         fs, getStreamsDir(),
         inputFormatClass, conf , 1000, metrics, false, partitionMinList, 
@@ -156,12 +158,18 @@ public abstract class TestAbstractDatabusWaitingReader {
     Assert.assertEquals(metrics.getMessagesReadFromSource(), 300);
     Assert.assertEquals(metrics.getWaitTimeUnitsNewFile(), 0);
     Assert.assertTrue(metrics.getCumulativeNanosForFetchMessage() > 0);
+    Assert.assertTrue(metrics.getListOps() > 0);
+    Assert.assertTrue(metrics.getOpenOps() == 0);
+    Assert.assertTrue(metrics.getFileStatusOps() > 0);
+    Assert.assertTrue(metrics.getExistsOps() > 0);
+    Assert.assertTrue(metrics.getNumberRecordReaders() > 0);
   }
 
   public void testReadFromCheckpoint() throws Exception {
     initializePartitionCheckpointList();
+    String fsUri = fs.getUri().toString();
     PartitionReaderStatsExposer metrics = new PartitionReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     lreader = new DatabusStreamWaitingReader(partitionId,
         fs, getStreamsDir(), inputFormatClass, conf, 1000, metrics, false, 
         partitionMinList, partitionCheckpointList, null);
@@ -180,12 +188,18 @@ public abstract class TestAbstractDatabusWaitingReader {
     Assert.assertEquals(metrics.getMessagesReadFromSource(), 180);
     Assert.assertEquals(metrics.getWaitTimeUnitsNewFile(), 0);
     Assert.assertTrue(metrics.getCumulativeNanosForFetchMessage() > 0);
+    Assert.assertTrue(metrics.getListOps() > 0);
+    Assert.assertTrue(metrics.getOpenOps() == 0);
+    Assert.assertTrue(metrics.getFileStatusOps() > 0);
+    Assert.assertTrue(metrics.getExistsOps() > 0);
+    Assert.assertTrue(metrics.getNumberRecordReaders() > 0);
   }
 
   public void testReadFromTimeStamp() throws Exception {
     initializePartitionCheckpointList();
+    String fsUri = fs.getUri().toString();
     PartitionReaderStatsExposer metrics = new PartitionReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     lreader = new DatabusStreamWaitingReader(partitionId,
         fs, getStreamsDir(), inputFormatClass, conf, 1000, metrics, false, 
         partitionMinList, partitionCheckpointList, null);
@@ -204,6 +218,11 @@ public abstract class TestAbstractDatabusWaitingReader {
     Assert.assertEquals(metrics.getMessagesReadFromSource(), 200);
     Assert.assertEquals(metrics.getWaitTimeUnitsNewFile(), 0);
     Assert.assertTrue(metrics.getCumulativeNanosForFetchMessage() > 0);
+    Assert.assertTrue(metrics.getListOps() > 0);
+    Assert.assertTrue(metrics.getOpenOps() == 0);
+    Assert.assertTrue(metrics.getFileStatusOps() > 0);
+    Assert.assertTrue(metrics.getExistsOps() > 0);
+    Assert.assertTrue(metrics.getNumberRecordReaders() > 0);
   }
   public void initializePartitionCheckpointList() {
     chkPoints = new TreeMap<Integer, PartitionCheckpoint>();

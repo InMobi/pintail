@@ -5,6 +5,7 @@ import java.util.Date;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -15,6 +16,9 @@ import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
+import org.apache.hadoop.fs.PathFilter;
+import org.apache.hadoop.fs.s3.S3FileSystem;
+import org.apache.hadoop.fs.s3native.NativeS3FileSystem;
 
 public abstract class StreamReader<T extends StreamFile> {
 
@@ -25,7 +29,7 @@ public abstract class StreamReader<T extends StreamFile> {
   protected PartitionId partitionId;
   protected FileStatus currentFile;
   protected long currentLineNum = 0;
-  protected FileSystem fs;
+  private FileSystem fs;
   protected volatile boolean closed = false;
   protected boolean noNewFiles = false; // this is purely for tests
   private long waitTimeForCreate;
@@ -171,6 +175,14 @@ public abstract class StreamReader<T extends StreamFile> {
     if (currentFile == null)
       return null;
     return currentFile.getPath();
+  }
+  
+  protected Path getLastFile() {
+    FileStatus lastFile = fileMap.getLastFile();
+    if (lastFile != null) {
+      return lastFile.getPath();
+    }
+    return null;
   }
 
   public T getCurrentStreamFile() {
@@ -388,6 +400,43 @@ public abstract class StreamReader<T extends StreamFile> {
         }
       }
     }
+    return false;
+  }
+
+  protected FileStatus[] fsListFileStatus(Path baseDir, PathFilter pathFilter)
+      throws IOException {
+    FileStatus[] fileStatusList;
+    if (pathFilter != null) {
+      fileStatusList = fs.listStatus(baseDir, pathFilter);
+    } else {
+      fileStatusList = fs.listStatus(baseDir);
+    }
+    metrics.incrementListOps();
+    return fileStatusList;
+  }
+
+  protected FileStatus fsGetFileStatus(Path dir)
+      throws IOException {
+    FileStatus status = fs.getFileStatus(dir);
+    metrics.incrementFileStatusOps();
+    return status;
+  }
+
+  protected FSDataInputStream fsOpen(Path dir) throws IOException {
+    FSDataInputStream inputstream = fs.open(dir);
+    metrics.incrementOpenOps();
+    return inputstream;
+  }
+
+  protected boolean fsIsPathExists(Path dir) throws IOException {
+    boolean isExists = fs.exists(dir);
+    metrics.incrementExistsOps();
+    return isExists;
+  }
+
+  protected boolean isFileSystemS3() {
+    if(fs instanceof S3FileSystem || fs instanceof NativeS3FileSystem)
+      return true;
     return false;
   }
 }

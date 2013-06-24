@@ -41,12 +41,14 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   private Configuration conf;
   private StringBuilder builder = new StringBuilder();
   private boolean isS3Fs = false;
+  private boolean isLocalStreamAvailable;
 
   public CollectorStreamReader(PartitionId partitionId,
       FileSystem fs, String streamName, Path streamDir,
       long waitTimeForFlush,
       long waitTimeForCreate, CollectorReaderStatsExposer metrics,
-      Configuration conf, boolean noNewFiles, Date stopTime)
+      Configuration conf, boolean noNewFiles, Date stopTime,
+      boolean isLocalStreamAvailable)
           throws IOException {
     super(partitionId, fs, streamDir, waitTimeForCreate, metrics, noNewFiles,
         stopTime);
@@ -54,16 +56,12 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     this.waitTimeForFlush = waitTimeForFlush;
     this.collectorMetrics = (CollectorReaderStatsExposer)(this.metrics);
     this.conf = conf;
+    this.isLocalStreamAvailable = isLocalStreamAvailable;
     LOG.info("Collector reader initialized with partitionId:" + partitionId +
         " streamDir:" + streamDir + 
         " waitTimeForFlush:" + waitTimeForFlush +
         " waitTimeForCreate:" + waitTimeForCreate);
-    isFileSystemS3();
-  }
-
-  private void isFileSystemS3() {
-    if(fs instanceof S3FileSystem || fs instanceof NativeS3FileSystem)
-      isS3Fs = true;
+    isS3Fs = isFileSystemS3();
   }
 
   protected FileMap<CollectorFile> createFileMap() throws IOException {
@@ -88,22 +86,26 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
        */
       @Override
       protected void buildList() throws IOException {
-        if (fs.exists(streamDir)) {
-          FileStatus[] fileStatuses = fs.listStatus(streamDir, pathFilter);
+        if (fsIsPathExists(streamDir)) {
+          FileStatus[] fileStatuses = fsListFileStatus(streamDir, pathFilter);
           if (fileStatuses == null || fileStatuses.length == 0) {
             LOG.info("No files in directory:" + streamDir);
             return;
           }
-          for (FileStatus file : fileStatuses) {
-            if (stopTime != null) {
+          if (stopTime == null) {
+            for (FileStatus file : fileStatuses) {
+              addPath(file);
+            }
+          } else {
+            for (FileStatus file : fileStatuses) {
               Date currentTimeStamp = getDateFromCollectorFile(
                   file.getPath().getName());
               if (stopTime.before(currentTimeStamp)) {
                 stopListing();
                 continue;
               }
+              addPath(file);
             }
-            addPath(file);
           }
         } else {
           LOG.info("Collector directory does not exist");
@@ -143,9 +145,9 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     } 
     LOG.info("Opening file:" + getCurrentFile() + " NumLinesTobeSkipped when" +
         " opening:" + currentLineNum);
-    if (fs.exists(getCurrentFile())) {
+    if (fsIsPathExists(getCurrentFile())) {
 
-      inStream = fs.open(getCurrentFile());
+      inStream = fsOpen(getCurrentFile());
       reader = new BufferedReader(new InputStreamReader(inStream));
       skipOldData();
     } else {
@@ -223,8 +225,13 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
         LOG.info("Stream closed");
         break;
       }
-      build(); // rebuild file list
-      if (!hasNextFile()) { //there is no next file
+      Path lastFile = getLastFile();
+      // rebuild file list only if local stream is available because some files
+      // may move to local stream
+      if (isLocalStreamAvailable || !hasNextFile()) {
+        build(); // rebuild file list
+      }
+      if (!hasNextFile()) { //there is no next files
         // stop reading if it read till stopTime
         if (hasReadFully()) {
           LOG.info("read all files till stop date");
@@ -232,7 +239,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
         }
         if (!setIterator()) {
           LOG.info("Could not find current file in the stream");
-          if (isWithinStream(getCurrentFile().getName())) {
+          if (isWithinStream(getCurrentFile().getName()) || !isLocalStreamAvailable) {
             LOG.info("Staying in collector stream as earlier files still exist");
             startFromNextHigherAndOpen(getCurrentFile().getName());
             LOG.info("Reading from the next higher file");
@@ -245,7 +252,10 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
           LOG.info("Reading from the same file after reopen");
         }
       } else {
-        if (moveToNext) {
+        // reopen a file only if the file is last file on the stream
+        // and local stream is not available
+        if (moveToNext
+            || (lastFile != null && !(lastFile.equals(getCurrentFile())))) {
           setNextFile();
           LOG.info("Reading from next file: " + getCurrentFile());
         } else {

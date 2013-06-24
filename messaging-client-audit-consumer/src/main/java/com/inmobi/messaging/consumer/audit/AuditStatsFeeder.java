@@ -1,5 +1,8 @@
 package com.inmobi.messaging.consumer.audit;
 
+import info.ganglia.gmetric4j.gmetric.GMetric;
+import info.ganglia.gmetric4j.gmetric.GMetric.UDPAddressingMode;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
@@ -16,11 +19,11 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.thrift.TDeserializer;
 import org.apache.thrift.TException;
 
-import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.CsvReporter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
+import com.codahale.metrics.ganglia.GangliaReporter;
 import com.inmobi.audit.thrift.AuditMessage;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
@@ -123,10 +126,12 @@ class AuditStatsFeeder implements Runnable {
   private static final String CONSUMER_CLASSNAME = "com.inmobi.messaging.consumer.databus.DatabusConsumer";
 
   private final String clusterName;
-  private MessageConsumer consumer = null;
+  private volatile MessageConsumer consumer = null;
 
-  private boolean isStop = false;
+  private volatile boolean isStop = false;
   private static final String MESSAGES_PER_BATCH_KEY = "messages.batch.num";
+  private static final String GANGLIA_HOST = "feeder.ganglia.host";
+  private static final String GANGLIA_PORT = "feeder.ganglia.port";
   private int DEFAULT_MSG_PER_BATCH = 1000;
   private int msgsPerBatch;
   private TDeserializer deserializer = new TDeserializer();
@@ -134,19 +139,12 @@ class AuditStatsFeeder implements Runnable {
   private final static long RETRY_INTERVAL = 60000;
   private final String rootDir;
   private Thread thread;
-  private static final String START_TIME_KEY = "messaging.consumer.absolute.starttime";
+  private static final String START_TIME_KEY = MessageConsumerFactory.ABSOLUTE_START_TIME;
   private static final int DEFAULT_TIMEOUT = 30;
   final MetricRegistry metrics = new MetricRegistry();
   private final Counter messagesProcessed;
   private final Timer timeTakenPerRun, timeTakenDbUpdate;
   private final AuditDBHelper dbHelper;
-  // TODO could change these reporters to may b ganglia or JMX
-  final ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics)
-      .convertRatesTo(TimeUnit.SECONDS)
-      .convertDurationsTo(TimeUnit.MILLISECONDS).build();
-  final CsvReporter csvreporter = CsvReporter.forRegistry(metrics)
-      .formatFor(Locale.US).convertRatesTo(TimeUnit.SECONDS)
-      .convertDurationsTo(TimeUnit.MILLISECONDS).build(new File("/tmp"));
 
   /**
    * 
@@ -156,8 +154,8 @@ class AuditStatsFeeder implements Runnable {
    * @param config
    * @throws IOException
    */
-  public AuditStatsFeeder(String clusterName, String rootDir, ClientConfig config)
-      throws IOException {
+  public AuditStatsFeeder(String clusterName, String rootDir,
+      ClientConfig config) throws IOException {
     this.clusterName = clusterName;
     this.config = config;
     this.rootDir = rootDir;
@@ -169,7 +167,19 @@ class AuditStatsFeeder implements Runnable {
     messagesProcessed = metrics.counter(clusterName + ".messagesProcessed");
     timeTakenPerRun = metrics.timer(clusterName + ".timeTakenPerRun");
     timeTakenDbUpdate = metrics.timer(clusterName + ".timeTakenDbUpdate");
-    reporter.start(1, TimeUnit.MINUTES);
+    String gangliaHost = config.getString(GANGLIA_HOST);
+    int gangliaPort = config.getInteger(GANGLIA_PORT, 8649);
+    if (gangliaHost != null) {
+      final GMetric ganglia = new GMetric(gangliaHost, gangliaPort,
+          UDPAddressingMode.MULTICAST, 1);
+      final GangliaReporter gangliaReporter = GangliaReporter
+          .forRegistry(metrics).convertRatesTo(TimeUnit.SECONDS)
+          .convertDurationsTo(TimeUnit.MILLISECONDS).build(ganglia);
+      gangliaReporter.start(1, TimeUnit.MINUTES);
+    }
+    final CsvReporter csvreporter = CsvReporter.forRegistry(metrics)
+        .formatFor(Locale.US).convertRatesTo(TimeUnit.SECONDS)
+        .convertDurationsTo(TimeUnit.MILLISECONDS).build(new File("/tmp"));
     csvreporter.start(1, TimeUnit.MINUTES);
 
   }
@@ -179,8 +189,7 @@ class AuditStatsFeeder implements Runnable {
     return window;
   }
 
-  private AuditMessage[] getAuditMessagesAlignedAtMinuteBoundary(
-      AuditMessage message) {
+  AuditMessage[] getAuditMessagesAlignedAtMinuteBoundary(AuditMessage message) {
     AuditMessage[] messages = new AuditMessage[2];
     int windowSize = message.getWindowSize();
     long receivedTime = message.getTimestamp();
@@ -259,8 +268,12 @@ class AuditStatsFeeder implements Runnable {
           long latency = messageReceivedTime - upperBoundaryTime;
           if (latency < 0) {
             LOG.error("Error scenario,check that time is in sync across tiers,audit"
-                + "message has time stamp "+ messageReceivedTime
-                + " and source time is "+ timestamp+ " for tier " + message.getTier());
+                + "message has time stamp "
+                + messageReceivedTime
+                + " and source time is "
+                + timestamp
+                + " for tier "
+                + message.getTier());
             continue;
           }
           LatencyColumns latencyColumn = LatencyColumns
@@ -347,71 +360,76 @@ class AuditStatsFeeder implements Runnable {
       while (!isStop) {
         final Timer.Context runContext = timeTakenPerRun.time();
         try {
-        int numOfMsgs = 0;
-        while (!isStop && consumer == null) {
-          // if a checkpoint is already present than from time would be ignored.
-          try {
-            consumer = getConsumer(config);
-          } catch (IOException e) {
-            LOG.error("Could not intialize the consumer,would re-try after "
-                + RETRY_INTERVAL + "millis");
+          int numOfMsgs = 0;
+          while (!isStop && consumer == null) {
+            // if a checkpoint is already present than from time would be
+            // ignored.
             try {
-              Thread.sleep(RETRY_INTERVAL);
-            } catch (InterruptedException e1) {
-              LOG.error("Exception while sleeping", e1);
+              consumer = getConsumer(config);
+            } catch (IOException e) {
+              LOG.error("Could not intialize the consumer,would re-try after "
+                  + RETRY_INTERVAL + "millis");
+              try {
+                Thread.sleep(RETRY_INTERVAL);
+              } catch (InterruptedException e1) {
+                LOG.error("Exception while sleeping", e1);
+              }
             }
           }
-        }
-        while (!isStop && numOfMsgs < msgsPerBatch) {
-          try {
+          while (!isStop && numOfMsgs < msgsPerBatch) {
+            try {
               msg = consumer.next(DEFAULT_TIMEOUT, TimeUnit.SECONDS);
               if (msg == null)// timeout occurred
                 continue;
-            auditMsg = new AuditMessage();
-            deserializer.deserialize(auditMsg, msg.getData().array());
-            LOG.debug("Packet read is " + auditMsg);
-            addTuples(auditMsg);
-            numOfMsgs++;
-            messagesProcessed.inc();
-          } catch (InterruptedException e) {
-            LOG.error("Error while reading audit message ", e);
-          } catch (TException e) {
-            LOG.error("Exception in deserializing audit message");
-          } catch (EndOfStreamException e) {
-            LOG.info("End of stream reached,breaking the loop");
-            isStop = true;
-            break;
+              auditMsg = new AuditMessage();
+              deserializer.deserialize(auditMsg, msg.getData().array());
+              LOG.debug("Packet read is " + auditMsg);
+              addTuples(auditMsg);
+              numOfMsgs++;
+              messagesProcessed.inc();
+            } catch (InterruptedException e) {
+              LOG.error("Error while reading audit message ", e);
+            } catch (TException e) {
+              LOG.error("Exception in deserializing audit message");
+            } catch (EndOfStreamException e) {
+              LOG.info("End of stream reached,breaking the loop");
+              isStop = true;
+              break;
+            }
           }
-        }
-        Set<Tuple> tupleSet = new HashSet<Tuple>();
-        tupleSet.addAll(tuples.values());
+          if (isStop)
+            LOG.info("Stopped received,going to udpate in memory contents");
+          Set<Tuple> tupleSet = new HashSet<Tuple>();
+          tupleSet.addAll(tuples.values());
           final Timer.Context dbUpdate = timeTakenDbUpdate.time();
           try {
             if (dbHelper.update(tupleSet)) {
-          try {
-            consumer.mark();
-          } catch (Exception e) {
-            LOG.error(
-                "Failure in marking the consumer,Audit Messages  could be re processed",
-                e);
-          }
-        } else {
-          LOG.error("Updation to DB failed,resetting the consumer");
-          try {
-            consumer.reset();
-          } catch (Exception e) {
-            LOG.error("Exception while reseting the consumer,would re-intialize consumer in next run");
-            consumer = null;
-          }
-        }
+              try {
+                consumer.mark();
+              } catch (Exception e) {
+                LOG.error(
+                    "Failure in marking the consumer,Audit Messages  could be re processed",
+                    e);
+              }
+            } else {
+              LOG.error("Updation to DB failed,resetting the consumer");
+              try {
+                consumer.reset();
+              } catch (Exception e) {
+                LOG.error("Exception while reseting the consumer,would re-intialize consumer in next run");
+                consumer = null;
+              }
+            }
           } finally {
             dbUpdate.stop();
           }
-        // clearing of the tuples as they have been processed
-        tuples.clear();
+          // clearing of the tuples as they have been processed
+          tuples.clear();
+          if (isStop)
+            LOG.info("Stop complete");
         } finally {
           runContext.stop();
-      }
+        }
       }
     } finally {
       if (consumer != null) {

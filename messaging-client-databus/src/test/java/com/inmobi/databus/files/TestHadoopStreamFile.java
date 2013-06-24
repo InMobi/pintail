@@ -1,6 +1,7 @@
 package com.inmobi.databus.files;
 
 import java.io.IOException;
+import java.util.TreeMap;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -47,4 +48,30 @@ public class TestHadoopStreamFile {
     fs.delete(p1, true);
   }
 
+  @Test
+  public void testCeiling() {
+    TreeMap<HadoopStreamFile,String> fileMap = new TreeMap<HadoopStreamFile, String>();
+    fileMap.put(new HadoopStreamFile(new Path(
+        "hdfs://localhost:9000/databus/streams_local/stream1/2013/05/29/08/46/"),
+        "localhost-stream1-2013-05-29-08-44_00000.gz", 1369817168983L), "1");
+    fileMap.put(new HadoopStreamFile(new Path(
+        "hdfs://localhost:9000/databus/streams_local/stream1/2013/05/29/08/46/"),
+        "localhost-stream1-2013-05-29-08-45_00000.gz", 1369817169526L), "2");
+    fileMap.put(new HadoopStreamFile(new Path(
+        "hdfs://localhost:9000/databus/streams_local/stream1/2013/05/29/08/46/"),
+        "localhost-stream1-2013-05-29-08-45_00001.gz", 1369817169889L), "3");
+    fileMap.put(new HadoopStreamFile(new Path(
+        "hdfs://localhost:9000/databus/streams_local/stream1/2013/05/29/08/46/"),
+        "localhost-stream1-2013-05-29-08-45_00002.gz", 1369817170221L), "4");
+    fileMap.put(new HadoopStreamFile(new Path(
+        "hdfs://localhost:9000/databus/streams_local/stream1/2013/05/29/08/46/"),
+        "localhost-stream1-2013-05-29-08-45_00003.gz", 1369817170517L), "5");
+    fileMap.put(new HadoopStreamFile(new Path(
+        "hdfs://localhost:9000/databus/streams_local/stream1/2013/05/29/08/46/"),
+        "localhost-stream1-2013-05-29-08-45_00004.gz", 1369817240828L), "6");
+    HadoopStreamFile timeKey = new HadoopStreamFile(new Path(
+        "hdfs://localhost:9000/databus/streams_local/stream1/2013/05/29/08/46/"),
+        null, null);
+    Assert.assertEquals(fileMap.ceilingEntry(timeKey), fileMap.firstEntry());
+  }
 }

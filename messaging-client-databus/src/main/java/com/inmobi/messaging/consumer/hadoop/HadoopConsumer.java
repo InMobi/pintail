@@ -62,6 +62,7 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
   protected void createPartitionReaders() throws IOException {
     for (int i= 0; i < clusterNames.length; i++) {
       String clusterName = clusterNames[i];
+      String fsUri = fileSystems[i].getUri().toString();
       LOG.debug("Creating partition reader for cluster:" + clusterName);
 
       // create partition id
@@ -78,7 +79,7 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
           partitionCheckpointList);
       PartitionReaderStatsExposer clusterMetrics = 
           new PartitionReaderStatsExposer(topicName, consumerName, id.toString(), 
-              consumerNumber);
+              consumerNumber, fsUri);
       addStatsExposer(clusterMetrics);
       PartitionReader reader = new PartitionReader(id,
           partitionCheckpointList, fileSystems[i], buffer, rootDirs[i],

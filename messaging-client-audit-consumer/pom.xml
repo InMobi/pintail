@@ -5,7 +5,7 @@
 	<parent>
 		<artifactId>messaging-client-parent</artifactId>
 		<groupId>com.inmobi.messaging</groupId>
-		<version>3.0.0-SNAPSHOT</version>
+		<version>3.0.1-SNAPSHOT</version>
 	</parent>
 
 	<profiles>
@@ -53,11 +53,7 @@
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
 			<version>5.1.25</version>
-		</dependency>
-		<dependency>
-			<groupId>com.inmobi.messaging</groupId>
-			<artifactId>messaging-client-core</artifactId>
-			<version>${project.version}</version>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.inmobi.databus</groupId>
@@ -70,10 +66,28 @@
 			<version>3.0.0-RC1</version>
 		</dependency>
 		<dependency>
+      <groupId>com.codahale.metrics</groupId>
+      <artifactId>metrics-ganglia</artifactId>
+      <version>3.0.0-RC1</version>
+    </dependency>
+		
+		<dependency>
 			<groupId>org.hsqldb</groupId>
 			<artifactId>hsqldb</artifactId>
 			<version>2.2.9</version>
+			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.inmobi.messaging</groupId>
+			<artifactId>messaging-client-databus</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+  <groupId>postgresql</groupId>
+  <artifactId>postgresql</artifactId>
+  <version>9.1-901.jdbc4</version>
+  <scope>runtime</scope>
+</dependency>
 	</dependencies>
 
 

@@ -44,6 +44,7 @@ public class TestCurrentFile {
   Configuration conf = new Configuration();
   private Path streamsLocalDir;
   int consumerNumber;
+  String fsUri;
 
 
   private void writeMessages(FSDataOutputStream out, int num)
@@ -76,12 +77,13 @@ public class TestCurrentFile {
     streamsLocalDir = DatabusUtil.getStreamDir(StreamType.LOCAL,
         new Path(cluster.getRootDir()), testStream);
     fs = FileSystem.get(cluster.getHadoopConf());
+    fsUri = fs.getUri().toString();
   }
 
   @Test
   public void testReadFromCurrentScribeFile() throws Exception {
     CollectorReaderStatsExposer prMetrics = new CollectorReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber);
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     preader = new PartitionReader(partitionId, null, conf, fs,
         collectorDir, streamsLocalDir, buffer, testStream,
         CollectorStreamReader.getDateFromCollectorFile(currentScribeFile), 1000,

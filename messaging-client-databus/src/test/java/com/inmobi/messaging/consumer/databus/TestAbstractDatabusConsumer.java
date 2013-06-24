@@ -28,7 +28,7 @@ public abstract class TestAbstractDatabusConsumer {
   protected String[] dataFiles;
   protected String consumerName;
   Path[] rootDirs;
-  protected final String relativeStartTime = "20";
+  protected final String relativeStartTime = "30";
   Configuration conf = new Configuration();
 
   public void setup(int numFileToMove) throws Exception {

@@ -47,6 +47,7 @@ public abstract class AbstractMessagingDatabusConsumer
   protected Set<Integer> partitionMinList;
   protected String relativeStartTimeStr;
   protected Date stopTime;
+  protected Boolean startOfStream;
   private int closedReadercount;
 
   @Override
@@ -145,6 +146,8 @@ public abstract class AbstractMessagingDatabusConsumer
     String stopTimeStr = config.getString(stopDateConfig);
     stopTime = getDateFromString(stopTimeStr);
 
+    startOfStream = config.getBoolean(startOfStreamConfig,
+        DEFAULT_START_OF_STREAM);
     closedReadercount = 0;
   }
 
@@ -180,6 +183,8 @@ public abstract class AbstractMessagingDatabusConsumer
   @Override
   protected Message getNext()
       throws InterruptedException, EndOfStreamException {
+    // check whether it consumed all messages till stopTime
+    checkClosedReaders();
     QueueEntry entry = null;
     for (int i = 0; i < readers.size(); i++) {
       entry = buffer.take();
@@ -187,9 +192,7 @@ public abstract class AbstractMessagingDatabusConsumer
         break;
       } else { // if (entry.getMessage() instanceof EOFMessage)
         closedReadercount++;
-        if (closedReadercount == readers.size()) {
-          throw new EndOfStreamException();
-        }
+        checkClosedReaders();
       }
     }
     setMessageCheckpoint(entry);
@@ -210,6 +213,8 @@ public abstract class AbstractMessagingDatabusConsumer
   @Override
   protected Message getNext(long timeout, TimeUnit timeunit) 
       throws InterruptedException, EndOfStreamException {
+    // check whether it consumed all messages till stopTime
+    checkClosedReaders();
     QueueEntry entry = null;
     for (int i =0; i < readers.size(); i++) {
       entry = buffer.poll(timeout, timeunit);
@@ -220,13 +225,17 @@ public abstract class AbstractMessagingDatabusConsumer
         break;
       } else { // if (entry.getMessage() instanceof EOFMessage)
         closedReadercount++;
-        if (closedReadercount == readers.size()) {
-          throw new EndOfStreamException();
-        }
+        checkClosedReaders();
       }
     }
     setMessageCheckpoint(entry);
     return (Message)entry.getMessage();
+  }
+
+  private void checkClosedReaders() throws EndOfStreamException {
+    if (closedReadercount == readers.size()) {
+      throw new EndOfStreamException();
+    }
   }
 
   protected synchronized void start() throws IOException {
@@ -247,15 +256,17 @@ public abstract class AbstractMessagingDatabusConsumer
     } else if (relativeStartTimeStr != null) {
       partitionTimestamp = findStartTimeStamp(relativeStartTimeStr);
       LOG.info("Checkpoint does not exists and relative start time is provided. " +
-          "Started from relative start time" + partitionTimestamp);
+          "Started from relative start time " + partitionTimestamp);
     } else if (startTime != null) {
       partitionTimestamp = startTime;
       LOG.info("There is no checkpoint and no relative start time is provided." +
-          " Starting from absolute start time" + partitionTimestamp);
+          " Starting from absolute start time " + partitionTimestamp);
+    } else if (startOfStream == true) {
+      LOG.info("Starting from start of the stream ");
     } else {
       throw new IllegalArgumentException("Invalid configuration to start" +
           " the consumer. " + "Provide a checkpoint or relative startTime" +
-          " or absolute startTime ");
+          " or absolute startTime or startOfStream ");
     }
     //check whether the given stop date is before/after the start time
     isValidStopDate(partitionTimestamp);
