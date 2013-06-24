@@ -26,6 +26,8 @@ public class AuditDBUtil {
         config.getString(AuditDBConstants.DB_USERNAME),
         config.getString(AuditDBConstants.DB_PASSWORD));
     Assert.assertTrue(connection != null);
+    String dropTable = "DROP TABLE IF EXISTS "+AuditDBConstants
+        .TABLE_NAME.toUpperCase()+";";
     String createTable =
         "CREATE TABLE audit(\n  TIMEINTERVAL bigint,\n  HOSTNAME varchar(25)," +
             "\n  TIER varchar(15),\n  TOPIC varchar(25)," +
@@ -36,6 +38,7 @@ public class AuditDBUtil {
             "\n  C60 bigint,\n  C120 bigint,\n  C240 bigint,\n  C600 bigint,\n" +
             "  PRIMARY KEY (TIMEINTERVAL,HOSTNAME,TIER,TOPIC,CLUSTER)\n)";
     try {
+      connection.prepareStatement(dropTable).execute();
       connection.prepareStatement(createTable).execute();
     } catch (SQLException e) {
       e.printStackTrace();

@@ -3,9 +3,7 @@ package com.inmobi.messaging.consumer.audit;
 import com.inmobi.messaging.util.AuditDBUtil;
 import com.inmobi.messaging.util.AuditUtil;
 import junit.framework.Assert;
-import org.testng.annotations.AfterTest;
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -14,13 +12,13 @@ public class TestAuditDBQuery extends AuditDBUtil {
 
   SimpleDateFormat formatter = new SimpleDateFormat(AuditUtil.DATE_FORMAT);
 
-  @BeforeTest
+  @BeforeClass
   public void setup() {
     setupDB(true);
     formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
   }
 
-  @AfterTest
+  @AfterClass
   public void shutDown() {
     super.shutDown();
   }
@@ -230,26 +228,26 @@ public class TestAuditDBQuery extends AuditDBUtil {
           ().entrySet()) {
         Assert.assertEquals(5, entry.getValue().size());
         if (entry.getKey().getHostname().equals(tuple1.getHostname())) {
-          Assert.assertEquals(LatencyColumns.valueOf("C2"),
+          Assert.assertEquals((Integer) LatencyColumns.C2.getValue(),
               entry.getValue().get(80.00f));
-          Assert.assertEquals(LatencyColumns.valueOf("C3"),
+          Assert.assertEquals((Integer) LatencyColumns.C3.getValue(),
               entry.getValue().get(90.00f));
-          Assert.assertEquals(LatencyColumns.valueOf("C3"),
+          Assert.assertEquals((Integer) LatencyColumns.C3.getValue(),
               entry.getValue().get(95.00f));
-          Assert.assertEquals(LatencyColumns.valueOf("C3"),
+          Assert.assertEquals((Integer) LatencyColumns.C3.getValue(),
               entry.getValue().get(99.00f));
-          Assert.assertEquals(LatencyColumns.valueOf("C3"),
+          Assert.assertEquals((Integer) LatencyColumns.C3.getValue(),
               entry.getValue().get(99.9f));
         } else if (entry.getKey().getHostname().equals(tuple4.getHostname())) {
-          Assert.assertEquals(LatencyColumns.valueOf("C1"),
+          Assert.assertEquals((Integer) LatencyColumns.C1.getValue(),
               entry.getValue().get(80.00f));
-          Assert.assertEquals(LatencyColumns.valueOf("C1"),
+          Assert.assertEquals((Integer) LatencyColumns.C1.getValue(),
               entry.getValue().get(90.00f));
-          Assert.assertEquals(LatencyColumns.valueOf("C1"),
+          Assert.assertEquals((Integer) LatencyColumns.C1.getValue(),
               entry.getValue().get(95.00f));
-          Assert.assertEquals(LatencyColumns.valueOf("C1"),
+          Assert.assertEquals((Integer) LatencyColumns.C1.getValue(),
               entry.getValue().get(99.00f));
-          Assert.assertEquals(LatencyColumns.valueOf("C1"),
+          Assert.assertEquals((Integer) LatencyColumns.C1.getValue(),
               entry.getValue().get(99.9f));
         }
       }

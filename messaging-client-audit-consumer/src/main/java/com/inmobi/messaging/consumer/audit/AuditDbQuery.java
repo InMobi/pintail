@@ -88,8 +88,7 @@ public class AuditDbQuery {
         if (latencyColumn == LatencyColumns.C600)
           continue;
         Long value = tuple.getLatencyCountMap().get(latencyColumn);
-        if (currentCount + value >=
-            ((currentPercentile * totalCount) / 100)) {
+        while ( currentCount + value >= ((currentPercentile * totalCount) / 100)) {
           Map<Float, Integer> percentileMap = percentile.get(tuple);
           if (percentileMap == null)
             percentileMap = new HashMap<Float, Integer>();
@@ -100,6 +99,8 @@ public class AuditDbQuery {
           else
             break;
         }
+        if (!it.hasNext())
+          break;
         currentCount += value;
       }
     }

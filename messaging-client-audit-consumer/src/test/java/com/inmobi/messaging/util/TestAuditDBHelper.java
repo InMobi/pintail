@@ -3,9 +3,7 @@ package com.inmobi.messaging.util;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.consumer.audit.*;
 import junit.framework.Assert;
-import org.testng.annotations.AfterTest;
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,19 +13,18 @@ import java.util.Set;
 
 public class TestAuditDBHelper extends  AuditDBUtil {
 
-  @BeforeTest
+  @BeforeClass
   public void setup() {
     setupDB(false);
   }
 
-  @AfterTest
+  @AfterClass
   public void shutDown() {
     super.shutDown();
   }
 
   @Test(priority = 1)
   public void testUpdate() {
-    int index = 1;
     String selectStmt = AuditDBHelper.getSelectStmtForUpdation();
     PreparedStatement selectStatement = null;
     ResultSet rs = null;
@@ -35,15 +32,13 @@ public class TestAuditDBHelper extends  AuditDBUtil {
       selectStatement = connection.prepareStatement(selectStmt);
       ClientConfig config = ClientConfig
           .loadFromClasspath(AuditStats.CONF_FILE);
+      rs = getResultSetOfQuery(selectStatement, tuple1);
+      Assert.assertNotNull(rs);
+      Assert.assertFalse(rs.next());
       AuditDBHelper helper = new AuditDBHelper(config);
-      boolean isSuccessful = helper.update(tupleSet1);
-      Assert.assertTrue(isSuccessful);
-      selectStatement.setLong(index++, tuple1.getTimestamp().getTime());
-      selectStatement.setString(index++, tuple1.getHostname());
-      selectStatement.setString(index++, tuple1.getTopic());
-      selectStatement.setString(index++, tuple1.getTier());
-      selectStatement.setString(index++, tuple1.getCluster());
-      rs = selectStatement.executeQuery();
+      Assert.assertTrue(helper.update(tupleSet1));
+      rs = getResultSetOfQuery(selectStatement, tuple1);
+      Assert.assertNotNull(rs);
       Assert.assertTrue(rs.next());
       Assert.assertEquals(tuple1.getSent(), rs.getLong(AuditDBConstants.SENT));
       for (LatencyColumns latencyColumns : LatencyColumns.values()) {
@@ -54,15 +49,9 @@ public class TestAuditDBHelper extends  AuditDBUtil {
       }
       Assert.assertEquals(tuple1.getLostCount(),
           (Long) rs.getLong(LatencyColumns.C600.toString()));
-      isSuccessful = helper.update(tupleSet2);
-      Assert.assertTrue(isSuccessful);
-      index = 1;
-      selectStatement.setLong(index++, tuple1.getTimestamp().getTime());
-      selectStatement.setString(index++, tuple1.getHostname());
-      selectStatement.setString(index++, tuple1.getTopic());
-      selectStatement.setString(index++, tuple1.getTier());
-      selectStatement.setString(index++, tuple1.getCluster());
-      rs = selectStatement.executeQuery();
+      Assert.assertTrue(helper.update(tupleSet2));
+      rs = getResultSetOfQuery(selectStatement, tuple1);
+      Assert.assertNotNull(rs);
       Assert.assertTrue(rs.next());
       Assert.assertEquals(tuple1.getSent() + tuple2.getSent(),
           rs.getLong(AuditDBConstants.SENT));
@@ -78,8 +67,7 @@ public class TestAuditDBHelper extends  AuditDBUtil {
       }
       Assert.assertEquals(tuple1.getLostCount() + tuple2.getLostCount(),
           rs.getLong(LatencyColumns.C600.toString()));
-      isSuccessful = helper.update(tupleSet3);
-      Assert.assertTrue(isSuccessful);
+      Assert.assertTrue(helper.update(tupleSet3));
     } catch (SQLException e) {
       e.printStackTrace();
     } finally {
@@ -94,6 +82,22 @@ public class TestAuditDBHelper extends  AuditDBUtil {
         e.printStackTrace();
       }
     }
+  }
+
+  private ResultSet getResultSetOfQuery(PreparedStatement selectStatement,
+                                        Tuple tuple) {
+    int index = 1;
+    try {
+      selectStatement.setLong(index++, tuple.getTimestamp().getTime());
+      selectStatement.setString(index++, tuple.getHostname());
+      selectStatement.setString(index++, tuple.getTopic());
+      selectStatement.setString(index++, tuple.getTier());
+      selectStatement.setString(index++, tuple.getCluster());
+      return selectStatement.executeQuery();
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+    return null;
   }
 
   @Test(priority = 2)
