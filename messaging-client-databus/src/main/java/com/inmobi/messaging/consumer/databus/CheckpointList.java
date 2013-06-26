@@ -115,9 +115,14 @@ public class CheckpointList implements ConsumerCheckpoint {
 
   public void write(CheckpointProvider checkpointProvider, String superKey)
       throws IOException {
-    for (Map.Entry<Integer, Checkpoint> entry : chkpoints.entrySet()) {
-      checkpointProvider.checkpoint(getChkpointKey(superKey, entry.getKey()),
-          entry.getValue().toBytes());
+    try {
+      for (Map.Entry<Integer, Checkpoint> entry : chkpoints.entrySet()) {
+        checkpointProvider.checkpoint(getChkpointKey(superKey, entry.getKey()),
+            entry.getValue().toBytes());
+      }
+    } catch (Exception e) {
+      throw new IOException("Could not checkpoint fully. It might be partial. "
+          + e);
     }
   }
 
@@ -144,7 +149,13 @@ public class CheckpointList implements ConsumerCheckpoint {
       throws IOException {
     Map<Integer, Checkpoint> thisChkpoint = new TreeMap<Integer, Checkpoint>();
     for (Integer id : idList) {
-      byte[] chkpointData = checkpointProvider.read(getChkpointKey(superKey, id));
+      byte[] chkpointData = null;
+      try {
+        chkpointData = checkpointProvider.read(getChkpointKey(superKey, id));
+      } catch (Exception e) {
+        throw new IOException("Could not read checkpoint fully." +
+            " It might be partial." + e);
+      }
       Checkpoint checkpoint;
       if (chkpointData != null) {
         checkpoint = new Checkpoint(chkpointData);

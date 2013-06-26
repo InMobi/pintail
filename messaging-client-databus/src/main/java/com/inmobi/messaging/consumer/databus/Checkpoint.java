@@ -62,7 +62,13 @@ public class Checkpoint implements Writable, ConsumerCheckpoint {
   @Override
   public void read(CheckpointProvider checkpointProvider, String key)
       throws IOException {
-    byte[] chkpointData = checkpointProvider.read(key);
+    byte[] chkpointData = null;
+    try {
+      chkpointData = checkpointProvider.read(key);
+    } catch (Exception e) {
+      throw new IOException("Could not read checkpoint fully." +
+          " It might be partial." + e);
+    }
     if (chkpointData != null) {
       readFields(new DataInputStream(new ByteArrayInputStream(chkpointData)));
     }
@@ -71,7 +77,12 @@ public class Checkpoint implements Writable, ConsumerCheckpoint {
   @Override
   public void write(CheckpointProvider checkpointProvider, String key)
       throws IOException {
-    checkpointProvider.checkpoint(key, this.toBytes());
+    try {
+      checkpointProvider.checkpoint(key, this.toBytes());
+    } catch (Exception e) {
+      throw new IOException("Could not checkpoint fully. It might be partial. "
+          + e);
+    }
   }
 
 
