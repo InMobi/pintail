@@ -1,10 +1,10 @@
 package com.inmobi.messaging.util;
 
 import com.inmobi.messaging.ClientConfig;
-import com.inmobi.messaging.consumer.audit.AuditStats;
-import com.inmobi.messaging.consumer.audit.LatencyColumns;
+import com.inmobi.databus.audit.AuditStats;
+import com.inmobi.databus.audit.LatencyColumns;
 import com.inmobi.messaging.consumer.audit.Tier;
-import com.inmobi.messaging.consumer.audit.Tuple;
+import com.inmobi.databus.audit.Tuple;
 import junit.framework.Assert;
 
 import java.sql.Connection;

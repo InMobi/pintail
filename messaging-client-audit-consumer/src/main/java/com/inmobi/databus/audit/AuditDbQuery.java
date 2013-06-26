@@ -1,4 +1,4 @@
-package com.inmobi.messaging.consumer.audit;
+package com.inmobi.databus.audit;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -10,6 +10,9 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.thrift.TException;
 
 import com.inmobi.messaging.ClientConfig;
+import com.inmobi.messaging.consumer.audit.Column;
+import com.inmobi.messaging.consumer.audit.Filter;
+import com.inmobi.messaging.consumer.audit.GroupBy;
 import com.inmobi.messaging.util.AuditDBHelper;
 import com.inmobi.messaging.util.AuditUtil;
 

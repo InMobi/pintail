@@ -1,9 +1,12 @@
-package com.inmobi.messaging.consumer.audit;
+package com.inmobi.databus.audit;
 
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.inmobi.messaging.consumer.audit.Column;
+import com.inmobi.messaging.consumer.audit.GroupBy;
 
 public class Tuple {
   final private String hostname;

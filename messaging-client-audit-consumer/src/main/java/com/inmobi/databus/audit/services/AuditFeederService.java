@@ -1,14 +1,9 @@
-package com.inmobi.messaging.consumer.audit;
+package com.inmobi.databus.audit.services;
 
-import info.ganglia.gmetric4j.gmetric.GMetric;
-import info.ganglia.gmetric4j.gmetric.GMetric.UDPAddressingMode;
-
-import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -20,11 +15,12 @@ import org.apache.thrift.TDeserializer;
 import org.apache.thrift.TException;
 
 import com.codahale.metrics.Counter;
-import com.codahale.metrics.CsvReporter;
-import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
-import com.codahale.metrics.ganglia.GangliaReporter;
 import com.inmobi.audit.thrift.AuditMessage;
+import com.inmobi.databus.audit.AuditService;
+import com.inmobi.databus.audit.AuditStats;
+import com.inmobi.databus.audit.LatencyColumns;
+import com.inmobi.databus.audit.Tuple;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.EndOfStreamException;
@@ -40,7 +36,7 @@ import com.inmobi.messaging.util.AuditUtil;
  * @author rohit.kochar
  * 
  */
-class AuditStatsFeeder implements Runnable {
+public class AuditFeederService extends AuditService {
 
   class TupleKey {
     public TupleKey(Date timestamp, String tier, String topic, String hostname,
@@ -108,8 +104,8 @@ class AuditStatsFeeder implements Runnable {
     Date timestamp;
     String tier, topic, hostname, cluster;
 
-    private AuditStatsFeeder getOuterType() {
-      return AuditStatsFeeder.this;
+    private AuditFeederService getOuterType() {
+      return AuditFeederService.this;
     }
 
     @Override
@@ -122,7 +118,7 @@ class AuditStatsFeeder implements Runnable {
   Map<TupleKey, Tuple> tuples = new HashMap<TupleKey, Tuple>();
 
   private static final String ROOT_DIR_KEY = "databus.consumer.rootdirs";
-  private static final Log LOG = LogFactory.getLog(AuditStatsFeeder.class);
+  private static final Log LOG = LogFactory.getLog(AuditFeederService.class);
   private static final String CONSUMER_CLASSNAME = "com.inmobi.messaging.consumer.databus.DatabusConsumer";
 
   private final String clusterName;
@@ -130,18 +126,15 @@ class AuditStatsFeeder implements Runnable {
 
   private volatile boolean isStop = false;
   private static final String MESSAGES_PER_BATCH_KEY = "messages.batch.num";
-  private static final String GANGLIA_HOST = "feeder.ganglia.host";
-  private static final String GANGLIA_PORT = "feeder.ganglia.port";
   private int DEFAULT_MSG_PER_BATCH = 1000;
   private int msgsPerBatch;
   private TDeserializer deserializer = new TDeserializer();
   private final ClientConfig config;
   private final static long RETRY_INTERVAL = 60000;
   private final String rootDir;
-  private Thread thread;
   private static final String START_TIME_KEY = MessageConsumerFactory.ABSOLUTE_START_TIME;
   private static final int DEFAULT_TIMEOUT = 30;
-  final MetricRegistry metrics = new MetricRegistry();
+
   private final Counter messagesProcessed;
   private final Timer timeTakenPerRun, timeTakenDbUpdate;
   private final AuditDBHelper dbHelper;
@@ -154,7 +147,7 @@ class AuditStatsFeeder implements Runnable {
    * @param config
    * @throws IOException
    */
-  public AuditStatsFeeder(String clusterName, String rootDir,
+  public AuditFeederService(String clusterName, String rootDir,
       ClientConfig config) throws IOException {
     this.clusterName = clusterName;
     this.config = config;
@@ -164,23 +157,12 @@ class AuditStatsFeeder implements Runnable {
     msgsPerBatch = config.getInteger(MESSAGES_PER_BATCH_KEY,
         DEFAULT_MSG_PER_BATCH);
     LOG.info("Messages per batch " + msgsPerBatch);
-    messagesProcessed = metrics.counter(clusterName + ".messagesProcessed");
-    timeTakenPerRun = metrics.timer(clusterName + ".timeTakenPerRun");
-    timeTakenDbUpdate = metrics.timer(clusterName + ".timeTakenDbUpdate");
-    String gangliaHost = config.getString(GANGLIA_HOST);
-    int gangliaPort = config.getInteger(GANGLIA_PORT, 8649);
-    if (gangliaHost != null) {
-      final GMetric ganglia = new GMetric(gangliaHost, gangliaPort,
-          UDPAddressingMode.MULTICAST, 1);
-      final GangliaReporter gangliaReporter = GangliaReporter
-          .forRegistry(metrics).convertRatesTo(TimeUnit.SECONDS)
-          .convertDurationsTo(TimeUnit.MILLISECONDS).build(ganglia);
-      gangliaReporter.start(1, TimeUnit.MINUTES);
-    }
-    final CsvReporter csvreporter = CsvReporter.forRegistry(metrics)
-        .formatFor(Locale.US).convertRatesTo(TimeUnit.SECONDS)
-        .convertDurationsTo(TimeUnit.MILLISECONDS).build(new File("/tmp"));
-    csvreporter.start(1, TimeUnit.MINUTES);
+    messagesProcessed = AuditStats.metrics.counter(clusterName
+        + ".messagesProcessed");
+    timeTakenPerRun = AuditStats.metrics
+        .timer(clusterName + ".timeTakenPerRun");
+    timeTakenDbUpdate = AuditStats.metrics.timer(clusterName
+        + ".timeTakenDbUpdate");
 
   }
 
@@ -212,7 +194,7 @@ class AuditStatsFeeder implements Runnable {
         long upperBoundaryTime = entry.getKey() + windowSize * 1000;
         if (upperBoundaryTime < receivedTime) {
           long received = entry.getValue();
-          // dividing the recieved in proportion of offset of received time from
+          // dividing the received in proportion of offset of received time from
           // the minute boundary to total window size
           float fractionReceivedInUpperBoundary = ((float) (receivedTime - lowerBoundary))
               / (windowSize * 1000);
@@ -234,7 +216,7 @@ class AuditStatsFeeder implements Runnable {
         long upperBoundaryTime = entry.getKey() + windowSize * 1000;
         if (upperBoundaryTime < receivedTime) {
           long sent = entry.getValue();
-          // dividing the recieved in proportion of offset of received time from
+          // dividing the sent in proportion of offset of received time from
           // the minute boundary to total window size
           float fractionSentInUpperBoundary = ((float) (receivedTime - lowerBoundary))
               / (windowSize * 1000);
@@ -335,23 +317,16 @@ class AuditStatsFeeder implements Runnable {
     isStop = true;
   }
 
-  public void start() {
-    thread = new Thread(this, "AuditStatsFeeder_" + clusterName);
-    LOG.info("Starting thread " + thread.getName());
-    thread.start();
+  @Override
+  public String getServiceName() {
+    return "AuditStatsFeeder_" + clusterName;
   }
 
-  public void join() {
-    try {
-      thread.join();
-    } catch (InterruptedException e) {
-      LOG.error("Exception while waiting for thread " + thread.getName()
-          + " to join", e);
-    }
-  }
+
+
 
   @Override
-  public void run() {
+  public void execute() {
     LOG.info("Starting the run of audit feeder for cluster " + clusterName
         + " and start time " + config.getString(START_TIME_KEY));
     Message msg;
@@ -442,5 +417,6 @@ class AuditStatsFeeder implements Runnable {
   public String getClusterName() {
     return clusterName;
   }
+
 
 }

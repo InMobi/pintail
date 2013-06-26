@@ -1,4 +1,4 @@
-package com.inmobi.messaging.consumer.audit;
+package com.inmobi.databus.audit.services;
 
 import java.io.IOException;
 import java.util.Calendar;
@@ -7,10 +7,11 @@ import java.util.Date;
 import org.testng.annotations.Test;
 
 import com.inmobi.audit.thrift.AuditMessage;
+import com.inmobi.databus.audit.services.AuditFeederService;
+import com.inmobi.databus.audit.services.AuditFeederService.TupleKey;
 import com.inmobi.messaging.ClientConfig;
-import com.inmobi.messaging.consumer.audit.AuditStatsFeeder.TupleKey;
 
-public class AuditStatsFeederTest {
+public class AuditFeederServiceTest {
 
   @Test
   public void testAddTuples() throws IOException {
@@ -33,7 +34,7 @@ public class AuditStatsFeederTest {
     long received2 = cal.getTimeInMillis();
     msg.putToReceived(received2, 7);
     msg.putToSent(cal.getTimeInMillis(), 5);
-    AuditStatsFeeder feeder = new AuditStatsFeeder(cluster,
+    AuditFeederService feeder = new AuditFeederService(cluster,
         "emtpyRootDir", new ClientConfig());
     feeder.addTuples(msg);
     long upperRecieved1= received1+60*1000;
@@ -90,7 +91,7 @@ public class AuditStatsFeederTest {
     System.out.println("MSG 1 has 7 packets of " + new Date(received2));
     msg1.putToReceived(received2, 7);
     msg1.putToSent(cal.getTimeInMillis(), 5);
-    AuditStatsFeeder feeder = new AuditStatsFeeder(cluster, "emtpyRootDir",
+    AuditFeederService feeder = new AuditFeederService(cluster, "emtpyRootDir",
         new ClientConfig());
     feeder.addTuples(msg1);
     feeder.addTuples(msg2);
@@ -144,7 +145,7 @@ public class AuditStatsFeederTest {
     msg.putToReceived(received2, 9);
     System.out.println("Sent 5 packets of " + new Date(received2));
     msg.putToSent(received2, 6);
-    AuditStatsFeeder feeder = new AuditStatsFeeder(cluster, "emtpyRootDir",
+    AuditFeederService feeder = new AuditFeederService(cluster, "emtpyRootDir",
         new ClientConfig());
     AuditMessage[] msgs = feeder.getAuditMessagesAlignedAtMinuteBoundary(msg);
     assert (msgs.length == 2);
