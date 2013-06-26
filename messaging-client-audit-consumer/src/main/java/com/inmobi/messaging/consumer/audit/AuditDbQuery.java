@@ -99,7 +99,7 @@ public class AuditDbQuery {
           else
             break;
         }
-        if (!it.hasNext())
+        if (!it.hasNext() && percentile.get(tuple).get(currentPercentile) != null)
           break;
         currentCount += value;
       }
@@ -261,6 +261,10 @@ public class AuditDbQuery {
 
   public Set<Tuple> getTupleSet() {
     return Collections.unmodifiableSet(tupleSet);
+  }
+
+  public Set<Float> getPercentileSet() {
+    return percentileSet;
   }
 }
 
