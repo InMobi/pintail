@@ -14,12 +14,12 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.inmobi.databus.audit.LatencyColumns;
+import com.inmobi.databus.audit.Tuple;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.consumer.audit.Column;
 import com.inmobi.messaging.consumer.audit.Filter;
 import com.inmobi.messaging.consumer.audit.GroupBy;
-import com.inmobi.messaging.consumer.audit.LatencyColumns;
-import com.inmobi.messaging.consumer.audit.Tuple;
 
 public class AuditDBHelper {
 
@@ -30,7 +30,7 @@ public class AuditDBHelper {
     this.config = config;
   }
 
-  protected static Connection getConnection(String driverName, String url,
+  public static Connection getConnection(String driverName, String url,
                                           String username, String password) {
     try {
       Class.forName(driverName).newInstance();

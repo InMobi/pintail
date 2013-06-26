@@ -1,4 +1,4 @@
-package com.inmobi.messaging.consumer.audit;
+package com.inmobi.databus.audit;
 
 /*
  * Order of the values defined here is important,always define the new values maintaining the ascending order

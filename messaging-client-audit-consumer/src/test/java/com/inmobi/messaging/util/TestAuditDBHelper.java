@@ -17,13 +17,13 @@ import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
+import com.inmobi.databus.audit.AuditStats;
+import com.inmobi.databus.audit.LatencyColumns;
+import com.inmobi.databus.audit.Tuple;
 import com.inmobi.messaging.ClientConfig;
-import com.inmobi.messaging.consumer.audit.AuditStats;
 import com.inmobi.messaging.consumer.audit.Filter;
 import com.inmobi.messaging.consumer.audit.GroupBy;
-import com.inmobi.messaging.consumer.audit.LatencyColumns;
 import com.inmobi.messaging.consumer.audit.Tier;
-import com.inmobi.messaging.consumer.audit.Tuple;
 
 public class TestAuditDBHelper {
   String configFile = "audit-db-conf.properties";
