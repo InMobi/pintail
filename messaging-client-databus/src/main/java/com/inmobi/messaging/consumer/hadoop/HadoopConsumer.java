@@ -24,7 +24,6 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
   private String[] clusterNames;
   private Path[] rootDirs;
   private FileSystem[] fileSystems;
-  private Configuration conf;
   private String inputFormatClassName;
   public static String clusterNamePrefix = "hadoopcluster";
 
