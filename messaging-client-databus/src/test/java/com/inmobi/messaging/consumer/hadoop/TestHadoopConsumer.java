@@ -127,6 +127,11 @@ public class TestHadoopConsumer extends TestAbstractHadoopConsumer {
     super.testConsumerStartOfStreamWithStopTime();
   }
 
+  @Test
+  public void testConsumerWithHadoopConfiguration() throws Exception {
+    super.testConsumerWithHadoopConfiguration();
+  }
+
   @AfterTest
   public void cleanup() throws IOException {
     super.cleanup();

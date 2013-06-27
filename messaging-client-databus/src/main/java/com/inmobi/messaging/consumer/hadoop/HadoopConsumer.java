@@ -84,10 +84,6 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
     }
   }
 
-  Configuration getHadoopConf() {
-    return conf;
-  }
-
   Path[] getRootDirs() {
     return rootDirs;
   }

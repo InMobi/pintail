@@ -64,6 +64,7 @@ public abstract class TestAbstractHadoopConsumer {
   public void setup() throws Exception {
     // setup
     ClientConfig config = loadConfig();
+    config.set(HadoopConsumerConfig.hadoopConfigFileKey, "hadoop-conf.xml");
     testConsumer = new HadoopConsumer();
     testConsumer.initializeConfig(config);
 
@@ -316,6 +317,15 @@ public abstract class TestAbstractHadoopConsumer {
         AbstractMessageConsumer.minDirFormat.get().format(stopDate));
     ConsumerUtil.testConsumerStartOfStreamWithStopTime(config, testStream,
         consumerName, true);
+  }
+
+  public void testConsumerWithHadoopConfiguration() throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(MessagingConsumerConfig.startOfStreamConfig, "true");
+    config.set(HadoopConsumerConfig.hadoopConfigFileKey, "hadoop-conf.xml");
+    config.set(HadoopConsumerConfig.rootDirsConfig, rootDirs[0].toString());
+    Assert.assertFalse(Boolean.valueOf(conf.get("fs.automatic.close")));
+    Assert.assertEquals(conf.get("myhadoop.property"), "myvalue");
   }
 
   public void cleanup() throws IOException {

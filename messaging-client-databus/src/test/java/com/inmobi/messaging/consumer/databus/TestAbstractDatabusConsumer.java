@@ -14,6 +14,7 @@ import org.apache.hadoop.fs.Path;
 
 import com.inmobi.databus.Cluster;
 import com.inmobi.messaging.ClientConfig;
+import com.inmobi.messaging.consumer.hadoop.HadoopConsumerConfig;
 import com.inmobi.messaging.consumer.util.ConsumerUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
@@ -29,15 +30,16 @@ public abstract class TestAbstractDatabusConsumer {
   protected String consumerName;
   Path[] rootDirs;
   protected final String relativeStartTime = "30";
-  Configuration conf = new Configuration();
+  Configuration conf;
 
   public void setup(int numFileToMove) throws Exception {
 
     ClientConfig config = loadConfig();
+    config.set(HadoopConsumerConfig.hadoopConfigFileKey, "hadoop-conf.xml");
     testConsumer = getConsumerInstance();
     //System.out.println(testConsumer.getClass().getCanonicalName());
     testConsumer.initializeConfig(config);
-
+    conf = testConsumer.getHadoopConf();
     // setup stream, collector dirs and data files
     Set<String> sourceNames = new HashSet<String>();
     sourceNames.add(testStream);

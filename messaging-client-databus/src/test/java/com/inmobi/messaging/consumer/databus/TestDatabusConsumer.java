@@ -5,6 +5,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
+import org.testng.Assert;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -231,6 +232,16 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
     config.set(DatabusConsumerConfig.checkpointDirConfig, ck13);
     ConsumerUtil.testConsumerWithStartOfStream(config, testStream, consumerName,
         false);
+  }
+
+  @Test
+  public void testConsumerWithHadoopConfiguration() throws IOException {
+    ClientConfig config = loadConfig();
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+        rootDirs[0].toUri().toString());
+    config.set(MessagingConsumerConfig.startOfStreamConfig, "true");
+    Assert.assertFalse(Boolean.valueOf(conf.get("fs.automatic.close")));
+    Assert.assertEquals(conf.get("myhadoop.property"), "myvalue");
   }
 
   @AfterTest

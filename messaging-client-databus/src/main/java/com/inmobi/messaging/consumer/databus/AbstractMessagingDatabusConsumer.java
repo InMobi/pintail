@@ -177,6 +177,10 @@ public abstract class AbstractMessagingDatabusConsumer
     return partitionMinList;
   }
 
+  public Configuration getHadoopConf() {
+    return conf;
+  }
+
   public ConsumerCheckpoint getCurrentCheckpoint() {
     return currentCheckpoint;
   }
