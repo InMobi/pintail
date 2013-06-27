@@ -29,12 +29,6 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
   public static String clusterNamePrefix = "hadoopcluster";
 
   protected void initializeConfig(ClientConfig config) throws IOException {
-    String hadoopConfFileName = config.getString(hadoopConfigFileKey);
-    if (hadoopConfFileName != null) {
-      Configuration.addDefaultResource(hadoopConfFileName);
-    }
-    conf = new Configuration();
-
     super.initializeConfig(config);
 
     String rootDirStr = config.getString(rootDirsConfig);

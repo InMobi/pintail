@@ -73,11 +73,6 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
   private int numList = 0;
 
   protected void initializeConfig(ClientConfig config) throws IOException {
-    String hadoopConfFileName = config.getString(hadoopConfigFileKey);
-    if (hadoopConfFileName != null) {
-      Configuration.addDefaultResource(hadoopConfFileName);
-    }
-    conf = new Configuration();
     String type = config.getString(databusStreamType, DEFAULT_STREAM_TYPE);
     streamType = StreamType.valueOf(type);
     super.initializeConfig(config);

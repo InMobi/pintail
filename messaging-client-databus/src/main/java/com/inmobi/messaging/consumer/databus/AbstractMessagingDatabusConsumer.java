@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.security.UserGroupInformation;
 
 import com.inmobi.databus.CheckpointProvider;
@@ -49,6 +50,7 @@ public abstract class AbstractMessagingDatabusConsumer
   protected Date stopTime;
   protected Boolean startOfStream;
   private int closedReadercount;
+  protected Configuration conf;
 
   @Override
   protected void init(ClientConfig config) throws IOException {
@@ -77,6 +79,11 @@ public abstract class AbstractMessagingDatabusConsumer
   }
 
   protected void initializeConfig(ClientConfig config) throws IOException {
+    String hadoopConfFileName = config.getString(hadoopConfigFileKey);
+    if (hadoopConfFileName != null) {
+      Configuration.addDefaultResource(hadoopConfFileName);
+    }
+    conf = new Configuration();
     super.init(config);
     // verify authentication
     if (UserGroupInformation.isSecurityEnabled()) {
