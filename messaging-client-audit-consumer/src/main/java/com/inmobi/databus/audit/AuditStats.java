@@ -115,7 +115,8 @@ public class AuditStats {
         LOG.info("Finishing the shutdown hook");
       }
     });
-    // TODO check if current table exist else create it
+    // TODO check if current table exist else create it.NOTE:This will be done
+    // in next version
 
     try {
     stats.start(feeders);

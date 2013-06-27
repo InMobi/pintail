@@ -2,10 +2,14 @@ package com.inmobi.databus.audit.services;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -44,7 +48,8 @@ public class AuditRollUpService extends AuditService {
 
   @Override
   public void stop() {
-    // TODO Auto-generated method stub
+    // since DB handles transactions and all operations are done in 1 single
+    // transaction so no need to implement stop
 
   }
 
@@ -91,18 +96,137 @@ public class AuditRollUpService extends AuditService {
     return destnTableName + formatDate(date);
   }
 
-  private Long getFromTime() {
+  /*
+   * Queries the daily table and finds the first entry ordered by timeinterval
+   * Return the corresponding timeinterval
+   */
+  private Long getFirstTimeIntervalDailyTable(Connection connection)
+      throws SQLException {
+    String statement = "select timeinterval from " + srcTableName
+        + " order by timeinterval limit 1";
+    PreparedStatement preparedStatement = connection
+        .prepareStatement(statement);
+    preparedStatement.execute();
+    Long result = 0l;
+    ResultSet rs = preparedStatement.getResultSet();
+    if (rs.next())
+      result = rs.getLong("timeinterval");
+    return result;
+  }
+
+  private Long getFromTime(Connection connection) throws SQLException {
     FSCheckpointProvider provider = new FSCheckpointProvider(checkPointDir);
     byte[] value = provider.read(CHECKPOINT_KEY);
     if (value == null)
-      return 0l;
+      return getFirstTimeIntervalDailyTable(connection);
     return Long.parseLong(new String(value));
   }
 
-  private void mark(Long toTime) {
+  private void modifyContraints(Map<String, Long> tableConstraints,
+      Connection connection) throws SQLException {
+    PreparedStatement preparedstatement = null;
+    String statement = "select modifyconstraint(?,?)";
+    preparedstatement = connection.prepareStatement(statement);
+    for (Entry<String, Long> tableConstraint : tableConstraints.entrySet()) {
+      int index = 1;
+      preparedstatement.setString(index++, tableConstraint.getKey());
+      preparedstatement.setLong(index++, tableConstraint.getValue());
+      preparedstatement.addBatch();
+    }
+    preparedstatement.executeBatch();
+  }
+
+  /*
+   * Return date corresponding to first millisecond of month to which time
+   * belongs
+   */
+  private Date getFirstMilliOfMonth(Long time) {
+    Calendar cal = Calendar.getInstance();
+    cal.setTimeInMillis(time);
+    cal.set(Calendar.DATE, 1);
+    cal.set(Calendar.HOUR_OF_DAY, 0);
+    cal.set(Calendar.MINUTE, 0);
+    cal.set(Calendar.SECOND, 0);
+    cal.set(Calendar.MILLISECOND, 0);
+    return cal.getTime();
+  }
+
+  private Date getLastMilliOfMonth(Long time) {
+    Calendar cal = Calendar.getInstance();
+    cal.setTimeInMillis(time);
+    cal.set(Calendar.DATE, cal.getActualMaximum(Calendar.DATE));
+    cal.set(Calendar.HOUR_OF_DAY, 23);
+    cal.set(Calendar.MINUTE, 59);
+    cal.set(Calendar.SECOND, 59);
+    cal.set(Calendar.MILLISECOND, 59);
+    return cal.getTime();
+  }
+
+  /**
+   * Return the updated upper constraint for monthly table In case fromTime and
+   * toTime belongs to different months there would be multiple monthly tables
+   * which needs updation
+   * 
+   * @param fromTime
+   * @param toTime
+   * @return
+   */
+  private Map<String, Long> getTableConstraint(Long fromTime, Long toTime) {
+    Date fromDate=getFirstMilliOfMonth(fromTime);
+    Date toDate=getFirstMilliOfMonth(toTime);
+    Calendar cal = Calendar.getInstance();
+    Map<String,Long> tableConstraints= new HashMap<String, Long>();
+    while(!fromDate.after(toDate)){
+      Date lastDate = getLastMilliOfMonth(fromDate.getTime());
+      if (toDate.after(lastDate)) {
+        // insertion was across monthly tables and this constraint is for
+        // older month's table
+        tableConstraints.put(getMonthlyTableName(fromDate), lastDate.getTime());
+      } else {
+        // constraint for the current month's table
+        tableConstraints.put(getMonthlyTableName(fromDate), toTime);
+      }
+      cal.setTime(fromDate);
+      cal.add(Calendar.MONTH, 1);
+      fromDate = cal.getTime();
+    }
+    return tableConstraints;
+  }
+
+  /**
+   * Just remove the inheritance of the daily partition from the parent master
+   * table Eventually same method would be extended to drop partition along with
+   * NO Inherit
+   * 
+   * @param time
+   * @throws SQLException
+   */
+  private void dropDailyTable(Date fromDate, Date toDate, Connection connection)
+      throws SQLException {
+    String statement = "alter table ?  no inherit "
+        + srcTableName;
+    PreparedStatement preparedstatement = connection
+        .prepareStatement(statement);
+    Calendar cal = Calendar.getInstance();
+    while (toDate.after(fromDate)) {
+      String tableName = getDailyTableName(fromDate);
+      preparedstatement.setString(1, tableName);
+      preparedstatement.addBatch();
+      cal.setTime(fromDate);
+      cal.add(Calendar.DATE, 1);
+      fromDate = cal.getTime();
+    }
+    preparedstatement.executeBatch();
+  }
+
+  private void mark(Long fromTime, Long toTime, Connection connection)
+      throws SQLException {
     FSCheckpointProvider provider = new FSCheckpointProvider(checkPointDir);
     provider.checkpoint(CHECKPOINT_KEY, toTime.toString().getBytes());
-    // TODO alter upper constraint of destn table and drop src table partition
+    Map<String, Long> tableConstraints = getTableConstraint(fromTime, toTime);
+    modifyContraints(tableConstraints, connection);
+    dropDailyTable(new Date(fromTime), new Date(toTime), connection);
+    connection.commit();
   }
   @Override
   public void execute() {
@@ -114,8 +238,6 @@ public class AuditRollUpService extends AuditService {
       LOG.warn("RollUp Service interrupted", e);
     }
 
-    Long fromTime = getFromTime();
-    Long toTime = getToTime();
     LOG.info("Connecting to DB ...");
     Connection connection = AuditDBHelper.getConnection(
         config.getString(AuditDBConstants.JDBC_DRIVER_CLASS_NAME),
@@ -127,7 +249,16 @@ public class AuditRollUpService extends AuditService {
       return;
     }
     LOG.info("Connected to DB");
-    // TODO create new destination partition table if doesn't exist
+    Long fromTime;
+    try {
+      fromTime = getFromTime(connection);
+    } catch (SQLException e1) {
+      LOG.error("Cannot find the from time", e1);
+      return;
+    }
+    Long toTime = getToTime();
+    // TODO create new destination partition table if doesn't exist and also
+    // modify the corresponding trigger
     String statement = getRollUpQuery();
     PreparedStatement preparedstatement = null;
     try {
@@ -140,8 +271,7 @@ public class AuditRollUpService extends AuditService {
       preparedstatement.setLong(index++, intervalLength);
       LOG.info("Rollup query is " + preparedstatement.toString());
       preparedstatement.executeQuery();
-      connection.commit();
-      mark(toTime);
+      mark(fromTime, toTime, connection);
     } catch (SQLException e) {
       LOG.error("Error while rollup", e);
       return;
