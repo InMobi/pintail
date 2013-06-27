@@ -1,112 +1,36 @@
 package com.inmobi.messaging.util;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-
-import junit.framework.Assert;
-
-import org.testng.annotations.AfterTest;
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.Test;
-
 import com.inmobi.databus.audit.AuditStats;
 import com.inmobi.databus.audit.LatencyColumns;
 import com.inmobi.databus.audit.Tuple;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.consumer.audit.Filter;
 import com.inmobi.messaging.consumer.audit.GroupBy;
-import com.inmobi.messaging.consumer.audit.Tier;
+import junit.framework.Assert;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
-public class TestAuditDBHelper {
-  String configFile = "audit-db-conf.properties";
-  Connection connection;
-  Tuple tuple1, tuple2, tuple3, tuple4;
-  Set<Tuple> tupleSet1, tupleSet2, tupleSet3;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Iterator;
+import java.util.Set;
 
-  @BeforeTest
+public class TestAuditDBHelper extends  AuditDBUtil {
+
+  @BeforeClass
   public void setup() {
-    ClientConfig config = ClientConfig.loadFromClasspath(configFile);
-    connection =
-        AuditDBHelper.getConnection(
-            config.getString(AuditDBConstants.JDBC_DRIVER_CLASS_NAME),
-            config.getString(AuditDBConstants.DB_URL),
-            config.getString(AuditDBConstants.DB_USERNAME),
-            config.getString(AuditDBConstants.DB_PASSWORD));
-    Assert.assertTrue( connection != null );
-    String createTable = "CREATE TABLE audit(\n  TIMEINTERVAL bigint,\n  HOSTNAME varchar(25),\n  TIER varchar(15),\n  TOPIC varchar(25),\n  CLUSTER varchar(50),\n  SENT bigint,\n  C0 bigint,\n  C1 bigint,\n  C2 bigint,\n  C3 bigint,\n  C4 bigint,\n  C5 bigint,\n  C6 bigint,\n  C7 bigint,\n  C8 bigint,\n  C9 bigint,\n  C10 bigint,\n  C15 bigint,\n  C30 bigint,\n  C60 bigint,\n  C120 bigint,\n  C240 bigint,\n  C600 bigint\n)";
-    try {
-      connection.prepareStatement(createTable).execute();
-    } catch (SQLException e) {
-      e.printStackTrace();
-    }
-    createTuples();
+    setupDB(false);
   }
 
-  private void createTuples() {
-    /*
-     Add tuples in tuplesets so that insert, update are possible
-     */
-    String hostname1 = "testhost1";
-    String hostname2 = "testhost2";
-    String tier = Tier.AGENT.toString();
-    String cluster = "testCluster";
-    Date timestamp = new Date(1355314332l);
-    String topic = "testTopic";
-    String topic2 = "testTopic";
-    Map<LatencyColumns, Long> latencyCountMap1 = new HashMap<LatencyColumns,
-        Long>();
-    Map<LatencyColumns, Long> latencyCountMap2 = new HashMap<LatencyColumns,
-        Long>();
-    Map<LatencyColumns, Long> latencyCountMap3 = new HashMap<LatencyColumns,
-        Long>();
-    latencyCountMap1.put(LatencyColumns.C1, 500l);
-    latencyCountMap1.put(LatencyColumns.C0, 1500l);
-    latencyCountMap2.put(LatencyColumns.C1, 1000l);
-    latencyCountMap2.put(LatencyColumns.C2, 1000l);
-    latencyCountMap2.put(LatencyColumns.C3, 500l);
-    latencyCountMap3.put(LatencyColumns.C600, 1000l);
-    Long sent1 = 2000l;
-    Long sent2 = 2500l;
-    Long sent3 = 1000l;
-
-    tuple1 = new Tuple(hostname1, tier, cluster, timestamp, topic,
-        latencyCountMap1, sent1);
-    tuple2 = new Tuple(hostname1, tier, cluster, timestamp, topic,
-        latencyCountMap2, sent2);
-    tuple3 = new Tuple(hostname1, tier, cluster, timestamp, topic2,
-        latencyCountMap3, sent3);
-    tuple4 = new Tuple(hostname2, tier, cluster, timestamp, topic,
-        latencyCountMap1, sent1);
-
-    tupleSet1 = new HashSet<Tuple>();
-    tupleSet2 = new HashSet<Tuple>();
-    tupleSet3 = new HashSet<Tuple>();
-    tupleSet1.add(tuple1);
-    tupleSet2.add(tuple2);
-    tupleSet3.add(tuple3);
-    tupleSet3.add(tuple4);
-  }
-
-  @AfterTest
+  @AfterClass
   public void shutDown() {
-    try {
-      connection.close();
-    } catch (SQLException e) {
-      e.printStackTrace();
-    }
+    super.shutDown();
   }
 
   @Test(priority = 1)
   public void testUpdate() {
-    int index = 1;
     String selectStmt = AuditDBHelper.getSelectStmtForUpdation();
     PreparedStatement selectStatement = null;
     ResultSet rs = null;
@@ -114,15 +38,13 @@ public class TestAuditDBHelper {
       selectStatement = connection.prepareStatement(selectStmt);
       ClientConfig config = ClientConfig
           .loadFromClasspath(AuditStats.CONF_FILE);
+      rs = getResultSetOfQuery(selectStatement, tuple1);
+      Assert.assertNotNull(rs);
+      Assert.assertFalse(rs.next());
       AuditDBHelper helper = new AuditDBHelper(config);
-      boolean isSuccessful = helper.update(tupleSet1);
-      Assert.assertTrue(isSuccessful);
-      selectStatement.setLong(index++, tuple1.getTimestamp().getTime());
-      selectStatement.setString(index++, tuple1.getHostname());
-      selectStatement.setString(index++, tuple1.getTopic());
-      selectStatement.setString(index++, tuple1.getTier());
-      selectStatement.setString(index++, tuple1.getCluster());
-      rs = selectStatement.executeQuery();
+      Assert.assertTrue(helper.update(tupleSet1));
+      rs = getResultSetOfQuery(selectStatement, tuple1);
+      Assert.assertNotNull(rs);
       Assert.assertTrue(rs.next());
       Assert.assertEquals(tuple1.getSent(), rs.getLong(AuditDBConstants.SENT));
       for (LatencyColumns latencyColumns : LatencyColumns.values()) {
@@ -133,15 +55,9 @@ public class TestAuditDBHelper {
       }
       Assert.assertEquals(tuple1.getLostCount(),
           (Long) rs.getLong(LatencyColumns.C600.toString()));
-      isSuccessful = helper.update(tupleSet2);
-      Assert.assertTrue(isSuccessful);
-      index = 1;
-      selectStatement.setLong(index++, tuple1.getTimestamp().getTime());
-      selectStatement.setString(index++, tuple1.getHostname());
-      selectStatement.setString(index++, tuple1.getTopic());
-      selectStatement.setString(index++, tuple1.getTier());
-      selectStatement.setString(index++, tuple1.getCluster());
-      rs = selectStatement.executeQuery();
+      Assert.assertTrue(helper.update(tupleSet2));
+      rs = getResultSetOfQuery(selectStatement, tuple1);
+      Assert.assertNotNull(rs);
       Assert.assertTrue(rs.next());
       Assert.assertEquals(tuple1.getSent() + tuple2.getSent(),
           rs.getLong(AuditDBConstants.SENT));
@@ -157,8 +73,7 @@ public class TestAuditDBHelper {
       }
       Assert.assertEquals(tuple1.getLostCount() + tuple2.getLostCount(),
           rs.getLong(LatencyColumns.C600.toString()));
-      isSuccessful = helper.update(tupleSet3);
-      Assert.assertTrue(isSuccessful);
+      Assert.assertTrue(helper.update(tupleSet3));
     } catch (SQLException e) {
       e.printStackTrace();
     } finally {
@@ -175,10 +90,24 @@ public class TestAuditDBHelper {
     }
   }
 
+  private ResultSet getResultSetOfQuery(PreparedStatement selectStatement,
+                                        Tuple tuple) {
+    int index = 1;
+    try {
+      selectStatement.setLong(index++, tuple.getTimestamp().getTime());
+      selectStatement.setString(index++, tuple.getHostname());
+      selectStatement.setString(index++, tuple.getTopic());
+      selectStatement.setString(index++, tuple.getTier());
+      selectStatement.setString(index++, tuple.getCluster());
+      return selectStatement.executeQuery();
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
   @Test(priority = 2)
   public void testRetrieve() {
-    Date fromDate = new Date(1355314200l);
-    Date toDate = new Date(1355314400l);
     GroupBy groupBy = new GroupBy("TIER,HOSTNAME,CLUSTER");
     Filter filter = new Filter("hostname="+tuple1.getHostname());
     AuditDBHelper helper = new AuditDBHelper(
