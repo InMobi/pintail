@@ -142,10 +142,9 @@ public class AuditFeederService extends AuditService {
   /**
    * 
    * @param clusterName
-   * @param fromTime
    * @param rootDir
    *          path of _audit stream till /databus/system
-   * @param config1
+   * @param config
    * @throws IOException
    */
   public AuditFeederService(String clusterName, String rootDir,

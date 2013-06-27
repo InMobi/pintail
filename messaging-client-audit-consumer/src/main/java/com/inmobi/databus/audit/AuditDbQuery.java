@@ -3,14 +3,7 @@ package com.inmobi.databus.audit;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -26,12 +19,13 @@ import com.inmobi.messaging.util.AuditUtil;
 public class AuditDbQuery {
 
   private static final int minArgs = 2;
+  private static final  String DEFAULT_TIMEZONE = "GMT";
   private static final Log LOG = LogFactory.getLog(AuditDbQuery.class);
 
-  private String rootDir, filterString, groupByString, toTimeString,
+  private String timeZone, filterString, groupByString, toTimeString,
       fromTimeString, percentileString;
 
-  Map<Tuple, Map<Float, Integer>> percentile=new HashMap<Tuple, Map<Float,Integer>>();
+  Map<Tuple, Map<Float, Integer>> percentile = new HashMap<Tuple, Map<Float,Integer>>();
   Date fromTime;
   Date toTime;
   GroupBy groupBy;
@@ -41,36 +35,33 @@ public class AuditDbQuery {
   Map<GroupBy.Group, Long> received;
   Map<GroupBy.Group, Long> sent;
 
-
-  public AuditDbQuery(String rootDir, String toTimeString,
-                         String fromTimeString, String filterString,
- String groupByString) {
-    this(rootDir, toTimeString, fromTimeString, filterString, groupByString,
+  public AuditDbQuery(String toTimeString, String fromTimeString,
+                      String filterString, String groupByString,
+                      String timeZone) {
+    this(toTimeString, fromTimeString, filterString, groupByString, timeZone,
         null);
   }
 
-  public AuditDbQuery(String rootDir, String toTimeString,
-                         String fromTimeString, String filterString,
- String groupByString,
-      String percentileString) {
+  public AuditDbQuery(String toTimeString, String fromTimeString,
+                      String filterString, String groupByString,
+                      String timeZone, String percentileString) {
     received = new TreeMap<GroupBy.Group, Long>();
     sent = new TreeMap<GroupBy.Group, Long>();
     tupleSet = new HashSet<Tuple>();
-    this.rootDir = rootDir;
     this.toTimeString = toTimeString;
     this.fromTimeString = fromTimeString;
     this.filterString = filterString;
     this.groupByString = groupByString;
+    this.timeZone = timeZone;
     this.percentileString = percentileString;
   }
 
   void aggregateStats() {
-    LOG.debug("To time:"+toTime);
-    LOG.debug("From time:"+fromTime);
+    LOG.debug("To time:" + toTime);
+    LOG.debug("From time:" + fromTime);
     ClientConfig config = ClientConfig.loadFromClasspath(AuditStats.CONF_FILE);
     AuditDBHelper dbHelper = new AuditDBHelper(config);
-    tupleSet.addAll(
-dbHelper.retrieve(toTime, fromTime, filter, groupBy));
+    tupleSet.addAll(dbHelper.retrieve(toTime, fromTime, filter, groupBy));
     LOG.debug("Tuple set retrieved from DB: " + tupleSet);
     setReceivedAndSentStats();
     if (percentileSet != null) {
@@ -100,8 +91,7 @@ dbHelper.retrieve(toTime, fromTime, filter, groupBy));
         if (latencyColumn == LatencyColumns.C600)
           continue;
         Long value = tuple.getLatencyCountMap().get(latencyColumn);
-        if (currentCount + value >=
-            ((currentPercentile * totalCount) / 100)) {
+        while ( currentCount + value >= ((currentPercentile * totalCount) / 100)) {
           Map<Float, Integer> percentileMap = percentile.get(tuple);
           if (percentileMap == null)
             percentileMap = new HashMap<Float, Integer>();
@@ -112,6 +102,8 @@ dbHelper.retrieve(toTime, fromTime, filter, groupBy));
           else
             break;
         }
+        if (!it.hasNext() && percentile.get(tuple).get(currentPercentile) != null)
+          break;
         currentCount += value;
       }
     }
@@ -119,6 +111,11 @@ dbHelper.retrieve(toTime, fromTime, filter, groupBy));
 
   private Date getDate(String date) throws ParseException {
     SimpleDateFormat formatter = new SimpleDateFormat(AuditUtil.DATE_FORMAT);
+    if (timeZone != null && !timeZone.isEmpty()) {
+      formatter.setTimeZone(TimeZone.getTimeZone(timeZone));
+    } else {
+      formatter.setTimeZone(TimeZone.getTimeZone(DEFAULT_TIMEZONE));
+    }
     return formatter.parse(date);
   }
 
@@ -150,7 +147,7 @@ dbHelper.retrieve(toTime, fromTime, filter, groupBy));
   public static void main(String args[]) {
     String groupByKeys = null;
     String filterKeys = null;
-    String rootDir = null;
+    String timeZone = null;
     String fromTime = null, toTime = null;
     String percentileString = null;
     try {
@@ -167,8 +164,9 @@ dbHelper.retrieve(toTime, fromTime, filter, groupBy));
           filterKeys = args[i + 1];
           LOG.info("Filter is " + filterKeys);
           i = i + 2;
-        } else if (args[i].equalsIgnoreCase("-rootdir")) {
-          rootDir = args[i + 1];
+        } else if (args[i].equalsIgnoreCase("-timezone")) {
+          timeZone = args[i + 1];
+          LOG.info("TimeZone is " + timeZone);
           i = i + 2;
         } else if (args[i].equalsIgnoreCase("-percentile")) {
           percentileString = args[i + 1];
@@ -188,8 +186,8 @@ dbHelper.retrieve(toTime, fromTime, filter, groupBy));
         System.exit(-1);
       }
       AuditDbQuery auditQuery =
-          new AuditDbQuery(rootDir, toTime, fromTime, filterKeys,
-              groupByKeys, percentileString);
+          new AuditDbQuery(toTime, fromTime, filterKeys,
+              groupByKeys, timeZone, percentileString);
       try {
         auditQuery.execute();
       } catch (InterruptedException e) {
@@ -212,7 +210,7 @@ dbHelper.retrieve(toTime, fromTime, filter, groupBy));
     SimpleDateFormat formatter = new SimpleDateFormat("dd-MM HH:mm");
     return "AuditStatsQuery [fromTime=" + formatter.format(fromTime) +
         ", toTime=" + formatter.format(toTime) + ", groupBy=" + groupBy +
-        ", filter=" + filter + ", rootdir=" + rootDir + ", " +
+        ", filter=" + filter + ", timeZone=" + timeZone + ", " +
         "percentiles=" + percentileString + "]";
   }
 
@@ -235,10 +233,6 @@ dbHelper.retrieve(toTime, fromTime, filter, groupBy));
   private static void printUsage() {
     StringBuffer usage = new StringBuffer();
     usage.append("Usage : AuditDbQuery ");
-    usage.append("[-rootdir <hdfs root dir>]");
-    usage.append("[-cutoff <cuttofTimeInMins>]");
-    usage.append("[-timeout <timeoutInMins>]");
-
     usage.append("[-group <comma seperated columns>]");
     usage.append("[-filter <comma seperated column=<value>>]");
     usage.append("where column can take value :[");
@@ -247,6 +241,7 @@ dbHelper.retrieve(toTime, fromTime, filter, groupBy));
       usage.append(",");
     }
     usage.append("]");
+    usage.append("[-timezone]");
     usage.append("[-percentile <comma seperated percentile>]");
     usage.append("fromTime(" + AuditUtil.DATE_FORMAT + ")" + "toTime(" +
         AuditUtil.DATE_FORMAT + ")");
@@ -265,6 +260,14 @@ dbHelper.retrieve(toTime, fromTime, filter, groupBy));
 
   public Map<Tuple, Map<Float, Integer>> getPercentile() {
     return percentile;
+  }
+
+  public Set<Tuple> getTupleSet() {
+    return Collections.unmodifiableSet(tupleSet);
+  }
+
+  public Set<Float> getPercentileSet() {
+    return percentileSet;
   }
 }
 
