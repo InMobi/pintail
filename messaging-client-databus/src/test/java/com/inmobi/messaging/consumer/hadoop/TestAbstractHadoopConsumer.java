@@ -69,7 +69,6 @@ public abstract class TestAbstractHadoopConsumer {
 
     conf = testConsumer.getHadoopConf();
     Assert.assertEquals(conf.get("myhadoop.property"), "myvalue");
-    Assert.assertFalse(Boolean.valueOf(conf.get("fs.automatic.close")));
 
     rootDirs = testConsumer.getRootDirs();
     numSuffixDirs = suffixDirs != null ? suffixDirs.length : 1;

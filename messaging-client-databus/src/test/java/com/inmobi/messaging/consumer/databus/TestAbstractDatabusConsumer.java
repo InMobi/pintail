@@ -41,7 +41,6 @@ public abstract class TestAbstractDatabusConsumer {
     //System.out.println(testConsumer.getClass().getCanonicalName());
     testConsumer.initializeConfig(config);
     conf = testConsumer.getHadoopConf();
-    Assert.assertFalse(Boolean.valueOf(conf.get("fs.automatic.close")));
     Assert.assertEquals(conf.get("myhadoop.property"), "myvalue");
     // setup stream, collector dirs and data files
     Set<String> sourceNames = new HashSet<String>();
