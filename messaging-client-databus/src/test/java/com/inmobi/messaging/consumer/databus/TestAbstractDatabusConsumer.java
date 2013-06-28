@@ -11,6 +11,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.testng.Assert;
 
 import com.inmobi.databus.Cluster;
 import com.inmobi.messaging.ClientConfig;
@@ -40,6 +41,8 @@ public abstract class TestAbstractDatabusConsumer {
     //System.out.println(testConsumer.getClass().getCanonicalName());
     testConsumer.initializeConfig(config);
     conf = testConsumer.getHadoopConf();
+    Assert.assertFalse(Boolean.valueOf(conf.get("fs.automatic.close")));
+    Assert.assertEquals(conf.get("myhadoop.property"), "myvalue");
     // setup stream, collector dirs and data files
     Set<String> sourceNames = new HashSet<String>();
     sourceNames.add(testStream);

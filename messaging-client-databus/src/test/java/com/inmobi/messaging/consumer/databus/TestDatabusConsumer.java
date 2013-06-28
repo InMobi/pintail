@@ -234,16 +234,6 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
         false);
   }
 
-  @Test
-  public void testConsumerWithHadoopConfiguration() throws IOException {
-    ClientConfig config = loadConfig();
-    config.set(DatabusConsumerConfig.databusRootDirsConfig,
-        rootDirs[0].toUri().toString());
-    config.set(MessagingConsumerConfig.startOfStreamConfig, "true");
-    Assert.assertFalse(Boolean.valueOf(conf.get("fs.automatic.close")));
-    Assert.assertEquals(conf.get("myhadoop.property"), "myvalue");
-  }
-
   @AfterTest
   public void cleanup() throws IOException {
     super.cleanup();
