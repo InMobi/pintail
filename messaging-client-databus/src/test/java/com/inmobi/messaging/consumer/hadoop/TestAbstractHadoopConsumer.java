@@ -64,7 +64,6 @@ public abstract class TestAbstractHadoopConsumer {
   public void setup() throws Exception {
     // setup
     ClientConfig config = loadConfig();
-    config.set(HadoopConsumerConfig.hadoopConfigFileKey, "hadoop-conf.xml");
     testConsumer = new HadoopConsumer();
     testConsumer.initializeConfig(config);
 
