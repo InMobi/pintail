@@ -164,4 +164,8 @@ public abstract class FileMap<T extends StreamFile> {
   public boolean hasNext() {
     return fileNameIterator.hasNext();
   }
+
+  public int getSize() {
+    return files.size();
+  }
 }

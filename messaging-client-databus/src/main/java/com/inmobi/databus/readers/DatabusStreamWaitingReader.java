@@ -174,7 +174,13 @@ public class DatabusStreamWaitingReader
             if (fsIsPathExists(dir)) {
               Path nextMinDir = getMinuteDirPath(streamDir, current.getTime());
               if (fsIsPathExists(nextMinDir)) {
+                int numFilesInFileMap = fmap.getSize();
                 doRecursiveListing(dir, pathFilter, fmap);
+                if (numFilesInFileMap != 0 &&
+                    numFilesInFileMap != fmap.getSize()) {
+                  breakListing = true;
+                  break;
+                }
               } else {
                 LOG.info("Reached end of file listing. Not looking at the last"
                     + " minute directory:" + dir);
