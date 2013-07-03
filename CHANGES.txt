@@ -1,3 +1,10 @@
+Release 3.1.1
+
+Bug fixes :
+
+    1. Fix expection handling during mark and reset to throw IOException for all 
+    RuntimeExceptions as well.
+
 Release 3.1.0
 
 Bug fixes and Improvements :
