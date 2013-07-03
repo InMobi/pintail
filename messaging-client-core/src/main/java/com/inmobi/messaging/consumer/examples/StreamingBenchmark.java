@@ -5,11 +5,18 @@ import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 import com.inmobi.instrumentation.TimingAccumulator;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.consumer.MessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
+import com.inmobi.messaging.publisher.AbstractMessagePublisher;
+import com.inmobi.messaging.publisher.MessagePublisherFactory;
 import com.inmobi.messaging.util.ConsumerUtil;
 
 public class StreamingBenchmark {
@@ -119,14 +126,13 @@ public class StreamingBenchmark {
     }
 
     assert (runProducer || runConsumer == true);
-    StreamingBenchmarkProducer producer = null;
-    StreamingBenchmarkConsumer consumer = null;
+    Producer producer = null;
+    Consumer consumer = null;
     StatusLogger statusPrinter;
 
     if (runProducer) {
       System.out.println("Using topic: " + topic);
-      producer = createProducer(topic, maxSent, numMsgsPerSec, msgSize,
-          numProducerThreads);
+      producer = createProducer(topic, maxSent, numMsgsPerSec, msgSize, numProducerThreads);
       producer.start();
     }
 
@@ -142,9 +148,10 @@ public class StreamingBenchmark {
 
       // create and start consumer
       assert (config != null);
-      consumer = createConsumer(config, maxSent, consumerStartTime,
-          numProducers,
-          hadoopConsumer, msgSize);
+      consumer =
+ createConsumer(config, maxSent, consumerStartTime,
+          numProducers, hadoopConsumer,
+              msgSize);
       consumer.start();
     }
 
@@ -186,26 +193,131 @@ public class StreamingBenchmark {
       }
 
     }
-    statusPrinter.join();
     return exitcode;
   }
 
-  static StreamingBenchmarkProducer createProducer(String topic, long maxSent,
+  static Producer createProducer(String topic, long maxSent,
       float numMsgsPerSec, int msgSize, int numThreads) throws IOException {
-    return new StreamingBenchmarkProducer(topic, maxSent, numMsgsPerSec,
-        msgSize, numThreads);
+    return new Producer(topic, maxSent, numMsgsPerSec, msgSize, numThreads);
   }
 
-  static StreamingBenchmarkConsumer createConsumer(ClientConfig config,
-      long maxSent,
+  static Consumer createConsumer(ClientConfig config, long maxSent,
       Date startTime, int numProducers, boolean hadoopConsumer, int maxSize)
       throws IOException {
-    return new StreamingBenchmarkConsumer(config, maxSent, startTime,
-        numProducers,
+    return new Consumer(config, maxSent, startTime, numProducers,
         hadoopConsumer, maxSize);
   }
 
 
+  static class Producer extends Thread {
+    volatile AbstractMessagePublisher publisher;
+    final String topic;
+    final long maxSent;
+    final long sleepMillis;
+    final long numMsgsPerSleepInterval;
+    final int numThreads;
+    int exitcode = FAILED_CODE;
+    byte[] fixedMsg;
+    ProducerWoker [] workerThreads = null;
+
+    Producer(String topic, long maxSent, float numMsgsPerSec, int msgSize,
+        int numThreads)
+        throws IOException {
+      this.topic = topic;
+      this.maxSent = maxSent;
+      if (maxSent <= 0) {
+        throw new IllegalArgumentException("Invalid total number of messages");
+      }
+      if (numMsgsPerSec > 1000) {
+        this.sleepMillis = 1;
+        numMsgsPerSleepInterval = (int) (numMsgsPerSec / 1000);
+      } else {
+        if (numMsgsPerSec <= 0) {
+          throw new IllegalArgumentException("Invalid number of messages per"
+              + " second");
+        }
+        this.sleepMillis = (int) (1000 / numMsgsPerSec);
+        numMsgsPerSleepInterval = 1;
+      }
+      fixedMsg = getMessageBytes(msgSize);
+      this.numThreads = numThreads;
+      publisher = (AbstractMessagePublisher) MessagePublisherFactory.create();
+      
+      // create producer workers
+      workerThreads = new ProducerWoker[numThreads];
+      for (int i = 0; i < numThreads; i++) {
+        ProducerWoker worker = new ProducerWoker();
+        workerThreads[i] = worker;
+      }
+    }
+    
+    @Override
+    public void run() {
+      System.out.println(LogDateFormat.format(System.currentTimeMillis()) + " Producer started!");
+      // start producer worker threads
+      for (int i = 0; i < numThreads; i++) {
+        workerThreads[i].start();
+      }
+      
+      // wait for worker threads to join
+      for (int i = 0; i < numThreads; i++) {
+        try {
+          workerThreads[i].join();
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
+      
+      // it is safe to close the publisher since all workers threads have finished by now.
+      publisher.close();
+      System.out.println(LogDateFormat.format(System.currentTimeMillis()) + " Producer closed");
+      TimingAccumulator stats = publisher.getStats(topic);
+      if (stats != null && stats.getSuccessCount() == maxSent * numThreads) {
+        exitcode = 0;
+      }
+    }
+    
+    private class ProducerWoker extends Thread {
+      @Override
+      public void run() {
+        System.out.println(LogDateFormat.format(System.currentTimeMillis()) + " Producer worker started!");
+        long msgIndex = 1;
+        boolean sentAll = false;
+        long startTime = 0l;
+        long endTime = 0l;
+        long publishTime = 0l;
+        
+        while (true) {
+          for (long j = 0; j < numMsgsPerSleepInterval; j++) {
+            Message m = constructMessage(msgIndex, fixedMsg);
+            
+            startTime = System.currentTimeMillis();
+            publisher.publish(topic, m);
+            endTime = System.currentTimeMillis();
+            publishTime += endTime - startTime;
+            
+            if (msgIndex == maxSent) {
+              sentAll = true;
+              break;
+            }
+            msgIndex++;
+          }
+          if (sentAll) {
+            break;
+          }
+          try {
+            Thread.sleep(sleepMillis);
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+            return;
+          }
+        }
+        
+        System.out.println(LogDateFormat.format(System.currentTimeMillis()) + " Producer worker closed." +
+        " Messages published: " + Long.toString(msgIndex) + " Total publish time (ms): " + Long.toString(publishTime));
+      } // run()
+    } // ProducerWorker
+  }
 
   static byte[] getMessageBytes(int msgSize) {
     byte[] msg = new byte[msgSize];
@@ -230,15 +342,159 @@ public class StreamingBenchmark {
     return new String(data);
   }
 
+  static class Consumer extends Thread {
+    final TreeMap<Long, Integer> messageToProducerCount;
+    final MessageConsumer consumer;
+    final long maxSent;
+    volatile long received = 0;
+    volatile long totalLatency = 0;
+    int numProducers;
+    boolean success = false;
+    boolean hadoopConsumer = false;
+    int numDuplicates = 0;
+    long nextElementToPurge = 1;
+    String fixedMsg;
+    int mismatches = 0;
+    int corrupt = 0;
 
+    Consumer(ClientConfig config, long maxSent, Date startTime,
+        int numProducers, boolean hadoopConsumer, int msgSize)
+        throws IOException {
+      this.maxSent = maxSent;
+      messageToProducerCount = new TreeMap<Long, Integer>();
+      this.numProducers = numProducers;
+      consumer = MessageConsumerFactory.create(config, startTime);
+      this.hadoopConsumer = hadoopConsumer;
+      this.fixedMsg = new String(getMessageBytes(msgSize));
+    }
+
+    private void purgeCounts() {
+      Set<Map.Entry<Long, Integer>> entrySet =
+          messageToProducerCount.entrySet();
+      Iterator<Map.Entry<Long, Integer>> iter = entrySet.iterator();
+      while (iter.hasNext()) {
+        Map.Entry<Long, Integer> entry = iter.next();
+        long msgIndex = entry.getKey();
+        int pcount = entry.getValue();
+        if (messageToProducerCount.size() > 1) {
+          if (msgIndex == nextElementToPurge) {
+            if (pcount >= numProducers) {
+              iter.remove();
+              nextElementToPurge++;
+              if (pcount > numProducers) {
+                numDuplicates += (pcount - numProducers);
+              }
+              continue;
+            }
+          }
+        }
+        break;
+      }
+    }
+
+    @Override
+    public void run() {
+      System.out.println("Consumer started!");
+      while (true) {
+        if (received == maxSent * numProducers) {
+          break;
+        }
+        Message msg = null;
+        try {
+          msg = consumer.next();
+          received++;
+          String s = getMessage(msg, hadoopConsumer);
+          String[] ar = s.split(DELIMITER);
+          Long seq = Long.parseLong(ar[0]);
+          Integer pcount = messageToProducerCount.get(seq);
+          if (seq < nextElementToPurge) {
+            numDuplicates++;
+          } else {
+            if (pcount == null) {
+              messageToProducerCount.put(seq, new Integer(1));
+            } else {
+              pcount++;
+              messageToProducerCount.put(seq, pcount);
+            }
+            long sentTime = Long.parseLong(ar[1]);
+            totalLatency += System.currentTimeMillis() - sentTime;
+
+            if (!fixedMsg.equals(ar[2])) {
+              mismatches++;
+            }
+          }
+          purgeCounts();
+        } catch (Exception e) {
+          corrupt++;
+          e.printStackTrace();
+        }
+      }
+      purgeCounts();
+      for (int pcount : messageToProducerCount.values()) {
+        if (pcount > numProducers) {
+          numDuplicates += (pcount - numProducers);
+        }
+      }
+      if (numDuplicates != 0) {
+        success = false;
+      } else {
+        Set<Map.Entry<Long, Integer>> entrySet =
+            messageToProducerCount.entrySet();
+        if (entrySet.size() != 1) {
+          // could happen in the case where messages are received by the
+          // consumer after the purging has been done for that message's index
+          // i.e older messages
+          System.out
+              .println("More than one entries in the message-producer map");
+          success = false;
+        } else {
+          // the last entry in the message-producer map should be that of the
+          // last msg sent i.e. msgIndex should be maxSent as purging would not
+          // happen unless the size of the map is > 1 and for the last message
+          // the size of map would be 1
+          for (Map.Entry<Long, Integer> entry : entrySet) {
+            long msgIndex = entry.getKey();
+            int pcount = entry.getValue();
+            if (msgIndex == maxSent) {
+              if (pcount != numProducers) {
+                System.out.println("No of msgs received for the last msg != "
+                    + "numProducers");
+                System.out.println("Expected " + numProducers + " Received "
+                    + pcount);
+                success = false;
+                break;
+              } else {
+                success = true;
+              }
+            } else {
+              System.out
+                  .println("The last entry is not that of the last msg sent");
+              success = false;
+              break;
+            }
+          }
+        }
+      }
+      if (mismatches != 0) {
+        System.out.println("Number of mismatches:" + mismatches);
+        success = false;
+      }
+      if (corrupt != 0) {
+        System.out.println("Corrupt messages:" + corrupt);
+        success = false;
+      }
+      consumer.close();
+      System.out.println("Consumer closed");
+    }
+
+  }
 
   static class StatusLogger extends Thread {
     volatile boolean stopped;
-    StreamingBenchmarkProducer producer;
-    StreamingBenchmarkConsumer consumer;
+    Producer producer;
+    Consumer consumer;
 
-    StatusLogger(StreamingBenchmarkProducer producer,
-        StreamingBenchmarkConsumer consumer) {
+    StatusLogger(Producer producer, Consumer consumer) {
       this.producer = producer;
       this.consumer = consumer;
     }
@@ -269,7 +525,7 @@ public class StreamingBenchmark {
       TimingAccumulator stats = producer.publisher.getStats(producer.topic);
       if (stats == null)
         return;
-
+      
       sb.append(" Invocations:" + stats.getInvocationCount());
       sb.append(" Inflight:" + stats.getInFlight());
       sb.append(" SentSuccess:" + stats.getSuccessCount());
