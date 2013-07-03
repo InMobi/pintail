@@ -4,22 +4,12 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
 
 import com.inmobi.instrumentation.TimingAccumulator;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
-import com.inmobi.messaging.consumer.MessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
-import com.inmobi.messaging.consumer.audit.AuditStatsQuery;
-import com.inmobi.messaging.publisher.AbstractMessagePublisher;
-import com.inmobi.messaging.publisher.MessagePublisherFactory;
-import com.inmobi.messaging.util.AuditUtil;
 import com.inmobi.messaging.util.ConsumerUtil;
 
 public class StreamingBenchmark {
@@ -30,19 +20,21 @@ public class StreamingBenchmark {
 
   static final int WRONG_USAGE_CODE = -1;
   static final int FAILED_CODE = 1;
+  public Date consumerStartTime;
+  public Date consumerEndTime;
 
   static int printUsage() {
     System.out.println("Usage: StreamingBenchmark  "
         + " [-producer <topic-name> <no-of-msgs> <no-of-msgs-per-sec>"
         + " [<timeoutSeconds> <msg-size> <no-of-threads>]]"
         + " [-consumer <no-of-producers> <no-of-msgs>"
-        + " [<timeoutSeconds> <msg-size> <hadoopconsumerflag> "
-        + "<auditTimeout> <timezone>]]");
+        + " [<timeoutSeconds> <msg-size> <hadoopconsumerflag> ]]");
     return WRONG_USAGE_CODE;
   }
 
   public static void main(String[] args) throws Exception {
-    int exitcode = run(args);
+    StreamingBenchmark benchmark = new StreamingBenchmark();
+    int exitcode = benchmark.run(args);
     System.exit(exitcode);
   }
 
@@ -52,7 +44,7 @@ public class StreamingBenchmark {
   static int numConsumerRequiredArgs = 2;
   static int minArgs = 3;
 
-  public static int run(String[] args) throws Exception {
+  public int run(String[] args) throws Exception {
     if (args.length < minArgs) {
       return printUsage();
     }
@@ -68,11 +60,6 @@ public class StreamingBenchmark {
     int numProducerThreads = 1;
     int consumerTimeout = 0;
     int msgSize = 2000;
-    String auditStartTime = null;
-    String auditEndTime = null;
-    String auditTopic = null;
-    String auditTimeout = null;
-    SimpleDateFormat formatter = new SimpleDateFormat(AuditUtil.DATE_FORMAT);
 
     if (args.length >= minArgs) {
       int consumerOptionIndex = -1;
@@ -94,7 +81,7 @@ public class StreamingBenchmark {
               numProducerThreads = Integer.parseInt(args[6]);
               consumerOptionIndex = 7;
             } else {
-              consumerOptionIndex = 6; 
+              consumerOptionIndex = 6;
             }
           } else {
             consumerOptionIndex = 5;
@@ -119,11 +106,7 @@ public class StreamingBenchmark {
             msgSize = Integer.parseInt(args[consumerOptionIndex + 4]);
           }
           if (args.length > consumerOptionIndex + 5) {
-            hadoopConsumer =
-                (Integer.parseInt(args[consumerOptionIndex + 5]) > 0);
-          }
-          if (args.length > consumerOptionIndex + 6) {
-            auditTimeout = args[consumerOptionIndex + 6];
+            hadoopConsumer = (Integer.parseInt(args[consumerOptionIndex + 5]) > 0);
           }
           if (args.length > consumerOptionIndex + 7) {
             timezone = args[consumerOptionIndex + 7];
@@ -136,36 +119,32 @@ public class StreamingBenchmark {
     }
 
     assert (runProducer || runConsumer == true);
-    Producer producer = null;
-    Consumer consumer = null;
+    StreamingBenchmarkProducer producer = null;
+    StreamingBenchmarkConsumer consumer = null;
     StatusLogger statusPrinter;
 
     if (runProducer) {
       System.out.println("Using topic: " + topic);
-      producer = createProducer(topic, maxSent, numMsgsPerSec, msgSize, numProducerThreads);
+      producer = createProducer(topic, maxSent, numMsgsPerSec, msgSize,
+          numProducerThreads);
       producer.start();
     }
 
     if (runConsumer) {
-      ClientConfig config =
-          ClientConfig
-              .loadFromClasspath(MessageConsumerFactory.MESSAGE_CLIENT_CONF_FILE);
-      Date now;
+      ClientConfig config = ClientConfig
+          .loadFromClasspath(MessageConsumerFactory.MESSAGE_CLIENT_CONF_FILE);
       if (timezone != null) {
-        now = ConsumerUtil.getCurrenDateForTimeZone(timezone);
+        consumerStartTime = ConsumerUtil.getCurrenDateForTimeZone(timezone);
       } else {
-        now = Calendar.getInstance().getTime();
+        consumerStartTime = Calendar.getInstance().getTime();
       }
-      System.out.println("Starting from " + now);
-      // set consumer start time as auditStartTime
-      auditStartTime = formatter.format(now);
-      auditTopic = config.getString(MessageConsumerFactory.TOPIC_NAME_KEY);
+      System.out.println("Starting from " + consumerStartTime);
 
       // create and start consumer
       assert (config != null);
-      consumer =
-          createConsumer(config, maxSent, now, numProducers, hadoopConsumer,
-              msgSize);
+      consumer = createConsumer(config, maxSent, consumerStartTime,
+          numProducers,
+          hadoopConsumer, msgSize);
       consumer.start();
     }
 
@@ -193,178 +172,40 @@ public class StreamingBenchmark {
       System.out.println("Consumer thread state: " + consumer.getState());
       statusPrinter.stopped = true;
       // set consumer end time as auditEndTime
-      Date now;
+
       if (timezone != null) {
-        now = ConsumerUtil.getCurrenDateForTimeZone(timezone);
+        consumerEndTime = ConsumerUtil.getCurrenDateForTimeZone(timezone);
       } else {
-        now = Calendar.getInstance().getTime();
+        consumerEndTime = Calendar.getInstance().getTime();
       }
-      // adding 1 minute to the end time so that when formatter converts it to
-      // minute level granularity we get the ceiling instead of floor;for eg:
-      // messages produced at 2:30:12 would only be considered in audit query
-      // when end time is 2:31 and not 2:30
-      Calendar calendar = Calendar.getInstance();
-      calendar.setTime(now);
-      calendar.add(Calendar.MINUTE, 1);
-      now = calendar.getTime();
-      auditEndTime = formatter.format(now);
-    }
-
-    statusPrinter.join();
-    if (runConsumer) {
-      // start audit thread to perform audit query
-      AuditThread auditThread =
-          createAuditThread(auditTopic, auditStartTime, auditEndTime,
-              auditTimeout, maxSent * numProducers);
-      auditThread.start();
-
-      // wait for audit thread to join
-      assert (auditThread != null);
-      auditThread.join(consumerTimeout * 1000);
-      System.out.println("Audit thread state: " + auditThread.getState());
-
-      if (!auditThread.success) {
-        System.out.println("Audit validation FAILED!");
-      } else {
-        System.out.println("Audit validation SUCCESS!");
-      }
-
       if (!consumer.success) {
         System.out.println("Data validation FAILED!");
         exitcode = FAILED_CODE;
       } else {
         System.out.println("Data validation SUCCESS!");
       }
+
     }
+    statusPrinter.join();
     return exitcode;
   }
 
-  static Producer createProducer(String topic, long maxSent,
+  static StreamingBenchmarkProducer createProducer(String topic, long maxSent,
       float numMsgsPerSec, int msgSize, int numThreads) throws IOException {
-    return new Producer(topic, maxSent, numMsgsPerSec, msgSize, numThreads);
+    return new StreamingBenchmarkProducer(topic, maxSent, numMsgsPerSec,
+        msgSize, numThreads);
   }
 
-  static Consumer createConsumer(ClientConfig config, long maxSent,
+  static StreamingBenchmarkConsumer createConsumer(ClientConfig config,
+      long maxSent,
       Date startTime, int numProducers, boolean hadoopConsumer, int maxSize)
       throws IOException {
-    return new Consumer(config, maxSent, startTime, numProducers,
+    return new StreamingBenchmarkConsumer(config, maxSent, startTime,
+        numProducers,
         hadoopConsumer, maxSize);
   }
 
-  static AuditThread createAuditThread(String topic, String fromTime,
-      String toTime, String timeout, long maxMessages) {
-    return new AuditThread(topic, fromTime, toTime, timeout, maxMessages);
-  }
 
-  static class Producer extends Thread {
-    volatile AbstractMessagePublisher publisher;
-    final String topic;
-    final long maxSent;
-    final long sleepMillis;
-    final long numMsgsPerSleepInterval;
-    final int numThreads;
-    int exitcode = FAILED_CODE;
-    byte[] fixedMsg;
-    ProducerWoker [] workerThreads = null;
-
-    Producer(String topic, long maxSent, float numMsgsPerSec, int msgSize,
-        int numThreads)
-        throws IOException {
-      this.topic = topic;
-      this.maxSent = maxSent;
-      if (maxSent <= 0) {
-        throw new IllegalArgumentException("Invalid total number of messages");
-      }
-      if (numMsgsPerSec > 1000) {
-        this.sleepMillis = 1;
-        numMsgsPerSleepInterval = (int) (numMsgsPerSec / 1000);
-      } else {
-        if (numMsgsPerSec <= 0) {
-          throw new IllegalArgumentException("Invalid number of messages per"
-              + " second");
-        }
-        this.sleepMillis = (int) (1000 / numMsgsPerSec);
-        numMsgsPerSleepInterval = 1;
-      }
-      fixedMsg = getMessageBytes(msgSize);
-      this.numThreads = numThreads;
-      publisher = (AbstractMessagePublisher) MessagePublisherFactory.create();
-      
-      // create producer workers
-      workerThreads = new ProducerWoker[numThreads];
-      for (int i = 0; i < numThreads; i++) {
-        ProducerWoker worker = new ProducerWoker();
-        workerThreads[i] = worker;
-      }
-    }
-    
-    @Override
-    public void run() {
-      System.out.println(LogDateFormat.format(System.currentTimeMillis()) + " Producer started!");
-      // start producer worker threads
-      for (int i = 0; i < numThreads; i++) {
-        workerThreads[i].start();
-      }
-      
-      // wait for worker threads to join
-      for (int i = 0; i < numThreads; i++) {
-        try {
-          workerThreads[i].join();
-        } catch (InterruptedException e) {
-          e.printStackTrace();
-        }
-      }
-      
-      // it is safe to close the publisher since all workers threads have finished by now.
-      publisher.close();
-      System.out.println(LogDateFormat.format(System.currentTimeMillis()) + " Producer closed");
-      TimingAccumulator stats = publisher.getStats(topic);
-      if (stats != null && stats.getSuccessCount() == maxSent * numThreads) {
-        exitcode = 0;
-      }
-    }
-    
-    private class ProducerWoker extends Thread {
-      @Override
-      public void run() {
-        System.out.println(LogDateFormat.format(System.currentTimeMillis()) + " Producer worker started!");
-        long msgIndex = 1;
-        boolean sentAll = false;
-        long startTime = 0l;
-        long endTime = 0l;
-        long publishTime = 0l;
-        
-        while (true) {
-          for (long j = 0; j < numMsgsPerSleepInterval; j++) {
-            Message m = constructMessage(msgIndex, fixedMsg);
-            
-            startTime = System.currentTimeMillis();
-            publisher.publish(topic, m);
-            endTime = System.currentTimeMillis();
-            publishTime += endTime - startTime;
-            
-            if (msgIndex == maxSent) {
-              sentAll = true;
-              break;
-            }
-            msgIndex++;
-          }
-          if (sentAll) {
-            break;
-          }
-          try {
-            Thread.sleep(sleepMillis);
-          } catch (InterruptedException e) {
-            e.printStackTrace();
-            return;
-          }
-        }
-        
-        System.out.println(LogDateFormat.format(System.currentTimeMillis()) + " Producer worker closed." +
-        " Messages published: " + Long.toString(msgIndex) + " Total publish time (ms): " + Long.toString(publishTime));
-      } // run()
-    } // ProducerWorker
-  }
 
   static byte[] getMessageBytes(int msgSize) {
     byte[] msg = new byte[msgSize];
@@ -389,159 +230,15 @@ public class StreamingBenchmark {
     return new String(data);
   }
 
-  static class Consumer extends Thread {
-    final TreeMap<Long, Integer> messageToProducerCount;
-    final MessageConsumer consumer;
-    final long maxSent;
-    volatile long received = 0;
-    volatile long totalLatency = 0;
-    int numProducers;
-    boolean success = false;
-    boolean hadoopConsumer = false;
-    int numDuplicates = 0;
-    long nextElementToPurge = 1;
-    String fixedMsg;
-    int mismatches = 0;
-    int corrupt = 0;
 
-    Consumer(ClientConfig config, long maxSent, Date startTime,
-        int numProducers, boolean hadoopConsumer, int msgSize)
-        throws IOException {
-      this.maxSent = maxSent;
-      messageToProducerCount = new TreeMap<Long, Integer>();
-      this.numProducers = numProducers;
-      consumer = MessageConsumerFactory.create(config, startTime);
-      this.hadoopConsumer = hadoopConsumer;
-      this.fixedMsg = new String(getMessageBytes(msgSize));
-    }
-
-    private void purgeCounts() {
-      Set<Map.Entry<Long, Integer>> entrySet =
-          messageToProducerCount.entrySet();
-      Iterator<Map.Entry<Long, Integer>> iter = entrySet.iterator();
-      while (iter.hasNext()) {
-        Map.Entry<Long, Integer> entry = iter.next();
-        long msgIndex = entry.getKey();
-        int pcount = entry.getValue();
-        if (messageToProducerCount.size() > 1) {
-          if (msgIndex == nextElementToPurge) {
-            if (pcount >= numProducers) {
-              iter.remove();
-              nextElementToPurge++;
-              if (pcount > numProducers) {
-                numDuplicates += (pcount - numProducers);
-              }
-              continue;
-            }
-          }
-        }
-        break;
-      }
-    }
-
-    @Override
-    public void run() {
-      System.out.println("Consumer started!");
-      while (true) {
-        if (received == maxSent * numProducers) {
-          break;
-        }
-        Message msg = null;
-        try {
-          msg = consumer.next();
-          received++;
-          String s = getMessage(msg, hadoopConsumer);
-          String[] ar = s.split(DELIMITER);
-          Long seq = Long.parseLong(ar[0]);
-          Integer pcount = messageToProducerCount.get(seq);
-          if (seq < nextElementToPurge) {
-            numDuplicates++;
-          } else {
-            if (pcount == null) {
-              messageToProducerCount.put(seq, new Integer(1));
-            } else {
-              pcount++;
-              messageToProducerCount.put(seq, pcount);
-            }
-            long sentTime = Long.parseLong(ar[1]);
-            totalLatency += System.currentTimeMillis() - sentTime;
-
-            if (!fixedMsg.equals(ar[2])) {
-              mismatches++;
-            }
-          }
-          purgeCounts();
-        } catch (Exception e) {
-          corrupt++;
-          e.printStackTrace();
-        }
-      }
-      purgeCounts();
-      for (int pcount : messageToProducerCount.values()) {
-        if (pcount > numProducers) {
-          numDuplicates += (pcount - numProducers);
-        }
-      }
-      if (numDuplicates != 0) {
-        success = false;
-      } else {
-        Set<Map.Entry<Long, Integer>> entrySet =
-            messageToProducerCount.entrySet();
-        if (entrySet.size() != 1) {
-          // could happen in the case where messages are received by the
-          // consumer after the purging has been done for that message's index
-          // i.e older messages
-          System.out
-              .println("More than one entries in the message-producer map");
-          success = false;
-        } else {
-          // the last entry in the message-producer map should be that of the
-          // last msg sent i.e. msgIndex should be maxSent as purging would not
-          // happen unless the size of the map is > 1 and for the last message
-          // the size of map would be 1
-          for (Map.Entry<Long, Integer> entry : entrySet) {
-            long msgIndex = entry.getKey();
-            int pcount = entry.getValue();
-            if (msgIndex == maxSent) {
-              if (pcount != numProducers) {
-                System.out.println("No of msgs received for the last msg != "
-                    + "numProducers");
-                System.out.println("Expected " + numProducers + " Received "
-                    + pcount);
-                success = false;
-                break;
-              } else {
-                success = true;
-              }
-            } else {
-              System.out
-                  .println("The last entry is not that of the last msg sent");
-              success = false;
-              break;
-            }
-          }
-        }
-      }
-      if (mismatches != 0) {
-        System.out.println("Number of mismatches:" + mismatches);
-        success = false;
-      }
-      if (corrupt != 0) {
-        System.out.println("Corrupt messages:" + corrupt);
-        success = false;
-      }
-      consumer.close();
-      System.out.println("Consumer closed");
-    }
-
-  }
 
   static class StatusLogger extends Thread {
     volatile boolean stopped;
-    Producer producer;
-    Consumer consumer;
+    StreamingBenchmarkProducer producer;
+    StreamingBenchmarkConsumer consumer;
 
-    StatusLogger(Producer producer, Consumer consumer) {
+    StatusLogger(StreamingBenchmarkProducer producer,
+        StreamingBenchmarkConsumer consumer) {
       this.producer = producer;
       this.consumer = consumer;
     }
@@ -572,7 +269,7 @@ public class StreamingBenchmark {
       TimingAccumulator stats = producer.publisher.getStats(producer.topic);
       if (stats == null)
         return;
-      
+
       sb.append(" Invocations:" + stats.getInvocationCount());
       sb.append(" Inflight:" + stats.getInFlight());
       sb.append(" SentSuccess:" + stats.getSuccessCount());
@@ -589,61 +286,6 @@ public class StreamingBenchmark {
         sb.append(" MeanLatency(ms):"
             + (consumer.totalLatency / consumer.received));
       }
-    }
-  }
-
-  static class AuditThread extends Thread {
-    final String topic;
-    final String startTime;
-    final String endTime;
-    final String timeout;
-    final long maxMessages;
-    boolean success = false;
-
-    AuditThread(String topic, String startTime, String endTime, String timeout,
-        long maxMessages) {
-      this.topic = topic;
-      this.startTime = startTime;
-      this.endTime = endTime;
-      this.timeout = timeout;
-      this.maxMessages = maxMessages;
-    }
-
-    @Override
-    public void run() {
-      System.out.println("Audit Thread started!");
-
-      AuditStatsQuery auditQuery = new AuditStatsQuery(null, endTime,
-          startTime, "TOPIC=" + topic, "TIER", null, timeout, null);
-
-      try {
-        auditQuery.execute();
-      } catch (Exception e) {
-        System.out.println("Audit Query execute failed with exception: "
-            + e.getMessage());
-        e.printStackTrace();
-        return;
-      }
-
-      System.out.println("Displaying results for Audit Query: " + auditQuery);
-      // display audit query results
-      auditQuery.displayResults();
-
-      // validate that all tiers have received same number of messages equal to
-      // maxMessages
-      Collection<Long> recvdMessages = auditQuery.getReceived().values();
-      boolean match = true;
-      for (Long msgCount : recvdMessages) {
-        if (msgCount != maxMessages) {
-          match = false;
-          break;
-        }
-      }
-      if (match == true) {
-        success = true;
-      }
-
-      System.out.println("Audit Thread closed");
     }
   }
 

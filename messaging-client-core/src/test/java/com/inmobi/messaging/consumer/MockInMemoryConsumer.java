@@ -53,7 +53,8 @@ public class MockInMemoryConsumer extends AbstractMessageConsumer {
   }
 
   @Override
-  public synchronized Message next() throws InterruptedException, EndOfStreamException {
+  public synchronized Message next() throws InterruptedException,
+      EndOfStreamException {
     Message msg = getNext();
     return msg;
   }
