@@ -24,17 +24,10 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
   private String[] clusterNames;
   private Path[] rootDirs;
   private FileSystem[] fileSystems;
-  private Configuration conf;
   private String inputFormatClassName;
   public static String clusterNamePrefix = "hadoopcluster";
 
   protected void initializeConfig(ClientConfig config) throws IOException {
-    String hadoopConfFileName = config.getString(hadoopConfigFileKey);
-    if (hadoopConfFileName != null) {
-      Configuration.addDefaultResource(hadoopConfFileName);
-    }
-    conf = new Configuration();
-
     super.initializeConfig(config);
 
     String rootDirStr = config.getString(rootDirsConfig);
@@ -89,10 +82,6 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
       LOG.debug("Created partition " + id);
       readers.put(id, reader);
     }
-  }
-
-  Configuration getHadoopConf() {
-    return conf;
   }
 
   Path[] getRootDirs() {
