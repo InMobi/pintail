@@ -125,10 +125,10 @@ public abstract class TestAbstractWaitingClusterReader {
         fs.getFileStatus(newDatabusFiles[1])), 2, 0, 100, partitionId,
         buffer, isDatabusData());
     Assert.assertTrue(buffer.isEmpty());
-    preader.close();
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 500);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 500);
     Assert.assertTrue(prMetrics.getWaitTimeUnitsNewFile() > 0);
     Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
+    preader.close();
   }
 }
