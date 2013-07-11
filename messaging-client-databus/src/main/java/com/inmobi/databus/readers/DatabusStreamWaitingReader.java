@@ -143,39 +143,10 @@ public class DatabusStreamWaitingReader
     return currentFile != null;
   }
 
-  private int startHour = -1;
-  private void calculateStartHour() throws IOException {
-    Calendar current = Calendar.getInstance();
-    Date now = current.getTime();
-    current.setTime(buildTimestamp);
-    while (current.getTime().before(now)) {
-      Path hhDir =  getHourDirPath(streamDir, current.getTime());
-      int hour = current.get(Calendar.HOUR_OF_DAY);
-      if (fsIsPathExists(hhDir)) {
-        startHour = hour;
-        break;
-      } else {
-        // go to next hour
-        LOG.info("Hour directory " + hhDir + " does not exist");
-        current.add(Calendar.HOUR_OF_DAY, 1);
-        current.set(Calendar.MINUTE, 0);
-      }
-    }
-    if (startHour != -1) {
-      buildTimestamp = current.getTime();
-    }
-  }
-
   @Override
   protected void buildListing(FileMap<HadoopStreamFile> fmap,
       PathFilter pathFilter) throws IOException {
     if (!setBuildTimeStamp(pathFilter)) {
-      return;
-    }
-    if (startHour == -1) {
-      calculateStartHour();
-    }
-    if (startHour == -1) {
       return;
     }
     Calendar current = Calendar.getInstance();
