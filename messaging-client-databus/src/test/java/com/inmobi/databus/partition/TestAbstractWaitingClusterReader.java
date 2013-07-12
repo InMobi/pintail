@@ -118,11 +118,20 @@ public abstract class TestAbstractWaitingClusterReader {
         DatabusStreamWaitingReader.class.getName());
     setupFiles(new String[] {newFiles[1], newFiles[2]},
         newDatabusFiles);
+    while (buffer.remainingCapacity() > 0) {
+      Thread.sleep(10);
+    }
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(newDatabusFiles[0])), 1, 0, 100, partitionId, buffer,
         isDatabusData());
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
-        fs.getFileStatus(newDatabusFiles[1])), 2, 0, 100, partitionId,
+        fs.getFileStatus(newDatabusFiles[1])), 2, 0, 50, partitionId,
+        buffer, isDatabusData());
+    while (buffer.remainingCapacity() > 100) {
+      Thread.sleep(10);
+    }
+    TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
+        fs.getFileStatus(newDatabusFiles[1])), 2, 50, 50, partitionId,
         buffer, isDatabusData());
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 500);
