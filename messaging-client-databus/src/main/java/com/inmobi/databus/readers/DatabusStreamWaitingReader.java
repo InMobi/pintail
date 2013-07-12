@@ -38,6 +38,7 @@ public class DatabusStreamWaitingReader
   private long numOfLinesReadInMinute;
   private Map<Integer, Date> checkpointTimeStampMap;
   private Map<Integer, PartitionCheckpoint> pChkpoints;
+  private Map<Integer, PartitionCheckpoint> deltaCheckpoint;
 
   public DatabusStreamWaitingReader(PartitionId partitionId, FileSystem fs,
       Path streamDir,  String inputFormatClass, Configuration conf,
@@ -57,6 +58,7 @@ public class DatabusStreamWaitingReader
       pChkpoints = partitionCheckpointList.getCheckpoints();
       prepareTimeStampsOfCheckpoints();
     }
+    deltaCheckpoint = new TreeMap<Integer, PartitionCheckpoint>();
   }
 
   public void prepareTimeStampsOfCheckpoints() {
@@ -381,6 +383,12 @@ public class DatabusStreamWaitingReader
   public void resetMoveToNextFlags() {
     movedToNext = false;
     prevMin = -1;
+    deltaCheckpoint = new TreeMap<Integer, PartitionCheckpoint>();
+    
+  }
+
+  public Map<Integer, PartitionCheckpoint> getDeltaCheckpoint() {
+    return deltaCheckpoint;
   }
 
   public boolean isMovedToNext() {

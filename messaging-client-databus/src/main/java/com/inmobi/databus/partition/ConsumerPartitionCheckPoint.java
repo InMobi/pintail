@@ -4,16 +4,20 @@ import com.inmobi.databus.files.StreamFile;
 
 import java.io.DataInput;
 import java.io.IOException;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class ConsumerPartitionCheckPoint extends PartitionCheckpoint {
   private Integer minId;
   private boolean eofPrevFile;
   private Integer prevMinId;
+  private Map<Integer, PartitionCheckpoint> deltaCheckpoint;
 
   public ConsumerPartitionCheckPoint(StreamFile streamFile, long lineNum,
       Integer minId) {
     this(streamFile, lineNum);
     this.minId = minId;
+    deltaCheckpoint = new TreeMap<Integer, PartitionCheckpoint>();
   }
 
   public ConsumerPartitionCheckPoint(StreamFile streamFile, long lineNum) {
@@ -77,5 +81,14 @@ public class ConsumerPartitionCheckPoint extends PartitionCheckpoint {
 
   public void setPrevMinId(Integer prevMinId) {
     this.prevMinId = prevMinId;
+  }
+
+  public Map<Integer, PartitionCheckpoint> getDeltaCheckpoint() {
+    return deltaCheckpoint;
+  }
+
+  public void setDeltaCheckpoint(
+      Map<Integer, PartitionCheckpoint> deltaCheckpoint) {
+    this.deltaCheckpoint = deltaCheckpoint;
   }
 }
