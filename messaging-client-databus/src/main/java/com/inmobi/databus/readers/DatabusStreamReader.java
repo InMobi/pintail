@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 import org.apache.commons.logging.Log;
@@ -247,7 +248,31 @@ StreamReader<T> {
     return new Path(streamDir, minDirFormat.get().format(date));
   }
 
-  protected boolean setBuildTimeStamp(PathFilter pathFilter) throws IOException {
+  private int startHour = -1;
+
+  private void calculateStartHour() throws IOException {
+    Calendar current = Calendar.getInstance();
+    Date now = current.getTime();
+    current.setTime(buildTimestamp);
+    while (current.getTime().before(now)) {
+      Path hhDir =  getHourDirPath(streamDir, current.getTime());
+      if (fsIsPathExists(hhDir)) {
+        startHour = current.get(Calendar.HOUR_OF_DAY);;
+        break;
+      } else {
+        // go to next hour
+        LOG.info("Hour directory " + hhDir + " does not exist");
+        current.add(Calendar.HOUR_OF_DAY, 1);
+        current.set(Calendar.MINUTE, 0);
+      }
+    }
+    if (startHour != -1) {
+      buildTimestamp = current.getTime();
+    }
+  }
+
+  protected boolean setBuildTimeStamp(PathFilter pathFilter)
+      throws IOException {
     if (buildTimestamp == null) {
       Date tmp = getTimestampFromStartOfStream(pathFilter);
       if (tmp != null) {
@@ -256,6 +281,12 @@ StreamReader<T> {
         LOG.info("Could not find start directory yet");
         return false;
       }
+    }
+    if (startHour == -1) {
+      calculateStartHour();
+    }
+    if (startHour == -1) {
+      return false;
     }
     return true;
   }

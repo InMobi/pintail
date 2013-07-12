@@ -84,22 +84,10 @@ public class LocalStreamCollectorReader extends
     current.setTime(buildTimestamp);
     // stop the file listing if stop date is beyond current time
     while (current.getTime().before(now) && !isListingStopped()) {
-      Path hhDir =  getHourDirPath(streamDir, current.getTime());
-      int hour = current.get(Calendar.HOUR_OF_DAY);
-      if (fsIsPathExists(hhDir)) {
-        while (current.getTime().before(now)
-            && hour  == current.get(Calendar.HOUR_OF_DAY) && !isListingStopped()) {
-          Path dir = getMinuteDirPath(streamDir, current.getTime());
-          // Move the current minute to next minute
-          current.add(Calendar.MINUTE, 1);
-          doRecursiveListing(dir, pathFilter, fmap);
-        }
-      } else {
-        // go to next hour
-        LOG.info("Hour directory " + hhDir + " does not exist");
-        current.add(Calendar.HOUR_OF_DAY, 1);
-        current.set(Calendar.MINUTE, 0);
-      }
+      Path dir = getMinuteDirPath(streamDir, current.getTime());
+      // Move the current minute to next minute
+      current.add(Calendar.MINUTE, 1);
+      doRecursiveListing(dir, pathFilter, fmap);
     }
   }
 
