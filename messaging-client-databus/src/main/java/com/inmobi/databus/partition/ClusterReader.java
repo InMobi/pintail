@@ -132,6 +132,8 @@ public class ClusterReader extends AbstractPartitionStreamReader {
     if (movedToNext) {
       consumerPartitionCheckPoint.setEofPrevFile(movedToNext);
       consumerPartitionCheckPoint.setPrevMinId(dataWaitingReader.getPrevMin());
+      consumerPartitionCheckPoint.setDeltaCheckpoint(
+          dataWaitingReader.getDeltaCheckpoint());
       dataWaitingReader.resetMoveToNextFlags();
     }
     return consumerPartitionCheckPoint;

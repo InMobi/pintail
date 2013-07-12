@@ -91,6 +91,24 @@ public class CheckpointList implements ConsumerCheckpoint {
             prevPartitionCheckPoint));
       }
     }
+    if (!checkPoint.getDeltaCheckpoint().isEmpty()) {
+      for (Map.Entry<Integer, PartitionCheckpoint> entry :
+        checkPoint.getDeltaCheckpoint().entrySet()) {
+        Integer minute = entry.getKey();
+        PartitionCheckpoint pck = entry.getValue();
+        Map<PartitionId, PartitionCheckpoint> tmpPckMap =
+            new TreeMap<PartitionId, PartitionCheckpoint>();
+        Checkpoint tmpChkPoint = chkpoints.get(minute);
+        if (cp == null) {
+          tmpPckMap = new HashMap<PartitionId, PartitionCheckpoint>();
+          tmpPckMap.put(pid, pck);
+          tmpChkPoint = new Checkpoint(map);
+        } else {
+          tmpChkPoint.set(pid, pck);
+        }
+        chkpoints.put(minute, tmpChkPoint);
+      }
+    }
   }
 
   public String toString() {
