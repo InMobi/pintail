@@ -116,6 +116,7 @@ public abstract class TestAbstractWaitingClusterReader {
     Assert.assertEquals(((ClusterReader) preader.getReader())
         .getReader().getClass().getName(),
         DatabusStreamWaitingReader.class.getName());
+    Thread.sleep(1000);
     setupFiles(new String[] {newFiles[1], newFiles[2]},
         newDatabusFiles);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
