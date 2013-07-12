@@ -227,10 +227,18 @@ public class DatabusStreamWaitingReader
     boolean readFromCheckpoint = false;
     FileStatus fileToRead = nextFile;
     if (currentMin != now.get(Calendar.MINUTE)) {
+      if (numOfLinesReadInMinute == 0) {
+        deltaCheckpoint.put(currentMin,
+            new PartitionCheckpoint(getStreamFile(currentFile), -1));
+        prepareDeltaCheckpoint(currentFileTimeStamp, nextFileTimeStamp,
+            currentMin);
+      }
       if (numOfLinesReadInMinute > 0) {
         //We are moving to next file, set the flags so that Message checkpoints
         //can be populated.
         movedToNext = true;
+        prepareDeltaCheckpoint(currentFileTimeStamp, nextFileTimeStamp,
+            currentMin);
         prevMin = currentMin;
         numOfLinesReadInMinute = 0;
       }
@@ -259,6 +267,19 @@ public class DatabusStreamWaitingReader
     this.currentFile = fileToRead;
     setIterator();
     return !readFromCheckpoint;
+  }
+
+  private void prepareDeltaCheckpoint(Date currentFileTimeStamp,
+      Date nextFileTimeStamp, int minute) {
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(currentFileTimeStamp);
+     while (cal.getTime().before(nextFileTimeStamp)) {
+       int currentMinute = cal.get(Calendar.MINUTE);
+       if (!deltaCheckpoint.containsKey(currentMinute)) {
+         deltaCheckpoint.put(currentMinute,
+             new PartitionCheckpoint(getStreamFile(cal.getTime()), -1));
+       }
+     }
   }
 
   private void updatePartitionCheckpointList(int prevMin) {
