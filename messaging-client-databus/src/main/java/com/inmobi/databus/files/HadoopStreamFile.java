@@ -120,16 +120,30 @@ public class HadoopStreamFile implements StreamFile {
   @Override
   public void write(DataOutput out) throws IOException {
     out.writeUTF(parent.toString());
-    out.writeUTF(fileName);
-    out.writeLong(timeStamp);
+    boolean notNull = fileName != null;
+    out.writeBoolean(notNull);
+    if (notNull) {
+      out.writeUTF(fileName);
+    }
+    notNull = timeStamp != null;
+    out.writeBoolean(notNull);
+    if (notNull) {
+      out.writeLong(timeStamp);
+    }
   }
 
   @Override
   public void readFields(DataInput in) throws IOException {
     String strPath = in.readUTF();
     this.parent = new Path(strPath);
-    this.fileName = in.readUTF();
-    this.timeStamp = in.readLong();
+    boolean notNull = in.readBoolean();
+    if (notNull) {
+      this.fileName = in.readUTF();
+    }
+    notNull = in.readBoolean();
+    if (notNull) {
+      this.timeStamp = in.readLong();
+    }
     constructCheckpointPath();
   }
 

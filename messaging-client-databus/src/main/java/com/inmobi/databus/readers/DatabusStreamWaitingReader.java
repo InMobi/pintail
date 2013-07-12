@@ -273,12 +273,14 @@ public class DatabusStreamWaitingReader
       Date nextFileTimeStamp, int minute) {
     Calendar cal = Calendar.getInstance();
     cal.setTime(currentFileTimeStamp);
+    cal.add(Calendar.MINUTE, 1);
      while (cal.getTime().before(nextFileTimeStamp)) {
        int currentMinute = cal.get(Calendar.MINUTE);
        if (!deltaCheckpoint.containsKey(currentMinute)) {
          deltaCheckpoint.put(currentMinute,
              new PartitionCheckpoint(getStreamFile(cal.getTime()), -1));
        }
+       cal.add(Calendar.MINUTE, 1);
      }
   }
 
