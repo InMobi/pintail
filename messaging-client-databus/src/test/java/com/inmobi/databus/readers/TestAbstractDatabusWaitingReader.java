@@ -99,8 +99,8 @@ public abstract class TestAbstractDatabusWaitingReader {
     Assert.assertNull(lreader.getCurrentFile());
 
     // startFromNextHigher with filename
-    lreader.startFromNextHigher(fs.getFileStatus(finalFiles[1]));
-    Assert.assertEquals(lreader.getCurrentFile(), finalFiles[2]);
+    lreader.startFromNextHigher(fs.getFileStatus(finalFiles[0]));
+    Assert.assertEquals(lreader.getCurrentFile(), finalFiles[1]);
 
     // startFromTimestamp with date
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
