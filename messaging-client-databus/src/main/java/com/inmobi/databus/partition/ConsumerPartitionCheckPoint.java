@@ -76,10 +76,13 @@ public class ConsumerPartitionCheckPoint extends PartitionCheckpoint {
     this.deltaCheckpoint = deltaCheckpoint;
   }
 
-  public Map<Integer, PartitionCheckpoint> getCurrentMsgChkpoint() {
+  public void setCurrentMsgCheckpoint() {
     PartitionCheckpoint msgPck = new PartitionCheckpoint(getStreamFile(),
         getLineNum());
     currentMsgCheckpoint.put(getMinId(), msgPck);
+  }
+
+  public Map<Integer, PartitionCheckpoint> getCurrentMsgChkpoint() {
     return currentMsgCheckpoint;
   }
 }

@@ -248,7 +248,6 @@ public class DatabusStreamWaitingReader
         }
         readFromCheckpoint = true;
       }
- //     updatePartitionCheckpointList(prevMin);
     }
     this.currentFile = fileToRead;
     setIterator();
@@ -269,13 +268,6 @@ public class DatabusStreamWaitingReader
        }
        cal.add(Calendar.MINUTE, 1);
      }
-  }
-
-  private void updatePartitionCheckpointList(int prevMin) {
-    Map<Integer, PartitionCheckpoint> pckList = partitionCheckpointList.
-        getCheckpoints();
-    pckList.remove(prevMin);
-    partitionCheckpointList.setCheckpoint(pckList);
   }
 
   @Override
