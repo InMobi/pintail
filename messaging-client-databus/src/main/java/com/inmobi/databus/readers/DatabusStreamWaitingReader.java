@@ -222,25 +222,14 @@ public class DatabusStreamWaitingReader
         nextFile.getPath().getParent());
     now.setTime(nextFileTimeStamp);
 
-    numOfLinesReadInMinute += getCurrentLineNum();
     boolean readFromCheckpoint = false;
     FileStatus fileToRead = nextFile;
     if (currentMin != now.get(Calendar.MINUTE)) {
-      if (numOfLinesReadInMinute == 0) {
-        deltaCheckpoint.put(currentMin,
-            new PartitionCheckpoint(getStreamFile(currentFile), -1));
-        prepareDeltaCheckpoint(currentFileTimeStamp, nextFileTimeStamp);
-      }
-      if (numOfLinesReadInMinute > 0) {
-        //We are moving to next file, set the flags so that Message checkpoints
-        //can be populated.
-        movedToNext = true;
-        prepareDeltaCheckpoint(currentFileTimeStamp, nextFileTimeStamp);
-        // set the line number as -1 as current file was read fully.
-        deltaCheckpoint.put(currentMin,
-            new PartitionCheckpoint(getStreamFile(currentFile), -1));
-        numOfLinesReadInMinute = 0;
-      }
+      movedToNext = true;
+      prepareDeltaCheckpoint(currentFileTimeStamp, nextFileTimeStamp);
+      // set the line number as -1 as current file was read fully.
+      deltaCheckpoint.put(currentMin,
+          new PartitionCheckpoint(getStreamFile(currentFile), -1));
       currentMin = now.get(Calendar.MINUTE);
       PartitionCheckpoint partitionCheckpoint = partitionCheckpointList.
           getCheckpoints().get(currentMin);
@@ -406,7 +395,6 @@ public class DatabusStreamWaitingReader
   public void resetMoveToNextFlags() {
     movedToNext = false;
     deltaCheckpoint = new HashMap<Integer, PartitionCheckpoint>();
-    
   }
 
   public Map<Integer, PartitionCheckpoint> getDeltaCheckpoint() {
