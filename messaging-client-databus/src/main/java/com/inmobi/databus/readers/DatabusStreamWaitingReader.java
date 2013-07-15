@@ -254,20 +254,22 @@ public class DatabusStreamWaitingReader
     return !readFromCheckpoint;
   }
 
+  /*
+   * prepare a delta checkpoint
+   */
   private void prepareDeltaCheckpoint(Date currentFileTimeStamp,
       Date nextFileTimeStamp) {
     Calendar cal = Calendar.getInstance();
     cal.setTime(currentFileTimeStamp);
     cal.add(Calendar.MINUTE, 1);
-     while (cal.getTime().before(nextFileTimeStamp)) {
-       int currentMinute = cal.get(Calendar.MINUTE);
-       if (!deltaCheckpoint.containsKey(currentMinute) &&
-           partitionMinList.contains(Integer.valueOf(currentMinute))) {
-         deltaCheckpoint.put(currentMinute,
-             new PartitionCheckpoint(getStreamFile(cal.getTime()), -1));
-       }
-       cal.add(Calendar.MINUTE, 1);
-     }
+    while (cal.getTime().before(nextFileTimeStamp)) {
+      int currentMinute = cal.get(Calendar.MINUTE);
+      if (partitionMinList.contains(Integer.valueOf(currentMinute))) {
+        deltaCheckpoint.put(currentMinute,
+            new PartitionCheckpoint(getStreamFile(cal.getTime()), -1));
+      }
+      cal.add(Calendar.MINUTE, 1);
+    }
   }
 
   @Override
