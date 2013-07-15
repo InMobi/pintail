@@ -148,10 +148,8 @@ public class StreamingBenchmark {
 
       // create and start consumer
       assert (config != null);
-      consumer =
- createConsumer(config, maxSent, consumerStartTime,
-          numProducers, hadoopConsumer,
-              msgSize);
+      consumer = createConsumer(config, maxSent, consumerStartTime,
+          numProducers, hadoopConsumer, msgSize);
       consumer.start();
     }
 
@@ -191,7 +189,7 @@ public class StreamingBenchmark {
       } else {
         System.out.println("Data validation SUCCESS!");
       }
-
+      System.out.println("Consumer end time is " + consumerEndTime);
     }
     return exitcode;
   }
