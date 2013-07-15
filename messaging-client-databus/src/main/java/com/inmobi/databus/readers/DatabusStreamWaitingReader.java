@@ -34,7 +34,6 @@ public class DatabusStreamWaitingReader
   private final Set<Integer> partitionMinList;
   private PartitionCheckpointList partitionCheckpointList;
   private boolean movedToNext;
-  private long numOfLinesReadInMinute;
   private Map<Integer, Date> checkpointTimeStampMap;
   private Map<Integer, PartitionCheckpoint> pChkpoints;
   private Map<Integer, PartitionCheckpoint> deltaCheckpoint;
@@ -51,13 +50,12 @@ public class DatabusStreamWaitingReader
     this.partitionMinList = partitionMinList;
     this.stopTime = stopTime;
     currentMin = -1;
-    numOfLinesReadInMinute = 0;
     this.checkpointTimeStampMap = new HashMap<Integer, Date>();
     if (partitionCheckpointList != null) {
       pChkpoints = partitionCheckpointList.getCheckpoints();
       prepareTimeStampsOfCheckpoints();
     }
-    deltaCheckpoint = new TreeMap<Integer, PartitionCheckpoint>();
+    deltaCheckpoint = new HashMap<Integer, PartitionCheckpoint>();
   }
 
   public void prepareTimeStampsOfCheckpoints() {
