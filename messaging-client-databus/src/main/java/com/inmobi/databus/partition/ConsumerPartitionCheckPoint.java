@@ -10,13 +10,13 @@ import java.util.Map;
 public class ConsumerPartitionCheckPoint extends PartitionCheckpoint {
   private Integer minId;
   private Map<Integer, PartitionCheckpoint> deltaCheckpoint;
-  private Map<Integer, PartitionCheckpoint> currentMsgCheckpoint;
+  private PartitionCheckpoint currentMsgCheckpoint;
 
   public ConsumerPartitionCheckPoint(StreamFile streamFile, long lineNum,
       Integer minId) {
     this(streamFile, lineNum);
     this.minId = minId;
-    currentMsgCheckpoint = new HashMap<Integer, PartitionCheckpoint>();
+    currentMsgCheckpoint = new PartitionCheckpoint(streamFile, lineNum);
     deltaCheckpoint = new HashMap<Integer, PartitionCheckpoint>();
   }
 
@@ -76,13 +76,7 @@ public class ConsumerPartitionCheckPoint extends PartitionCheckpoint {
     this.deltaCheckpoint = deltaCheckpoint;
   }
 
-  public void setCurrentMsgCheckpoint() {
-    PartitionCheckpoint msgPck = new PartitionCheckpoint(getStreamFile(),
-        getLineNum());
-    currentMsgCheckpoint.put(getMinId(), msgPck);
-  }
-
-  public Map<Integer, PartitionCheckpoint> getCurrentMsgChkpoint() {
+  public PartitionCheckpoint getCurrentMsgChkpoint() {
     return currentMsgCheckpoint;
   }
 }

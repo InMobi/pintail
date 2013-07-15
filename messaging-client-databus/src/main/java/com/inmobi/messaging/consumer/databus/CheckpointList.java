@@ -64,10 +64,8 @@ public class CheckpointList implements ConsumerCheckpoint {
   public void set(PartitionId pid, MessageCheckpoint msgCkp) {
     ConsumerPartitionCheckPoint checkPoint = (ConsumerPartitionCheckPoint) msgCkp;
     // set current msg checkpoint
-    for (Map.Entry<Integer, PartitionCheckpoint> entry :
-      checkPoint.getCurrentMsgChkpoint().entrySet()) {
-      setConsumerCheckpoint(pid, entry.getKey(), entry.getValue());
-    }
+    setConsumerCheckpoint(pid, checkPoint.getMinId(),
+        checkPoint.getCurrentMsgChkpoint());
     // set delta checkpoint
     if (!checkPoint.getDeltaCheckpoint().isEmpty()) {
       for (Map.Entry<Integer, PartitionCheckpoint> entry :
