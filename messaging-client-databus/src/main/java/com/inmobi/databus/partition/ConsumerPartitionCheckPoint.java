@@ -4,20 +4,22 @@ import com.inmobi.databus.files.StreamFile;
 
 import java.io.DataInput;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
 public class ConsumerPartitionCheckPoint extends PartitionCheckpoint {
   private Integer minId;
   private boolean eofPrevFile;
-  private Integer prevMinId;
   private Map<Integer, PartitionCheckpoint> deltaCheckpoint;
+  private Map<Integer, PartitionCheckpoint> currentMsgCheckpoint;
 
   public ConsumerPartitionCheckPoint(StreamFile streamFile, long lineNum,
       Integer minId) {
     this(streamFile, lineNum);
     this.minId = minId;
-    deltaCheckpoint = new TreeMap<Integer, PartitionCheckpoint>();
+    currentMsgCheckpoint = new HashMap<Integer, PartitionCheckpoint>();
+    deltaCheckpoint = new HashMap<Integer, PartitionCheckpoint>();
   }
 
   public ConsumerPartitionCheckPoint(StreamFile streamFile, long lineNum) {
@@ -67,22 +69,6 @@ public class ConsumerPartitionCheckPoint extends PartitionCheckpoint {
     return this.minId;
   }
 
-  public boolean isEofPrevFile() {
-    return eofPrevFile;
-  }
-
-  public void setEofPrevFile(boolean eofPrevFile) {
-    this.eofPrevFile = eofPrevFile;
-  }
-
-  public Integer getPrevMinId() {
-    return prevMinId;
-  }
-
-  public void setPrevMinId(Integer prevMinId) {
-    this.prevMinId = prevMinId;
-  }
-
   public Map<Integer, PartitionCheckpoint> getDeltaCheckpoint() {
     return deltaCheckpoint;
   }
@@ -90,5 +76,12 @@ public class ConsumerPartitionCheckPoint extends PartitionCheckpoint {
   public void setDeltaCheckpoint(
       Map<Integer, PartitionCheckpoint> deltaCheckpoint) {
     this.deltaCheckpoint = deltaCheckpoint;
+  }
+
+  public Map<Integer, PartitionCheckpoint> getCurrentMsgChkpoint() {
+    PartitionCheckpoint msgPck = new PartitionCheckpoint(getStreamFile(),
+        getLineNum());
+    currentMsgCheckpoint.put(getMinId(), msgPck);
+    return currentMsgCheckpoint;
   }
 }

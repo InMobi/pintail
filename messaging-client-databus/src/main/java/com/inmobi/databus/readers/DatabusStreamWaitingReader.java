@@ -34,7 +34,6 @@ public class DatabusStreamWaitingReader
   private final Set<Integer> partitionMinList;
   private PartitionCheckpointList partitionCheckpointList;
   private boolean movedToNext;
-  private int prevMin;
   private long numOfLinesReadInMinute;
   private Map<Integer, Date> checkpointTimeStampMap;
   private Map<Integer, PartitionCheckpoint> pChkpoints;
@@ -237,7 +236,9 @@ public class DatabusStreamWaitingReader
         //can be populated.
         movedToNext = true;
         prepareDeltaCheckpoint(currentFileTimeStamp, nextFileTimeStamp);
-        prevMin = currentMin;
+        // set the line number as -1 as current file was read fully.
+        deltaCheckpoint.put(currentMin,
+            new PartitionCheckpoint(getStreamFile(currentFile), -1));
         numOfLinesReadInMinute = 0;
       }
       currentMin = now.get(Calendar.MINUTE);
@@ -260,7 +261,7 @@ public class DatabusStreamWaitingReader
         }
         readFromCheckpoint = true;
       }
-      updatePartitionCheckpointList(prevMin);
+ //     updatePartitionCheckpointList(prevMin);
     }
     this.currentFile = fileToRead;
     setIterator();
@@ -404,8 +405,7 @@ public class DatabusStreamWaitingReader
 
   public void resetMoveToNextFlags() {
     movedToNext = false;
-    prevMin = -1;
-    deltaCheckpoint = new TreeMap<Integer, PartitionCheckpoint>();
+    deltaCheckpoint = new HashMap<Integer, PartitionCheckpoint>();
     
   }
 
@@ -415,10 +415,6 @@ public class DatabusStreamWaitingReader
 
   public boolean isMovedToNext() {
     return movedToNext;
-  }
-
-  public int getPrevMin() {
-    return this.prevMin;
   }
 
   public int getCurrentMin() {
