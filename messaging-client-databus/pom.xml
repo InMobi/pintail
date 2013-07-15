@@ -38,6 +38,21 @@
    
     <dependency>
       <groupId>com.inmobi.databus</groupId>
+      <artifactId>databus-core</artifactId>
+      <version>${databus.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-test</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.inmobi.databus</groupId>
       <artifactId>databus-worker</artifactId>
       <version>${databus.version}</version>
       <scope>test</scope>
