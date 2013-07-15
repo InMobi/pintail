@@ -120,8 +120,8 @@ public class CheckpointList implements ConsumerCheckpoint {
             entry.getValue().toBytes());
       }
     } catch (Exception e) {
-      throw new IOException("Could not checkpoint fully. It might be partial. "
-          + e);
+      throw new IOException("Could not checkpoint fully. It might be partial. ",
+          e);
     }
   }
 
@@ -152,7 +152,7 @@ public class CheckpointList implements ConsumerCheckpoint {
       try {
         chkpointData = checkpointProvider.read(getChkpointKey(superKey, id));
       } catch (Exception e) {
-        throw new IOException("Could not read checkpoint " + e);
+        throw new IOException("Could not read checkpoint ", e);
       }
       Checkpoint checkpoint;
       if (chkpointData != null) {
