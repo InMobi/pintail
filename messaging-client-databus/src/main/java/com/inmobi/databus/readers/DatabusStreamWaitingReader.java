@@ -264,9 +264,16 @@ public class DatabusStreamWaitingReader
     cal.add(Calendar.MINUTE, 1);
     while (cal.getTime().before(nextFileTimeStamp)) {
       int currentMinute = cal.get(Calendar.MINUTE);
+      Date checkpointedTimeStamp = checkpointTimeStampMap.get(currentMinute);
       if (partitionMinList.contains(Integer.valueOf(currentMinute))) {
-        deltaCheckpoint.put(currentMinute,
-            new PartitionCheckpoint(getStreamFile(cal.getTime()), -1));
+        // check whether the minute has checkpoint and create a checkpoint for
+        // that minute only if it does not have checkpoint or checkpoint is
+        // older than current file time stamp
+        if (checkpointedTimeStamp == null
+            || checkpointedTimeStamp.before(cal.getTime())) {
+          deltaCheckpoint.put(currentMinute,
+              new PartitionCheckpoint(getStreamFile(cal.getTime()), -1));
+        }
       }
       cal.add(Calendar.MINUTE, 1);
     }
