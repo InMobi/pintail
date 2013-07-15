@@ -35,7 +35,7 @@ public class StreamingBenchmark {
         + " [-producer <topic-name> <no-of-msgs> <no-of-msgs-per-sec>"
         + " [<timeoutSeconds> <msg-size> <no-of-threads>]]"
         + " [-consumer <no-of-producers> <no-of-msgs>"
-        + " [<timeoutSeconds> <msg-size> <hadoopconsumerflag> ]]");
+        + " [<timeoutSeconds> <msg-size> <hadoopconsumerflag><timezone>]]");
     return WRONG_USAGE_CODE;
   }
 
@@ -115,8 +115,8 @@ public class StreamingBenchmark {
           if (args.length > consumerOptionIndex + 5) {
             hadoopConsumer = (Integer.parseInt(args[consumerOptionIndex + 5]) > 0);
           }
-          if (args.length > consumerOptionIndex + 7) {
-            timezone = args[consumerOptionIndex + 7];
+          if (args.length > consumerOptionIndex + 6) {
+            timezone = args[consumerOptionIndex + 6];
           }
           runConsumer = true;
         }
