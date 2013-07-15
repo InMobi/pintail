@@ -27,8 +27,8 @@ public class StreamingBenchmark {
 
   static final int WRONG_USAGE_CODE = -1;
   static final int FAILED_CODE = 1;
-  public Date consumerStartTime;
-  public Date consumerEndTime;
+  private Date consumerStartTime;
+  private Date consumerEndTime;
 
   static int printUsage() {
     System.out.println("Usage: StreamingBenchmark  "
@@ -323,6 +323,14 @@ public class StreamingBenchmark {
       msg[i] = 'A';
     }
     return msg;
+  }
+
+  public Date getConsumerStartTime() {
+    return consumerStartTime;
+  }
+
+  public Date getConsumerEndTime() {
+    return consumerEndTime;
   }
 
   static Message constructMessage(long msgIndex, byte[] randomBytes) {
