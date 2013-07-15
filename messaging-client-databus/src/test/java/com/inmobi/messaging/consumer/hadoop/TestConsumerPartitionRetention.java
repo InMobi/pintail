@@ -68,9 +68,9 @@ public class TestConsumerPartitionRetention {
     finalPaths = new Path[rootDirs.length][numSuffixDirs * numDataFiles];
     for (int i = 0; i < rootDirs.length; i++) {
       HadoopUtil.setupHadoopCluster(
-          conf, dataFiles, suffixDirs, finalPaths[i], rootDirs[i]);
+          conf, dataFiles, suffixDirs, finalPaths[i], rootDirs[i], false);
     }
-    HadoopUtil.setUpHadoopFiles(rootDirs[0], conf, 
+    HadoopUtil.setUpHadoopFiles(rootDirs[0], conf,
         new String[] {"_SUCCESS", "_DONE"}, suffixDirs, null);
   }
 
@@ -85,8 +85,6 @@ public class TestConsumerPartitionRetention {
     secondConsumer.init(streamName, consumerName, null, secondconfig);
     Assert.assertEquals(secondConsumer.getTopicName(), streamName);
     Assert.assertEquals(secondConsumer.getConsumerName(), consumerName);
-    LOG.info("checking: whether consumers started at same time" + 
-        consumer.getStartTime() + "   " + secondConsumer.getStartTime());
     Assert.assertEquals(secondConsumer.getStartTime(), consumer.getStartTime());
 
     //consume all messages
@@ -95,19 +93,19 @@ public class TestConsumerPartitionRetention {
       firstConsumedMessages.add(getMessage(msg.getData().array()));
     }
     consumer.close();
-    LOG.debug("number of msgs consumed by first consumer" +
-        firstConsumedMessages.size());
+    LOG.debug("number of msgs consumed by first consumer"
+        + firstConsumedMessages.size());
 
     while (secondConsumedMessages.size() < 600) {
       Message msgs = secondConsumer.next();
       secondConsumedMessages.add(getMessage(msgs.getData().array()));
     }
     secondConsumer.close();
-    LOG.debug("number of messages consumed messages by second consumer " +
-        secondConsumedMessages.size());
+    LOG.debug("number of messages consumed messages by second consumer "
+        + secondConsumedMessages.size());
 
-    Assert.assertEquals(firstConsumedMessages.size() + 
-        secondConsumedMessages.size(), 1200);
+    Assert.assertEquals(firstConsumedMessages.size()
+        + secondConsumedMessages.size(), 1200);
   }
 
   @AfterTest

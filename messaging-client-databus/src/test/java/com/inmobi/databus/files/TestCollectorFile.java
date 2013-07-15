@@ -26,14 +26,14 @@ public class TestCollectorFile {
     Assert.assertEquals(cf1.getId(), 0);
 
     CollectorFile cf2 = new CollectorFile(stream1, date, 1);
-    Assert.assertTrue(cf1.hashCode()< cf2.hashCode());
+    Assert.assertTrue(cf1.hashCode() < cf2.hashCode());
     Assert.assertEquals(cf2.compareTo(cf1), 1);
     now.add(Calendar.MINUTE, 1);
     cf1 = new CollectorFile(stream1, now.getTime(), 1);
     Assert.assertEquals(cf1.compareTo(cf2), 1);
     cf1 = new CollectorFile(stream2, date, 0);
     Assert.assertEquals(cf1.compareTo(cf2), 1);
-    
+
     Throwable th = null;
     try {
       cf1 = CollectorFile.create("invalid");
@@ -42,7 +42,7 @@ public class TestCollectorFile {
     }
     Assert.assertNotNull(th);
     Assert.assertTrue(th instanceof IllegalArgumentException);
-    
+
     th = null;
     try {
       cf1 = CollectorFile.create(stream1 + "-" + dateStr);
@@ -69,6 +69,6 @@ public class TestCollectorFile {
     }
     Assert.assertNotNull(th);
     Assert.assertTrue(th instanceof IllegalArgumentException);
-    
+
   }
 }

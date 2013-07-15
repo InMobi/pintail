@@ -73,11 +73,11 @@ public class TextStatsEmitter extends StatsEmitterBase implements Runnable {
     }
   }
 
-  private void writeStats(){
+  private void writeStats() {
     Map<String, Number> stats;
     Map<String, String> contexts;
     try {
-      synchronized(statsExposers) {
+      synchronized (statsExposers) {
         for (StatsExposer exposer : statsExposers) {
           stats = exposer.getStats();
           contexts = exposer.getContexts();
@@ -114,7 +114,7 @@ public class TextStatsEmitter extends StatsEmitterBase implements Runnable {
       try {
         Thread.sleep(this.sleep);
         // any signal can interrupt our sweet sleep
-      } catch (InterruptedException e) {}
+      } catch (InterruptedException e) { }
     }
   }
 }

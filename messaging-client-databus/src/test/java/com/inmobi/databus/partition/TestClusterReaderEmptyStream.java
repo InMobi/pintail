@@ -22,9 +22,6 @@ import org.testng.annotations.Test;
 
 import com.inmobi.databus.files.HadoopStreamFile;
 import com.inmobi.databus.files.StreamFile;
-import com.inmobi.databus.partition.PartitionCheckpoint;
-import com.inmobi.databus.partition.PartitionId;
-import com.inmobi.databus.partition.PartitionReader;
 import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
@@ -36,13 +33,13 @@ public class TestClusterReaderEmptyStream {
   static final Log LOG = LogFactory.getLog(TestClusterReaderEmptyStream.class);
   private static final String testStream = "testclient";
 
-  private LinkedBlockingQueue<QueueEntry> buffer = 
+  private LinkedBlockingQueue<QueueEntry> buffer =
       new LinkedBlockingQueue<QueueEntry>(1000);
   private PartitionReader preader;
   private static final String clusterName = "testCluster";
   private PartitionId clusterId = new PartitionId(clusterName, null);
-  Set<Integer> partitionMinList;                                                   
-  PartitionCheckpointList partitionCheckpointList;       
+  Set<Integer> partitionMinList;
+  PartitionCheckpointList partitionCheckpointList;
   Map<Integer, PartitionCheckpoint> chkPoints;
 
   FileSystem fs;
@@ -60,7 +57,7 @@ public class TestClusterReaderEmptyStream {
     fsUri = fs.getUri().toString();
     streamDir = new Path("/tmp/test/hadoop/" + this.getClass().getSimpleName(),
         testStream).makeQualified(fs);
-    HadoopUtil.setupHadoopCluster(conf, null, null, null, streamDir);
+    HadoopUtil.setupHadoopCluster(conf, null, null, null, streamDir, false);
     inputFormatClass = SequenceFileInputFormat.class.getName();
     partitionMinList = new TreeSet<Integer>();
     for (int i = 0; i < 60; i++) {
@@ -72,7 +69,7 @@ public class TestClusterReaderEmptyStream {
 
   @AfterTest
   public void cleanup() throws IOException {
-    LOG.debug("Cleaning up the dir: "+ streamDir.getParent());
+    LOG.debug("Cleaning up the dir: " + streamDir.getParent());
     fs.delete(streamDir.getParent(), true);
   }
 
@@ -80,17 +77,17 @@ public class TestClusterReaderEmptyStream {
   public void testInitialize() throws Exception {
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
         testStream, "c1", clusterId.toString(), consumerNumber, fsUri);
-    // Read from start time 
+    // Read from start time
     preader = new PartitionReader(clusterId, null, fs, buffer,
         streamDir, conf, inputFormatClass,
-        CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[0]), 
+        CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[0]),
         1000,
         false, prMetrics, true, partitionMinList, null);
     preader.init();
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         ClusterReader.class.getName());
-    Assert.assertEquals(((AbstractPartitionStreamReader)preader
+    Assert.assertEquals(((AbstractPartitionStreamReader) preader
         .getReader()).getReader().getClass().getName(),
         DatabusStreamWaitingReader.class.getName());
 
@@ -100,36 +97,36 @@ public class TestClusterReaderEmptyStream {
             getDateFromCollectorFile(TestUtil.files[0])),
             "dummyfile", 0L), 20, partitionCheckpointList);
     preader = new PartitionReader(clusterId, partitionCheckpointList, fs, buffer,
-        streamDir, conf, inputFormatClass, null, 
+        streamDir, conf, inputFormatClass, null,
         1000, false, prMetrics, true, partitionMinList, null);
     preader.init();
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         ClusterReader.class.getName());
-    Assert.assertEquals(((AbstractPartitionStreamReader)preader
+    Assert.assertEquals(((AbstractPartitionStreamReader) preader
         .getReader()).getReader().getClass().getName(),
         DatabusStreamWaitingReader.class.getName());
 
-    //Read from startTime with checkpoint    
+    //Read from startTime with checkpoint
     prepareCheckpointList(new HadoopStreamFile(DatabusStreamWaitingReader.
         getMinuteDirPath(streamDir, CollectorStreamReader.
             getDateFromCollectorFile(TestUtil.files[0])),
             "dummyfile", 0L), 20, partitionCheckpointList);
     preader = new PartitionReader(clusterId, partitionCheckpointList, fs, buffer,
         streamDir, conf, inputFormatClass,
-        CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[0]), 
+        CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[0]),
         1000,
         false, prMetrics, true, partitionMinList, null);
     preader.init();
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         ClusterReader.class.getName());
-    Assert.assertEquals(((AbstractPartitionStreamReader)preader
+    Assert.assertEquals(((AbstractPartitionStreamReader) preader
         .getReader()).getReader().getClass().getName(),
         DatabusStreamWaitingReader.class.getName());
   }
 
-  public void prepareCheckpointList(StreamFile streamFile, int lineNum, 
+  public void prepareCheckpointList(StreamFile streamFile, int lineNum,
       PartitionCheckpointList partitionCheckpointList) {
     partitionCheckpointList = new PartitionCheckpointList(chkPoints);
     Date date = DatabusStreamWaitingReader.getDateFromCheckpointPath(

@@ -5,11 +5,11 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class CollectorReaderStatsExposer extends PartitionReaderStatsExposer {
 
-  private static final String SWITCHES_FROM_COLLECTOR_TO_LOCAL = 
+  private static final String SWITCHES_FROM_COLLECTOR_TO_LOCAL =
       "switchesFromCollectorToLocal";
-  private static final String SWITCHES_FROM_LOCAL_TO_COLLECTOR = 
+  private static final String SWITCHES_FROM_LOCAL_TO_COLLECTOR =
       "switchesFromLocalToCollector";
-  private static final String WAIT_TIME_UNITS_IN_SAME_FILE = 
+  private static final String WAIT_TIME_UNITS_IN_SAME_FILE =
       "waitTimeUnitsInSameFile";
 
   private final AtomicLong numSwitchesFromCollectorToLocal = new AtomicLong(0);

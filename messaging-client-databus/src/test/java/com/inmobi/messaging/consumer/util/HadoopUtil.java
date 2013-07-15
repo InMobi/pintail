@@ -40,12 +40,14 @@ public class HadoopUtil {
 
   public static void setUpHadoopFiles(Path streamDirPrefix, Configuration conf,
       String[] files, String[] suffixDirs, Path[] finalFiles) throws Exception {
-    setUpHadoopFiles(streamDirPrefix, conf, files, suffixDirs, finalFiles, false);
+    setUpHadoopFiles(streamDirPrefix, conf, files, suffixDirs, finalFiles,
+        false, null, 0);
   }
 
   public static void setUpHadoopFiles(Path streamDirPrefix, Configuration conf,
       String[] files, String[] suffixDirs, Path[] finalFiles,
-      boolean alternateEmptyFiles) throws Exception {
+      boolean alternateEmptyFiles, Date minuteDirTimeStamp, int index)
+          throws Exception {
     FileSystem fs = streamDirPrefix.getFileSystem(conf);
     Path rootDir = streamDirPrefix.getParent();
     Path tmpDataDir = new Path(rootDir, "data");
@@ -53,7 +55,7 @@ public class HadoopUtil {
     // setup data dirs
     if (files != null) {
       int i = 0;
-      int j = 0;
+      int j = index;
       for (String file : files) {
         if (alternateEmptyFiles && emptyFile) {
           MessageUtil.createEmptySequenceFile(file, fs, tmpDataDir, conf);
@@ -64,7 +66,7 @@ public class HadoopUtil {
           i += 100;
         }
         Path srcPath =  new Path(tmpDataDir, file);
-        Date commitTime = getCommitDateForFile(file);
+        Date commitTime = getCommitDateForFile(file, minuteDirTimeStamp);
         TestUtil.publishMissingPaths(fs, streamDirPrefix, lastCommitTime,
             commitTime);
         lastCommitTime = commitTime;
@@ -102,7 +104,6 @@ public class HadoopUtil {
     Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDirPrefix,
         hs.getParent());
     cal.setTime(date);
-    cal.add(Calendar.HOUR_OF_DAY, -1);
     return new HadoopStreamFile(
         DatabusStreamWaitingReader.getMinuteDirPath(streamDirPrefix,
             cal.getTime()),
@@ -125,22 +126,39 @@ public class HadoopUtil {
   }
 
   public static void setupHadoopCluster(Configuration conf, String[] files,
-      String[] suffixDirs, Path[] finalFiles, Path finalDir) throws Exception {
-    setupHadoopCluster(conf, files, suffixDirs, finalFiles, finalDir, false);
+      String[] suffixDirs, Path[] finalFiles, Path finalDir,
+      boolean createFilesInNextHour) throws Exception {
+    setupHadoopCluster(conf, files, suffixDirs, finalFiles, finalDir, false,
+        createFilesInNextHour);
   }
 
   public static void setupHadoopCluster(Configuration conf, String[] files,
       String[] suffixDirs, Path[] finalFiles, Path finalDir,
-      boolean withEmptyFiles) throws Exception {
+      boolean withEmptyFiles, boolean createFilesInNextHour) throws Exception {
     FileSystem fs = finalDir.getFileSystem(conf);
-    
+
     Path rootDir = finalDir.getParent();
     fs.delete(rootDir, true);
     Path tmpDataDir = new Path(rootDir, "data");
     fs.mkdirs(tmpDataDir);
-    
-    setUpHadoopFiles(finalDir, conf, files, suffixDirs, finalFiles,
-        withEmptyFiles);
+
+    if (!createFilesInNextHour) {
+      setUpHadoopFiles(finalDir, conf, files, suffixDirs, finalFiles,
+          withEmptyFiles, null, 0);
+    } else {
+      // start from 1 hour back as we need files in two diff hours.
+      Calendar cal = Calendar.getInstance();
+      cal.setTime(startCommitTime);
+      cal.add(Calendar.HOUR_OF_DAY, -1);
+
+      setUpHadoopFiles(finalDir, conf, files, suffixDirs, finalFiles,
+          withEmptyFiles, cal.getTime(), 0);
+      // go to next hour
+      cal.add(Calendar.HOUR_OF_DAY, 1);
+      int index = files.length;
+      setUpHadoopFiles(finalDir, conf, files, suffixDirs, finalFiles,
+          withEmptyFiles, cal.getTime(), index);
+    }
   }
 
   private static Path getTargetDateDir(Path streamDirPrefix, Date commitTime)
@@ -150,10 +168,14 @@ public class HadoopUtil {
     return dateDir;
   }
 
-  static Date getCommitDateForFile(String fileName)
+  static Date getCommitDateForFile(String fileName, Date minuteDirTimeStamp)
       throws IOException {
     Calendar cal = Calendar.getInstance();
-    cal.setTime(startCommitTime);
+    if (minuteDirTimeStamp == null) {
+      cal.setTime(startCommitTime);
+    } else {
+      cal.setTime(minuteDirTimeStamp);
+    }
     LOG.debug("index for " + fileName + ":" + getIndex(fileName));
     cal.add(Calendar.MINUTE, getIndex(fileName));
     cal.add(Calendar.MINUTE, increment);

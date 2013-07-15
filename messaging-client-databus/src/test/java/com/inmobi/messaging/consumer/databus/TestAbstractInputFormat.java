@@ -79,30 +79,30 @@ public class TestAbstractInputFormat {
   /**
    * @param index construct the messages from the given index.
    */
-  public void assertMessages(int index ) {
-    for (Message msg : readMessages) {  
-      Assert.assertEquals(new String(msg.getData().array()), 
+  public void assertMessages(int index) {
+    for (Message msg : readMessages) {
+      Assert.assertEquals(new String(msg.getData().array()),
           MessageUtil.constructMessage(index++));
     }
     Assert.assertEquals(readMessages.size(), 100);
   }
-  
+
   /*
    * lists all the files for the given path
    */
-  protected void listAllPaths(Path filePath, List<Path> listOfFiles) 
+  protected void listAllPaths(Path filePath, List<Path> listOfFiles)
       throws Exception {
     FileStatus [] fileStatuses = fs.listStatus(filePath);
     if (fileStatuses == null || fileStatuses.length == 0) {
       // no files in directory
     } else {
-      for (FileStatus file : fileStatuses) { 
+      for (FileStatus file : fileStatuses) {
         if (file.isDir()) {
           listAllPaths(file.getPath(), listOfFiles);
-        } else { 
+        } else {
           listOfFiles.add(file.getPath());
         }
-      } 
+      }
     }
   }
 }

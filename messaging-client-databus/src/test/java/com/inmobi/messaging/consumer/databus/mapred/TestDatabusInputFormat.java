@@ -37,35 +37,35 @@ public class TestDatabusInputFormat extends TestAbstractInputFormat {
    * read the the given input split.
    * @return List : List of read messages
    */
-  private List<Message> readSplit(DatabusInputFormat format, 
-      InputSplit split, 
+  private List<Message> readSplit(DatabusInputFormat format,
+      InputSplit split,
       JobConf job, Reporter reporter) throws IOException {
     List<Message> result = new ArrayList<Message>();
     RecordReader<LongWritable, Message> reader =
         format.getRecordReader(split, job, reporter);
-    LongWritable key = ((DatabusRecordReader)reader).createKey();
-    Message value = ((DatabusRecordReader)reader).createValue();
+    LongWritable key = ((DatabusRecordReader) reader).createKey();
+    Message value = ((DatabusRecordReader) reader).createValue();
 
-    while (((DatabusRecordReader)reader).next(key, value)) {
+    while (((DatabusRecordReader) reader).next(key, value)) {
       result.add(value);
-      value = (Message) ((DatabusRecordReader)reader).createValue();
+      value = (Message) ((DatabusRecordReader) reader).createValue();
     }
     reader.close();
     return result;
   }
 
   protected void splitFile(int numSplits) throws Exception {
-    InputSplit inputSplit[] = databusInputFormat.getSplits(defaultConf, 
+    InputSplit[] inputSplit = databusInputFormat.getSplits(defaultConf,
         numSplits);
     LOG.info("number of splits : " + inputSplit.length);
     for (InputSplit split : inputSplit) {
-      readMessages.addAll(readSplit(databusInputFormat, split, defaultConf, 
+      readMessages.addAll(readSplit(databusInputFormat, split, defaultConf,
           reporter));
     }
   }
 
   /**
-   * It reads the collector file (i.e. non compressed file) and assert on the 
+   * It reads the collector file (i.e. non compressed file) and assert on the
    * read messages
    */
   @Test
@@ -76,12 +76,12 @@ public class TestDatabusInputFormat extends TestAbstractInputFormat {
   }
 
   /**
-   * It reads the local stream file(i.e. compressed file) and assert on the 
+   * It reads the local stream file(i.e. compressed file) and assert on the
    * read messages
    */
   @Test
   protected void testGZFile() throws Exception {
-    Path localstreamDir = new Path(cluster.getLocalFinalDestDirRoot(), 
+    Path localstreamDir = new Path(cluster.getLocalFinalDestDirRoot(),
         testStream);
     List<Path> minuteDirs = new ArrayList<Path>();
     listAllPaths(localstreamDir, minuteDirs);
@@ -89,7 +89,6 @@ public class TestDatabusInputFormat extends TestAbstractInputFormat {
       FileInputFormat.setInputPaths(defaultConf, minuteDirs.get(0).getParent());
       readMessages = new ArrayList<Message>();
       splitFile(1);
-      System.out.println("size is "+ readMessages.size());
       assertMessages(0);
     }
   }

@@ -33,7 +33,7 @@ public class TestCollectorReader {
   private static final String clusterName = "testCluster";
   private PartitionId partitionId = new PartitionId(clusterName, collectorName);
 
-  private LinkedBlockingQueue<QueueEntry> buffer = 
+  private LinkedBlockingQueue<QueueEntry> buffer =
       new LinkedBlockingQueue<QueueEntry>(1000);
   private Cluster cluster;
   private PartitionReader preader;
@@ -117,7 +117,7 @@ public class TestCollectorReader {
         collectorDir, streamsLocalDir, buffer, testStream, null,
         1000, 1000, prMetrics, null);
     preader.init();
-    Assert.assertEquals(preader.getCurrentFile().toString(), files[4]);    
+    Assert.assertEquals(preader.getCurrentFile().toString(), files[4]);
 
     // Read from checkpoint with collector file name which does not exist
     // and is before the stream
@@ -170,7 +170,7 @@ public class TestCollectorReader {
     }
     Assert.assertNotNull(th);
     Assert.assertTrue(th instanceof IllegalArgumentException);
-    
+
     // Read from checkpoint with collector file name which does not exist
     // but the collector file time stamp is within the stream
     th = null;
@@ -236,7 +236,7 @@ public class TestCollectorReader {
         CollectorStreamReader.getDateFromCollectorFile(files[4]), 1000, 1000,
         prMetrics, null);
     preader.init();
-    Assert.assertEquals(preader.getCurrentFile().toString(), files[4]);    
+    Assert.assertEquals(preader.getCurrentFile().toString(), files[4]);
 
     //Read from checkpoint, with start time in collector dir
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
@@ -252,13 +252,13 @@ public class TestCollectorReader {
     // with no checkpoint
     preader = new PartitionReader(partitionId,
         null, conf, fs, collectorDir,
-        streamsLocalDir, buffer, testStream, 
+        streamsLocalDir, buffer, testStream,
         CollectorStreamReader.getDateFromCollectorFile(doesNotExist3), 1000,
         1000, prMetrics, null);
     preader.init();
-    Assert.assertEquals(preader.getCurrentFile().toString(), files[4]);    
+    Assert.assertEquals(preader.getCurrentFile().toString(), files[4]);
 
-    //Read from checkpoint, with no timestamp file, with start time in 
+    //Read from checkpoint, with no timestamp file, with start time in
     // collector directory
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
         CollectorStreamReader.getCollectorFile(files[0]), 10), conf, fs,
@@ -290,7 +290,7 @@ public class TestCollectorReader {
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     Assert.assertNull(preader.getCurrentFile());
@@ -305,7 +305,7 @@ public class TestCollectorReader {
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         LocalStreamCollectorReader.class.getName());
     Assert.assertNotNull(preader.getCurrentFile());
@@ -325,7 +325,7 @@ public class TestCollectorReader {
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         LocalStreamCollectorReader.class.getName());
     preader.execute();
@@ -337,7 +337,7 @@ public class TestCollectorReader {
         collectorName, files[2]), 3,  0, 100, partitionId, buffer, true);
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.execute();
@@ -352,7 +352,7 @@ public class TestCollectorReader {
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.close();
@@ -378,7 +378,7 @@ public class TestCollectorReader {
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         LocalStreamCollectorReader.class.getName());
     preader.execute();
@@ -403,7 +403,7 @@ public class TestCollectorReader {
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.close();
@@ -416,7 +416,7 @@ public class TestCollectorReader {
     Assert.assertEquals(prMetrics.getSwitchesFromLocalToCollector(), 1);
     Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
   }
-  
+
   @Test
   public void testReadFromCheckpointWhichDoesNotExistsWithStopTime()
       throws Exception {
@@ -430,14 +430,13 @@ public class TestCollectorReader {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
         CollectorStreamReader.getCollectorFile(files[1]), 20), conf, fs,
         collectorDir, streamsLocalDir, buffer, testStream, null,
-        10, 1000, prMetrics, true,
-        cal.getTime());
+        10, 1000, prMetrics, true, cal.getTime());
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     preader.execute();
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
   }
-  
+
   @Test
   public void testReadFromCheckpointWithStopTime()
       throws Exception {
@@ -447,8 +446,7 @@ public class TestCollectorReader {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
         CollectorStreamReader.getCollectorFile(files[1]), 20), conf, fs,
         collectorDir, streamsLocalDir, buffer, testStream, null,
-        10, 1000, prMetrics, true,
-        stopDate);
+        10, 1000, prMetrics, true, stopDate);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     preader.execute();
@@ -468,7 +466,7 @@ public class TestCollectorReader {
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         LocalStreamCollectorReader.class.getName());
     preader.execute();
@@ -478,7 +476,7 @@ public class TestCollectorReader {
         collectorName, files[2]), 3,  0, 100, partitionId, buffer, true);
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.execute();
@@ -493,7 +491,7 @@ public class TestCollectorReader {
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.close();
@@ -519,7 +517,7 @@ public class TestCollectorReader {
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.execute();
@@ -532,7 +530,7 @@ public class TestCollectorReader {
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.close();
@@ -550,7 +548,7 @@ public class TestCollectorReader {
    *  Disable this test if partition reader should not read from start of stream
    *  if check point does not exist.
    */
-  
+
   @Test
   public void testReadFromCheckpointWithCollectorFileWhichDoesNotExist()
       throws Exception {
@@ -564,7 +562,7 @@ public class TestCollectorReader {
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         LocalStreamCollectorReader.class.getName());
     preader.execute();
@@ -576,7 +574,7 @@ public class TestCollectorReader {
         collectorName, files[2]), 3,  0, 100, partitionId, buffer, true);
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.execute();
@@ -591,7 +589,7 @@ public class TestCollectorReader {
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.close();
@@ -624,7 +622,7 @@ public class TestCollectorReader {
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         LocalStreamCollectorReader.class.getName());
     preader.execute();
@@ -636,7 +634,7 @@ public class TestCollectorReader {
         collectorName, files[2]), 3,  0, 100, partitionId, buffer, true);
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.execute();
@@ -651,7 +649,7 @@ public class TestCollectorReader {
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.close();
@@ -677,7 +675,7 @@ public class TestCollectorReader {
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         LocalStreamCollectorReader.class.getName());
     preader.execute();
@@ -687,7 +685,7 @@ public class TestCollectorReader {
         collectorName, files[2]), 3,  0, 100, partitionId, buffer, true);
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.execute();
@@ -702,7 +700,7 @@ public class TestCollectorReader {
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.close();
@@ -733,7 +731,7 @@ public class TestCollectorReader {
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         LocalStreamCollectorReader.class.getName());
     preader.execute();
@@ -766,7 +764,7 @@ public class TestCollectorReader {
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         LocalStreamCollectorReader.class.getName());
     preader.execute();
@@ -774,7 +772,7 @@ public class TestCollectorReader {
         collectorName, files[2]), 3,  0, 100, partitionId, buffer, true);
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.execute();
@@ -789,7 +787,7 @@ public class TestCollectorReader {
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.close();
@@ -819,7 +817,7 @@ public class TestCollectorReader {
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         LocalStreamCollectorReader.class.getName());
     preader.execute();
@@ -852,7 +850,7 @@ public class TestCollectorReader {
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.execute();
@@ -865,7 +863,7 @@ public class TestCollectorReader {
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.close();
@@ -896,7 +894,7 @@ public class TestCollectorReader {
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.execute();
@@ -909,7 +907,7 @@ public class TestCollectorReader {
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     Assert.assertEquals(prMetrics.getHandledExceptions(), 0);
@@ -934,7 +932,7 @@ public class TestCollectorReader {
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.execute();
@@ -947,7 +945,7 @@ public class TestCollectorReader {
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.close();
@@ -978,7 +976,7 @@ public class TestCollectorReader {
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.execute();
@@ -1014,7 +1012,7 @@ public class TestCollectorReader {
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         LocalStreamCollectorReader.class.getName());
     preader.execute();
@@ -1041,7 +1039,7 @@ public class TestCollectorReader {
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.close();
@@ -1068,7 +1066,7 @@ public class TestCollectorReader {
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((CollectorReader)preader.getReader())
+    Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     Assert.assertEquals(prMetrics.getHandledExceptions(), 0);

@@ -14,7 +14,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 
 import com.inmobi.messaging.Message;
 
-public class DatabusInputFormat extends FileInputFormat<LongWritable, Message>{
+public class DatabusInputFormat extends FileInputFormat<LongWritable, Message> {
 
   @Override
   public RecordReader<LongWritable, Message> createRecordReader(
@@ -25,7 +25,7 @@ public class DatabusInputFormat extends FileInputFormat<LongWritable, Message>{
 
   @Override
   protected boolean isSplitable(JobContext context, Path file) {
-    CompressionCodec codec = 
+    CompressionCodec codec =
       new CompressionCodecFactory(context.getConfiguration()).getCodec(file);
     return codec == null;
   }

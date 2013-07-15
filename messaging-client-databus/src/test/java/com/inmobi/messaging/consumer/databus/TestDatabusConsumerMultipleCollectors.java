@@ -11,8 +11,8 @@ import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.consumer.util.ConsumerUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
-public class TestDatabusConsumerMultipleCollectors 
-    extends TestAbstractDatabusConsumer{
+public class TestDatabusConsumerMultipleCollectors
+    extends TestAbstractDatabusConsumer {
   DatabusConsumer testConsumer;
 
   ClientConfig loadConfig() {
@@ -83,7 +83,7 @@ public class TestDatabusConsumerMultipleCollectors
   public void testLocalStreamMultipleClusters() throws Exception {
     ClientConfig config = loadConfig();
     config.set(DatabusConsumerConfig.databusRootDirsConfig,
-        rootDirs[0].toString()+ "," + rootDirs[1].toString());
+        rootDirs[0].toString() + "," + rootDirs[1].toString());
     config.set(DatabusConsumerConfig.checkpointDirConfig,
         "/tmp/test/databustest5/checkpoint1");
     config.set(DatabusConsumerConfig.databusStreamType,
@@ -97,8 +97,8 @@ public class TestDatabusConsumerMultipleCollectors
   public void testLocalStreamAllClusters() throws Exception {
     ClientConfig config = loadConfig();
     config.set(DatabusConsumerConfig.databusRootDirsConfig,
-        rootDirs[0].toString()+ "," + rootDirs[1].toString() + "," 
-        + rootDirs[2].toString());
+        rootDirs[0].toString() + "," + rootDirs[1].toString() + ","
+            + rootDirs[2].toString());
     config.set(DatabusConsumerConfig.checkpointDirConfig,
         "/tmp/test/databustest5/checkpoint2");
     config.set(DatabusConsumerConfig.databusStreamType,
@@ -141,9 +141,9 @@ public class TestDatabusConsumerMultipleCollectors
   @Test
   public void testCollectorStreamAllClusters() throws Exception {
     ClientConfig config = loadConfig();
-    config.set(DatabusConsumerConfig.databusRootDirsConfig, 
-        rootDirs[0].toString()+ "," + rootDirs[1].toString() + "," + 
-        rootDirs[2].toString());
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+        rootDirs[0].toString()+ "," + rootDirs[1].toString() + ","
+            + rootDirs[2].toString());
     config.set(DatabusConsumerConfig.checkpointDirConfig,
         "/tmp/test/databustest5/checkpoint4");
     config.set(DatabusConsumerConfig.databusStreamType,

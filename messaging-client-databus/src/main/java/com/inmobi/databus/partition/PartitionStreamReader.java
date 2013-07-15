@@ -9,19 +9,19 @@ import com.inmobi.messaging.consumer.databus.MessageCheckpoint;
 public interface PartitionStreamReader {
 
   void initializeCurrentFile() throws IOException, InterruptedException;
-  
+
   StreamFile getCurrentFile();
-  
+
   long getCurrentLineNum();
 
   boolean openStream() throws IOException;
-  
+
   Message readLine() throws IOException, InterruptedException;
-  
+
   void closeStream() throws IOException;
-  
+
   void close() throws IOException;
-  
+
   MessageCheckpoint getMessageCheckpoint();
 
   boolean shouldBeClosed();

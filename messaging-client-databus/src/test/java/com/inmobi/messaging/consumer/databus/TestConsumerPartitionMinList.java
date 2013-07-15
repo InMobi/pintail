@@ -36,8 +36,8 @@ public class TestConsumerPartitionMinList {
   }
 
   public void expectedPartitionMinList() throws Exception {
-    for (int i = 0; i < 60; i++ ) {
-      if ((i % totalNumberOfConsumers) == (consumerId - 1)) {   
+    for (int i = 0; i < 60; i++) {
+      if ((i % totalNumberOfConsumers) == (consumerId - 1)) {
         expectedPartitionMinList.add(i);
       }
     }

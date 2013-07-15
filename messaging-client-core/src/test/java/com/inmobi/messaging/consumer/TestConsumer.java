@@ -49,7 +49,7 @@ public class TestConsumer {
     ClientConfig conf = new ClientConfig();
     conf.set(MessageConsumerFactory.TOPIC_NAME_KEY, "test");
     conf.set(MessageConsumerFactory.CONSUMER_NAME_KEY, "testconsumer");
-    AbstractMessageConsumer consumer = 
+    AbstractMessageConsumer consumer =
       (AbstractMessageConsumer) MessageConsumerFactory.create(
           conf, MockConsumer.class.getName());
     doTest(consumer, null, false, false);
@@ -57,7 +57,7 @@ public class TestConsumer {
 
   @Test
   public void testTopicNConsumerName() throws Exception {
-    AbstractMessageConsumer consumer = 
+    AbstractMessageConsumer consumer =
       (AbstractMessageConsumer) MessageConsumerFactory.create(
           new ClientConfig(), MockConsumer.class.getName(), "test",
           "testconsumer");
@@ -98,7 +98,7 @@ public class TestConsumer {
     ClientConfig conf = new ClientConfig();
     conf.set(MessageConsumerFactory.TOPIC_NAME_KEY, "test");
     conf.set(MessageConsumerFactory.CONSUMER_NAME_KEY, "testconsumer");
-    AbstractMessageConsumer consumer = 
+    AbstractMessageConsumer consumer =
       (AbstractMessageConsumer) MessageConsumerFactory.create(
           conf, MockConsumer.class.getName(), now);
     doTest(consumer, now, false, false);
@@ -106,7 +106,7 @@ public class TestConsumer {
 
   @Test
   public void testTopicNConsumerNameWithStartTime() throws Exception {
-    AbstractMessageConsumer consumer = 
+    AbstractMessageConsumer consumer =
       (AbstractMessageConsumer) MessageConsumerFactory.create(
           new ClientConfig(), MockConsumer.class.getName(), "test",
           "testconsumer", now);
@@ -119,7 +119,7 @@ public class TestConsumer {
     URL url = getClass().getClassLoader().getResource(
         "mondemand-emitter.properties");
     conf.set(MessageConsumerFactory.EMITTER_CONF_FILE_KEY, url.getFile());
-    AbstractMessageConsumer consumer = 
+    AbstractMessageConsumer consumer =
         (AbstractMessageConsumer) MessageConsumerFactory.create(
             conf, MockConsumer.class.getName(), "test",
             "testconsumer", now);
@@ -129,7 +129,7 @@ public class TestConsumer {
   @Test
   public void testStartTime()
       throws IOException, InterruptedException, EndOfStreamException {
-    AbstractMessageConsumer consumer = 
+    AbstractMessageConsumer consumer =
       (AbstractMessageConsumer) MessageConsumerFactory.create(
           new ClientConfig(), MockConsumer.class.getName(), "test",
           "testconsumer", now);
@@ -141,37 +141,39 @@ public class TestConsumer {
           throws InterruptedException, EndOfStreamException {
     Assert.assertTrue(consumer instanceof MockConsumer);
     Assert.assertFalse(consumer.isMarkSupported());
-    Assert.assertTrue(((MockConsumer)consumer).initedConf);
+    Assert.assertTrue(((MockConsumer) consumer).initedConf);
     Assert.assertEquals(consumer.getTopicName(), "test");
     Assert.assertEquals(consumer.getConsumerName(), "testconsumer");
     Assert.assertEquals(consumer.getStartTime(), startTime);
-    
+
     Message msg = consumer.next();
     consumer.close();
     Assert.assertEquals(new String(msg.getData().array()), MockConsumer.mockMsg);
-    
+
     if (statsEnabled) {
       Assert.assertTrue(consumer.getStatsBuilder().statEmissionEnabled());
       if (isMondemand) {
         Assert.assertTrue((consumer.getStatsBuilder().getStatsEmitter())
-            instanceof EmitMondemand);     
+            instanceof EmitMondemand);
       } else {
-        Assert.assertTrue(((MockStatsEmitter)consumer.getStatsBuilder()
+        Assert.assertTrue(((MockStatsEmitter) consumer.getStatsBuilder()
             .getStatsEmitter()).inited);
       }
     } else {
       Assert.assertFalse(consumer.getStatsBuilder().statEmissionEnabled());
       Assert.assertNull((consumer.getStatsBuilder().getStatsEmitter()));
     }
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)consumer.getMetrics())
-        .getNumMessagesConsumed(), 1);
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)consumer.getMetrics())
-        .getContexts().size(), 2);
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)consumer.getMetrics())
-        .getContexts().get(BaseMessageConsumerStatsExposer.TOPIC_CONTEXT),
-        consumer.getTopicName());
-    Assert.assertEquals(((BaseMessageConsumerStatsExposer)consumer.getMetrics())
-        .getContexts().get(BaseMessageConsumerStatsExposer.CONSUMER_CONTEXT),
-        consumer.getConsumerName());
-  }  
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)
+        consumer.getMetrics()).getNumMessagesConsumed(), 1);
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)
+        consumer.getMetrics()).getContexts().size(), 2);
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)
+        consumer.getMetrics()).getContexts().get(
+            BaseMessageConsumerStatsExposer.TOPIC_CONTEXT),
+            consumer.getTopicName());
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer)
+        consumer.getMetrics()).getContexts().get(
+            BaseMessageConsumerStatsExposer.CONSUMER_CONTEXT),
+            consumer.getConsumerName());
+  }
 }

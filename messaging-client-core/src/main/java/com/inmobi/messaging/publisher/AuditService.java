@@ -77,7 +77,7 @@ class AuditService {
             publishPacket(packet);
 
           }
-        } catch (Throwable e) {// catching general exception so that thread
+        } catch (Throwable e) { // catching general exception so that thread
                                // should
                                // not get aborted
           LOG.error("Error while publishing the audit message", e);
@@ -116,14 +116,16 @@ class AuditService {
   }
 
   void init() throws IOException {
-    if (isInit)
+    if (isInit) {
       return;
+    }
     init(new ClientConfig());
   }
 
   void init(ClientConfig config) throws IOException {
-    if (isInit)
+    if (isInit) {
       return;
+    }
     windowSize = config.getInteger(WINDOW_SIZE_KEY, DEFAULT_WINDOW_SIZE);
     aggregateWindowSize =
         config.getInteger(AGGREGATE_WINDOW_KEY, DEFAULT_AGGREGATE_WINDOW_SIZE);
@@ -131,8 +133,8 @@ class AuditService {
     try {
       hostname = InetAddress.getLocalHost().getHostName();
     } catch (UnknownHostException e) {
-      LOG.error("Unable to find the hostanme of the local box,audit packets won'"
-          + "t contain hostname");
+      LOG.error("Unable to find the hostanme of the local box,audit packets"
+          + " won't contain hostname");
       hostname = "";
     }
     worker = new AuditWorker();
@@ -143,8 +145,9 @@ class AuditService {
   }
 
   private AuditCounterAccumulator getAccumulator(String topic) {
-    if (!topicAccumulatorMap.containsKey(topic))
+    if (!topicAccumulatorMap.containsKey(topic)) {
       topicAccumulatorMap.put(topic, new AuditCounterAccumulator(windowSize));
+    }
     return topicAccumulatorMap.get(topic);
   }
 

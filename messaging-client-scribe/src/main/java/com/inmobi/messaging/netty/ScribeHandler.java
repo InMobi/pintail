@@ -109,13 +109,13 @@ public class ScribeHandler extends SimpleChannelHandler {
       }
     }
 
-    if ((channelSetter.getCurrentChannel() == null ||
-        ctx.getChannel().getId() == channelSetter.getCurrentChannel().getId()))
-    {
+    if ((channelSetter.getCurrentChannel() == null
+        || ctx.getChannel().getId().equals(
+            channelSetter.getCurrentChannel().getId()))) {
       scheduleReconnect();
     } else {
-      LOG.info("Ignoring exception " + cause + " because it was on" + 
-          " channel " + ctx.getChannel().getId());
+      LOG.info("Ignoring exception " + cause + " because it was on"
+          + " channel " + ctx.getChannel().getId());
     }
   }
 
@@ -159,43 +159,46 @@ public class ScribeHandler extends SimpleChannelHandler {
         }
 
       } else {
-        LOG.info("Not connecting now, because connection is already in " +
-            "progress");
+        LOG.info("Not connecting now, because connection is already in "
+            + "progress");
       }
     } else {
-      LOG.info("Not connecting, because connection is not intialized or is" +
-          " closed");
+      LOG.info("Not connecting, because connection is not intialized or is"
+          + " closed");
     }
   }
 
   public void channelDisconnected(ChannelHandlerContext ctx,
       ChannelStateEvent e) {
-    if (channelSetter.getCurrentChannel() != null && 
-        ctx.getChannel().getId() == channelSetter.getCurrentChannel().getId()) {
+    if (channelSetter.getCurrentChannel() != null
+        && ctx.getChannel().getId().equals(
+            channelSetter.getCurrentChannel().getId())) {
       LOG.info("Channel disconnected " + ctx.getChannel().getId());
       scheduleReconnect();
     }
   }
 
   public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) {
-    if (channelSetter.getCurrentChannel() != null && 
-        ctx.getChannel().getId() == channelSetter.getCurrentChannel().getId()) {
+    if (channelSetter.getCurrentChannel() != null
+        && ctx.getChannel().getId().equals(
+            channelSetter.getCurrentChannel().getId())) {
       LOG.info("Channel closed " + ctx.getChannel().getId());
       scheduleReconnect();
     }
   }
 
   public void channelUnbound(ChannelHandlerContext ctx, ChannelStateEvent e) {
-    if (channelSetter.getCurrentChannel() != null && 
-        ctx.getChannel().getId() == channelSetter.getCurrentChannel().getId()) {
+    if (channelSetter.getCurrentChannel() != null
+        && ctx.getChannel().getId().equals(
+            channelSetter.getCurrentChannel().getId())) {
       LOG.info("Channel unbound " + ctx.getChannel().getId());
       scheduleReconnect();
     }
   }
 
   private void prepareReconnect() {
-    exceptionDuringConnect = false;    
-    thisPublisher.prepareReconnect();    
+    exceptionDuringConnect = false;
+    thisPublisher.prepareReconnect();
   }
 
   void setExceptionDuringConnect() {

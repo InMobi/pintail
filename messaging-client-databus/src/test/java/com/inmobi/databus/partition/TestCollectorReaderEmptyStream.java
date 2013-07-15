@@ -31,7 +31,7 @@ public class TestCollectorReaderEmptyStream {
   private static final String clusterName = "testCluster";
   private PartitionId partitionId = new PartitionId(clusterName, collectorName);
 
-  private LinkedBlockingQueue<QueueEntry> buffer = 
+  private LinkedBlockingQueue<QueueEntry> buffer =
       new LinkedBlockingQueue<QueueEntry>(1000);
   private Cluster cluster;
   private PartitionReader preader;
@@ -68,7 +68,7 @@ public class TestCollectorReaderEmptyStream {
     CollectorReaderStatsExposer prMetrics = new CollectorReaderStatsExposer(
         testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
 
-    // Read from start time 
+    // Read from start time
     preader = new PartitionReader(partitionId, null, conf, fs,
         collectorDir, streamsLocalDir, buffer, testStream,
         CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[0]), 1000,
@@ -104,13 +104,13 @@ public class TestCollectorReaderEmptyStream {
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         CollectorReader.class.getName());
-    Assert.assertEquals(((AbstractPartitionStreamReader)preader
+    Assert.assertEquals(((AbstractPartitionStreamReader) preader
         .getReader()).getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
 
     //Read from startTime with checkpoint
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
-        LocalStreamCollectorReader.getDatabusStreamFile(collectorName, 
+        LocalStreamCollectorReader.getDatabusStreamFile(collectorName,
             TestUtil.files[0]), 20),
         conf, fs, collectorDir, streamsLocalDir, buffer, testStream,
         CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[1]), 1000,

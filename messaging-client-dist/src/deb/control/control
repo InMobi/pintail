@@ -1,5 +1,5 @@
 Package: messaging-client
-Version: 3.0.0 
+Version: 3.2.0 
 Section:  misc
 Priority: high
 Architecture: all

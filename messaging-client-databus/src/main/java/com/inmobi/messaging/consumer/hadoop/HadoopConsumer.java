@@ -18,29 +18,22 @@ import com.inmobi.messaging.consumer.databus.AbstractMessagingDatabusConsumer;
 import com.inmobi.messaging.consumer.databus.CheckpointList;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
-public class HadoopConsumer extends AbstractMessagingDatabusConsumer 
+public class HadoopConsumer extends AbstractMessagingDatabusConsumer
     implements HadoopConsumerConfig {
 
   private String[] clusterNames;
   private Path[] rootDirs;
   private FileSystem[] fileSystems;
-  private Configuration conf;
   private String inputFormatClassName;
   public static String clusterNamePrefix = "hadoopcluster";
 
   protected void initializeConfig(ClientConfig config) throws IOException {
-    String hadoopConfFileName = config.getString(hadoopConfigFileKey);
-    if (hadoopConfFileName != null) {
-      Configuration.addDefaultResource(hadoopConfFileName);
-    }
-    conf = new Configuration();
-
     super.initializeConfig(config);
 
     String rootDirStr = config.getString(rootDirsConfig);
     String[] rootDirStrs;
     if (rootDirStr == null) {
-      throw new IllegalArgumentException("Missing root dir configuration:" 
+      throw new IllegalArgumentException("Missing root dir configuration: "
           + rootDirsConfig);
     } else {
       rootDirStrs = rootDirStr.split(",");
@@ -60,25 +53,25 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
   }
 
   protected void createPartitionReaders() throws IOException {
-    for (int i= 0; i < clusterNames.length; i++) {
+    for (int i = 0; i < clusterNames.length; i++) {
       String clusterName = clusterNames[i];
       String fsUri = fileSystems[i].getUri().toString();
       LOG.debug("Creating partition reader for cluster:" + clusterName);
 
       // create partition id
       PartitionId id = new PartitionId(clusterName, null);
-      Map<Integer, PartitionCheckpoint> listofPartitionCheckpoints = new 
+      Map<Integer, PartitionCheckpoint> listofPartitionCheckpoints = new
           HashMap<Integer, PartitionCheckpoint>();
 
-      PartitionCheckpointList partitionCheckpointList = new 
-          PartitionCheckpointList(listofPartitionCheckpoints);    
-      ((CheckpointList)currentCheckpoint).preaprePartitionCheckPointList(id, 
-          partitionCheckpointList);   
+      PartitionCheckpointList partitionCheckpointList = new
+          PartitionCheckpointList(listofPartitionCheckpoints);
+      ((CheckpointList) currentCheckpoint).preaprePartitionCheckPointList(id,
+          partitionCheckpointList);
 
       Date partitionTimestamp = getPartitionTimestamp(id,
           partitionCheckpointList);
-      PartitionReaderStatsExposer clusterMetrics = 
-          new PartitionReaderStatsExposer(topicName, consumerName, id.toString(), 
+      PartitionReaderStatsExposer clusterMetrics =
+          new PartitionReaderStatsExposer(topicName, consumerName, id.toString(),
               consumerNumber, fsUri);
       addStatsExposer(clusterMetrics);
       PartitionReader reader = new PartitionReader(id,
@@ -91,17 +84,13 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
     }
   }
 
-  Configuration getHadoopConf() {
-    return conf;
-  }
-
   Path[] getRootDirs() {
     return rootDirs;
   }
 
   @Override
   protected void createCheckpoint() {
-    currentCheckpoint = new CheckpointList(partitionMinList); 
+    currentCheckpoint = new CheckpointList(partitionMinList);
   }
 
 }

@@ -1,7 +1,7 @@
 package com.inmobi.messaging.consumer;
 
 /**
- * Contains all the constants for Message consumer metrics  
+ * Contains all the constants for Message consumer metrics
  */
 public interface MessageConsumerMetricsConstants {
   public static final String TOPIC_CONTEXT = "topicName";

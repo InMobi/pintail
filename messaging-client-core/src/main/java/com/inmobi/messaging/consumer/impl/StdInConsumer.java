@@ -23,9 +23,9 @@ public class StdInConsumer extends AbstractMessageConsumer {
   String topicName;
 
   protected void init(ClientConfig config) throws IOException {
-	  super.init(config);
-	  topicName = getConfig().getString("stdin.topic");
-	  start();
+    super.init(config);
+    topicName = getConfig().getString("stdin.topic");
+    start();
   }
 
   @Override
@@ -73,9 +73,9 @@ public class StdInConsumer extends AbstractMessageConsumer {
     ClientConfig config = new ClientConfig();
     config.set("stdin.topic", "mytopic");
     config.set(MessageConsumerFactory.CONSUMER_CLASS_NAME_KEY,
-      		  StdInConsumer.class.getName());
-    MessageConsumer consumer = MessageConsumerFactory.create(config );
-      
+        StdInConsumer.class.getName());
+    MessageConsumer consumer = MessageConsumerFactory.create(config);
+
     try {
       while (true) {
         Message msg = consumer.next();

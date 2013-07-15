@@ -36,7 +36,7 @@ public class TestClusterReaderMultipleCollectors {
   private String[] collectors = new String[] {"collector1", "collector2"};
   private static final String clusterName = "testCluster";
   private PartitionId partitionId = new PartitionId(clusterName, null);
-  private LinkedBlockingQueue<QueueEntry> buffer = 
+  private LinkedBlockingQueue<QueueEntry> buffer =
       new LinkedBlockingQueue<QueueEntry>(149);
   private PartitionReader preader;
   private Cluster cluster;
@@ -48,8 +48,8 @@ public class TestClusterReaderMultipleCollectors {
   Path streamDir;
   String fsUri;
   Configuration conf = new Configuration();
-  Set<Integer> partitionMinList;                                                  
-  PartitionCheckpointList partitionCheckpointList;    
+  Set<Integer> partitionMinList;
+  PartitionCheckpointList partitionCheckpointList;
   int consumerNumber;
 
   @BeforeTest
@@ -66,7 +66,7 @@ public class TestClusterReaderMultipleCollectors {
     streamDir = DatabusUtil.getStreamDir(StreamType.MERGED,
         new Path(cluster.getRootDir()), testStream);
     fsUri = fs.getUri().toString();
-    Map<Integer, PartitionCheckpoint> chkpoints = new 
+    Map<Integer, PartitionCheckpoint> chkpoints = new
         TreeMap<Integer, PartitionCheckpoint>();
     partitionCheckpointList = new PartitionCheckpointList(chkpoints);
     partitionMinList = new TreeSet<Integer>();
@@ -85,7 +85,7 @@ public class TestClusterReaderMultipleCollectors {
   public void testReadFromStart() throws Exception {
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
         testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
-    preader = new PartitionReader(partitionId, partitionCheckpointList, fs, 
+    preader = new PartitionReader(partitionId, partitionCheckpointList, fs,
         buffer, streamDir, conf, DatabusInputFormat.class.getCanonicalName(),
         CollectorStreamReader.getDateFromCollectorFile(files[0]), 10, true,
         prMetrics, false, partitionMinList, null);
@@ -93,11 +93,11 @@ public class TestClusterReaderMultipleCollectors {
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         ClusterReader.class.getName());
-    Assert.assertEquals(((ClusterReader)preader.getReader())
+    Assert.assertEquals(((ClusterReader) preader.getReader())
         .getReader().getClass().getName(),
         DatabusStreamWaitingReader.class.getName());
     preader.start();
-    // move file11 
+    // move file11
     TestUtil.incrementCommitTime();
     Path movedPath1 = TestUtil.moveFileToStreams(fs, testStream, collectors[1],
         cluster, TestUtil.getCollectorDir(cluster, testStream, collectors[1]),
@@ -180,9 +180,9 @@ public class TestClusterReaderMultipleCollectors {
 
     prMetrics = new PartitionReaderStatsExposer(
         testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
-    prepareCheckpoint( DatabusStreamWaitingReader.getHadoopStreamFile(
+    prepareCheckpoint(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath5)), 50, movedPath5, partitionCheckpointList);
-    preader = new PartitionReader(partitionId,  partitionCheckpointList, fs, 
+    preader = new PartitionReader(partitionId,  partitionCheckpointList, fs,
         buffer, streamDir, conf, DatabusInputFormat.class.getCanonicalName(),
         null, 1000, true, prMetrics, false, partitionMinList, null);
     preader.start();
@@ -199,9 +199,9 @@ public class TestClusterReaderMultipleCollectors {
     Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
   }
 
-  public void prepareCheckpoint(StreamFile streamFile, int lineNum, 
+  public void prepareCheckpoint(StreamFile streamFile, int lineNum,
       Path databusFile, PartitionCheckpointList partitionCheckpointList) {
-    Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, 
+    Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         databusFile.getParent());
     Calendar cal = Calendar.getInstance();
     cal.setTime(date);

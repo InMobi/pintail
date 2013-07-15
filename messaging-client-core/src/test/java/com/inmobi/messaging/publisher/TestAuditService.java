@@ -8,7 +8,7 @@ import com.inmobi.messaging.Message;
 import com.inmobi.messaging.util.AuditUtil;
 
 public class TestAuditService {
-  private static final byte[] magicbytes = { (byte) 0xAB, (byte) 0xCD,
+  private static final byte[] magicbytes = {(byte) 0xAB, (byte) 0xCD,
       (byte) 0xEF };
 
   @Test

@@ -14,5 +14,5 @@ public class MockStatsEmitter extends StatsEmitterBase {
   public void init(Properties props) {
     inited = true;
   }
-  
+
 }

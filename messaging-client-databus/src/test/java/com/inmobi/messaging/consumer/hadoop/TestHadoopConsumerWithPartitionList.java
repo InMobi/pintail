@@ -69,9 +69,9 @@ public class TestHadoopConsumerWithPartitionList  {
     finalPaths = new Path[rootDirs.length][numSuffixDirs * numDataFiles];
     for (int i = 0; i < rootDirs.length; i++) {
       HadoopUtil.setupHadoopCluster(
-          conf, dataFiles, suffixDirs, finalPaths[i], rootDirs[i]);
+          conf, dataFiles, suffixDirs, finalPaths[i], rootDirs[i], false);
     }
-    HadoopUtil.setUpHadoopFiles(rootDirs[0], conf, 
+    HadoopUtil.setUpHadoopFiles(rootDirs[0], conf,
         new String[] {"_SUCCESS", "_DONE"}, suffixDirs, null);
   }
 
@@ -81,13 +81,13 @@ public class TestHadoopConsumerWithPartitionList  {
         rootDirs[1].toString());
     firstConsumerConfig.set(HadoopConsumerConfig.checkpointDirConfig,
         ck8);
-    secondConsuemrConfig.set(HadoopConsumerConfig.rootDirsConfig, 
+    secondConsuemrConfig.set(HadoopConsumerConfig.rootDirsConfig,
         rootDirs[1].toString());
     secondConsuemrConfig.set(HadoopConsumerConfig.checkpointDirConfig, ck8);
     ConsumerUtil.testConsumerMarkAndResetWithStartTime(firstConsumerConfig,
         secondConsuemrConfig, streamName, consumerName,
         DatabusStreamWaitingReader.getDateFromStreamDir(
-            rootDirs[1], finalPaths[0][1]), true);  
+            rootDirs[1], finalPaths[0][1]), true);
   }
 
   @AfterTest

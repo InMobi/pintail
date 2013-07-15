@@ -125,14 +125,15 @@ public class StreamingBenchmark {
       return printUsage();
     }
 
-    assert (runProducer || runConsumer == true);
+    assert (runProducer || runConsumer);
     Producer producer = null;
     Consumer consumer = null;
     StatusLogger statusPrinter;
 
     if (runProducer) {
       System.out.println("Using topic: " + topic);
-      producer = createProducer(topic, maxSent, numMsgsPerSec, msgSize, numProducerThreads);
+      producer = createProducer(topic, maxSent, numMsgsPerSec, msgSize,
+          numProducerThreads);
       producer.start();
     }
 
@@ -240,7 +241,7 @@ public class StreamingBenchmark {
       fixedMsg = getMessageBytes(msgSize);
       this.numThreads = numThreads;
       publisher = (AbstractMessagePublisher) MessagePublisherFactory.create();
-      
+
       // create producer workers
       workerThreads = new ProducerWoker[numThreads];
       for (int i = 0; i < numThreads; i++) {
@@ -248,15 +249,16 @@ public class StreamingBenchmark {
         workerThreads[i] = worker;
       }
     }
-    
+
     @Override
     public void run() {
-      System.out.println(LogDateFormat.format(System.currentTimeMillis()) + " Producer started!");
+      System.out.println(LogDateFormat.format(System.currentTimeMillis())
+          + " Producer started!");
       // start producer worker threads
       for (int i = 0; i < numThreads; i++) {
         workerThreads[i].start();
       }
-      
+
       // wait for worker threads to join
       for (int i = 0; i < numThreads; i++) {
         try {
@@ -265,35 +267,38 @@ public class StreamingBenchmark {
           e.printStackTrace();
         }
       }
-      
-      // it is safe to close the publisher since all workers threads have finished by now.
+
+      // it is safe to close the publisher since all workers threads have
+      // finished by now.
       publisher.close();
-      System.out.println(LogDateFormat.format(System.currentTimeMillis()) + " Producer closed");
+      System.out.println(LogDateFormat.format(System.currentTimeMillis())
+          + " Producer closed");
       TimingAccumulator stats = publisher.getStats(topic);
       if (stats != null && stats.getSuccessCount() == maxSent * numThreads) {
         exitcode = 0;
       }
     }
-    
+
     private class ProducerWoker extends Thread {
       @Override
       public void run() {
-        System.out.println(LogDateFormat.format(System.currentTimeMillis()) + " Producer worker started!");
+        System.out.println(LogDateFormat.format(System.currentTimeMillis())
+            + " Producer worker started!");
         long msgIndex = 1;
         boolean sentAll = false;
-        long startTime = 0l;
-        long endTime = 0l;
-        long publishTime = 0l;
-        
+        long startTime = 0L;
+        long endTime = 0L;
+        long publishTime = 0L;
+
         while (true) {
           for (long j = 0; j < numMsgsPerSleepInterval; j++) {
             Message m = constructMessage(msgIndex, fixedMsg);
-            
+
             startTime = System.currentTimeMillis();
             publisher.publish(topic, m);
             endTime = System.currentTimeMillis();
             publishTime += endTime - startTime;
-            
+
             if (msgIndex == maxSent) {
               sentAll = true;
               break;
@@ -310,9 +315,11 @@ public class StreamingBenchmark {
             return;
           }
         }
-        
-        System.out.println(LogDateFormat.format(System.currentTimeMillis()) + " Producer worker closed." +
-        " Messages published: " + Long.toString(msgIndex) + " Total publish time (ms): " + Long.toString(publishTime));
+
+        System.out.println(LogDateFormat.format(System.currentTimeMillis())
+            + " Producer worker closed."
+            + " Messages published: " + Long.toString(msgIndex)
+            + " Total publish time (ms): " + Long.toString(publishTime));
       } // run()
     } // ProducerWorker
   }
@@ -529,9 +536,10 @@ public class StreamingBenchmark {
     void constructProducerString(StringBuffer sb) {
       // check whether TimingAccumulator is created for this topic
       TimingAccumulator stats = producer.publisher.getStats(producer.topic);
-      if (stats == null)
+      if (stats == null) {
         return;
-      
+      }
+
       sb.append(" Invocations:" + stats.getInvocationCount());
       sb.append(" Inflight:" + stats.getInFlight());
       sb.append(" SentSuccess:" + stats.getSuccessCount());

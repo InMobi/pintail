@@ -20,9 +20,9 @@ class NettyEventCore {
 
   /**
    * Get a handle to the netty event loop
-   * 
+   *
    * The NIO handlers are setup lazily
-   * 
+   *
    * @return an NIO handler
    */
   public synchronized ClientSocketChannelFactory getFactory() {
@@ -36,7 +36,7 @@ class NettyEventCore {
 
   /**
    * Application indicating that it no longer needs this
-   * 
+   *
    * In real world, assume that this will not be released, we are being nice and
    * try and release it.
    */

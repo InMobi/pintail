@@ -11,7 +11,7 @@ import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.consumer.util.ConsumerUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
-public class TestDatabusConsumerCollectorStream 
+public class TestDatabusConsumerCollectorStream
     extends TestAbstractDatabusConsumer {
 
   private String ck1 = "/tmp/test/databustest7/checkpoint12";
@@ -74,9 +74,9 @@ public class TestDatabusConsumerCollectorStream
   public void testMultipleClusters2() throws Exception {
     ClientConfig config = loadConfig();
     config.set(DatabusConsumerConfig.databusRootDirsConfig,
-        rootDirs[0].toUri().toString() + "," + 
-        rootDirs[1].toUri().toString() + "," + 
-        rootDirs[0].toUri().toString());
+        rootDirs[0].toUri().toString() + ","
+            + rootDirs[1].toUri().toString() + ","
+            + rootDirs[0].toUri().toString());
     config.set(DatabusConsumerConfig.checkpointDirConfig, ck4);
     config.set(MessagingConsumerConfig.relativeStartTimeConfig,
         relativeStartTime);
@@ -122,9 +122,9 @@ public class TestDatabusConsumerCollectorStream
   public void testMultipleClusters2WithoutLocalStream() throws Exception {
     ClientConfig config = loadConfig();
     config.set(DatabusConsumerConfig.databusRootDirsConfig,
-        rootDirs[0].toUri().toString() + "," +
-        rootDirs[1].toUri().toString() + "," +
-        rootDirs[0].toUri().toString());
+        rootDirs[0].toUri().toString() + ","
+            + rootDirs[1].toUri().toString() + ","
+            + rootDirs[0].toUri().toString());
     config.set(DatabusConsumerConfig.checkpointDirConfig, ck8);
     config.set(MessagingConsumerConfig.relativeStartTimeConfig,
         relativeStartTime);

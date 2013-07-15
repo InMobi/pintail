@@ -40,7 +40,7 @@ public abstract class StreamReader<T extends StreamFile> {
 
   private boolean listingStopped = false;
 
-  protected StreamReader(PartitionId partitionId, FileSystem fs, 
+  protected StreamReader(PartitionId partitionId, FileSystem fs,
       Path streamDir, long waitTimeForCreate,
       PartitionReaderStatsExposer metrics, boolean noNewFiles, Date stopTime)
           throws IOException {
@@ -65,7 +65,7 @@ public abstract class StreamReader<T extends StreamFile> {
   }
 
   public void closeStream() throws IOException {
-    closeCurrentFile();    
+    closeCurrentFile();
   }
 
   public void close() throws IOException {
@@ -85,24 +85,24 @@ public abstract class StreamReader<T extends StreamFile> {
 
   protected abstract boolean openCurrentFile(boolean next) throws IOException;
 
-  protected abstract void closeCurrentFile() throws IOException; 
+  protected abstract void closeCurrentFile() throws IOException;
   protected void initCurrentFile() {
     currentFile = null;
-    resetCurrentFile();    
+    resetCurrentFile();
   }
 
   public boolean initializeCurrentFile(Date timestamp) throws IOException {
     initCurrentFile();
     this.timestamp = timestamp;
     T file = getStreamFile(timestamp);
-    LOG.debug("Stream file corresponding to timestamp:" + timestamp +
-        " is " + file);
+    LOG.debug("Stream file corresponding to timestamp:" + timestamp
+        + " is " + file);
     currentFile = fileMap.getCeilingValue(file);
 
     if (currentFile != null) {
       setIterator();
-      LOG.debug("CurrentFile:" + getCurrentFile() + " currentLineNum:"+ 
-          currentLineNum);
+      LOG.debug("CurrentFile:" + getCurrentFile() + " currentLineNum:"
+          + currentLineNum);
     } else {
       LOG.info("Did not find stream file for timestamp:" + timestamp);
     }
@@ -117,10 +117,10 @@ public abstract class StreamReader<T extends StreamFile> {
     currentFile = fileMap.getValue(checkpoint.getStreamFile());
     if (currentFile != null) {
       currentLineNum = checkpoint.getLineNum();
-      LOG.debug("CurrentFile:" + getCurrentFile() + " currentLineNum:" + 
-          currentLineNum);
+      LOG.debug("CurrentFile:" + getCurrentFile() + " currentLineNum:"
+          + currentLineNum);
       setIterator();
-    } 
+    }
     return currentFile != null;
   }
 
@@ -130,8 +130,8 @@ public abstract class StreamReader<T extends StreamFile> {
 
     if (currentFile != null) {
       currentLineNum = getLineNumberForFirstFile(currentFile);
-      LOG.debug("CurrentFile:" + getCurrentFile() + " currentLineNum:" + 
-          currentLineNum);
+      LOG.debug("CurrentFile:" + getCurrentFile() + " currentLineNum:"
+          + currentLineNum);
       setIterator();
     }
     return currentFile != null;
@@ -172,11 +172,12 @@ public abstract class StreamReader<T extends StreamFile> {
   }
 
   public Path getCurrentFile() {
-    if (currentFile == null)
+    if (currentFile == null) {
       return null;
+    }
     return currentFile.getPath();
   }
-  
+
   protected Path getLastFile() {
     FileStatus lastFile = fileMap.getLastFile();
     if (lastFile != null) {
@@ -200,8 +201,8 @@ public abstract class StreamReader<T extends StreamFile> {
 
   protected abstract T getStreamFile(FileStatus status);
 
-  /** 
-   * Returns null when reached end of stream 
+  /**
+   * Returns null when reached end of stream
    */
   public abstract Message readLine() throws IOException, InterruptedException;
 
@@ -209,7 +210,7 @@ public abstract class StreamReader<T extends StreamFile> {
 
   /**
    * Skip the number of lines passed.
-   * 
+   *
    * @return the actual number of lines skipped.
    */
   protected long skipLines(long numLines) throws IOException {
@@ -224,16 +225,16 @@ public abstract class StreamReader<T extends StreamFile> {
     LOG.info("Skipped " + lineNum + " lines");
     if (lineNum != numLines) {
       LOG.warn("Skipped wrong number of lines");
-      throw new IOException("Skipped wrong number of lines while " +
-          "skipping old data in CollectorStreamReader");
+      throw new IOException("Skipped wrong number of lines while "
+          + "skipping old data in " + this.getClass().getSimpleName());
     }
     return lineNum;
   }
 
   /**
-   * Read the next line in the current file. 
+   * Read the next line in the current file.
    * @return Null if end of file is reached, the line itself if read successfully
-   * 
+   *
    * @throws IOException
    */
   protected Message readNextLine() throws IOException {
@@ -283,23 +284,19 @@ public abstract class StreamReader<T extends StreamFile> {
     return false;
   }
 
-  public boolean setCurrentFile(String streamFileName, 
+  public boolean setCurrentFile(String streamFileName,
       long currentLineNum) throws IOException {
     if (fileMap.containsFile(streamFileName)) {
       currentFile = fileMap.getValue(streamFileName);
       setIterator();
       this.currentLineNum = currentLineNum;
-      LOG.info("Set current file:" + getCurrentFile() +
-          "currentLineNum:" + currentLineNum);
+      LOG.info("Set current file:" + getCurrentFile()
+          + "currentLineNum:" + currentLineNum);
       return true;
     } else {
-      LOG.info("Did not find current file." + streamFileName +
-          " Trying to set next higher");
-      if (!setNextHigher(streamFileName)) {
-        return false;
-      } else {
-        return true;
-      }
+      LOG.info("Did not find current file." + streamFileName
+          + " Trying to set next higher");
+      return setNextHigher(streamFileName);
     }
   }
 
@@ -393,7 +390,7 @@ public abstract class StreamReader<T extends StreamFile> {
           return true;
         }
       } else {
-        // could not find current file in filemap 
+        // could not find current file in filemap
         // and filemap does not contain files higher than the current file
         if (fileMap.getHigherValue(currentFile) == null) {
           return true;
@@ -435,8 +432,9 @@ public abstract class StreamReader<T extends StreamFile> {
   }
 
   protected boolean isFileSystemS3() {
-    if(fs instanceof S3FileSystem || fs instanceof NativeS3FileSystem)
+    if (fs instanceof S3FileSystem || fs instanceof NativeS3FileSystem) {
       return true;
+    }
     return false;
   }
 }

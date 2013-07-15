@@ -11,7 +11,7 @@ import org.apache.hadoop.mapred.FileInputFormat;
 
 import com.inmobi.messaging.Message;
 
-public class DatabusInputFormat extends FileInputFormat<LongWritable, Message>{
+public class DatabusInputFormat extends FileInputFormat<LongWritable, Message> {
 
   @Override
   public RecordReader<LongWritable, Message> getRecordReader(InputSplit split,

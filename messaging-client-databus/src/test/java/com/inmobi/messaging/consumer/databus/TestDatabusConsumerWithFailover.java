@@ -50,9 +50,9 @@ public class TestDatabusConsumerWithFailover extends
     config2.set(DatabusConsumerConfig.databusRootDirsConfig,
         rootDirs[1].toString());
     config1.set(DatabusConsumerConfig.checkpointDirConfig,
-        rootDirs[0].toString()+"/databustest5/checkpoint1");
+        rootDirs[0].toString() + "/databustest5/checkpoint1");
     config2.set(DatabusConsumerConfig.checkpointDirConfig,
-        rootDirs[0].toString()+"/databustest5/checkpoint1");
+        rootDirs[0].toString() + "/databustest5/checkpoint1");
     config1.set(DatabusConsumerConfig.databusStreamType,
         StreamType.LOCAL.name());
     config2.set(DatabusConsumerConfig.databusStreamType,
@@ -72,9 +72,9 @@ public class TestDatabusConsumerWithFailover extends
     config2.set(DatabusConsumerConfig.databusRootDirsConfig,
         rootDirs[1].toString());
     config1.set(DatabusConsumerConfig.checkpointDirConfig,
-        rootDirs[0].toString()+"/databustest6/checkpoint1");
+        rootDirs[0].toString() + "/databustest6/checkpoint1");
     config2.set(DatabusConsumerConfig.checkpointDirConfig,
-        rootDirs[0].toString()+"/databustest6/checkpoint1");
+        rootDirs[0].toString() + "/databustest6/checkpoint1");
     config1.set(DatabusConsumerConfig.databusStreamType,
         StreamType.MERGED.name());
     config2.set(DatabusConsumerConfig.databusStreamType,
@@ -114,8 +114,8 @@ public class TestDatabusConsumerWithFailover extends
     ConsumerCheckpoint temp = consumer.getCurrentCheckpoint();
     Map<PartitionId, PartitionCheckpoint> lastCheckpoint = null;
     Map<Integer, Checkpoint> checkpointMap = new HashMap<Integer, Checkpoint>();
-    ConsumerUtil.createCheckpointList(temp, checkpointMap, 
-        lastCheckpoint, consumer); 
+    ConsumerUtil.createCheckpointList(temp, checkpointMap,
+        lastCheckpoint, consumer);
 
     for (int i = 0; i < numCounters; i++) {
       markedcounter1[i] = counter[i];
@@ -133,7 +133,7 @@ public class TestDatabusConsumerWithFailover extends
     // restart consumer with different rootDir
     consumer = new DatabusConsumer();
     consumer.init(streamName, consumerName, null, config2);
-    ConsumerUtil.compareConsumerCheckpoints(temp, checkpointMap, 
+    ConsumerUtil.compareConsumerCheckpoints(temp, checkpointMap,
         lastCheckpoint, consumer);
     for (int i = 0; i < totalMessages / 2; i++) {
       Message msg = consumer.next();

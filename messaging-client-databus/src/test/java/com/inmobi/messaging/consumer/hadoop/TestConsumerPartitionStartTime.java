@@ -79,9 +79,9 @@ public class TestConsumerPartitionStartTime {
     finalPaths = new Path[rootDirs.length][numSuffixDirs * numDataFiles];
     for (int i = 0; i < rootDirs.length; i++) {
       HadoopUtil.setupHadoopCluster(
-          conf, dataFiles, suffixDirs, finalPaths[i], rootDirs[i]);
+          conf, dataFiles, suffixDirs, finalPaths[i], rootDirs[i], false);
     }
-    HadoopUtil.setUpHadoopFiles(rootDirs[0], conf, 
+    HadoopUtil.setUpHadoopFiles(rootDirs[0], conf,
         new String[] {"_SUCCESS", "_DONE"}, suffixDirs, null);
   }
 
@@ -111,15 +111,15 @@ public class TestConsumerPartitionStartTime {
     secondConsumer.close();
     LOG.debug("msgs consumed by second consumer " + secondConsumedMessages.size());
 
-    Assert.assertEquals(firstConsumedMessages.size() + 
-        secondConsumedMessages.size(), 1200);
+    Assert.assertEquals(firstConsumedMessages.size()
+        + secondConsumedMessages.size(), 1200);
   }	
 
   @AfterTest
   public void cleanup() throws Exception {
     FileSystem lfs = FileSystem.getLocal(conf);
     for (Path rootDir : rootDirs) {
-      LOG.debug("Cleaning up the dir: "+ rootDir.getParent());
+      LOG.debug("Cleaning up the dir: " + rootDir.getParent());
       lfs.delete(rootDir.getParent(), true);
     }
   }

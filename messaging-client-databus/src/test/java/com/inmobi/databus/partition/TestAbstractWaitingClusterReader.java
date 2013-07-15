@@ -22,14 +22,14 @@ public abstract class TestAbstractWaitingClusterReader {
   protected static final String clusterName = "testCluster";
   protected PartitionId partitionId = new PartitionId(clusterName, null);
 
-  protected LinkedBlockingQueue<QueueEntry> buffer = 
+  protected LinkedBlockingQueue<QueueEntry> buffer =
       new LinkedBlockingQueue<QueueEntry>(150);
   protected Cluster cluster;
   protected PartitionReader preader;
-  Set<Integer>  partitionMinList;                                                     
-  PartitionCheckpointList partitionCheckpointlist;                                                      
+  Set<Integer>  partitionMinList;
+  PartitionCheckpointList partitionCheckpointlist;
 
-  
+
   protected String[] files = new String[] {TestUtil.files[1], TestUtil.files[3],
       TestUtil.files[5]};
   protected String[] newFiles = new String[] {TestUtil.files[6], TestUtil.files[7],
@@ -55,7 +55,7 @@ public abstract class TestAbstractWaitingClusterReader {
     String fsUri = fs.getUri().toString();
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
         testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
-    preader = new PartitionReader(partitionId, partitionCheckpointlist, fs, 
+    preader = new PartitionReader(partitionId, partitionCheckpointlist, fs,
     		buffer, streamDir, conf, inputFormatClass,
         DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
             databusFiles[0]),
@@ -82,15 +82,15 @@ public abstract class TestAbstractWaitingClusterReader {
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
         ClusterReader.class.getName());
-    Assert.assertEquals(((ClusterReader)preader.getReader())
+    Assert.assertEquals(((ClusterReader) preader.getReader())
         .getReader().getClass().getName(),
         DatabusStreamWaitingReader.class.getName());
     preader.start();
     while (buffer.remainingCapacity() > 0) {
       Thread.sleep(10);
     }
-    FileStatus fs0 = fs.getFileStatus(databusFiles[0]); 
-    FileStatus fs1 = fs.getFileStatus(databusFiles[1]); 
+    FileStatus fs0 = fs.getFileStatus(databusFiles[0]);
+    FileStatus fs1 = fs.getFileStatus(databusFiles[1]);
     fs.delete(databusFiles[0], true);
     fs.delete(databusFiles[1], true);
     fs.delete(databusFiles[2], true);
@@ -113,9 +113,10 @@ public abstract class TestAbstractWaitingClusterReader {
         buffer, isDatabusData());
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
-    Assert.assertEquals(((ClusterReader)preader.getReader())
+    Assert.assertEquals(((ClusterReader) preader.getReader())
         .getReader().getClass().getName(),
         DatabusStreamWaitingReader.class.getName());
+    Thread.sleep(1000);
     setupFiles(new String[] {newFiles[1], newFiles[2]},
         newDatabusFiles);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(

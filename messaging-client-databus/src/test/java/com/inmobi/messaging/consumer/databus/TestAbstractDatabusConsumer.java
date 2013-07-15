@@ -11,6 +11,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.testng.Assert;
 
 import com.inmobi.databus.Cluster;
 import com.inmobi.messaging.ClientConfig;
@@ -29,34 +30,36 @@ public abstract class TestAbstractDatabusConsumer {
   protected String consumerName;
   Path[] rootDirs;
   protected final String relativeStartTime = "30";
-  Configuration conf = new Configuration();
+  Configuration conf;
 
   public void setup(int numFileToMove) throws Exception {
 
     ClientConfig config = loadConfig();
+    config.set(DatabusConsumerConfig.hadoopConfigFileKey, "hadoop-conf.xml");
     testConsumer = getConsumerInstance();
     //System.out.println(testConsumer.getClass().getCanonicalName());
     testConsumer.initializeConfig(config);
-
+    conf = testConsumer.getHadoopConf();
+    Assert.assertEquals(conf.get("myhadoop.property"), "myvalue");
     // setup stream, collector dirs and data files
     Set<String> sourceNames = new HashSet<String>();
     sourceNames.add(testStream);
 
     rootDirs = testConsumer.getRootDirs();
-    for (int i =0; i <rootDirs.length; i++) {
+    for (int i = 0; i < rootDirs.length; i++) {
       Map<String, String> clusterConf = new HashMap<String, String>();
       FileSystem fs = rootDirs[i].getFileSystem(conf);
       clusterConf.put("hdfsurl", fs.getUri().toString());
       clusterConf.put("jturl", "local");
       clusterConf.put("name", "databusCluster" + i);
       clusterConf.put("jobqueuename", "default");
-      
+
       String rootDir = rootDirs[i].toUri().toString();
       if (rootDirs[i].toString().startsWith("file:")) {
         String[] rootDirSplit = rootDirs[i].toString().split("file:");
         rootDir = rootDirSplit[1];
       }
-      Cluster cluster = new Cluster(clusterConf, 
+      Cluster cluster = new Cluster(clusterConf,
           rootDir, null, sourceNames);
       fs.delete(new Path(cluster.getRootDir()), true);
       Path streamDir = new Path(cluster.getDataDir(), testStream);
@@ -79,7 +82,7 @@ public abstract class TestAbstractDatabusConsumer {
   abstract ClientConfig loadConfig();
 
   void assertMessages(
-      ClientConfig config, int numClusters, int numCollectors) 
+      ClientConfig config, int numClusters, int numCollectors)
       throws Exception {
     ConsumerUtil.assertMessages(config, testStream, consumerName, numClusters,
         numCollectors,

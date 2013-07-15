@@ -35,7 +35,7 @@ class Counters {
 
 public class RandomizedMultiTopicSeqGenerator {
 
-  public static final String[] tiers = { "publisher", "agent", "collector",
+  public static final String[] tiers = {"publisher", "agent", "collector",
       "hdfs" };
   public static final String OVERALL_RECEIVED_GOOD = "scribe_overall:received good";
   public static final String AGENT_TOPIC_WRITTEN_SUFFIX = ":std_wrote_num_messages";
@@ -71,7 +71,7 @@ public class RandomizedMultiTopicSeqGenerator {
       return;
     }
 
-    String topics[] = new String[numTopics];
+    String[] topics = new String[numTopics];
     topics[0] = args[0];
     topics[1] = args[1];
     topics[2] = AuditUtil.AUDIT_STREAM_TOPIC_NAME;
@@ -103,14 +103,14 @@ public class RandomizedMultiTopicSeqGenerator {
     latch.await();
     int i = 0;
 
-    Counters total_counters[] = new Counters[numTopics];
+    Counters[] total_counters = new Counters[numTopics];
     for (int j = 0; j < total_counters.length; j++) {
       total_counters[j] = new Counters();
     }
     for (AbstractMessagePublisher publisher : publishers) {
       publisher.close();
       i++;
-      Counters counters[] = new Counters[numTopics];
+      Counters[] counters = new Counters[numTopics];
       for (int j = 0; j < counters.length; j++) {
         counters[j] = new Counters();
         TimingAccumulator accum = publisher.getStats(topics[j]);
@@ -189,16 +189,20 @@ public class RandomizedMultiTopicSeqGenerator {
         + finalScribeCollector);
 
     if (sum.graceful != 0 || sum.lost != 0 || sum.reconnect != 0
-        || sum.retry != 0 || sum.unhandled != 0)
+        || sum.retry != 0 || sum.unhandled != 0) {
       isWarn = true;
-    isFail = validateCounters(start, end, topics, totalMsgs, failureReason,
-        sum, total_counters);
-    isFail = validateScribeCounters(initialScribeAgent, initialScribeCollector,
-        finalScribeAgent, finalScribeCollector, topics, failureReason, sum,
-        total_counters)
-        || isFail;
-    isFail = validateHDFSCount(start, topics, total_counters, failureReason)
-        || isFail;
+    }
+    isFail =
+        validateCounters(start, end, topics, totalMsgs, failureReason, sum,
+            total_counters);
+    isFail =
+        validateScribeCounters(initialScribeAgent, initialScribeCollector,
+            finalScribeAgent, finalScribeCollector, topics, failureReason, sum,
+            total_counters)
+            || isFail;
+    isFail =
+        validateHDFSCount(start, topics, total_counters, failureReason)
+            || isFail;
     if (isFail) {
       System.out.println("VALIDATION FAILED");
       System.out.println("REASON " + failureReason);
@@ -223,8 +227,7 @@ public class RandomizedMultiTopicSeqGenerator {
     Integer agentRec[] = new Integer[2];
     agentRec[0] = finalScribeAgent.get(topics[0] + TOPIC_RECEIVED_SUFFIX)
         - initialScribeAgent.get(topics[0] + TOPIC_RECEIVED_SUFFIX);
-    agentRec[1] = finalScribeAgent.get(topics[1] + TOPIC_RECEIVED_SUFFIX)
-        - initialScribeAgent.get(topics[1] + TOPIC_RECEIVED_SUFFIX);
+    agentRec[1] = finalScribeAgent.get(topics[1] + TOPIC_RECEIVED_SUFFIX);
     if (agentRec[0] != total_counters[0].success) {
       isFail = true;
       failureReason
@@ -247,6 +250,7 @@ public class RandomizedMultiTopicSeqGenerator {
     collectorRec[1] = finalScribeCollector.get(topics[1]
         + TOPIC_RECEIVED_SUFFIX)
         - initialScribeCollector.get(topics[1] + TOPIC_RECEIVED_SUFFIX);
+
     if (collectorRec[0] != total_counters[0].success) {
       isFail = true;
       failureReason
@@ -284,7 +288,7 @@ public class RandomizedMultiTopicSeqGenerator {
 
   }
 
-  private static boolean validateHDFSCount(Date start, String topics[],
+  private static boolean validateHDFSCount(Date start, String[] topics,
       Counters[] total_counters, StringBuffer failureReason)
       throws IOException, InterruptedException, EndOfStreamException {
     boolean isFail = false;
@@ -361,7 +365,7 @@ public class RandomizedMultiTopicSeqGenerator {
   }
 
   private static class PublishThreadNew extends Thread {
-    private String topics[];
+    private String[] topics;
 
     private List<AbstractMessagePublisher> publishers;
     private long maxSeq;

@@ -32,7 +32,7 @@ public class LocalStreamCollectorReader extends
 
   private final String collector;
 
-  public LocalStreamCollectorReader(PartitionId partitionId, 
+  public LocalStreamCollectorReader(PartitionId partitionId,
       FileSystem fs, String streamName, Path streamDir, Configuration conf,
       long waitTimeForFileCreate, CollectorReaderStatsExposer metrics,
       Date stopTime)
@@ -60,8 +60,8 @@ public class LocalStreamCollectorReader extends
             Date currentTimeStamp = LocalStreamCollectorReader.
                 getDateFromStreamFile(streamName, file.getPath().getName());
             if (stopTime != null && stopTime.before(currentTimeStamp)) {
-              LOG.info("stopTime [ " + stopTime + " ] " + "is beyond the" +
-                  " current file timestamp [ " + currentTimeStamp +" ]");
+              LOG.info("stopTime [ " + stopTime + " ] " + "is beyond the"
+                  + " current file timestamp [ " + currentTimeStamp + " ]");
               stopListing();
             } else {
               fmap.addPath(file);
@@ -84,22 +84,10 @@ public class LocalStreamCollectorReader extends
     current.setTime(buildTimestamp);
     // stop the file listing if stop date is beyond current time
     while (current.getTime().before(now) && !isListingStopped()) {
-      Path hhDir =  getHourDirPath(streamDir, current.getTime());
-      int hour = current.get(Calendar.HOUR_OF_DAY);
-      if (fsIsPathExists(hhDir)) {
-        while (current.getTime().before(now) && 
-            hour  == current.get(Calendar.HOUR_OF_DAY) && !isListingStopped()) {
-          Path dir = getMinuteDirPath(streamDir, current.getTime());
-          // Move the current minute to next minute
-          current.add(Calendar.MINUTE, 1);
-          doRecursiveListing(dir, pathFilter, fmap);
-        } 
-      } else {
-        // go to next hour
-        LOG.info("Hour directory " + hhDir + " does not exist");
-        current.add(Calendar.HOUR_OF_DAY, 1);
-        current.set(Calendar.MINUTE, 0);
-      }
+      Path dir = getMinuteDirPath(streamDir, current.getTime());
+      // Move the current minute to next minute
+      current.add(Calendar.MINUTE, 1);
+      doRecursiveListing(dir, pathFilter, fmap);
     }
   }
 
@@ -143,7 +131,7 @@ public class LocalStreamCollectorReader extends
               return true;
             }
             return false;
-          }          
+          }
         };
       }
     };
@@ -169,8 +157,8 @@ public class LocalStreamCollectorReader extends
             return null;
           } else {
             // read line from next higher file
-            LOG.info("Reading from " + getCurrentFile() + ". The next higher file" +
-                " after rebuild");
+            LOG.info("Reading from " + getCurrentFile()
+                + ". The next higher file after rebuild");
           }
         } else if (!nextFile()) { // reached end of stream
           LOG.info("Reached end of stream");
@@ -191,17 +179,16 @@ public class LocalStreamCollectorReader extends
       PartitionCheckpoint partitionCheckpoint) {
     String fileName = null;
     try {
-      if (partitionCheckpoint != null) {
-        fileName = partitionCheckpoint.getFileName();
-        if (fileName != null && 
-            !isDatabusStreamFile(streamName, fileName)) {
+      fileName = partitionCheckpoint.getFileName();
+      if (fileName != null) {
+        if (!isDatabusStreamFile(streamName, fileName)) {
           fileName = getDatabusStreamFileName(collectorName, fileName);
         }
+        return getDateFromStreamFile(streamName, fileName);
       }
-      return getDateFromStreamFile(streamName, fileName);
+      return null;
     } catch (Exception e) {
-      throw new IllegalArgumentException("Invalid fileName:" + 
-          fileName, e);
+      throw new IllegalArgumentException("Invalid fileName:" + fileName, e);
     }
   }
 
@@ -218,19 +205,19 @@ public class LocalStreamCollectorReader extends
 
   public static String getDatabusStreamFileName(String streamName,
       Date date) {
-    return getDatabusStreamFile(streamName, date).toString();  
+    return getDatabusStreamFile(streamName, date).toString();
   }
 
   public static DatabusStreamFile getDatabusStreamFile(String streamName,
       Date date) {
     return new DatabusStreamFile("", new CollectorFile(streamName, date, 0),
-        "gz");  
+        "gz");
   }
 
   public static DatabusStreamFile getDatabusStreamFileFromLocalStreamFile(
       String streamName,
       String localStreamfileName) {
-    return DatabusStreamFile.create(streamName, localStreamfileName);  
+    return DatabusStreamFile.create(streamName, localStreamfileName);
   }
 
   static boolean isDatabusStreamFile(String streamName, String fileName) {
@@ -244,13 +231,13 @@ public class LocalStreamCollectorReader extends
 
   public static String getDatabusStreamFileName(String collector,
       String collectorFile) {
-    return getDatabusStreamFile(collector, collectorFile).toString();  
+    return getDatabusStreamFile(collector, collectorFile).toString();
   }
 
   public static DatabusStreamFile getDatabusStreamFile(String collector,
       String collectorFileName) {
     return new DatabusStreamFile(collector,
-        CollectorFile.create(collectorFileName), "gz");  
+        CollectorFile.create(collectorFileName), "gz");
   }
 
 }

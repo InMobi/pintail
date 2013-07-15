@@ -7,7 +7,7 @@ import com.inmobi.messaging.consumer.MessageConsumerFactory;
 
 /**
  * Creates DatabusConsumer from  configuration in classpath and consumes
- * messages to print on the screen. 
+ * messages to print on the screen.
  */
 public class ConsoleClient {
 

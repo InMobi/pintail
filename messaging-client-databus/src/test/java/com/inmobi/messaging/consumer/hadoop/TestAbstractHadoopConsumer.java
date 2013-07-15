@@ -57,11 +57,12 @@ public abstract class TestAbstractHadoopConsumer {
   Path[][] finalPaths;
   Configuration conf;
   protected final String relativeStartTime = "30";
+  protected boolean createFilesInNextHour = false;
 
   abstract ClientConfig loadConfig();
 
   public void setup() throws Exception {
-    // setup 
+    // setup
     ClientConfig config = loadConfig();
     testConsumer = new HadoopConsumer();
     testConsumer.initializeConfig(config);
@@ -75,7 +76,7 @@ public abstract class TestAbstractHadoopConsumer {
     finalPaths = new Path[rootDirs.length][numSuffixDirs * numDataFiles];
     for (int i = 0; i < rootDirs.length; i++) {
       HadoopUtil.setupHadoopCluster(conf, dataFiles, suffixDirs,
-          finalPaths[i], rootDirs[i], true);
+          finalPaths[i], rootDirs[i], true, createFilesInNextHour);
     }
     HadoopUtil.setUpHadoopFiles(rootDirs[0], conf,
       new String[]{"_SUCCESS", "_DONE"}, suffixDirs, null);
@@ -90,13 +91,13 @@ public abstract class TestAbstractHadoopConsumer {
         relativeStartTime);
     ConsumerUtil.testMarkAndReset(config, testStream, consumerName, true);
   }
-  
+
   public void testTimeoutStats() throws Exception {
     ClientConfig config = loadConfig();
     config.set(HadoopConsumerConfig.checkpointDirConfig, ck6);
     config.set(HadoopConsumerConfig.rootDirsConfig,
       rootDirs[0].toString());
-    ConsumerUtil.testTimeoutStats(config, testStream, consumerName, 
+    ConsumerUtil.testTimeoutStats(config, testStream, consumerName,
         DatabusStreamWaitingReader.getDateFromStreamDir(
             rootDirs[0], finalPaths[0][0]), true);
   }
@@ -206,8 +207,8 @@ public abstract class TestAbstractHadoopConsumer {
   }
 
   /*
-   *  setting retention period as 0 hours and relative time is 20 minutes.
-   *  Consumer should start consume the messages from 20 minutes beyond the 
+   *  setting retention period as 0 hours and relative time is 30 minutes.
+   *  Consumer should start consume the messages from 30 minutes beyond the
    *  current time
    */
   public void testConsumerWithRelativeAndRetention() throws Exception {

@@ -14,7 +14,7 @@ import com.inmobi.messaging.publisher.MessagePublisher;
 import com.inmobi.messaging.publisher.MessagePublisherFactory;
 
 /**
- * Only com.inmobi.messaging.Message is valid object type in 
+ * Only com.inmobi.messaging.Message is valid object type in
  * LoggingEvent.getMessage(). byte[], String and TBase types are deprecated.
  */
 public class MessageAppender extends AppenderSkeleton {
@@ -69,14 +69,14 @@ public class MessageAppender extends AppenderSkeleton {
     } else if (o instanceof TBase) {
       TBase thriftOb = (TBase) o;
       try {
-        msg = new Message( 
+        msg = new Message(
             ByteBuffer.wrap(serializer.serialize(thriftOb)));
       } catch (TException e) {
         System.out.println("Could not serialize thrift object");
         e.printStackTrace();
       }
     }
-    
+
     if (msg != null) {
       publisher.publish(topic, msg);
     }
@@ -93,9 +93,9 @@ public class MessageAppender extends AppenderSkeleton {
     } else {
       publisher = MessagePublisherFactory.create();
     }
-    } catch(IOException e) {
+    } catch (IOException e) {
       throw new RuntimeException("Could not create publisher", e);
     }
-    
+
   }
 }

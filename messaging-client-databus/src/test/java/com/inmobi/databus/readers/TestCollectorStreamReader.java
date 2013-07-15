@@ -59,7 +59,7 @@ public class TestCollectorStreamReader {
 
   @Test
   public void testInitialize() throws Exception {
-    CollectorReaderStatsExposer metrics = new 
+    CollectorReaderStatsExposer metrics = new
         CollectorReaderStatsExposer(testStream, "c1", partitionId.toString(),
             consumerNumber, fsUri);
     // Read from start
@@ -130,7 +130,7 @@ public class TestCollectorStreamReader {
     Assert.assertEquals(cReader.getCurrentFile(), new Path(collectorDir,
         files[1]));
 
-    // startFromBegining 
+    // startFromBegining
     cReader.startFromBegining();
     Assert.assertEquals(cReader.getCurrentFile(), new Path(collectorDir,
         files[0]));
@@ -150,8 +150,8 @@ public class TestCollectorStreamReader {
 
   @Test
   public void testReadFromStart() throws Exception {
-    CollectorReaderStatsExposer metrics = new 
-        CollectorReaderStatsExposer(testStream, "c1", partitionId.toString(), 
+    CollectorReaderStatsExposer metrics = new
+        CollectorReaderStatsExposer(testStream, "c1", partitionId.toString(),
             consumerNumber, fsUri);
     cReader = new CollectorStreamReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
@@ -179,8 +179,8 @@ public class TestCollectorStreamReader {
 
   @Test
   public void testReadFromCheckpoint() throws Exception {
-    CollectorReaderStatsExposer metrics = new 
-        CollectorReaderStatsExposer(testStream, "c1", partitionId.toString(), 
+    CollectorReaderStatsExposer metrics = new
+        CollectorReaderStatsExposer(testStream, "c1", partitionId.toString(),
             consumerNumber, fsUri);
     cReader = new CollectorStreamReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
@@ -209,7 +209,7 @@ public class TestCollectorStreamReader {
   @Test
   public void testReadFromTimeStamp() throws Exception {
     CollectorReaderStatsExposer metrics = new 
-        CollectorReaderStatsExposer(testStream, "c1", partitionId.toString(), 
+        CollectorReaderStatsExposer(testStream, "c1", partitionId.toString(),
             consumerNumber, fsUri);
     cReader = new CollectorStreamReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
