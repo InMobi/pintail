@@ -57,7 +57,7 @@ public class DatabusStreamWaitingReader
       prepareTimeStampsOfCheckpoints();
     }
     deltaCheckpoint = new HashMap<Integer, PartitionCheckpoint>();
-    createdDeltaCheckpointForFirstFile = true;
+    createdDeltaCheckpointForFirstFile = false;
   }
 
   public void prepareTimeStampsOfCheckpoints() {
@@ -353,8 +353,7 @@ public class DatabusStreamWaitingReader
     if (buildTimestamp.before(currentFileTimeStamp)) {
       deltaCheckpoint.put(cal.get(Calendar.MINUTE),
           new PartitionCheckpoint(getStreamFile(buildTimestamp), -1));
-      prepareDeltaCheckpoint(buildTimestamp,
-          currentFileTimeStamp);
+      prepareDeltaCheckpoint(buildTimestamp, currentFileTimeStamp);
     }
     createdDeltaCheckpointForFirstFile = true;
   }
