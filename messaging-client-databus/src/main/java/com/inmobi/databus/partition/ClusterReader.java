@@ -128,8 +128,7 @@ public class ClusterReader extends AbstractPartitionStreamReader {
             getCurrentMin());
     consumerPartitionCheckPoint.setCurrentMsgCheckpoint();
     //Check after getting message checkpoint, if Partition Reader has moved to
-    //next file. If yes, then set the flags in the checkpoint and reset reader
-    //flags.
+    //next file. If yes, then set the delta checkpoint and reset reader flags.
     if (movedToNext) {
       consumerPartitionCheckPoint.setDeltaCheckpoint(
           dataWaitingReader.getDeltaCheckpoint());
