@@ -6,11 +6,9 @@ import java.io.DataInput;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
 
 public class ConsumerPartitionCheckPoint extends PartitionCheckpoint {
   private Integer minId;
-  private boolean eofPrevFile;
   private Map<Integer, PartitionCheckpoint> deltaCheckpoint;
   private Map<Integer, PartitionCheckpoint> currentMsgCheckpoint;
 
