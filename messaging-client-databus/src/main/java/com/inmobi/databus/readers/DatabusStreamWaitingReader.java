@@ -412,7 +412,7 @@ public class DatabusStreamWaitingReader
 
   public void resetMoveToNextFlags() {
     movedToNext = false;
-    deltaCheckpoint = new HashMap<Integer, PartitionCheckpoint>();
+    deltaCheckpoint.clear();
   }
 
   public Map<Integer, PartitionCheckpoint> getDeltaCheckpoint() {
