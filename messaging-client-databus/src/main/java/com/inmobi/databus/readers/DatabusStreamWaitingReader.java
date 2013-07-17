@@ -33,7 +33,6 @@ public class DatabusStreamWaitingReader
   private int currentMin;
   private final Set<Integer> partitionMinList;
   private PartitionCheckpointList partitionCheckpointList;
-  private boolean movedToNext;
   private Map<Integer, Date> checkpointTimeStampMap;
   private Map<Integer, PartitionCheckpoint> pChkpoints;
   private Map<Integer, PartitionCheckpoint> deltaCheckpoint;
@@ -225,8 +224,7 @@ public class DatabusStreamWaitingReader
     boolean readFromCheckpoint = false;
     FileStatus fileToRead = nextFile;
     if (currentMin != now.get(Calendar.MINUTE)) {
-      movedToNext = true;
-      prepareDeltaCheckpoint(currentFileTimeStamp, nextFileTimeStamp);
+      setDeltaCheckpoint(currentFileTimeStamp, nextFileTimeStamp);
       // set the line number as -1 as current file was read fully.
       deltaCheckpoint.put(currentMin,
           new PartitionCheckpoint(getStreamFile(currentFile), -1));
@@ -259,12 +257,11 @@ public class DatabusStreamWaitingReader
   /*
    * prepare a delta checkpoint
    */
-  private void prepareDeltaCheckpoint(Date currentFileTimeStamp,
-      Date nextFileTimeStamp) {
+  private void setDeltaCheckpoint(Date from, Date to) {
     Calendar cal = Calendar.getInstance();
-    cal.setTime(currentFileTimeStamp);
+    cal.setTime(from);
     cal.add(Calendar.MINUTE, 1);
-    while (cal.getTime().before(nextFileTimeStamp)) {
+    while (cal.getTime().before(to)) {
       int currentMinute = cal.get(Calendar.MINUTE);
       Date checkpointedTimeStamp = checkpointTimeStampMap.get(currentMinute);
       if (partitionMinList.contains(Integer.valueOf(currentMinute))) {
@@ -311,7 +308,9 @@ public class DatabusStreamWaitingReader
   public Message readLine() throws IOException, InterruptedException {
     Message line = readNextLine();
     if (!createdDeltaCheckpointForFirstFile) {
-      prepareDeltaCehckpointForFirstFile();
+      setDeltaCheckpoint(buildTimestamp, getDateFromStreamDir(streamDir,
+          getCurrentFile()));
+      createdDeltaCheckpointForFirstFile = true;
     }
     while (line == null) { // reached end of file
       LOG.info("Read " + getCurrentFile() + " with lines:" + currentLineNum);
@@ -342,20 +341,6 @@ public class DatabusStreamWaitingReader
       line = readNextLine();
     }
     return line;
-  }
-
-  private void prepareDeltaCehckpointForFirstFile() {
-    movedToNext = true;
-    Date currentFileTimeStamp = getDateFromStreamDir(streamDir,
-        getCurrentFile());
-    Calendar cal = Calendar.getInstance();
-    cal.setTime(buildTimestamp);
-    if (buildTimestamp.before(currentFileTimeStamp)) {
-      deltaCheckpoint.put(cal.get(Calendar.MINUTE),
-          new PartitionCheckpoint(getStreamFile(buildTimestamp), -1));
-      prepareDeltaCheckpoint(buildTimestamp, currentFileTimeStamp);
-    }
-    createdDeltaCheckpointForFirstFile = true;
   }
 
   @Override
@@ -410,17 +395,8 @@ public class DatabusStreamWaitingReader
     return HadoopStreamFile.create(status);
   }
 
-  public void resetMoveToNextFlags() {
-    movedToNext = false;
-    deltaCheckpoint.clear();
-  }
-
   public Map<Integer, PartitionCheckpoint> getDeltaCheckpoint() {
     return deltaCheckpoint;
-  }
-
-  public boolean isMovedToNext() {
-    return movedToNext;
   }
 
   public int getCurrentMin() {
@@ -454,5 +430,9 @@ public class DatabusStreamWaitingReader
     Calendar cal = Calendar.getInstance();
     cal.setTime(currentTimeStamp);
     return cal.get(Calendar.MINUTE);
+  }
+
+  public void resetDeltaCheckpoint() {
+    deltaCheckpoint.clear();
   }
 }

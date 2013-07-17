@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-import com.inmobi.databus.partition.ConsumerPartitionCheckPoint;
+import com.inmobi.databus.partition.DeltaPartitionCheckPoint;
 
 import com.inmobi.databus.CheckpointProvider;
 import com.inmobi.databus.partition.PartitionCheckpoint;
@@ -62,10 +62,7 @@ public class CheckpointList implements ConsumerCheckpoint {
 
   @Override
   public void set(PartitionId pid, MessageCheckpoint msgCkp) {
-    ConsumerPartitionCheckPoint checkPoint = (ConsumerPartitionCheckPoint) msgCkp;
-    // set current msg checkpoint
-    setConsumerCheckpoint(pid, checkPoint.getMinId(),
-        checkPoint.getCurrentMsgChkpoint());
+    DeltaPartitionCheckPoint checkPoint = (DeltaPartitionCheckPoint) msgCkp;
     // set delta checkpoint
     if (!checkPoint.getDeltaCheckpoint().isEmpty()) {
       for (Map.Entry<Integer, PartitionCheckpoint> entry :

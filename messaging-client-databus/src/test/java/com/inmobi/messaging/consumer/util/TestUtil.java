@@ -14,16 +14,18 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hdfs.server.namenode.FileChecksumServlets.GetServlet;
 import org.apache.hadoop.io.Text;
 import org.testng.Assert;
 
 import com.inmobi.databus.Cluster;
 import com.inmobi.databus.files.StreamFile;
-import com.inmobi.databus.partition.ConsumerPartitionCheckPoint;
+import com.inmobi.databus.partition.DeltaPartitionCheckPoint;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.databus.readers.DatabusStreamReader;
+import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 import com.inmobi.databus.readers.LocalStreamCollectorReader;
 import com.inmobi.databus.utils.FileUtil;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
@@ -142,13 +144,19 @@ public class TestUtil {
           throws InterruptedException, IOException {
 
     int fileIndex = (fileNum - 1) * 100 ;
+    Map<Integer, PartitionCheckpoint> deltaCehckpointMap =
+        new HashMap<Integer, PartitionCheckpoint>();
     for (int i = startIndex; i < (startIndex + numMsgs); i++) {
       QueueEntry entry = buffer.take();
       Assert.assertEquals(entry.getPartitionId(), pid);
-      if (entry.getMessageChkpoint() instanceof ConsumerPartitionCheckPoint) {
+      if (entry.getMessageChkpoint() instanceof DeltaPartitionCheckPoint) {
         int min = Integer.parseInt(new Path(file.toString()).getParent().getName());
+        
         Assert.assertEquals(entry.getMessageChkpoint(),
-            new ConsumerPartitionCheckPoint(file, i + 1, min));
+            new DeltaPartitionCheckPoint(file, i + 1, min, deltaCehckpointMap));
+        deltaCehckpointMap.clear();
+        // TODO assert all elements in delta checkpoint
+        System.out.println("Delta checkpoint:" + entry.getMessageChkpoint());
       } else {
         Assert.assertEquals(entry.getMessageChkpoint(),
             new PartitionCheckpoint(file, i + 1));
