@@ -91,10 +91,10 @@ public class TestPartitionReaderMovingFilesWithStopTime {
     fs.delete(databusFiles[2], true);
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
         collectorName, files[0]), 1, 0, 100, partitionId, buffer, true, null,
-        null, null);
+        null, null, false);
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
         collectorName, files[1]), 2, 0, 50, partitionId, buffer, true, null,
-        null, null);
+        null, null, false);
     while (buffer.remainingCapacity() > 0) {
       Thread.sleep(10);
     }
@@ -105,10 +105,10 @@ public class TestPartitionReaderMovingFilesWithStopTime {
 
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
         collectorName, files[1]), 2, 50, 50, partitionId, buffer, true, null,
-        null, null);
+        null, null, false);
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
         collectorName, files[3]), 4, 0, 100, partitionId, buffer, true, null,
-        null, null);
+        null, null, false);
     while (buffer.remainingCapacity() > 0) {
       Thread.sleep(10);
     }
@@ -125,9 +125,9 @@ public class TestPartitionReaderMovingFilesWithStopTime {
     TestUtil.moveFileToStreamLocal(fs, testStream,
         collectorName, cluster, collectorDir, files[6]);
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[4]),
-        5, 0, 100, partitionId, buffer, true, null, null, null);
+        5, 0, 100, partitionId, buffer, true, null, null, null, false);
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[5]),
-        6, 0, 50, partitionId, buffer, true, null, null, null);
+        6, 0, 50, partitionId, buffer, true, null, null, null, false);
     while (buffer.remainingCapacity() > 0) {
       Thread.sleep(10);
     }
@@ -141,10 +141,10 @@ public class TestPartitionReaderMovingFilesWithStopTime {
         collectorName, cluster, collectorDir, files[7]);
 
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[5]),
-        6, 50, 50, partitionId, buffer, true, null, null, null);
+        6, 50, 50, partitionId, buffer, true, null, null, null, false);
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
         collectorName, files[6]), 7, 0, 100, partitionId, buffer, true, null,
-        null, null);
+        null, null, false);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
 
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 600);

@@ -192,11 +192,11 @@ public class TestPartitionReaderLocalCollectorStream {
         LocalStreamCollectorReader.class.getName());
     preader.execute();
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
-        collectorName, files[0]), 1, 0, 100, partitionId, buffer, true, null, null, null);
+        collectorName, files[0]), 1, 0, 100, partitionId, buffer, true, null, null, null, false);
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
-        collectorName, files[1]), 2,  0, 100, partitionId, buffer, true, null, null, null);
+        collectorName, files[1]), 2,  0, 100, partitionId, buffer, true, null, null, null, false);
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
-        collectorName, files[2]), 3,  0, 100, partitionId, buffer, true, null, null, null);
+        collectorName, files[2]), 3,  0, 100, partitionId, buffer, true, null, null, null, false);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -232,9 +232,9 @@ public class TestPartitionReaderLocalCollectorStream {
         LocalStreamCollectorReader.class.getName());
     preader.execute();
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
-        collectorName, files[1]), 2,  20, 80, partitionId, buffer, true, null, null, null);
+        collectorName, files[1]), 2,  20, 80, partitionId, buffer, true, null, null, null, false);
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
-        collectorName, files[2]), 3,  0, 100, partitionId, buffer, true, null, null, null);
+        collectorName, files[2]), 3,  0, 100, partitionId, buffer, true, null, null, null, false);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -271,9 +271,9 @@ public class TestPartitionReaderLocalCollectorStream {
         LocalStreamCollectorReader.class.getName());
     preader.execute();
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
-        collectorName, files[1]), 2,  20, 80, partitionId, buffer, true, null, null, null);
+        collectorName, files[1]), 2,  20, 80, partitionId, buffer, true, null, null, null, false);
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
-        collectorName, files[2]), 3,  0, 100, partitionId, buffer, true, null, null, null);
+        collectorName, files[2]), 3,  0, 100, partitionId, buffer, true, null, null, null, false);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -314,11 +314,11 @@ public class TestPartitionReaderLocalCollectorStream {
         LocalStreamCollectorReader.class.getName());
     preader.execute();
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
-        collectorName, files[0]), 1, 0, 100, partitionId, buffer, true, null, null, null);
+        collectorName, files[0]), 1, 0, 100, partitionId, buffer, true, null, null, null, false);
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
-        collectorName, files[1]), 2,  0, 100, partitionId, buffer, true, null, null, null);
+        collectorName, files[1]), 2,  0, 100, partitionId, buffer, true, null, null, null, false);
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
-        collectorName, files[2]), 3,  0, 100, partitionId, buffer, true, null, null, null);
+        collectorName, files[2]), 3,  0, 100, partitionId, buffer, true, null, null, null, false);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -360,11 +360,11 @@ public class TestPartitionReaderLocalCollectorStream {
         LocalStreamCollectorReader.class.getName());
     preader.execute();
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
-        collectorName, files[0]), 1, 0, 100, partitionId, buffer, true, null, null, null);
+        collectorName, files[0]), 1, 0, 100, partitionId, buffer, true, null, null, null, false);
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
-        collectorName, files[1]), 2,  0, 100, partitionId, buffer, true, null, null, null);
+        collectorName, files[1]), 2,  0, 100, partitionId, buffer, true, null, null, null, false);
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
-        collectorName, files[2]), 3,  0, 100, partitionId, buffer, true, null, null, null);
+        collectorName, files[2]), 3,  0, 100, partitionId, buffer, true, null, null, null, false);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -401,9 +401,9 @@ public class TestPartitionReaderLocalCollectorStream {
         LocalStreamCollectorReader.class.getName());
     preader.execute();
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
-        collectorName, files[1]), 2,  0, 100, partitionId, buffer, true, null, null, null);
+        collectorName, files[1]), 2,  0, 100, partitionId, buffer, true, null, null, null, false);
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
-        collectorName, files[2]), 3,  0, 100, partitionId, buffer, true, null, null, null);
+        collectorName, files[2]), 3,  0, 100, partitionId, buffer, true, null, null, null, false);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -439,7 +439,7 @@ public class TestPartitionReaderLocalCollectorStream {
         LocalStreamCollectorReader.class.getName());
     preader.execute();
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
-        collectorName, files[2]), 3,  0, 100, partitionId, buffer, true, null, null, null);
+        collectorName, files[2]), 3,  0, 100, partitionId, buffer, true, null, null, null, false);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -475,11 +475,11 @@ public class TestPartitionReaderLocalCollectorStream {
         LocalStreamCollectorReader.class.getName());
     preader.execute();
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
-        collectorName, files[0]), 1, 0, 100, partitionId, buffer, true, null, null, null);
+        collectorName, files[0]), 1, 0, 100, partitionId, buffer, true, null, null, null, false);
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
-        collectorName, files[1]), 2,  0, 100, partitionId, buffer, true, null, null, null);
+        collectorName, files[1]), 2,  0, 100, partitionId, buffer, true, null, null, null, false);
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
-        collectorName, files[2]), 3,  0, 100, partitionId, buffer, true, null, null, null);
+        collectorName, files[2]), 3,  0, 100, partitionId, buffer, true, null, null, null, false);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
