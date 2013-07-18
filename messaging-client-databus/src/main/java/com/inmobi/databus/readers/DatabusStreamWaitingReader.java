@@ -280,8 +280,8 @@ public class DatabusStreamWaitingReader
 
   @Override
   protected HadoopStreamFile getStreamFile(Date timestamp) {
-    return new HadoopStreamFile(getMinuteDirPath(streamDir, timestamp),
-        null, null);
+    Path streamDirPath = streamDir;
+    return getHadoopStreamFile(streamDirPath, timestamp);
   }
 
   protected HadoopStreamFile getStreamFile(FileStatus status) {
@@ -393,6 +393,12 @@ public class DatabusStreamWaitingReader
 
   public static HadoopStreamFile getHadoopStreamFile(FileStatus status) {
     return HadoopStreamFile.create(status);
+  }
+
+  public static HadoopStreamFile getHadoopStreamFile(Path streamDirPath,
+      Date timestamp) {
+    return new HadoopStreamFile(getMinuteDirPath(streamDirPath, timestamp),
+        null, null);
   }
 
   public Map<Integer, PartitionCheckpoint> getDeltaCheckpoint() {
