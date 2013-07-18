@@ -106,10 +106,10 @@ public class TestClusterReaderMultipleCollectors {
     // read file00, file10
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles1[0])), 1, 0, 100, partitionId,
-        buffer, true, null, null, partitionMinList);
+        buffer, true, null, null);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles2[0])), 1, 0, 50, partitionId,
-        buffer, true, null, null, partitionMinList);
+        buffer, true, null, null);
 
     // move file01, file12
     TestUtil.incrementCommitTime();
@@ -123,13 +123,12 @@ public class TestClusterReaderMultipleCollectors {
     // read file10, file11
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles2[0])), 1, 50, 50, partitionId,
-        buffer, true, null, null, partitionMinList);
+        buffer, true, null, null);
 
     Date fromTime = getTimeStampFromFile(databusFiles2[0]);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath1)), 2, 0, 100, partitionId,
-        buffer, true, fromTime, fs.getFileStatus(databusFiles2[0]),
-        partitionMinList);
+        buffer, true, fromTime, fs.getFileStatus(databusFiles2[0]));
 
     // move file02
     TestUtil.incrementCommitTime();
@@ -140,11 +139,11 @@ public class TestClusterReaderMultipleCollectors {
     // read file10, file12
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath2)), 2, 0, 100, partitionId,
-        buffer, true, fromTime, fs.getFileStatus(movedPath1), partitionMinList);
+        buffer, true, fromTime, fs.getFileStatus(movedPath1));
     fromTime = getTimeStampFromFile(movedPath2);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath3)), 3, 0, 50, partitionId,
-        buffer, true, fromTime, fs.getFileStatus(movedPath2), partitionMinList);
+        buffer, true, fromTime, fs.getFileStatus(movedPath2));
 
     // move file13
     TestUtil.incrementCommitTime();
@@ -155,11 +154,11 @@ public class TestClusterReaderMultipleCollectors {
     //read file12, file02
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath3)), 3, 50, 50, partitionId,
-        buffer, true, null, null, partitionMinList);
+        buffer, true, null, null);
     fromTime = getTimeStampFromFile(movedPath3);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath4)), 3, 0, 50, partitionId,
-        buffer, true, fromTime, fs.getFileStatus(movedPath3), partitionMinList);
+        buffer, true, fromTime, fs.getFileStatus(movedPath3));
 
     //move file03
     Path movedPath6 = TestUtil.moveFileToStreams(fs, testStream, collectors[0],
@@ -169,15 +168,15 @@ public class TestClusterReaderMultipleCollectors {
     // read file02, file13, file03
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath4)), 3, 50, 50, partitionId,
-        buffer, true, null, null, partitionMinList);
+        buffer, true, null, null);
     fromTime = getTimeStampFromFile(movedPath4);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath5)), 4, 0, 100, partitionId,
-        buffer, true, fromTime, fs.getFileStatus(movedPath4), partitionMinList);
+        buffer, true, fromTime, fs.getFileStatus(movedPath4));
     fromTime = getTimeStampFromFile(movedPath5);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath6)), 4, 0, 100, partitionId,
-        buffer, true, fromTime, fs.getFileStatus(movedPath5), null);
+        buffer, true, fromTime, fs.getFileStatus(movedPath5));
     Assert.assertTrue(buffer.isEmpty());
     //XXX Reader sholud close after listing
     Thread.sleep(3000);
@@ -196,11 +195,11 @@ public class TestClusterReaderMultipleCollectors {
     preader.start();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath5)), 4, 50, 50, partitionId,
-        buffer, true, null, null, partitionMinList);
+        buffer, true, null, null);
     fromTime = getTimeStampFromFile(movedPath5);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath6)), 4, 0, 100, partitionId,
-        buffer, true, fromTime, fs.getFileStatus(movedPath5), partitionMinList);
+        buffer, true, fromTime, fs.getFileStatus(movedPath5));
     Assert.assertTrue(buffer.isEmpty());
     preader.close();
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 150);

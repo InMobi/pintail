@@ -140,8 +140,7 @@ public class TestUtil {
 
   public static void assertBuffer(StreamFile file, int fileNum, int startIndex,
       int numMsgs, PartitionId pid, LinkedBlockingQueue<QueueEntry> buffer,
-      boolean isDatabusData, Date fromTime, FileStatus prevFileStatus,
-      Set<Integer> partitionMinList)
+      boolean isDatabusData, Date fromTime, FileStatus prevFileStatus)
           throws InterruptedException, IOException {
 
     int fileIndex = (fileNum - 1) * 100 ;
@@ -159,7 +158,7 @@ public class TestUtil {
           // prepare expected delta partition checkpoint when there was empty
           // files/dirs
           prepareExpectedDeltaPck(expectedDeltaPck, fromTime, toTime,
-              streamDir, prevFileStatus, partitionMinList);
+              streamDir, prevFileStatus);
         }
         // get actual delta partition checkpoint
         Map<Integer, PartitionCheckpoint> actualDeltaPck =
@@ -196,8 +195,7 @@ public class TestUtil {
 
   private static void prepareExpectedDeltaPck(
       Map<Integer, PartitionCheckpoint> deltaPartitionCheckpointMap,
-      Date fromTime, Date toTime, Path streamDir, FileStatus prevFileStatus,
-      Set<Integer> partitionMinList) {
+      Date fromTime, Date toTime, Path streamDir, FileStatus prevFileStatus) {
     Calendar current = Calendar.getInstance();
     current.setTime(fromTime);
     // set line number as -1 for previous file
@@ -210,11 +208,9 @@ public class TestUtil {
     // set delta partition checkpoint for empty dirs
     while (current.getTime().before(toTime)) {
       int minute = current.get(Calendar.MINUTE);
-      if (partitionMinList.contains(Integer.valueOf(minute))) {
       deltaPartitionCheckpointMap.put(Integer.valueOf(minute),
           new PartitionCheckpoint(DatabusStreamWaitingReader.
               getHadoopStreamFile(streamDir, current.getTime()), -1));
-      }
       current.add(Calendar.MINUTE, 1);
     }
   }

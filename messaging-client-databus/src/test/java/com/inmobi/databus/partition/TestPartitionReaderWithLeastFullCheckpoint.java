@@ -76,17 +76,15 @@ public class TestPartitionReaderWithLeastFullCheckpoint extends TestAbstractClus
     preader.execute();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[3])), 1, 00, 100, partitionId, buffer,
-        isDatabusData(), fromTime, fs.getFileStatus(databusFiles[0]), null);
+        isDatabusData(), fromTime, fs.getFileStatus(databusFiles[0]));
     fromTime = getTimeStampFromFile(databusFiles[3]);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[4])), 2, 00, 100, partitionId, buffer,
-        isDatabusData(), fromTime, fs.getFileStatus(databusFiles[3]),
-        partitionMinList);
+        isDatabusData(), fromTime, fs.getFileStatus(databusFiles[3]));
     fromTime = getTimeStampFromFile(databusFiles[4]);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[5])), 3, 00, 100, partitionId, buffer,
-        isDatabusData(), fromTime, fs.getFileStatus(databusFiles[4]),
-        partitionMinList);
+        isDatabusData(), fromTime, fs.getFileStatus(databusFiles[4]));
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 300);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 300);
 
