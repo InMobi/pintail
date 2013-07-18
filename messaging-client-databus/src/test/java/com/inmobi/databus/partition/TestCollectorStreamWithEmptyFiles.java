@@ -93,9 +93,9 @@ public class TestCollectorStreamWithEmptyFiles {
 
     TestUtil.setUpCollectorDataFiles(fs, collectorDir, dataFile);
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[0]), 1,
-        0, 100, partitionId, buffer, true, null, null, null, false);
+        0, 100, partitionId, buffer, true, null, null, null);
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(dataFile), 1,
-        0, 100, partitionId, buffer, true, null, null, null, false);
+        0, 100, partitionId, buffer, true, null, null, null);
 
     // Test the path for current file getting created late.
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -112,7 +112,7 @@ public class TestCollectorStreamWithEmptyFiles {
     Thread.sleep(50);
     TestUtil.setUpCollectorDataFiles(fs, collectorDir, dataFile);
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(dataFile),
-        1, 0, 100, partitionId, buffer, true, null, null, null, false);
+        1, 0, 100, partitionId, buffer, true, null, null, null);
     
     //Test the path for next higher entry
     emptyFile = TestUtil.files[5];
@@ -122,7 +122,7 @@ public class TestCollectorStreamWithEmptyFiles {
     fs.delete(new Path(collectorDir, emptyFile), true);
     TestUtil.setUpCollectorDataFiles(fs, collectorDir, dataFile);
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(dataFile), 1,
-        0, 100, partitionId, buffer, true, null, null, null, false);
+        0, 100, partitionId, buffer, true, null, null, null);
     Assert.assertTrue(buffer.isEmpty());
     preader.close();
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 400);
