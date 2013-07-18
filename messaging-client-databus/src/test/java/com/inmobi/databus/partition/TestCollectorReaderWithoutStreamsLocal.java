@@ -76,11 +76,11 @@ public class TestCollectorReaderWithoutStreamsLocal {
         CollectorStreamReader.class.getName());
     preader.execute();
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[3]), 4,
-        0, 100, partitionId, buffer, true);
+        0, 100, partitionId, buffer, true, null);
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[4]), 5,
-        0, 100, partitionId, buffer, true);
+        0, 100, partitionId, buffer, true, null);
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[5]), 6,
-        0, 100, partitionId, buffer, true);
+        0, 100, partitionId, buffer, true, null);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());

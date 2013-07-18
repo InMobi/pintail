@@ -140,23 +140,26 @@ public class TestUtil {
 
   public static void assertBuffer(StreamFile file, int fileNum, int startIndex,
       int numMsgs, PartitionId pid, LinkedBlockingQueue<QueueEntry> buffer,
-      boolean isDatabusData)
+      boolean isDatabusData, Map<Integer, PartitionCheckpoint> expectedDeltaPck)
           throws InterruptedException, IOException {
 
     int fileIndex = (fileNum - 1) * 100 ;
-    Map<Integer, PartitionCheckpoint> deltaCehckpointMap =
-        new HashMap<Integer, PartitionCheckpoint>();
     for (int i = startIndex; i < (startIndex + numMsgs); i++) {
       QueueEntry entry = buffer.take();
       Assert.assertEquals(entry.getPartitionId(), pid);
       if (entry.getMessageChkpoint() instanceof DeltaPartitionCheckPoint) {
         int min = Integer.parseInt(new Path(file.toString()).getParent().getName());
-        
-        Assert.assertEquals(entry.getMessageChkpoint(),
-            new DeltaPartitionCheckPoint(file, i + 1, min, deltaCehckpointMap));
-        deltaCehckpointMap.clear();
-        // TODO assert all elements in delta checkpoint
-        System.out.println("Delta checkpoint:" + entry.getMessageChkpoint());
+        Map<Integer, PartitionCheckpoint> actualDeltaPck =
+            ((DeltaPartitionCheckPoint) entry.getMessageChkpoint()).
+            getDeltaCheckpoint();
+        // get expected delta pck
+        expectedDeltaPck = new DeltaPartitionCheckPoint(file, i + 1, min,
+            expectedDeltaPck).getDeltaCheckpoint();
+        System.out.println("accccccccc " + actualDeltaPck);
+        System.out.println("eeeeeeeeeeecpec  " + expectedDeltaPck);
+        // assert on expected and actual delta pck
+        Assert.assertEquals(actualDeltaPck, expectedDeltaPck);
+        expectedDeltaPck.clear();
       } else {
         Assert.assertEquals(entry.getMessageChkpoint(),
             new PartitionCheckpoint(file, i + 1));
