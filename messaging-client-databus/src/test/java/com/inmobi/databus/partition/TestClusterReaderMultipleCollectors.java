@@ -124,24 +124,26 @@ public class TestClusterReaderMultipleCollectors {
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles2[0])), 1, 50, 50, partitionId,
         buffer, true, null, null);
-    Date fromTime = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
-        databusFiles2[0]);
+
+    Date fromTime = getTimeStampFromFile(databusFiles2[0]);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath1)), 2, 0, 100, partitionId,
-        buffer, true, fromTime, null);
+        buffer, true, fromTime, fs.getFileStatus(databusFiles2[0]));
 
     // move file02
     TestUtil.incrementCommitTime();
     Path movedPath4 = TestUtil.moveFileToStreams(fs, testStream, collectors[0],
         cluster, TestUtil.getCollectorDir(cluster, testStream, collectors[0]),
         files[2]);
+    fromTime = getTimeStampFromFile(movedPath1);
     // read file10, file12
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath2)), 2, 0, 100, partitionId,
-        buffer, true, null, null);
+        buffer, true, fromTime, fs.getFileStatus(movedPath1));
+    fromTime = getTimeStampFromFile(movedPath2);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath3)), 3, 0, 50, partitionId,
-        buffer, true, null, null);
+        buffer, true, fromTime, fs.getFileStatus(movedPath2));
 
     // move file13
     TestUtil.incrementCommitTime();
@@ -153,9 +155,10 @@ public class TestClusterReaderMultipleCollectors {
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath3)), 3, 50, 50, partitionId,
         buffer, true, null, null);
+    fromTime = getTimeStampFromFile(movedPath3);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath4)), 3, 0, 50, partitionId,
-        buffer, true, null, null);
+        buffer, true, fromTime, fs.getFileStatus(movedPath3));
 
     //move file03
     Path movedPath6 = TestUtil.moveFileToStreams(fs, testStream, collectors[0],
@@ -166,12 +169,14 @@ public class TestClusterReaderMultipleCollectors {
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath4)), 3, 50, 50, partitionId,
         buffer, true, null, null);
+    fromTime = getTimeStampFromFile(movedPath4);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath5)), 4, 0, 100, partitionId,
-        buffer, true, null, null);
+        buffer, true, fromTime, fs.getFileStatus(movedPath4));
+    fromTime = getTimeStampFromFile(movedPath5);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath6)), 4, 0, 100, partitionId,
-        buffer, true, null, null);
+        buffer, true, fromTime, fs.getFileStatus(movedPath5));
     Assert.assertTrue(buffer.isEmpty());
     //XXX Reader sholud close after listing
     Thread.sleep(3000);
@@ -191,9 +196,10 @@ public class TestClusterReaderMultipleCollectors {
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath5)), 4, 50, 50, partitionId,
         buffer, true, null, null);
+    fromTime = getTimeStampFromFile(movedPath5);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath6)), 4, 0, 100, partitionId,
-        buffer, true, null, null);
+        buffer, true, fromTime, fs.getFileStatus(movedPath5));
     Assert.assertTrue(buffer.isEmpty());
     preader.close();
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 150);
@@ -209,5 +215,9 @@ public class TestClusterReaderMultipleCollectors {
     cal.setTime(date);
     partitionCheckpointList.set(cal.get(Calendar.MINUTE),
         new PartitionCheckpoint(streamFile, lineNum));
+  }
+  
+  private Date getTimeStampFromFile(Path dir) {
+    return DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, dir);
   }
 }
