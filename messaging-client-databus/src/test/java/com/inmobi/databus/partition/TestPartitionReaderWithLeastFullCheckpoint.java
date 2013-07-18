@@ -1,7 +1,6 @@
 package com.inmobi.databus.partition;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.TreeMap;
 
@@ -72,19 +71,19 @@ public class TestPartitionReaderWithLeastFullCheckpoint extends TestAbstractClus
         partitionCheckpointList, fs, buffer, streamDir, conf, inputFormatClass,
         null, 1000, isDatabusData(), prMetrics, true, partitionMinList, null);
     preader.init();
-    Date fromTime = getTimeStampFromFile(databusFiles[0]);
+ /*   Thread.sleep(120000);
+    Assert.assertEquals(preader.getCurrentFile().toString(),
+        getDateStringFromPath(databusFiles[3].toString()));*/
     preader.execute();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[3])), 1, 00, 100, partitionId, buffer,
-        isDatabusData(), fromTime, fs.getFileStatus(databusFiles[0]));
-    fromTime = getTimeStampFromFile(databusFiles[3]);
+        isDatabusData(), null, null);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[4])), 2, 00, 100, partitionId, buffer,
-        isDatabusData(), fromTime, fs.getFileStatus(databusFiles[3]));
-    fromTime = getTimeStampFromFile(databusFiles[4]);
+        isDatabusData(), null, null);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[5])), 3, 00, 100, partitionId, buffer,
-        isDatabusData(), fromTime, fs.getFileStatus(databusFiles[4]));
+        isDatabusData(), null, null);
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 300);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 300);
 
@@ -98,9 +97,5 @@ public class TestPartitionReaderWithLeastFullCheckpoint extends TestAbstractClus
   @Override
   boolean isDatabusData() {
     return false;
-  }
-
-  private Date getTimeStampFromFile(Path dir) {
-    return DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, dir);
   }
 }
