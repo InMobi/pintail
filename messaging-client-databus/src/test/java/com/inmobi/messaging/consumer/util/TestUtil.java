@@ -12,7 +12,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
@@ -140,7 +139,7 @@ public class TestUtil {
 
   public static void assertBuffer(StreamFile file, int fileNum, int startIndex,
       int numMsgs, PartitionId pid, LinkedBlockingQueue<QueueEntry> buffer,
-      boolean isDatabusData, Date fromTime, FileStatus prevFileStatus)
+      boolean isDatabusData, Date fromTime)
           throws InterruptedException, IOException {
 
     int fileIndex = (fileNum - 1) * 100 ;
@@ -152,24 +151,23 @@ public class TestUtil {
       if (entry.getMessageChkpoint() instanceof DeltaPartitionCheckPoint) {
         Path fileName = new Path(file.toString());
         int min = Integer.parseInt(fileName.getParent().getName());
-        if (fromTime != null && i == startIndex) {
-          Path streamDir = getStreamDir(prevFileStatus.getPath());
-          Date toTime = getTimeStampFromFile(streamDir, new Path(streamDir, fileName));
-          // prepare expected delta partition checkpoint when there was empty
-          // files/dirs
-          prepareExpectedDeltaPck(expectedDeltaPck, fromTime, toTime,
-              streamDir, prevFileStatus);
+        if (fromTime != null) {
+          Path streamDir = getStreamDir(fileName);
+          Date toTime = getTimeStampFromFile(streamDir, fileName);
+          setDeltaPartitionCheckpoint(expectedDeltaPck, fromTime, toTime,
+              streamDir);
+          System.out.println("From time and toTime " + fromTime + "   " + toTime + " eeee " + expectedDeltaPck);
         }
-        // get actual delta partition checkpoint
+        
         Map<Integer, PartitionCheckpoint> actualDeltaPck =
             ((DeltaPartitionCheckPoint)entry.getMessageChkpoint()).
             getDeltaCheckpoint();
-        // get final expected delta partition checkpoint
         expectedDeltaPck = new DeltaPartitionCheckPoint(file, i + 1, min,
             expectedDeltaPck).getDeltaCheckpoint();
-
         Assert.assertEquals(actualDeltaPck, expectedDeltaPck);
         expectedDeltaPck.clear();
+        // TODO assert all elements in delta checkpoint
+       // System.out.println("Delta checkpoint:" + entry.getMessageChkpoint());
       } else {
         Assert.assertEquals(entry.getMessageChkpoint(),
             new PartitionCheckpoint(file, i + 1));
@@ -185,34 +183,27 @@ public class TestUtil {
     }
   }
 
-  /*
-   * return stream dir from fileName
-   */
-  private static Path getStreamDir(Path file) {
-    return file.getParent().getParent().getParent().getParent().getParent().
-        getParent();
+  private static Path  getStreamDir(Path file) {
+    return file.getParent().getParent().getParent().getParent().
+        getParent().getParent();
   }
 
-  private static void prepareExpectedDeltaPck(
+  private static void setDeltaPartitionCheckpoint(
       Map<Integer, PartitionCheckpoint> deltaPartitionCheckpointMap,
-      Date fromTime, Date toTime, Path streamDir, FileStatus prevFileStatus) {
+      Date fromTime, Date toTime, Path streamDir) {
     Calendar current = Calendar.getInstance();
     current.setTime(fromTime);
-    // set line number as -1 for previous file
-    if (prevFileStatus != null) {
-      deltaPartitionCheckpointMap.put(Integer.valueOf(current.get(Calendar.MINUTE)),
-          new PartitionCheckpoint(
-              DatabusStreamWaitingReader.getHadoopStreamFile(prevFileStatus), -1));
-      current.add(Calendar.MINUTE, 1);
-    }
-    // set delta partition checkpoint for empty dirs
+    System.out.println("cuurent   AAAAAA " + current.getTime() + "  to " + toTime);
+    current.add(Calendar.MINUTE, 1);
     while (current.getTime().before(toTime)) {
       int minute = current.get(Calendar.MINUTE);
+      System.out.println("AAAAAAAAAAAAAAA " + minute);
       deltaPartitionCheckpointMap.put(Integer.valueOf(minute),
           new PartitionCheckpoint(DatabusStreamWaitingReader.
               getHadoopStreamFile(streamDir, current.getTime()), -1));
       current.add(Calendar.MINUTE, 1);
     }
+    System.out.println("   prepared map " + deltaPartitionCheckpointMap);
   }
 
   public static Date getTimeStampFromFile(Path streamDir, Path file) {
