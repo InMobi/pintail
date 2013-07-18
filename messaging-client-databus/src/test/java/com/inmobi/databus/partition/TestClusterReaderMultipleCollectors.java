@@ -124,11 +124,9 @@ public class TestClusterReaderMultipleCollectors {
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles2[0])), 1, 50, 50, partitionId,
         buffer, true, null);
-    Date fromTime = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
-        databusFiles2[0]);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(movedPath1)), 2, 0, 100, partitionId,
-        buffer, true, fromTime);
+        buffer, true, null);
 
     // move file02
     TestUtil.incrementCommitTime();
