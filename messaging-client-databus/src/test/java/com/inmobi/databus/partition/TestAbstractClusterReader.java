@@ -3,6 +3,7 @@ package com.inmobi.databus.partition;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -13,6 +14,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.testng.Assert;
@@ -194,6 +196,8 @@ public abstract class TestAbstractClusterReader {
   public void testReadFromStart() throws Exception {
     initializeMinList();
     initializePartitionCheckpointList();
+    Map<Integer, PartitionCheckpoint> expectedDeltaPck = new HashMap<Integer,
+        PartitionCheckpoint>();
     String fsUri = fs.getUri().toString();
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
         testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
@@ -212,13 +216,22 @@ public abstract class TestAbstractClusterReader {
     preader.execute();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[0])), 1, 0, 100, partitionId,
-        buffer, isDatabusData(), null);
+        buffer, isDatabusData(), expectedDeltaPck);
+    Date fromTime = getTimeStampFromFile(databusFiles[0]);
+    Date toTime = getTimeStampFromFile(databusFiles[1]);
+    prepareExpectedDeltaPck(fromTime, toTime, expectedDeltaPck,
+        fs.getFileStatus(databusFiles[0]));
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[1])), 2, 0, 100, partitionId,
-        buffer, isDatabusData(), null);
+        buffer, isDatabusData(), expectedDeltaPck);
+    expectedDeltaPck.clear();
+    fromTime = getTimeStampFromFile(databusFiles[1]);
+    toTime = getTimeStampFromFile(databusFiles[2]);
+    prepareExpectedDeltaPck(fromTime, toTime, expectedDeltaPck,
+        fs.getFileStatus(databusFiles[1]));
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 0, 100, partitionId,
-        buffer, isDatabusData(), null);
+        buffer, isDatabusData(), expectedDeltaPck);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -238,6 +251,8 @@ public abstract class TestAbstractClusterReader {
     initializeMinList();
     initializePartitionCheckpointList();
     String fsUri = fs.getUri().toString();
+    Map<Integer, PartitionCheckpoint> expectedDeltaPck = new HashMap<Integer,
+        PartitionCheckpoint>();
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
         testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     prepareCheckpoint(DatabusStreamWaitingReader.getHadoopStreamFile(
@@ -257,10 +272,15 @@ public abstract class TestAbstractClusterReader {
     preader.execute();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[1])), 2, 20, 80, partitionId,
-        buffer, isDatabusData(), null);
+        buffer, isDatabusData(), expectedDeltaPck);
+    Date fromTime = getTimeStampFromFile(databusFiles[1]);
+    Date toTime = getTimeStampFromFile(databusFiles[2]);
+    prepareExpectedDeltaPck(fromTime, toTime, expectedDeltaPck,
+        fs.getFileStatus(databusFiles[1]));
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 0, 100, partitionId,
-        buffer, isDatabusData(), null);
+        buffer, isDatabusData(), expectedDeltaPck);
+    expectedDeltaPck.clear();
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -285,6 +305,8 @@ public abstract class TestAbstractClusterReader {
     initializeMinList();
     initializePartitionCheckpointList();
     String fsUri = fs.getUri().toString();
+    Map<Integer, PartitionCheckpoint> expectedDeltaPck = new HashMap<Integer,
+        PartitionCheckpoint>();
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
         testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     prepareCheckpoint(HadoopUtil.getOlderFile(streamDir, fs, databusFiles[0]),
@@ -305,13 +327,22 @@ public abstract class TestAbstractClusterReader {
     preader.execute();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[0])), 1, 0, 100, partitionId,
-        buffer, isDatabusData(), null);
+        buffer, isDatabusData(), expectedDeltaPck);
+    Date fromTime = getTimeStampFromFile(databusFiles[0]);
+    Date toTime = getTimeStampFromFile(databusFiles[1]);
+    prepareExpectedDeltaPck(fromTime, toTime, expectedDeltaPck,
+        fs.getFileStatus(databusFiles[0]));
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[1])), 2, 0, 100, partitionId,
-        buffer, isDatabusData(), null);
+        buffer, isDatabusData(), expectedDeltaPck);
+    expectedDeltaPck.clear();
+    fromTime = getTimeStampFromFile(databusFiles[1]);
+    toTime = getTimeStampFromFile(databusFiles[2]);
+    prepareExpectedDeltaPck(fromTime, toTime, expectedDeltaPck,
+        fs.getFileStatus(databusFiles[1]));
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 0, 100, partitionId,
-        buffer, isDatabusData(), null);
+        buffer, isDatabusData(), expectedDeltaPck);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -331,6 +362,8 @@ public abstract class TestAbstractClusterReader {
     initializeMinList();
     initializePartitionCheckpointList();
     String fsUri = fs.getUri().toString();
+    Map<Integer, PartitionCheckpoint> expectedDeltaPck = new HashMap<Integer,
+        PartitionCheckpoint>();
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
         testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
 
@@ -350,10 +383,14 @@ public abstract class TestAbstractClusterReader {
     preader.execute();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[1])), 2, 0, 100, partitionId,
-        buffer, isDatabusData(), null);
+        buffer, isDatabusData(), expectedDeltaPck);
+    Date fromTime = getTimeStampFromFile(databusFiles[1]);
+    Date toTime = getTimeStampFromFile(databusFiles[2]);
+    prepareExpectedDeltaPck(fromTime, toTime, expectedDeltaPck,
+        fs.getFileStatus(databusFiles[1]));
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 0, 100, partitionId,
-        buffer, isDatabusData(), null);
+        buffer, isDatabusData(), expectedDeltaPck);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -372,6 +409,8 @@ public abstract class TestAbstractClusterReader {
   public void testReadFromStartTimeWithinStream() throws Exception {
     initializeMinList();
     initializePartitionCheckpointList();
+    Map<Integer, PartitionCheckpoint> expectedDeltaPck = new HashMap<Integer,
+        PartitionCheckpoint>();
     Calendar cal = Calendar.getInstance();
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         databusFiles[0].getParent()));
@@ -393,10 +432,14 @@ public abstract class TestAbstractClusterReader {
     preader.execute();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[1])), 2, 0, 100, partitionId,
-        buffer, isDatabusData(), null);
+        buffer, isDatabusData(), expectedDeltaPck);
+    Date fromTime = getTimeStampFromFile(databusFiles[1]);
+    Date toTime = getTimeStampFromFile(databusFiles[2]);
+    prepareExpectedDeltaPck(fromTime, toTime, expectedDeltaPck,
+        fs.getFileStatus(databusFiles[1]));
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 0, 100, partitionId,
-        buffer, isDatabusData(), null);
+        buffer, isDatabusData(), expectedDeltaPck);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -415,6 +458,8 @@ public abstract class TestAbstractClusterReader {
   public void testReadFromStartTimeBeforeStream() throws Exception {
     initializeMinList();
     initializePartitionCheckpointList();
+    Map<Integer, PartitionCheckpoint> expectedDeltaPck = new HashMap<Integer,
+        PartitionCheckpoint>();
     Calendar cal = Calendar.getInstance();
     cal.setTime(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         databusFiles[0].getParent()));
@@ -435,13 +480,22 @@ public abstract class TestAbstractClusterReader {
     preader.execute();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[0])), 1, 0, 100, partitionId,
-        buffer, isDatabusData(), null);
+        buffer, isDatabusData(), expectedDeltaPck);
+    Date fromTime = getTimeStampFromFile(databusFiles[0]);
+    Date toTime = getTimeStampFromFile(databusFiles[1]);
+    prepareExpectedDeltaPck(fromTime, toTime, expectedDeltaPck,
+        fs.getFileStatus(databusFiles[0]));
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[1])), 2, 00, 100, partitionId,
-        buffer, isDatabusData(), null);
+        buffer, isDatabusData(), expectedDeltaPck);
+    expectedDeltaPck.clear();
+    fromTime = getTimeStampFromFile(databusFiles[1]);
+    toTime = getTimeStampFromFile(databusFiles[2]);
+    prepareExpectedDeltaPck(fromTime, toTime, expectedDeltaPck,
+        fs.getFileStatus(databusFiles[1]));
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 0, 100, partitionId,
-        buffer, isDatabusData(), null);
+        buffer, isDatabusData(), expectedDeltaPck);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -489,6 +543,8 @@ public abstract class TestAbstractClusterReader {
     Map<Integer, PartitionCheckpoint> chkpoints = new
         TreeMap<Integer, PartitionCheckpoint>();
     partitionCheckpointList = new PartitionCheckpointList(chkpoints);
+    Map<Integer, PartitionCheckpoint> expectedDeltaPck = new HashMap<Integer,
+        PartitionCheckpoint>();
 
     for (int i = 0; i < 1; i++) {
       Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
@@ -518,7 +574,7 @@ public abstract class TestAbstractClusterReader {
     preader.execute();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[0])), 1, 20, 80, partitionId,
-        buffer, isDatabusData(), null);
+        buffer, isDatabusData(), expectedDeltaPck);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -538,6 +594,8 @@ public abstract class TestAbstractClusterReader {
     partitionMinList = new TreeSet<Integer>();
     initializePartitionCheckpointList();
     String fsUri = fs.getUri().toString();
+    Map<Integer, PartitionCheckpoint> expectedDeltaPck = new HashMap<Integer,
+        PartitionCheckpoint>();
 
     for (int i = 0; i < 3; i++) {
       Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
@@ -566,14 +624,22 @@ public abstract class TestAbstractClusterReader {
     preader.execute();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[0])), 1, 20, 80, partitionId,
-        buffer, isDatabusData(), null);
-
+        buffer, isDatabusData(), expectedDeltaPck);
+    Date fromTime = getTimeStampFromFile(databusFiles[0]);
+    Date toTime = getTimeStampFromFile(databusFiles[1]);
+    prepareExpectedDeltaPck(fromTime, toTime, expectedDeltaPck,
+        fs.getFileStatus(databusFiles[0]));
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[1])), 2, 20, 80, partitionId,
-        buffer, isDatabusData(), null);
+        buffer, isDatabusData(), expectedDeltaPck);
+    expectedDeltaPck.clear();
+    fromTime = getTimeStampFromFile(databusFiles[1]);
+    toTime = getTimeStampFromFile(databusFiles[2]);
+    prepareExpectedDeltaPck(fromTime, toTime, expectedDeltaPck,
+        fs.getFileStatus(databusFiles[1]));
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 20, 80, partitionId,
-        buffer, isDatabusData(), null);
+        buffer, isDatabusData(), expectedDeltaPck);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -593,6 +659,8 @@ public abstract class TestAbstractClusterReader {
     partitionMinList = new TreeSet<Integer>();
     initializePartitionCheckpointList();
     String fsUri = fs.getUri().toString();
+    Map<Integer, PartitionCheckpoint> expectedDeltaPck = new HashMap<Integer,
+        PartitionCheckpoint>();
     for (int i = 0; i < 3; i++) {
       Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
           databusFiles[i].getParent());
@@ -627,13 +695,22 @@ public abstract class TestAbstractClusterReader {
     preader.execute();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[0])), 1, 20, 80, partitionId,
-        buffer, isDatabusData(), null);
+        buffer, isDatabusData(), expectedDeltaPck);
+    Date fromTime = getTimeStampFromFile(databusFiles[0]);
+    Date toTime = getTimeStampFromFile(databusFiles[1]);
+    prepareExpectedDeltaPck(fromTime, toTime, expectedDeltaPck,
+        fs.getFileStatus(databusFiles[0]));
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[1])), 2, 0, 100, partitionId,
-        buffer, isDatabusData(), null);
+        buffer, isDatabusData(), expectedDeltaPck);
+    expectedDeltaPck.clear();
+    fromTime = getTimeStampFromFile(databusFiles[1]);
+    toTime = getTimeStampFromFile(databusFiles[2]);
+    prepareExpectedDeltaPck(fromTime, toTime, expectedDeltaPck,
+        fs.getFileStatus(databusFiles[1]));
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 20, 80, partitionId,
-        buffer, isDatabusData(), null);
+        buffer, isDatabusData(), expectedDeltaPck);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -718,6 +795,8 @@ public abstract class TestAbstractClusterReader {
     partitionMinList = new TreeSet<Integer>();
     initializePartitionCheckpointList();
     String fsUri = fs.getUri().toString();
+    Map<Integer, PartitionCheckpoint> expectedDeltaPck = new HashMap<Integer,
+        PartitionCheckpoint>();
 
     for (int i = 0; i < 3; i++) {
       Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
@@ -752,10 +831,14 @@ public abstract class TestAbstractClusterReader {
 
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[1])), 2, 20, 80, partitionId,
-        buffer, isDatabusData(), null);
+        buffer, isDatabusData(), expectedDeltaPck);
+    Date fromTime = getTimeStampFromFile(databusFiles[1]);
+    Date toTime = getTimeStampFromFile(databusFiles[2]);
+    prepareExpectedDeltaPck(fromTime, toTime, expectedDeltaPck,
+        fs.getFileStatus(databusFiles[1]));
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 20, 80, partitionId,
-        buffer, isDatabusData(), null);
+        buffer, isDatabusData(), expectedDeltaPck);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -775,6 +858,8 @@ public abstract class TestAbstractClusterReader {
     partitionMinList = new TreeSet<Integer>();
     initializePartitionCheckpointList();
     String fsUri = fs.getUri().toString();
+    Map<Integer, PartitionCheckpoint> expectedDeltaPck = new HashMap<Integer,
+        PartitionCheckpoint>();
     for (int i = 0; i < 3; i++) {
       Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
           databusFiles[i].getParent());
@@ -804,7 +889,7 @@ public abstract class TestAbstractClusterReader {
 
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 0, 100, partitionId,
-        buffer, isDatabusData(), null);
+        buffer, isDatabusData(), expectedDeltaPck);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -828,6 +913,8 @@ public abstract class TestAbstractClusterReader {
     partitionMinList = new TreeSet<Integer>();
     initializePartitionCheckpointList();
     String fsUri = fs.getUri().toString();
+    Map<Integer, PartitionCheckpoint> expectedDeltaPck = new HashMap<Integer,
+        PartitionCheckpoint>();
     for (int i = 0; i < 3; i++) {
       Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
           databusFiles[i].getParent());
@@ -859,13 +946,23 @@ public abstract class TestAbstractClusterReader {
     preader.execute();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[0])), 1, 20, 80, partitionId,
-        buffer, isDatabusData(), null);
+        buffer, isDatabusData(), expectedDeltaPck);
+    Date fromTime = getTimeStampFromFile(databusFiles[0]);
+    Date toTime = getTimeStampFromFile(databusFiles[1]);
+    prepareExpectedDeltaPck(fromTime, toTime, expectedDeltaPck,
+        fs.getFileStatus(databusFiles[0]));
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[1])), 2, 0, 100, partitionId,
-        buffer, isDatabusData(), null);
+        buffer, isDatabusData(), expectedDeltaPck);
+    expectedDeltaPck.clear();
+    
+    fromTime = getTimeStampFromFile(databusFiles[1]);
+    toTime = getTimeStampFromFile(databusFiles[2]);
+    prepareExpectedDeltaPck(fromTime, toTime, expectedDeltaPck,
+        fs.getFileStatus(databusFiles[1]));
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 20, 80, partitionId,
-        buffer, isDatabusData(), null);
+        buffer, isDatabusData(), expectedDeltaPck);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -891,6 +988,8 @@ public abstract class TestAbstractClusterReader {
     partitionMinList = new TreeSet<Integer>();
     initializePartitionCheckpointList();
     String fsUri = fs.getUri().toString();
+    Map<Integer, PartitionCheckpoint> expectedDeltaPck = new HashMap<Integer,
+        PartitionCheckpoint>();
 
     for (int i = 0; i < 3; i++) {
       Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
@@ -929,10 +1028,14 @@ public abstract class TestAbstractClusterReader {
 
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[1])), 2, 00, 100, partitionId,
-        buffer, isDatabusData(), null);
+        buffer, isDatabusData(), expectedDeltaPck);
+    Date fromTime = getTimeStampFromFile(databusFiles[1]);
+    Date toTime = getTimeStampFromFile(databusFiles[2]);
+    prepareExpectedDeltaPck(fromTime, toTime, expectedDeltaPck,
+        fs.getFileStatus(databusFiles[1]));
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 20, 80, partitionId,
-        buffer, isDatabusData(), null);
+        buffer, isDatabusData(), expectedDeltaPck);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -973,5 +1076,51 @@ public abstract class TestAbstractClusterReader {
   public String getDateStringFromPath(String path) {
     String[] str = path.split("[0-9]{4}.[0-9]{2}.[0-9]{2}.[0-9]{2}.[0-9]{2}");
     return path.substring(str[0].length());
+  }
+
+  protected void prepareExpectedDeltaPck(Date fromTime, Date toTime,
+      Map<Integer, PartitionCheckpoint> expectedDeltaPck, FileStatus file) {
+    Map<Integer, Date> chkTimeStampMap = new HashMap<Integer, Date>();
+    // prepare a checkpoint map
+    prepareChkpointTimeMap(chkTimeStampMap);
+    Calendar current = Calendar.getInstance();
+    current.setTime(fromTime);
+    if (file != null) {
+      int minute = current.get(Calendar.MINUTE);
+      expectedDeltaPck.put(Integer.valueOf(minute), new PartitionCheckpoint(
+          DatabusStreamWaitingReader.getHadoopStreamFile(file), -1));
+      current.add(Calendar.MINUTE, 1);
+    }
+    while (current.getTime().before(toTime)) {
+      int minute = current.get(Calendar.MINUTE);
+      if (partitionMinList.contains(minute)) {
+        Date chkTime = chkTimeStampMap.get(minute);
+        if (chkTime == null || chkTime.before(current.getTime())) {
+          expectedDeltaPck.put(Integer.valueOf(minute),
+              new PartitionCheckpoint(DatabusStreamWaitingReader.
+                  getHadoopStreamFile(streamDir, current.getTime()), -1));
+        }
+      }
+      current.add(Calendar.MINUTE, 1);
+    }
+  }
+
+  private void prepareChkpointTimeMap(Map<Integer, Date> chkTimeStampMap) {
+    Map<Integer, PartitionCheckpoint> partitionChkList =
+        partitionCheckpointList.getCheckpoints();
+    for (Integer min : partitionMinList) {
+      PartitionCheckpoint pck = partitionChkList.get(Integer.valueOf(min));
+      if (pck != null) {
+        Date timeStamp = DatabusStreamWaitingReader.getDateFromCheckpointPath(
+            pck.getFileName());
+        chkTimeStampMap.put(min, timeStamp);
+      } else {
+        chkTimeStampMap.put(min, null);
+      }
+    }
+  }
+
+  protected Date getTimeStampFromFile(Path dir) {
+    return DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, dir);
   }
 }
