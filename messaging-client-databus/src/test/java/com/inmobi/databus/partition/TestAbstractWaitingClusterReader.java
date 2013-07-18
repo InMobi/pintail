@@ -98,22 +98,24 @@ public abstract class TestAbstractWaitingClusterReader {
     setupFiles(new String[] {newFiles[0]}, newDatabusFiles);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs0), 1, 0, 100, partitionId, buffer,
-        isDatabusData(), null, null);
+        isDatabusData(), null, null, null);
     Date fromTime = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         databusFiles[0]);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(fs1),
-        2, 0, 50, partitionId, buffer, isDatabusData(), fromTime, fs0);
+        2, 0, 50, partitionId, buffer, isDatabusData(), fromTime, fs0,
+        partitionMinList);
 
     while (buffer.remainingCapacity() > 0) {
       Thread.sleep(10);
     }
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
-        fs1), 2, 50, 50, partitionId, buffer, isDatabusData(), null, null);
+        fs1), 2, 50, 50, partitionId, buffer, isDatabusData(), null, null,
+        partitionMinList);
     fromTime = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         databusFiles[1]);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(newDatabusFiles[0])), 1, 0, 100, partitionId,
-        buffer, isDatabusData(), fromTime, fs1);
+        buffer, isDatabusData(), fromTime, fs1, partitionMinList);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(((ClusterReader) preader.getReader())
@@ -127,12 +129,13 @@ public abstract class TestAbstractWaitingClusterReader {
         prevFileStatus.getPath());
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(newDatabusFiles[0])), 1, 0, 100, partitionId, buffer,
-        isDatabusData(), fromTime, prevFileStatus);
+        isDatabusData(), fromTime, prevFileStatus, partitionMinList);
     fromTime = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         newDatabusFiles[0]);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(newDatabusFiles[1])), 2, 0, 100, partitionId,
-        buffer, isDatabusData(), fromTime, fs.getFileStatus(newDatabusFiles[0]));
+        buffer, isDatabusData(), fromTime, fs.getFileStatus(newDatabusFiles[0]),
+        partitionMinList);
     Assert.assertTrue(buffer.isEmpty());
     preader.close();
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 500);

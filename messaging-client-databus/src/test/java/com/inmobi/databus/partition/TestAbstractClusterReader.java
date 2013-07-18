@@ -3,6 +3,7 @@ package com.inmobi.databus.partition;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -212,15 +213,17 @@ public abstract class TestAbstractClusterReader {
     preader.execute();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[0])), 1, 0, 100, partitionId,
-        buffer, isDatabusData(), null, null);
+        buffer, isDatabusData(), null, null, null);
     Date fromTime = getTimeStampFromFile(databusFiles[0]);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[1])), 2, 0, 100, partitionId,
-        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[0]));
+        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[0]),
+        partitionMinList);
     fromTime = getTimeStampFromFile(databusFiles[1]);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 0, 100, partitionId,
-        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[1]));
+        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[1]),
+        partitionMinList);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -259,11 +262,12 @@ public abstract class TestAbstractClusterReader {
     preader.execute();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[1])), 2, 20, 80, partitionId,
-        buffer, isDatabusData(), null, null);
+        buffer, isDatabusData(), null, null, null);
     Date fromTime = getTimeStampFromFile(databusFiles[1]);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 0, 100, partitionId,
-        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[1]));
+        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[1]),
+        partitionMinList);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -308,15 +312,17 @@ public abstract class TestAbstractClusterReader {
     preader.execute();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[0])), 1, 0, 100, partitionId,
-        buffer, isDatabusData(), null, null);
+        buffer, isDatabusData(), null, null, null);
     Date fromTime = getTimeStampFromFile(databusFiles[0]);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[1])), 2, 0, 100, partitionId,
-        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[0]));
+        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[0]),
+        partitionMinList);
     fromTime = getTimeStampFromFile(databusFiles[1]);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 0, 100, partitionId,
-        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[1]));
+        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[1]),
+        partitionMinList);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -355,11 +361,12 @@ public abstract class TestAbstractClusterReader {
     preader.execute();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[1])), 2, 0, 100, partitionId,
-        buffer, isDatabusData(), null, null);
+        buffer, isDatabusData(), null, null, partitionMinList);
     Date fromTime = getTimeStampFromFile(databusFiles[1]);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 0, 100, partitionId,
-        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[1]));
+        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[1]),
+        partitionMinList);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -399,11 +406,12 @@ public abstract class TestAbstractClusterReader {
     preader.execute();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[1])), 2, 0, 100, partitionId,
-        buffer, isDatabusData(), null, null);
+        buffer, isDatabusData(), null, null, partitionMinList);
     Date fromTime = getTimeStampFromFile(databusFiles[1]);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 0, 100, partitionId,
-        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[1]));
+        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[1]),
+        partitionMinList);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -442,15 +450,17 @@ public abstract class TestAbstractClusterReader {
     preader.execute();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[0])), 1, 0, 100, partitionId,
-        buffer, isDatabusData(), null, null);
+        buffer, isDatabusData(), null, null, null);
     Date fromTime = getTimeStampFromFile(databusFiles[0]);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[1])), 2, 00, 100, partitionId,
-        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[0]));
+        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[0]),
+        partitionMinList);
     fromTime = getTimeStampFromFile(databusFiles[1]);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 0, 100, partitionId,
-        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[1]));
+        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[1]),
+        partitionMinList);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -494,7 +504,7 @@ public abstract class TestAbstractClusterReader {
   }
 
   public void testReadFromCheckpointWithSingleMinute() throws Exception {
-    partitionMinList = new TreeSet<Integer>();
+    partitionMinList = new HashSet<Integer>();
     Map<Integer, PartitionCheckpoint> chkpoints = new
         TreeMap<Integer, PartitionCheckpoint>();
     partitionCheckpointList = new PartitionCheckpointList(chkpoints);
@@ -527,7 +537,7 @@ public abstract class TestAbstractClusterReader {
     preader.execute();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[0])), 1, 20, 80, partitionId,
-        buffer, isDatabusData(), null, null);
+        buffer, isDatabusData(), null, null, null);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -544,7 +554,7 @@ public abstract class TestAbstractClusterReader {
   }
 
   public void testReadFromCheckpointMultipleMinutes() throws Exception {
-    partitionMinList = new TreeSet<Integer>();
+    partitionMinList = new HashSet<Integer>();
     initializePartitionCheckpointList();
     String fsUri = fs.getUri().toString();
 
@@ -554,8 +564,6 @@ public abstract class TestAbstractClusterReader {
       Calendar current = Calendar.getInstance();
       current.setTime(date);
       int minute = current.get(Calendar.MINUTE);
-      partitionMinList.add(Integer.valueOf(minute));
-      minute += 1;
       partitionMinList.add(Integer.valueOf(minute));
       partitionCheckpointList.set(current.get(Calendar.MINUTE), new
           PartitionCheckpoint(DatabusStreamWaitingReader.getHadoopStreamFile(
@@ -578,15 +586,17 @@ public abstract class TestAbstractClusterReader {
     preader.execute();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[0])), 1, 20, 80, partitionId,
-        buffer, isDatabusData(), null, null);
+        buffer, isDatabusData(), null, null, partitionMinList);
     Date fromTime = getTimeStampFromFile(databusFiles[0]);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[1])), 2, 20, 80, partitionId,
-        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[0]));
+        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[0]),
+        partitionMinList);
     fromTime = getTimeStampFromFile(databusFiles[1]);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 20, 80, partitionId,
-        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[1]));
+        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[1]),
+        partitionMinList);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -603,7 +613,7 @@ public abstract class TestAbstractClusterReader {
   }
 
   public void testReadFromCheckpointSomeMinutes()  throws Exception {
-    partitionMinList = new TreeSet<Integer>();
+    partitionMinList = new HashSet<Integer>();
     initializePartitionCheckpointList();
     String fsUri = fs.getUri().toString();
     for (int i = 0; i < 3; i++) {
@@ -612,8 +622,6 @@ public abstract class TestAbstractClusterReader {
       Calendar current = Calendar.getInstance();
       current.setTime(date);
       int minute = current.get(Calendar.MINUTE);
-      partitionMinList.add(Integer.valueOf(minute));
-      minute += 1;
       partitionMinList.add(Integer.valueOf(minute));
       if (i != 1) {
         partitionCheckpointList.set(current.get(Calendar.MINUTE), new
@@ -625,7 +633,6 @@ public abstract class TestAbstractClusterReader {
                 fs.getFileStatus(databusFiles[i])), 00));
       }
     }
-System.out.println("PPPPPPPPPP " + partitionCheckpointList);
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
         testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     Calendar cal = Calendar.getInstance();
@@ -643,15 +650,17 @@ System.out.println("PPPPPPPPPP " + partitionCheckpointList);
     preader.execute();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[0])), 1, 20, 80, partitionId,
-        buffer, isDatabusData(), null, null);
+        buffer, isDatabusData(), null, null, null);
     Date fromTime = getTimeStampFromFile(databusFiles[0]);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[1])), 2, 0, 100, partitionId,
-        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[0]));
+        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[0]),
+        partitionMinList);
     fromTime = getTimeStampFromFile(databusFiles[1]);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 20, 80, partitionId,
-        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[1]));
+        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[1]),
+        partitionMinList);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -674,7 +683,7 @@ System.out.println("PPPPPPPPPP " + partitionCheckpointList);
    * to the buffer should be zero.
    */
   public void testReadFromMultipleCompleteCheckpoints() throws Exception {
-    partitionMinList = new TreeSet<Integer>();
+    partitionMinList = new HashSet<Integer>();
     initializePartitionCheckpointList();
     String fsUri = fs.getUri().toString();
 
@@ -712,14 +721,14 @@ System.out.println("PPPPPPPPPP " + partitionCheckpointList);
     }
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[0])), 1, 0, 0, partitionId,
-        buffer, isDatabusData(), null, null);
+        buffer, isDatabusData(), null, null, null);
 
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[1])), 2, 0, 0, partitionId,
-        buffer, isDatabusData(), null, null);
+        buffer, isDatabusData(), null, null, partitionMinList);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 0, 0, partitionId,
-        buffer, isDatabusData(), null, null);
+        buffer, isDatabusData(), null, null, partitionMinList);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -733,7 +742,7 @@ System.out.println("PPPPPPPPPP " + partitionCheckpointList);
   }
 
   public void testReadFromSingleCompleteCheckpoint() throws Exception {
-    partitionMinList = new TreeSet<Integer>();
+    partitionMinList = new HashSet<Integer>();
     initializePartitionCheckpointList();
     String fsUri = fs.getUri().toString();
 
@@ -743,8 +752,6 @@ System.out.println("PPPPPPPPPP " + partitionCheckpointList);
       Calendar current = Calendar.getInstance();
       current.setTime(date);
       int minute = current.get(Calendar.MINUTE);
-      partitionMinList.add(Integer.valueOf(minute));
-      minute += 1;
       partitionMinList.add(Integer.valueOf(minute));
       if (i != 0) {
         partitionCheckpointList.set(current.get(Calendar.MINUTE), new
@@ -773,11 +780,13 @@ System.out.println("PPPPPPPPPP " + partitionCheckpointList);
     Date fromTime = cal.getTime();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[1])), 2, 20, 80, partitionId,
-        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[0]));
+        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[0]),
+        partitionMinList);
     fromTime = getTimeStampFromFile(databusFiles[1]);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 20, 80, partitionId,
-        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[1]));
+        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[1]),
+        partitionMinList);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -794,7 +803,7 @@ System.out.println("PPPPPPPPPP " + partitionCheckpointList);
   }
 
   public void testReadFromTwoCompleteCheckpoint() throws Exception {
-    partitionMinList = new TreeSet<Integer>();
+    partitionMinList = new HashSet<Integer>();
     initializePartitionCheckpointList();
     String fsUri = fs.getUri().toString();
     for (int i = 0; i < 3; i++) {
@@ -826,7 +835,7 @@ System.out.println("PPPPPPPPPP " + partitionCheckpointList);
 
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 0, 100, partitionId,
-        buffer, isDatabusData(), null, null);
+        buffer, isDatabusData(), null, null, partitionMinList);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -847,7 +856,7 @@ System.out.println("PPPPPPPPPP " + partitionCheckpointList);
    * does not exists
    */
   public void testReadFromCheckpointsAndSomeNotExists()  throws Exception {
-    partitionMinList = new TreeSet<Integer>();
+    partitionMinList = new HashSet<Integer>();
     initializePartitionCheckpointList();
     String fsUri = fs.getUri().toString();
     for (int i = 0; i < 3; i++) {
@@ -856,8 +865,6 @@ System.out.println("PPPPPPPPPP " + partitionCheckpointList);
       Calendar current = Calendar.getInstance();
       current.setTime(date);
       int minute = current.get(Calendar.MINUTE);
-      partitionMinList.add(Integer.valueOf(minute));
-      minute += 1;
       partitionMinList.add(Integer.valueOf(minute));
       if (i != 1) {
         partitionCheckpointList.set(current.get(Calendar.MINUTE), new
@@ -884,15 +891,17 @@ System.out.println("PPPPPPPPPP " + partitionCheckpointList);
     preader.execute();
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[0])), 1, 20, 80, partitionId,
-        buffer, isDatabusData(), null, null);
+        buffer, isDatabusData(), null, null, null);
     Date fromTime = getTimeStampFromFile(databusFiles[0]);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[1])), 2, 0, 100, partitionId,
-        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[0]));
+        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[0]),
+        partitionMinList);
     fromTime = getTimeStampFromFile(databusFiles[1]);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 20, 80, partitionId,
-        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[1]));
+        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[1]),
+        partitionMinList);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -915,7 +924,7 @@ System.out.println("PPPPPPPPPP " + partitionCheckpointList);
    */
   public void testReadFromExistingCompletedCheckpointAndCheckpointNotExists()
       throws Exception {
-    partitionMinList = new TreeSet<Integer>();
+    partitionMinList = new HashSet<Integer>();
     initializePartitionCheckpointList();
     String fsUri = fs.getUri().toString();
 
@@ -925,8 +934,6 @@ System.out.println("PPPPPPPPPP " + partitionCheckpointList);
       Calendar current = Calendar.getInstance();
       current.setTime(date);
       int minute = current.get(Calendar.MINUTE);
-      partitionMinList.add(Integer.valueOf(minute));
-      minute += 1;
       partitionMinList.add(Integer.valueOf(minute));
       if (i == 0) {
         partitionCheckpointList.set(current.get(Calendar.MINUTE), new
@@ -959,11 +966,13 @@ System.out.println("PPPPPPPPPP " + partitionCheckpointList);
     Date fromTime = getTimeStampFromFile(databusFiles[0]);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[1])), 2, 00, 100, partitionId,
-        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[0]));
+        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[0]),
+        partitionMinList);
     fromTime = getTimeStampFromFile(databusFiles[1]);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 20, 80, partitionId,
-        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[1]));
+        buffer, isDatabusData(), fromTime, fs.getFileStatus(databusFiles[1]),
+        partitionMinList);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
@@ -990,7 +999,7 @@ System.out.println("PPPPPPPPPP " + partitionCheckpointList);
   }
 
   public void initializeMinList() {
-    partitionMinList = new TreeSet<Integer>();
+    partitionMinList = new HashSet<Integer>();
     for (int i = 0; i < 60; i++) {
       partitionMinList.add(i);
     }
