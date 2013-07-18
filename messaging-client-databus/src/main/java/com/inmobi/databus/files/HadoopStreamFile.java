@@ -35,7 +35,6 @@ public class HadoopStreamFile implements StreamFile {
   public void constructCheckpointPath() {
     String parentDir = parent.toString();
     String[] str = parentDir.split("[0-9]{4}.[0-9]{2}.[0-9]{2}.[0-9]{2}.[0-9]{2}");
-    System.out.println("pppppppppp " + parentDir);
     checkpointPath = parentDir.substring(str[0].length());
   }
 
