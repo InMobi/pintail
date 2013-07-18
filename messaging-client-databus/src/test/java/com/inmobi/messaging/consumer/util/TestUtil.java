@@ -140,7 +140,7 @@ public class TestUtil {
 
   public static void assertBuffer(StreamFile file, int fileNum, int startIndex,
       int numMsgs, PartitionId pid, LinkedBlockingQueue<QueueEntry> buffer,
-      boolean isDatabusData)
+      boolean isDatabusData, Date fromDate)
           throws InterruptedException, IOException {
 
     int fileIndex = (fileNum - 1) * 100 ;
