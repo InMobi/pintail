@@ -213,9 +213,11 @@ public abstract class TestAbstractClusterReader {
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[0])), 1, 0, 100, partitionId,
         buffer, isDatabusData(), null);
+    Date fromTime = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
+        databusFiles[0]);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[1])), 2, 0, 100, partitionId,
-        buffer, isDatabusData(), null);
+        buffer, isDatabusData(), fromTime);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[2])), 3, 0, 100, partitionId,
         buffer, isDatabusData(), null);
