@@ -105,13 +105,18 @@ public class TestClusterReaderMultipleCollectors {
     Path movedPath1 = TestUtil.moveFileToStreams(fs, testStream, collectors[1],
         cluster, TestUtil.getCollectorDir(cluster, testStream, collectors[1]),
         files[1]);
-
+     Date fromTime = CollectorStreamReader.getDateFromCollectorFile(files[0]);
+     Date toTime = getTimeStampFromFile(databusFiles1[0]);
+     TestUtil.prepareExpectedDeltaPck(fromTime, toTime, expectedDeltaPck,
+         null, streamDir, partitionMinList, partitionCheckpointList);
     // read file00, file10
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles1[0])), 1, 0, 100, partitionId,
         buffer, true, expectedDeltaPck);
-    Date fromTime = getTimeStampFromFile(databusFiles1[0]);
-    Date toTime = getTimeStampFromFile(databusFiles2[0]);
+    expectedDeltaPck.clear();
+
+    fromTime = getTimeStampFromFile(databusFiles1[0]);
+    toTime = getTimeStampFromFile(databusFiles2[0]);
     TestUtil.prepareExpectedDeltaPck(fromTime, toTime, expectedDeltaPck,
         fs.getFileStatus(databusFiles1[0]), streamDir, partitionMinList,
         partitionCheckpointList);

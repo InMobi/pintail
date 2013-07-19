@@ -435,11 +435,17 @@ public abstract class TestAbstractClusterReader {
         .getReader().getClass().getName(),
         DatabusStreamWaitingReader.class.getName());
     preader.execute();
+    Date fromTime = cal.getTime();
+    Date toTime = getTimeStampFromFile(databusFiles[1]);
+    TestUtil.prepareExpectedDeltaPck(fromTime, toTime, expectedDeltaPck,
+        null, streamDir, partitionMinList, partitionCheckpointList);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[1])), 2, 0, 100, partitionId,
         buffer, isDatabusData(), expectedDeltaPck);
-    Date fromTime = getTimeStampFromFile(databusFiles[1]);
-    Date toTime = getTimeStampFromFile(databusFiles[2]);
+    expectedDeltaPck.clear();
+
+    fromTime = getTimeStampFromFile(databusFiles[1]);
+    toTime = getTimeStampFromFile(databusFiles[2]);
     TestUtil.prepareExpectedDeltaPck(fromTime, toTime, expectedDeltaPck,
         fs.getFileStatus(databusFiles[1]), streamDir, partitionMinList,
         partitionCheckpointList);
@@ -484,11 +490,16 @@ public abstract class TestAbstractClusterReader {
         .getReader().getClass().getName(),
         DatabusStreamWaitingReader.class.getName());
     preader.execute();
+    Date fromTime = cal.getTime();
+    Date toTime = getTimeStampFromFile(databusFiles[0]);
+    TestUtil.prepareExpectedDeltaPck(fromTime, toTime, expectedDeltaPck,
+        null, streamDir, partitionMinList, partitionCheckpointList);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[0])), 1, 0, 100, partitionId,
         buffer, isDatabusData(), expectedDeltaPck);
-    Date fromTime = getTimeStampFromFile(databusFiles[0]);
-    Date toTime = getTimeStampFromFile(databusFiles[1]);
+    expectedDeltaPck.clear();
+    fromTime = getTimeStampFromFile(databusFiles[0]);
+    toTime = getTimeStampFromFile(databusFiles[1]);
     TestUtil.prepareExpectedDeltaPck(fromTime, toTime, expectedDeltaPck,
         fs.getFileStatus(databusFiles[0]), streamDir, partitionMinList,
         partitionCheckpointList);
