@@ -35,6 +35,7 @@
       <artifactId>messaging-client-core</artifactId>
       <version>${project.version}</version>
     </dependency>
+   
     <dependency>
       <groupId>com.inmobi.databus</groupId>
       <artifactId>databus-core</artifactId>

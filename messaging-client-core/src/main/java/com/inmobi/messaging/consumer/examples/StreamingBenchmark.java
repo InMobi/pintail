@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
@@ -16,10 +15,8 @@ import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.MessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
-import com.inmobi.messaging.consumer.audit.AuditStatsQuery;
 import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 import com.inmobi.messaging.publisher.MessagePublisherFactory;
-import com.inmobi.messaging.util.AuditUtil;
 import com.inmobi.messaging.util.ConsumerUtil;
 
 public class StreamingBenchmark {
@@ -30,19 +27,21 @@ public class StreamingBenchmark {
 
   static final int WRONG_USAGE_CODE = -1;
   static final int FAILED_CODE = 1;
+  private Date consumerStartTime;
+  private Date consumerEndTime;
 
   static int printUsage() {
     System.out.println("Usage: StreamingBenchmark  "
         + " [-producer <topic-name> <no-of-msgs> <no-of-msgs-per-sec>"
         + " [<timeoutSeconds> <msg-size> <no-of-threads>]]"
         + " [-consumer <no-of-producers> <no-of-msgs>"
-        + " [<timeoutSeconds> <msg-size> <hadoopconsumerflag> "
-        + "<auditTimeout> <timezone>]]");
+        + " [<timeoutSeconds> <msg-size> <hadoopconsumerflag><timezone>]]");
     return WRONG_USAGE_CODE;
   }
 
   public static void main(String[] args) throws Exception {
-    int exitcode = run(args);
+    StreamingBenchmark benchmark = new StreamingBenchmark();
+    int exitcode = benchmark.run(args);
     System.exit(exitcode);
   }
 
@@ -52,7 +51,7 @@ public class StreamingBenchmark {
   static int numConsumerRequiredArgs = 2;
   static int minArgs = 3;
 
-  public static int run(String[] args) throws Exception {
+  public int run(String[] args) throws Exception {
     if (args.length < minArgs) {
       return printUsage();
     }
@@ -68,11 +67,6 @@ public class StreamingBenchmark {
     int numProducerThreads = 1;
     int consumerTimeout = 0;
     int msgSize = 2000;
-    String auditStartTime = null;
-    String auditEndTime = null;
-    String auditTopic = null;
-    String auditTimeout = null;
-    SimpleDateFormat formatter = new SimpleDateFormat(AuditUtil.DATE_FORMAT);
 
     if (args.length >= minArgs) {
       int consumerOptionIndex = -1;
@@ -119,14 +113,10 @@ public class StreamingBenchmark {
             msgSize = Integer.parseInt(args[consumerOptionIndex + 4]);
           }
           if (args.length > consumerOptionIndex + 5) {
-            hadoopConsumer =
-                (Integer.parseInt(args[consumerOptionIndex + 5]) > 0);
+            hadoopConsumer = (Integer.parseInt(args[consumerOptionIndex + 5]) > 0);
           }
           if (args.length > consumerOptionIndex + 6) {
-            auditTimeout = args[consumerOptionIndex + 6];
-          }
-          if (args.length > consumerOptionIndex + 7) {
-            timezone = args[consumerOptionIndex + 7];
+            timezone = args[consumerOptionIndex + 6];
           }
           runConsumer = true;
         }
@@ -148,25 +138,19 @@ public class StreamingBenchmark {
     }
 
     if (runConsumer) {
-      ClientConfig config =
-          ClientConfig
-              .loadFromClasspath(MessageConsumerFactory.MESSAGE_CLIENT_CONF_FILE);
-      Date now;
+      ClientConfig config = ClientConfig
+          .loadFromClasspath(MessageConsumerFactory.MESSAGE_CLIENT_CONF_FILE);
       if (timezone != null) {
-        now = ConsumerUtil.getCurrenDateForTimeZone(timezone);
+        consumerStartTime = ConsumerUtil.getCurrenDateForTimeZone(timezone);
       } else {
-        now = Calendar.getInstance().getTime();
+        consumerStartTime = Calendar.getInstance().getTime();
       }
-      System.out.println("Starting from " + now);
-      // set consumer start time as auditStartTime
-      auditStartTime = formatter.format(now);
-      auditTopic = config.getString(MessageConsumerFactory.TOPIC_NAME_KEY);
+      System.out.println("Starting from " + consumerStartTime);
 
       // create and start consumer
       assert (config != null);
-      consumer =
-          createConsumer(config, maxSent, now, numProducers, hadoopConsumer,
-              msgSize);
+      consumer = createConsumer(config, maxSent, consumerStartTime,
+          numProducers, hadoopConsumer, msgSize);
       consumer.start();
     }
 
@@ -194,48 +178,19 @@ public class StreamingBenchmark {
       System.out.println("Consumer thread state: " + consumer.getState());
       statusPrinter.stopped = true;
       // set consumer end time as auditEndTime
-      Date now;
+
       if (timezone != null) {
-        now = ConsumerUtil.getCurrenDateForTimeZone(timezone);
+        consumerEndTime = ConsumerUtil.getCurrenDateForTimeZone(timezone);
       } else {
-        now = Calendar.getInstance().getTime();
+        consumerEndTime = Calendar.getInstance().getTime();
       }
-      // adding 1 minute to the end time so that when formatter converts it to
-      // minute level granularity we get the ceiling instead of floor;for eg:
-      // messages produced at 2:30:12 would only be considered in audit query
-      // when end time is 2:31 and not 2:30
-      Calendar calendar = Calendar.getInstance();
-      calendar.setTime(now);
-      calendar.add(Calendar.MINUTE, 1);
-      now = calendar.getTime();
-      auditEndTime = formatter.format(now);
-    }
-
-    statusPrinter.join();
-    if (runConsumer) {
-      // start audit thread to perform audit query
-      AuditThread auditThread =
-          createAuditThread(auditTopic, auditStartTime, auditEndTime,
-              auditTimeout, maxSent * numProducers);
-      auditThread.start();
-
-      // wait for audit thread to join
-      assert (auditThread != null);
-      auditThread.join(consumerTimeout * 1000);
-      System.out.println("Audit thread state: " + auditThread.getState());
-
-      if (!auditThread.success) {
-        System.out.println("Audit validation FAILED!");
-      } else {
-        System.out.println("Audit validation SUCCESS!");
-      }
-
       if (!consumer.success) {
         System.out.println("Data validation FAILED!");
         exitcode = FAILED_CODE;
       } else {
         System.out.println("Data validation SUCCESS!");
       }
+      System.out.println("Consumer end time is " + consumerEndTime);
     }
     return exitcode;
   }
@@ -252,10 +207,6 @@ public class StreamingBenchmark {
         hadoopConsumer, maxSize);
   }
 
-  static AuditThread createAuditThread(String topic, String fromTime,
-      String toTime, String timeout, long maxMessages) {
-    return new AuditThread(topic, fromTime, toTime, timeout, maxMessages);
-  }
 
   static class Producer extends Thread {
     volatile AbstractMessagePublisher publisher;
@@ -379,6 +330,14 @@ public class StreamingBenchmark {
       msg[i] = 'A';
     }
     return msg;
+  }
+
+  public Date getConsumerStartTime() {
+    return consumerStartTime;
+  }
+
+  public Date getConsumerEndTime() {
+    return consumerEndTime;
   }
 
   static Message constructMessage(long msgIndex, byte[] randomBytes) {
@@ -597,62 +556,6 @@ public class StreamingBenchmark {
         sb.append(" MeanLatency(ms):"
             + (consumer.totalLatency / consumer.received));
       }
-    }
-  }
-
-  static class AuditThread extends Thread {
-    final String topic;
-    final String startTime;
-    final String endTime;
-    final String timeout;
-    final long maxMessages;
-    boolean success = false;
-
-    AuditThread(String topic, String startTime, String endTime, String timeout,
-        long maxMessages) {
-      this.topic = topic;
-      this.startTime = startTime;
-      this.endTime = endTime;
-      this.timeout = timeout;
-      this.maxMessages = maxMessages;
-    }
-
-    @Override
-    public void run() {
-      System.out.println("Audit Thread started!");
-
-      AuditStatsQuery auditQuery =
-          new AuditStatsQuery(null, endTime, startTime, "TOPIC=" + topic,
-              "TIER", null, timeout, null);
-
-      try {
-        auditQuery.execute();
-      } catch (Exception e) {
-        System.out.println("Audit Query execute failed with exception: "
-            + e.getMessage());
-        e.printStackTrace();
-        return;
-      }
-
-      System.out.println("Displaying results for Audit Query: " + auditQuery);
-      // display audit query results
-      auditQuery.displayResults();
-
-      // validate that all tiers have received same number of messages equal to
-      // maxMessages
-      Collection<Long> recvdMessages = auditQuery.getReceived().values();
-      boolean match = true;
-      for (Long msgCount : recvdMessages) {
-        if (msgCount != maxMessages) {
-          match = false;
-          break;
-        }
-      }
-      if (match) {
-        success = true;
-      }
-
-      System.out.println("Audit Thread closed");
     }
   }
 

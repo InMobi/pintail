@@ -39,27 +39,6 @@ public class CheckpointList implements ConsumerCheckpoint {
     return chkpoints;
   }
 
-  /**
-   * This method is used for updating the checkpoint list. This method is used
-   * by only CheckpointUtil class. This is no longer useful after removing the
-   * CheckpointUtil utility. So we can remove it after removing the
-   * migrate-checkpoint utility.
-   */
-  public void setForCheckpointUtil(PartitionId pid, MessageCheckpoint msgCkp) {
-    PartitionCheckpointList pckList = (PartitionCheckpointList) msgCkp;
-    for (Map.Entry<Integer, PartitionCheckpoint> entry : pckList.
-        getCheckpoints().entrySet()) {
-      Checkpoint cp = chkpoints.get(entry.getKey());
-      if (cp == null) {
-        Map<PartitionId, PartitionCheckpoint> partitionsChkPoints =
-            new HashMap<PartitionId, PartitionCheckpoint>();
-        cp = new Checkpoint(partitionsChkPoints);
-      }
-      cp.set(pid, entry.getValue());
-      chkpoints.put(entry.getKey(), cp);
-    }
-  }
-
   @Override
   public void set(PartitionId pid, MessageCheckpoint msgCkp) {
     DeltaPartitionCheckPoint checkPoint = (DeltaPartitionCheckPoint) msgCkp;
