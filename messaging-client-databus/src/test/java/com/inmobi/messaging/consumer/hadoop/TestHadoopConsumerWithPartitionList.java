@@ -97,5 +97,7 @@ public class TestHadoopConsumerWithPartitionList  {
       LOG.debug("Cleaning up the dir: " + rootDir);
       lfs.delete(rootDir.getParent(), true);
     }
+    // delete checkpoint dir
+    lfs.delete(new Path(ck8), true);
   }
 }
