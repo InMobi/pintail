@@ -224,7 +224,8 @@ public class DatabusStreamWaitingReader
     boolean readFromCheckpoint = false;
     FileStatus fileToRead = nextFile;
     if (currentMin != now.get(Calendar.MINUTE)) {
-      setDeltaCheckpoint(currentFileTimeStamp, nextFileTimeStamp);
+      setDeltaCheckpoint(getNextMinuteTimeStamp(currentFileTimeStamp),
+          nextFileTimeStamp);
       // set the line number as -1 as current file was read fully.
       deltaCheckpoint.put(currentMin,
           new PartitionCheckpoint(getStreamFile(currentFile), -1));
@@ -254,17 +255,23 @@ public class DatabusStreamWaitingReader
     return !readFromCheckpoint;
   }
 
+  private Date getNextMinuteTimeStamp(Date currentFileTimeStamp) {
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(currentFileTimeStamp);
+    cal.add(Calendar.MINUTE, 1);
+    return cal.getTime();
+  }
+
   /*
    * prepare a delta checkpoint
    */
   private void setDeltaCheckpoint(Date from, Date to) {
     Calendar cal = Calendar.getInstance();
     cal.setTime(from);
-    cal.add(Calendar.MINUTE, 1);
     while (cal.getTime().before(to)) {
-      int currentMinute = cal.get(Calendar.MINUTE);
+      Integer currentMinute = Integer.valueOf(cal.get(Calendar.MINUTE));
       Date checkpointedTimeStamp = checkpointTimeStampMap.get(currentMinute);
-      if (partitionMinList.contains(Integer.valueOf(currentMinute))) {
+      if (partitionMinList.contains(currentMinute)) {
         // create a checkpoint for that minute only if it does not have
         // checkpoint or checkpoint file time stamp is older than
         // current file time stamp
