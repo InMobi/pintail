@@ -156,8 +156,6 @@ public class TestUtil {
         // get expected delta pck
         expectedDeltaPck = new DeltaPartitionCheckPoint(file, i + 1, min,
             expectedDeltaPck).getDeltaCheckpoint();
-        System.out.println("accccccccc " + actualDeltaPck);
-        System.out.println("eeeeeeeeeeecpec  " + expectedDeltaPck);
         // assert on expected and actual delta pck
         Assert.assertEquals(actualDeltaPck, expectedDeltaPck);
         expectedDeltaPck.clear();
