@@ -1,6 +1,9 @@
 package com.inmobi.databus.partition;
 
 import java.io.IOException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -78,6 +81,8 @@ public abstract class TestAbstractWaitingClusterReader {
 
   private void testReader(PartitionReader preader,
       PartitionReaderStatsExposer prMetrics) throws Exception {
+    Map<Integer, PartitionCheckpoint> expectedDeltaPck = new HashMap<Integer,
+        PartitionCheckpoint>();
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -98,38 +103,65 @@ public abstract class TestAbstractWaitingClusterReader {
     setupFiles(new String[] {newFiles[0]}, newDatabusFiles);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs0), 1, 0, 100, partitionId, buffer,
-        isDatabusData());
+        isDatabusData(), expectedDeltaPck);
+    Date fromTime = getTimeStampFromFile(databusFiles[0]);
+    Date toTime = getTimeStampFromFile(databusFiles[1]);
+    TestUtil.prepareExpectedDeltaPck(fromTime, toTime, expectedDeltaPck, fs0,
+        streamDir, partitionMinList, partitionCheckpointlist);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs1), 2, 0, 50, partitionId, buffer,
-        isDatabusData());
-
+        isDatabusData(), expectedDeltaPck);
+    expectedDeltaPck.clear();
     while (buffer.remainingCapacity() > 0) {
       Thread.sleep(10);
     }
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
-        fs1), 2, 50, 50, partitionId, buffer, isDatabusData());
+        fs1), 2, 50, 50, partitionId, buffer, isDatabusData(), expectedDeltaPck);
+    fromTime = getTimeStampFromFile(databusFiles[1]);
+    toTime = getTimeStampFromFile(newDatabusFiles[0]);
+    TestUtil.prepareExpectedDeltaPck(fromTime, toTime, expectedDeltaPck, fs1,
+        streamDir, partitionMinList, partitionCheckpointlist);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(newDatabusFiles[0])), 1, 0, 100, partitionId,
-        buffer, isDatabusData());
+        buffer, isDatabusData(), expectedDeltaPck);
+    expectedDeltaPck.clear();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertNotNull(preader.getReader());
     Assert.assertEquals(((ClusterReader) preader.getReader())
         .getReader().getClass().getName(),
         DatabusStreamWaitingReader.class.getName());
     Thread.sleep(1000);
+    Path previousFile = newDatabusFiles[0];
     setupFiles(new String[] {newFiles[1], newFiles[2]},
         newDatabusFiles);
+
+    fromTime = getTimeStampFromFile(previousFile);
+    toTime = getTimeStampFromFile(newDatabusFiles[0]);
+    TestUtil.prepareExpectedDeltaPck(fromTime, toTime, expectedDeltaPck,
+        fs.getFileStatus(previousFile), streamDir, partitionMinList,
+        partitionCheckpointlist);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(newDatabusFiles[0])), 1, 0, 100, partitionId, buffer,
-        isDatabusData());
+        isDatabusData(), expectedDeltaPck);
+    expectedDeltaPck.clear();
+
+    fromTime = getTimeStampFromFile(newDatabusFiles[0]);
+    toTime = getTimeStampFromFile(newDatabusFiles[1]);
+    TestUtil.prepareExpectedDeltaPck(fromTime, toTime, expectedDeltaPck,
+        fs.getFileStatus(newDatabusFiles[0]), streamDir, partitionMinList,
+        partitionCheckpointlist);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(newDatabusFiles[1])), 2, 0, 100, partitionId,
-        buffer, isDatabusData());
+        buffer, isDatabusData(), expectedDeltaPck);
     Assert.assertTrue(buffer.isEmpty());
     preader.close();
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 500);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 500);
     Assert.assertTrue(prMetrics.getWaitTimeUnitsNewFile() > 0);
     Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
+  }
+
+  private Date getTimeStampFromFile(Path dir) {
+    return DatabusStreamWaitingReader.getDateFromStreamDir(streamDir, dir);
   }
 }
