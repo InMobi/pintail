@@ -1,5 +1,6 @@
 package com.inmobi.messaging.consumer.util;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
@@ -17,7 +18,7 @@ public class MiniClusterUtil {
       throws IOException {
     if (dfsCluster == null) {
       lfs = FileSystem.getLocal(conf);
-      lfs.delete(new Path(MiniDFSCluster.getBaseDir().toString()), true);
+      lfs.delete(new Path(MiniClusterUtil.getBaseDirectory().toString()), true);
       dfsCluster = new MiniDFSCluster(conf, 1, true, null);
     }
     numAccess++;
@@ -30,7 +31,16 @@ public class MiniClusterUtil {
       if (dfsCluster != null) {
         dfsCluster.shutdown();
       }
-      lfs.delete(new Path(MiniDFSCluster.getBaseDir().toString()), true);
+      lfs.delete(new Path(MiniClusterUtil.getBaseDirectory().toString()), true);
     }
   }
+  /**
+   * Just for cross version compatibility , should be removed later
+   * @return
+   */
+  private static File getBaseDirectory(){
+	  return new File(System.getProperty( "test.build.data", "build/test/data"), "dfs/");
+  }
+  
+  
 }
