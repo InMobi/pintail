@@ -8,15 +8,20 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.testng.Assert;
+import org.testng.annotations.AfterTest;
 import org.testng.annotations.Test;
 
 public class TestHadoopStreamFile {
 
+  protected Path rootDir = new Path("/tmp/test/hadoop/",
+      this.getClass().getSimpleName());
+  FileSystem fs;
+
   @Test
   public void testHadoopStreamFile() throws IOException {
-    FileSystem fs = FileSystem.getLocal(new Configuration());
-    Path p1 = new Path("/tmp/test/2012/12/12/12/11");
-    Path p2 = new Path("/tmp/test/2012/12/12/12/12");
+    fs = FileSystem.getLocal(new Configuration());
+    Path p1 = new Path(rootDir, "2012/12/12/12/11");
+    Path p2 = new Path(rootDir, "2012/12/12/12/12");
     Long t1 = 1L;
     Long t2 = 2L;
     String f1 = "f1";
@@ -73,5 +78,10 @@ public class TestHadoopStreamFile {
         "hdfs://localhost:9000/databus/streams_local/stream1/2013/05/29/08/46/"),
         null, null);
     Assert.assertEquals(fileMap.ceilingEntry(timeKey), fileMap.firstEntry());
+  }
+
+  @AfterTest
+  public void cleanUp() throws IOException {
+    fs.delete(rootDir, true);
   }
 }
