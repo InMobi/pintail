@@ -12,6 +12,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
@@ -19,11 +20,13 @@ import org.testng.Assert;
 
 import com.inmobi.databus.Cluster;
 import com.inmobi.databus.files.StreamFile;
-import com.inmobi.databus.partition.ConsumerPartitionCheckPoint;
+import com.inmobi.databus.partition.DeltaPartitionCheckPoint;
 import com.inmobi.databus.partition.PartitionCheckpoint;
+import com.inmobi.databus.partition.PartitionCheckpointList;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.databus.readers.DatabusStreamReader;
+import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 import com.inmobi.databus.readers.LocalStreamCollectorReader;
 import com.inmobi.databus.utils.FileUtil;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
@@ -138,17 +141,24 @@ public class TestUtil {
 
   public static void assertBuffer(StreamFile file, int fileNum, int startIndex,
       int numMsgs, PartitionId pid, LinkedBlockingQueue<QueueEntry> buffer,
-      boolean isDatabusData)
+      boolean isDatabusData, Map<Integer, PartitionCheckpoint> expectedDeltaPck)
           throws InterruptedException, IOException {
 
     int fileIndex = (fileNum - 1) * 100 ;
     for (int i = startIndex; i < (startIndex + numMsgs); i++) {
       QueueEntry entry = buffer.take();
       Assert.assertEquals(entry.getPartitionId(), pid);
-      if (entry.getMessageChkpoint() instanceof ConsumerPartitionCheckPoint) {
+      if (entry.getMessageChkpoint() instanceof DeltaPartitionCheckPoint) {
         int min = Integer.parseInt(new Path(file.toString()).getParent().getName());
-        Assert.assertEquals(entry.getMessageChkpoint(),
-            new ConsumerPartitionCheckPoint(file, i + 1, min));
+        Map<Integer, PartitionCheckpoint> actualDeltaPck =
+            ((DeltaPartitionCheckPoint) entry.getMessageChkpoint()).
+            getDeltaCheckpoint();
+        // get expected delta pck
+        expectedDeltaPck = new DeltaPartitionCheckPoint(file, i + 1, min,
+            expectedDeltaPck).getDeltaCheckpoint();
+        // assert on expected and actual delta pck
+        Assert.assertEquals(actualDeltaPck, expectedDeltaPck);
+        expectedDeltaPck.clear();
       } else {
         Assert.assertEquals(entry.getMessageChkpoint(),
             new PartitionCheckpoint(file, i + 1));
@@ -160,6 +170,53 @@ public class TestUtil {
         Assert.assertEquals(MessageUtil.getTextMessage(
             ((Message) entry.getMessage()).getData().array()),
             new Text(MessageUtil.constructMessage(fileIndex + i)));
+      }
+    }
+  }
+
+  public static void prepareExpectedDeltaPck(Date fromTime, Date toTime,
+      Map<Integer, PartitionCheckpoint> expectedDeltaPck, FileStatus file,
+      Path streamDir, Set<Integer> partitionMinList,
+      PartitionCheckpointList partitionCheckpointList) {
+    Map<Integer, Date> chkTimeStampMap = new HashMap<Integer, Date>();
+    // prepare a checkpoint map
+    prepareChkpointTimeMap(chkTimeStampMap, partitionMinList,
+        partitionCheckpointList);
+    Calendar current = Calendar.getInstance();
+    current.setTime(fromTime);
+    if (file != null) {
+      int minute = current.get(Calendar.MINUTE);
+      expectedDeltaPck.put(Integer.valueOf(minute), new PartitionCheckpoint(
+          DatabusStreamWaitingReader.getHadoopStreamFile(file), -1));
+      current.add(Calendar.MINUTE, 1);
+    }
+    while (current.getTime().before(toTime)) {
+      int minute = current.get(Calendar.MINUTE);
+      if (partitionMinList.contains(minute)) {
+        Date chkTime = chkTimeStampMap.get(minute);
+        if (chkTime == null || chkTime.before(current.getTime())) {
+          expectedDeltaPck.put(Integer.valueOf(minute),
+              new PartitionCheckpoint(DatabusStreamWaitingReader.
+                  getHadoopStreamFile(streamDir, current.getTime()), -1));
+        }
+      }
+      current.add(Calendar.MINUTE, 1);
+    }
+  }
+
+  public static void prepareChkpointTimeMap(Map<Integer, Date> chkTimeStampMap,
+      Set<Integer> partitionMinList,
+      PartitionCheckpointList partitionCheckpointList) {
+    Map<Integer, PartitionCheckpoint> partitionChkList =
+        partitionCheckpointList.getCheckpoints();
+    for (Integer min : partitionMinList) {
+      PartitionCheckpoint pck = partitionChkList.get(Integer.valueOf(min));
+      if (pck != null) {
+        Date timeStamp = DatabusStreamWaitingReader.getDateFromCheckpointPath(
+            pck.getFileName());
+        chkTimeStampMap.put(min, timeStamp);
+      } else {
+        chkTimeStampMap.put(min, null);
       }
     }
   }
