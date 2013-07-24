@@ -89,6 +89,7 @@ public class ClusterReader extends AbstractPartitionStreamReader {
     }
 
     if (partitionCheckpoint != null) {
+      LOG.info("Least partition checkpoint " + partitionCheckpoint);
       ((DatabusStreamWaitingReader) reader).build(
           DatabusStreamWaitingReader.getBuildTimestamp(streamDir,
               partitionCheckpoint));

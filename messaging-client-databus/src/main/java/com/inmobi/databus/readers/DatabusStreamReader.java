@@ -268,6 +268,7 @@ StreamReader<T> {
     }
     if (startHour != -1) {
       buildTimestamp = current.getTime();
+      LOG.info("Starts listing from " + buildTimestamp);
     }
   }
 
@@ -310,6 +311,7 @@ StreamReader<T> {
         return null;
       }
     }
+    LOG.info("Starting dir in the stream " + leastTimeStampFileStatus.getPath());
     return getDateFromStreamDir(streamDir, leastTimeStampFileStatus.getPath());
   }
 }
