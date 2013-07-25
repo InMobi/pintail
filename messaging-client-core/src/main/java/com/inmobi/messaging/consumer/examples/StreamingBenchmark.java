@@ -177,6 +177,7 @@ public class StreamingBenchmark {
       consumer.join(consumerTimeout * 1000);
       System.out.println("Consumer thread state: " + consumer.getState());
       statusPrinter.stopped = true;
+      statusPrinter.join();
       // set consumer end time as auditEndTime
 
       if (timezone != null) {
