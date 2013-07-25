@@ -1,6 +1,5 @@
 package com.inmobi.databus.readers;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Date;
 
@@ -403,18 +402,14 @@ public abstract class StreamReader<T extends StreamFile> {
 
   protected FileStatus[] fsListFileStatus(Path baseDir, PathFilter pathFilter)
       throws IOException {
-    FileStatus[] fileStatusList = null;
-    try {
-        if (pathFilter != null) {
-          fileStatusList = fs.listStatus(baseDir, pathFilter);
-        } else {
-          fileStatusList = fs.listStatus(baseDir);
-        }
-      } catch (FileNotFoundException e) {
-        LOG.warn("file does not exist", e);
-      } 
-    	metrics.incrementListOps();
-    	return fileStatusList;
+    FileStatus[] fileStatusList;
+    if (pathFilter != null) {
+      fileStatusList = fs.listStatus(baseDir, pathFilter);
+    } else {
+      fileStatusList = fs.listStatus(baseDir);
+    }
+    metrics.incrementListOps();
+    return fileStatusList;
   }
 
   protected FileStatus fsGetFileStatus(Path dir)

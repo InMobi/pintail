@@ -12,20 +12,12 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapred.FileInputFormat;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapreduce.RecordReader;
-import org.apache.hadoop.mapred.TaskAttemptID;
-import org.apache.hadoop.mapreduce.TaskType;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.mapreduce.TaskAttemptID;
+
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
-
-import org.mockito.MockSettings;
-import org.mockito.Mockito;
-import org.mockito.internal.stubbing.defaultanswers.ReturnsEmptyValues;
-import org.mockito.internal.stubbing.defaultanswers.ReturnsSmartNulls;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.databus.TestAbstractInputFormat;
@@ -91,7 +83,7 @@ public class TestDatabusInputFormatMapReduce extends TestAbstractInputFormat {
   @Test
   public void testDatabusInputFormatMapReduce() throws Exception {
     FileInputFormat.setInputPaths(defaultConf, collectorDir);
-    context =  getTaskAttemptContext(defaultConf , taskId);
+    context = new TaskAttemptContext(defaultConf, taskId);
     List<Path> collectorFilePaths = new ArrayList<Path>();
     listAllPaths(collectorDir, collectorFilePaths);
 
@@ -113,7 +105,7 @@ public class TestDatabusInputFormatMapReduce extends TestAbstractInputFormat {
     listAllPaths(localstreamDir, minuteDirs);
     if (minuteDirs.size() > 0) {
       FileInputFormat.setInputPaths(defaultConf, minuteDirs.get(0).getParent());
-      context =getTaskAttemptContext(defaultConf ,taskId) ;
+      context = new TaskAttemptContext(defaultConf, taskId);
       readMessages = new ArrayList<Message>();
       splitFile(1, minuteDirs.get(0));
       LOG.info("number msgs read from gz files  " + readMessages.size());
@@ -126,14 +118,4 @@ public class TestDatabusInputFormatMapReduce extends TestAbstractInputFormat {
     LOG.debug("Cleaning up the dir: " + rootDir);
     fs.delete(rootDir, true);
   }
-  
-  
-  private TaskAttemptContext getTaskAttemptContext(Configuration config , TaskAttemptID taskId) {
-    TaskAttemptContext localContext = Mockito.mock(TaskAttemptContext.class );
-    Mockito.when(localContext.getConfiguration()).thenReturn(config);
-    Mockito.when(localContext.getTaskAttemptID()).thenReturn(taskId);
-    return localContext;
-  }
 }
-
-
