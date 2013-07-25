@@ -2,8 +2,6 @@ Release 3.2.0
 
 Incompatible changes :
 
-   4. Remove bundling hadoop dependencies
-
    3. Remove audit client from m-client
 
    2. Removing audit validation from streaming benchmark
@@ -12,8 +10,6 @@ Incompatible changes :
 
 
 Buf fixes and Improvements:
-
-   10. Support reading from both hadoop-1.0 and hadoop-2.0 
 
    9. Add more logging for better debugging
 
