@@ -100,7 +100,8 @@ run_client() {
 ################################
 
 # set default params
-CLIENT_CLASSPATH=""
+export CLIENT_CLASSPATH=`ls $HADOOP_HOME/*jar | tr "\n" :`;
+export CLIENT_CLASSPATH=$CLIENT_CLASSPATH:`ls $HADOOP_HOME/lib/*jar | tr "\n" :`;
 CLIENT_JAVA_LIBRARY_PATH=""
 JAVA_OPTS="-Xmx128M"
 
