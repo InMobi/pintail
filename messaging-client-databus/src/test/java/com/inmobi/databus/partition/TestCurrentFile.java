@@ -121,6 +121,7 @@ public class TestCurrentFile {
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.close();
+    preader.join();
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 100);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 100);
     Assert.assertTrue(prMetrics.getWaitTimeInSameFile() > 0);
