@@ -125,6 +125,7 @@ public class TestCollectorStreamWithEmptyFiles {
         0, 100, partitionId, buffer, true, null);
     Assert.assertTrue(buffer.isEmpty());
     preader.close();
+    preader.join();
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 400);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 400);
     Assert.assertEquals(prMetrics.getSwitchesFromCollectorToLocal(), 0);

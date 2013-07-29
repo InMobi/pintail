@@ -228,6 +228,7 @@ public class TestClusterReaderMultipleCollectors {
     //XXX Reader sholud close after listing
     Thread.sleep(3000);
     preader.close();
+    preader.join();
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 800);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 800);
     Assert.assertTrue(prMetrics.getWaitTimeUnitsNewFile() > 0);
@@ -253,6 +254,7 @@ public class TestClusterReaderMultipleCollectors {
         buffer, true, expectedDeltaPck);
     Assert.assertTrue(buffer.isEmpty());
     preader.close();
+    preader.join();
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 150);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 150);
     Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);

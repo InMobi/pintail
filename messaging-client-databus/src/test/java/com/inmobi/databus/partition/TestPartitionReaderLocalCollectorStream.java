@@ -244,6 +244,7 @@ public class TestPartitionReaderLocalCollectorStream {
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.close();
+    preader.join();
     Assert.assertEquals(prMetrics.getHandledExceptions(), 0);
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 180);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 180);
@@ -283,6 +284,7 @@ public class TestPartitionReaderLocalCollectorStream {
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.close();
+    preader.join();
     Assert.assertEquals(prMetrics.getHandledExceptions(), 0);
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 180);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 180);
@@ -328,6 +330,7 @@ public class TestPartitionReaderLocalCollectorStream {
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.close();
+    preader.join();
     Assert.assertEquals(prMetrics.getHandledExceptions(), 0);
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 300);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 300);
@@ -374,6 +377,7 @@ public class TestPartitionReaderLocalCollectorStream {
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.close();
+    preader.join();
     Assert.assertEquals(prMetrics.getHandledExceptions(), 0);
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 300);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 300);
@@ -413,6 +417,7 @@ public class TestPartitionReaderLocalCollectorStream {
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.close();
+    preader.join();
     Assert.assertEquals(prMetrics.getHandledExceptions(), 0);
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 200);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 200);
@@ -449,6 +454,7 @@ public class TestPartitionReaderLocalCollectorStream {
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.close();
+    preader.join();
     Assert.assertEquals(prMetrics.getHandledExceptions(), 0);
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 100);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 100);
@@ -489,6 +495,7 @@ public class TestPartitionReaderLocalCollectorStream {
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.close();
+    preader.join();
     Assert.assertEquals(prMetrics.getHandledExceptions(), 0);
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 300);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 300);

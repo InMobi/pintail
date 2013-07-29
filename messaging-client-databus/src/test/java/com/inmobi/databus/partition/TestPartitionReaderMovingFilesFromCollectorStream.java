@@ -160,6 +160,7 @@ public class TestPartitionReaderMovingFilesFromCollectorStream {
         9, 0, 100, partitionId, buffer, true, null);
     Assert.assertTrue(buffer.isEmpty());
     preader.close();
+    preader.join();
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 900);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 900);
     Assert.assertEquals(prMetrics.getWaitTimeUnitsNewFile(), 0);

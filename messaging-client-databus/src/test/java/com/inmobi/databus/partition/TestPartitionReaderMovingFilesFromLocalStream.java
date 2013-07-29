@@ -144,6 +144,7 @@ public class TestPartitionReaderMovingFilesFromLocalStream {
         CollectorStreamReader.class.getName());
     Assert.assertTrue(buffer.isEmpty());
     preader.close();
+    preader.join();
     Assert.assertEquals(prMetrics.getHandledExceptions(), 0);
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 700);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 700);

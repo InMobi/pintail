@@ -69,8 +69,8 @@ public abstract class StreamReader<T extends StreamFile> {
   }
 
   public void close() throws IOException {
-    closeStream();
     closed = true;
+    closeStream();
   }
 
   protected abstract FileMap<T> createFileMap() throws IOException;
