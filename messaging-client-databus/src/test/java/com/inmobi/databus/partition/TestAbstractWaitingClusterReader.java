@@ -155,6 +155,7 @@ public abstract class TestAbstractWaitingClusterReader {
         buffer, isDatabusData(), expectedDeltaPck);
     Assert.assertTrue(buffer.isEmpty());
     preader.close();
+    preader.join();
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 500);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 500);
     Assert.assertTrue(prMetrics.getWaitTimeUnitsNewFile() > 0);
