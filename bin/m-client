@@ -99,6 +99,13 @@ run_client() {
 # main
 ################################
 
+#find hadoop jars
+if [ -z "${HADOOP_HOME}" ]; then
+  echo "Error: HADOOP_HOME not define!"
+  echo 'Please set $HADOOP_HOME to the root of your Hadoop installation.'
+  exit 1
+fi
+
 # set default params
 CLIENT_CLASSPATH=`ls $HADOOP_HOME/*jar | tr "\n" :`;
 CLIENT_CLASSPATH=$CLIENT_CLASSPATH:`ls $HADOOP_HOME/lib/*jar | tr "\n" :`;

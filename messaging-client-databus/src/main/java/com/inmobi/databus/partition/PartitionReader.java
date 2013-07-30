@@ -164,6 +164,9 @@ public class PartitionReader {
         LOG.warn("Error closing current stream", e);
       }
     }
+  }
+
+  public void join() {
     if (thread != null) {
       thread.interrupt();
       try {

@@ -1,3 +1,33 @@
+Release 3.2.0
+
+Incompatible changes :
+
+   3. Remove audit client from m-client
+
+   2. Removing audit validation from streaming benchmark
+
+   1. Remove checkpoint migration util code to migrate from 2.4.x
+
+
+Buf fixes and Improvements:
+
+   9. Add more logging for better debugging
+
+   8. Make sure all test directories are cleanup after the tests
+
+   7. Populate checkpoint for empty directories and empty files also
+
+   6. Remove checkpoint migration util code to migrate from 1.4.x
+
+   5. Disable testResendOnAckLost
+
+   4. Accept hadoop configuration file in DatabusConsumer also
+
+   3. Remove audit client
+
+   2. Removing audit validation from streaming benchmark
+
+   1. Listing only one non empty directory during startup
 Release 3.1.1
 
 Bug fixes :

@@ -90,6 +90,7 @@ public class TestCollectorReaderWithoutStreamsLocal {
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
     preader.close();
+    preader.join();
     Assert.assertEquals(prMetrics.getHandledExceptions(), 0);
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 300);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 300);

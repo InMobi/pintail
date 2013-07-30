@@ -1,5 +1,6 @@
 package com.inmobi.databus.partition;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -8,6 +9,7 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.testng.Assert;
+import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
@@ -18,6 +20,7 @@ public class TestLeastCheckpoint {
   FileSystem fs;
   Map<Integer, PartitionCheckpoint> chkPoints;
   PartitionCheckpoint expectedLeastPck;
+  protected Path rootDir;
 
   public TestLeastCheckpoint() {
 
@@ -26,6 +29,7 @@ public class TestLeastCheckpoint {
   @BeforeTest
   public void setup() throws Exception {
     fs =  FileSystem.getLocal(new Configuration());
+    rootDir = new Path("/tmp/test/hadoop/", this.getClass().getSimpleName());
     chkPoints = new HashMap<Integer, PartitionCheckpoint>();
     createCheckpointList();
   }
@@ -37,12 +41,13 @@ public class TestLeastCheckpoint {
     FileStatus fs11 = fs.getFileStatus(pf11);
     return HadoopStreamFile.create(fs11);
   }
+
   private void createCheckpointList() throws Exception {
-    Path p1 = new Path("/tmp/test/2012/12/26/05/00");
-    Path p2 = new Path("/tmp/test/2012/12/26/02/01");
-    Path p3 = new Path("/tmp/test/2012/12/26/03/02");
-    Path p4 = new Path("/tmp/test/2012/12/26/01/03");
-    Path p5 = new Path("/tmp/test/2012/12/26/02/04");
+    Path p1 = new Path(rootDir, "2012/12/26/05/00");
+    Path p2 = new Path(rootDir, "2012/12/26/02/01");
+    Path p3 = new Path(rootDir, "2012/12/26/03/02");
+    Path p4 = new Path(rootDir, "2012/12/26/01/03");
+    Path p5 = new Path(rootDir, "2012/12/26/02/04");
     HadoopStreamFile streamfile1 = createPaths(p1, 0);
     HadoopStreamFile streamfile2 = createPaths(p2, 1);
     HadoopStreamFile streamfile3 = createPaths(p3, 2);
@@ -65,5 +70,10 @@ public class TestLeastCheckpoint {
         findLeastPartitionCheckPointTime(new PartitionCheckpointList(chkPoints));
     System.out.println("least value " + leastPartitionCheckpoint);
     Assert.assertEquals(expectedLeastPck, leastPartitionCheckpoint);
+  }
+
+  @AfterTest
+  public void cleanup() throws IOException {
+    fs.delete(rootDir, true);
   }
 }
