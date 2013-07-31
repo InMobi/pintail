@@ -155,6 +155,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
               streamsLocalDir, buffer, topicName, partitionTimestamp,
               waitTimeForFlush, waitTimeForFileCreate, collectorMetrics,
               stopTime));
+          messageConsumedMap.put(id, false);
           numList = 0;
         }
       } else {
@@ -178,6 +179,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
             DatabusInputFormat.class.getCanonicalName(), partitionTimestamp,
             waitTimeForFileCreate, true, clusterMetrics, partitionMinList,
             stopTime));
+        messageConsumedMap.put(id, false);
       }
     }
   }

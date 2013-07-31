@@ -134,4 +134,10 @@ public class ClusterReader extends AbstractPartitionStreamReader {
   public boolean shouldBeClosed() {
     return false;
   }
+
+  public boolean buildStartPartitionCheckpoints() {
+    DatabusStreamWaitingReader dataWaitingReader =
+        (DatabusStreamWaitingReader) reader;
+    return dataWaitingReader.buildStartPartitionCheckpoints();
+  }
 }
