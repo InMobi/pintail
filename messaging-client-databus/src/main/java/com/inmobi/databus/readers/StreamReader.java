@@ -116,8 +116,6 @@ public abstract class StreamReader<T extends StreamFile> {
     this.checkpoint = checkpoint;
     LOG.debug("checkpoint:" + checkpoint);
     currentFile = fileMap.getValue(checkpoint.getStreamFile());
-    LOG.info("XXXX checkpoint:"+checkpoint);
-    LOG.info("YYYY currentFile:"+currentFile);
     if (currentFile != null) {
       currentLineNum = checkpoint.getLineNum();
       LOG.debug("CurrentFile:" + getCurrentFile() + " currentLineNum:"
