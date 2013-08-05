@@ -177,30 +177,49 @@ public class TestUtil {
   public static void prepareExpectedDeltaPck(Date fromTime, Date toTime,
       Map<Integer, PartitionCheckpoint> expectedDeltaPck, FileStatus file,
       Path streamDir, Set<Integer> partitionMinList,
-      PartitionCheckpointList partitionCheckpointList) {
+      PartitionCheckpointList partitionCheckpointList, boolean isStart) {
     Map<Integer, Date> chkTimeStampMap = new HashMap<Integer, Date>();
     // prepare a checkpoint map
     prepareChkpointTimeMap(chkTimeStampMap, partitionMinList,
-        partitionCheckpointList);
+        partitionCheckpointList);  {
     Calendar current = Calendar.getInstance();
     current.setTime(fromTime);
-    if (file != null) {
-      int minute = current.get(Calendar.MINUTE);
-      expectedDeltaPck.put(Integer.valueOf(minute), new PartitionCheckpoint(
-          DatabusStreamWaitingReader.getHadoopStreamFile(file), -1));
-      current.add(Calendar.MINUTE, 1);
-    }
-    while (current.getTime().before(toTime)) {
-      int minute = current.get(Calendar.MINUTE);
-      if (partitionMinList.contains(minute)) {
-        Date chkTime = chkTimeStampMap.get(minute);
-        if (chkTime == null || chkTime.before(current.getTime())) {
-          expectedDeltaPck.put(Integer.valueOf(minute),
-              new PartitionCheckpoint(DatabusStreamWaitingReader.
-                  getHadoopStreamFile(streamDir, current.getTime()), -1));
+    if (isStart) {
+      Calendar hourCal = Calendar.getInstance();
+      hourCal.setTime(fromTime);
+      hourCal.add(Calendar.MINUTE, 60);
+      toTime = hourCal.getTime();
+      while (current.getTime().before(toTime)) {
+        int minute = current.get(Calendar.MINUTE);
+        if (partitionMinList.contains(minute)) {
+          Date chkTime = chkTimeStampMap.get(minute);
+          if (chkTime == null || chkTime.before(current.getTime())) {
+            expectedDeltaPck.put(Integer.valueOf(minute),
+                new PartitionCheckpoint(DatabusStreamWaitingReader.
+                    getHadoopStreamFile(streamDir, current.getTime()), 0));
+          }
         }
+        current.add(Calendar.MINUTE, 1);
       }
-      current.add(Calendar.MINUTE, 1);
+    } else
+      if (file != null) {
+        int minute = current.get(Calendar.MINUTE);
+        expectedDeltaPck.put(Integer.valueOf(minute), new PartitionCheckpoint(
+            DatabusStreamWaitingReader.getHadoopStreamFile(file), -1));
+        current.add(Calendar.MINUTE, 1);
+      }
+      while (current.getTime().before(toTime)) {
+        int minute = current.get(Calendar.MINUTE);
+        if (partitionMinList.contains(minute)) {
+          Date chkTime = chkTimeStampMap.get(minute);
+          if (chkTime == null || chkTime.before(current.getTime())) {
+            expectedDeltaPck.put(Integer.valueOf(minute),
+                new PartitionCheckpoint(DatabusStreamWaitingReader.
+                    getHadoopStreamFile(streamDir, current.getTime()), -1));
+          }
+        }
+        current.add(Calendar.MINUTE, 1);
+      }
     }
   }
 

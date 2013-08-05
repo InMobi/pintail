@@ -96,7 +96,8 @@ public class ClusterReader extends AbstractPartitionStreamReader {
       if (!reader.isEmpty()) {
         // if the partition checkpoint is completed checkpoint
         //(i.e. line number is -1) then it has to start from the next checkpoint.
-        if (partitionCheckpoint.getLineNum() == -1) {
+        if (partitionCheckpoint.getLineNum() == -1 || partitionCheckpoint
+            .getName() == null) {
           ((DatabusStreamWaitingReader) reader).initFromNextCheckPoint();
         } else if (!reader.initializeCurrentFile(partitionCheckpoint)) {
           throw new IllegalArgumentException("Checkpoint file does not exist");

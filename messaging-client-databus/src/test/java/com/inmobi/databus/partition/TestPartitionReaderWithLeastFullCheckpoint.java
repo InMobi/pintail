@@ -83,7 +83,7 @@ public class TestPartitionReaderWithLeastFullCheckpoint extends TestAbstractClus
     Date fromTime = getTimeStampFromFile(databusFiles[0]);
     Date toTime = getTimeStampFromFile(databusFiles[3]);
     TestUtil.prepareExpectedDeltaPck(fromTime, toTime, expectedDeltaPchk, null,
-        streamDir, partitionMinList, partitionCheckpointList);
+        streamDir, partitionMinList, partitionCheckpointList, true);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[3])), 1, 00, 100, partitionId, buffer,
         isDatabusData(), expectedDeltaPchk);
@@ -92,7 +92,7 @@ public class TestPartitionReaderWithLeastFullCheckpoint extends TestAbstractClus
     toTime = getTimeStampFromFile(databusFiles[4]);
     TestUtil.prepareExpectedDeltaPck(fromTime, toTime, expectedDeltaPchk,
         fs.getFileStatus(databusFiles[3]), streamDir, partitionMinList,
-        partitionCheckpointList);
+        partitionCheckpointList, false);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[4])), 2, 00, 100, partitionId, buffer,
         isDatabusData(), expectedDeltaPchk);
@@ -101,7 +101,7 @@ public class TestPartitionReaderWithLeastFullCheckpoint extends TestAbstractClus
     toTime = getTimeStampFromFile(databusFiles[5]);
     TestUtil.prepareExpectedDeltaPck(fromTime, toTime, expectedDeltaPchk,
         fs.getFileStatus(databusFiles[4]), streamDir, partitionMinList,
-        partitionCheckpointList);
+        partitionCheckpointList, false);
     TestUtil.assertBuffer(DatabusStreamWaitingReader.getHadoopStreamFile(
         fs.getFileStatus(databusFiles[5])), 3, 00, 100, partitionId, buffer,
         isDatabusData(), expectedDeltaPchk);
