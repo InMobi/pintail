@@ -181,7 +181,7 @@ public class TestUtil {
     Map<Integer, Date> chkTimeStampMap = new HashMap<Integer, Date>();
     // prepare a checkpoint map
     prepareChkpointTimeMap(chkTimeStampMap, partitionMinList,
-        partitionCheckpointList);  {
+        partitionCheckpointList);
     Calendar current = Calendar.getInstance();
     current.setTime(fromTime);
     if (isStart) {
@@ -201,7 +201,7 @@ public class TestUtil {
         }
         current.add(Calendar.MINUTE, 1);
       }
-    } else
+    } else {
       if (file != null) {
         int minute = current.get(Calendar.MINUTE);
         expectedDeltaPck.put(Integer.valueOf(minute), new PartitionCheckpoint(
