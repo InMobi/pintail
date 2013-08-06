@@ -316,6 +316,8 @@ public class DatabusStreamWaitingReader
     Message line = readNextLine();
     if (!createdDeltaCheckpointForFirstFile) {
       buildStartPartitionCheckpoints();
+      setDeltaCheckpoint(buildTimestamp, getDateFromStreamDir(streamDir,
+          getCurrentFile()));
       createdDeltaCheckpointForFirstFile = true;
     }
     while (line == null) { // reached end of file

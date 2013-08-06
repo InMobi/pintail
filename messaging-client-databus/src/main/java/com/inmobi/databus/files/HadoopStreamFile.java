@@ -10,6 +10,7 @@ import org.apache.hadoop.fs.Path;
 
 public class HadoopStreamFile implements StreamFile {
 
+  //fileName can be null
   private String fileName;
   private Path parent;
   //file creation time
