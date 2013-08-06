@@ -81,6 +81,7 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
           stopTime);
       LOG.debug("Created partition " + id);
       readers.put(id, reader);
+      messageConsumedMap.put(id, false);
     }
   }
 

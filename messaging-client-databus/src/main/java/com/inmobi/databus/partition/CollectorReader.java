@@ -249,4 +249,9 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   public boolean shouldBeClosed() {
     return shouldBeClosed;
   }
+
+  @Override
+  public boolean buildStartPartitionCheckpoints() {
+    return false;
+  }
 }
