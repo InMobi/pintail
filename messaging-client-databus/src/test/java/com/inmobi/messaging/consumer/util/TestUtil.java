@@ -186,10 +186,11 @@ public class TestUtil {
     Calendar current = Calendar.getInstance();
     current.setTime(fromTime);
     int lineNum;
-    if (isFileCompleted)
+    if (isFileCompleted) {
       lineNum = -1;
-    else
+    } else {
       lineNum = 0;
+    }
     if(isStart) {
       Calendar hourCal = Calendar.getInstance();
       hourCal.setTime(fromTime);
