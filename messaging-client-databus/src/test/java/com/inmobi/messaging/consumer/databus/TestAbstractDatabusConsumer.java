@@ -31,6 +31,20 @@ public abstract class TestAbstractDatabusConsumer {
   Path[] rootDirs;
   protected final String relativeStartTime = "30";
   Configuration conf;
+  protected String ck1;
+  protected String ck2;
+  protected String ck3;
+  protected String ck4;
+  protected String ck5;
+  protected String ck6;
+  protected String ck7;
+  protected String ck8;
+  protected String ck9;
+  protected String ck10;
+  protected String ck11;
+  protected String ck12;
+  protected String ck13;
+    protected String chkpointPathPrefix;
 
   public void setup(int numFileToMove) throws Exception {
 
@@ -44,6 +58,8 @@ public abstract class TestAbstractDatabusConsumer {
     // setup stream, collector dirs and data files
     Set<String> sourceNames = new HashSet<String>();
     sourceNames.add(testStream);
+    chkpointPathPrefix = config.getString(
+            DatabusConsumerConfig.checkpointDirConfig);
 
     rootDirs = testConsumer.getRootDirs();
     for (int i = 0; i < rootDirs.length; i++) {
@@ -74,6 +90,22 @@ public abstract class TestAbstractDatabusConsumer {
       }
     }
   }
+
+    private void setUpCheckpointPaths() {
+        ck1 = new Path(chkpointPathPrefix, "checkpoint1").toString();
+        ck2 = new Path(chkpointPathPrefix, "checkpoint2").toString();
+        ck3 = new Path(chkpointPathPrefix, "checkpoint3").toString();
+        ck4 = new Path(chkpointPathPrefix, "checkpoint4").toString();
+        ck5 = new Path(chkpointPathPrefix, "checkpoint5").toString();
+        ck6 = new Path(chkpointPathPrefix, "checkpoint6").toString();
+        ck7 = new Path(chkpointPathPrefix, "checkpoint7").toString();
+        ck8 = new Path(chkpointPathPrefix, "checkpoint8").toString();
+        ck9 = new Path(chkpointPathPrefix, "checkpoint9").toString();
+        ck10 = new Path(chkpointPathPrefix, "checkpoint10").toString();
+        ck11 = new Path(chkpointPathPrefix, "checkpoint11").toString();
+        ck12 = new Path(chkpointPathPrefix, "checkpoint12").toString();
+        ck13 = new Path(chkpointPathPrefix, "checkpoint13").toString();
+    }
 
 	protected DatabusConsumer getConsumerInstance() {
 	  return new DatabusConsumer();

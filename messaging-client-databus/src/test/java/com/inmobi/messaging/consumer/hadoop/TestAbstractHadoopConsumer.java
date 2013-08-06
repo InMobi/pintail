@@ -53,8 +53,6 @@ public abstract class TestAbstractHadoopConsumer {
   protected String[] suffixDirs;
   protected String consumerName;
   protected Path[] rootDirs;
-  protected String[] chkDirs = new String[]{ck1, ck2, ck3, ck4, ck5, ck6, ck7,
-      ck8, ck9, ck10, ck11, ck12, ck13, ck14, ck15, ck16, ck17, ck18};
   Path[][] finalPaths;
   Configuration conf;
   protected final String relativeStartTime = "30";
@@ -85,7 +83,7 @@ public abstract class TestAbstractHadoopConsumer {
   }
 
     private void setUpCheckpointPaths() {
-        ck1 = new Path(chkpointPathPrefix, "checkpoint1").toString();
+      ck1 = new Path(chkpointPathPrefix, "checkpoint1").toString();
         ck2 = new Path(chkpointPathPrefix, "checkpoint2").toString();
         ck3 = new Path(chkpointPathPrefix, "checkpoint3").toString();
         ck4 = new Path(chkpointPathPrefix, "checkpoint4").toString();
@@ -347,6 +345,6 @@ public abstract class TestAbstractHadoopConsumer {
         LOG.debug("Cleaning up the dir: " + rootDir.getParent());
         lfs.delete(rootDir.getParent(), true);
       }
-        lfs.delete(new Path(chkpointPathPrefix).getParent(), true);
+      lfs.delete(new Path(chkpointPathPrefix).getParent(), true);
   }
 }

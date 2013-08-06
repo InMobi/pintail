@@ -44,6 +44,7 @@ public class TestConsumerPartitionRetention {
   protected Path[] rootDirs;
   Path [][] finalPaths;
   Configuration conf;
+  private String chkpointPath;
 
   @BeforeTest
   public void setup() throws Exception {
@@ -52,7 +53,7 @@ public class TestConsumerPartitionRetention {
     firstConsumedMessages = new ArrayList<String>();
     secondConsumedMessages = new ArrayList<String>();
     createFiles(consumer);
-
+    chkpointPath = config.getString(HadoopConsumerConfig.checkpointDirConfig);
     consumer = new HadoopConsumer();
     secondConsumer = new HadoopConsumer();
   }
@@ -115,6 +116,7 @@ public class TestConsumerPartitionRetention {
       LOG.debug("Cleaning Up the dir: " + rootDir.getParent());
       lfs.delete(rootDir.getParent(), true);
     }
+    lfs.delete(new Path(chkpointPath), true);
   }
 
   private static String getMessage(byte[] array) throws IOException {

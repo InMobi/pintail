@@ -49,10 +49,8 @@ public class TestDatabusConsumerWithFailover extends
         relativeStartTime);
     config2.set(DatabusConsumerConfig.databusRootDirsConfig,
         rootDirs[1].toString());
-    config1.set(DatabusConsumerConfig.checkpointDirConfig,
-        rootDirs[0].toString() + "/databustest5/checkpoint1");
-    config2.set(DatabusConsumerConfig.checkpointDirConfig,
-        rootDirs[0].toString() + "/databustest5/checkpoint1");
+    config1.set(DatabusConsumerConfig.checkpointDirConfig, ck1);
+    config2.set(DatabusConsumerConfig.checkpointDirConfig, ck1);
     config1.set(DatabusConsumerConfig.databusStreamType,
         StreamType.LOCAL.name());
     config2.set(DatabusConsumerConfig.databusStreamType,
@@ -71,10 +69,8 @@ public class TestDatabusConsumerWithFailover extends
         relativeStartTime);
     config2.set(DatabusConsumerConfig.databusRootDirsConfig,
         rootDirs[1].toString());
-    config1.set(DatabusConsumerConfig.checkpointDirConfig,
-        rootDirs[0].toString() + "/databustest6/checkpoint1");
-    config2.set(DatabusConsumerConfig.checkpointDirConfig,
-        rootDirs[0].toString() + "/databustest6/checkpoint1");
+    config1.set(DatabusConsumerConfig.checkpointDirConfig, ck2);
+    config2.set(DatabusConsumerConfig.checkpointDirConfig, ck2);
     config1.set(DatabusConsumerConfig.databusStreamType,
         StreamType.MERGED.name());
     config2.set(DatabusConsumerConfig.databusStreamType,

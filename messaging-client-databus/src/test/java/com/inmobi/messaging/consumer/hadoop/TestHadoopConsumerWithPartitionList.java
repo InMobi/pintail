@@ -38,7 +38,8 @@ public class TestHadoopConsumerWithPartitionList  {
   Configuration conf;
   ClientConfig firstConsumerConfig;
   ClientConfig secondConsuemrConfig;
-  protected String ck8;
+  protected String ck1;
+  private String chkpointPathPrefix;
 
   boolean hadoop = true;
 
@@ -48,8 +49,9 @@ public class TestHadoopConsumerWithPartitionList  {
     secondConsuemrConfig = ClientConfig.loadFromClasspath(secondConfFile);
 
     createFiles(consumer);
-
-    ck8 = "/tmp/test/hadoop/consumergroup/checkpoint";
+    chkpointPathPrefix = firstConsumerConfig.getString(
+            HadoopConsumerConfig.checkpointDirConfig);
+    ck1 = new Path(chkpointPathPrefix, "checkpoint1").toString();
     consumer = new HadoopConsumer();
     secondConsumer = new HadoopConsumer();
   }
@@ -80,10 +82,10 @@ public class TestHadoopConsumerWithPartitionList  {
     firstConsumerConfig.set(HadoopConsumerConfig.rootDirsConfig,
         rootDirs[1].toString());
     firstConsumerConfig.set(HadoopConsumerConfig.checkpointDirConfig,
-        ck8);
+            ck1);
     secondConsuemrConfig.set(HadoopConsumerConfig.rootDirsConfig,
         rootDirs[1].toString());
-    secondConsuemrConfig.set(HadoopConsumerConfig.checkpointDirConfig, ck8);
+    secondConsuemrConfig.set(HadoopConsumerConfig.checkpointDirConfig, ck1);
     ConsumerUtil.testConsumerMarkAndResetWithStartTime(firstConsumerConfig,
         secondConsuemrConfig, streamName, consumerName,
         DatabusStreamWaitingReader.getDateFromStreamDir(
@@ -98,6 +100,6 @@ public class TestHadoopConsumerWithPartitionList  {
       lfs.delete(rootDir.getParent(), true);
     }
     // delete checkpoint dir
-    lfs.delete(new Path(ck8), true);
+    lfs.delete(new Path(ck1), true);
   }
 }
