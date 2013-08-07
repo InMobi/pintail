@@ -128,6 +128,8 @@ public abstract class TestAbstractDatabusConsumer {
       LOG.debug("Cleaning up the dir: " + p);
       fs.delete(p, true);
     }
+    FileSystem lfs = new Path(chkpointPathPrefix).getFileSystem(conf);
+    lfs.delete(new Path(chkpointPathPrefix).getParent(), true);
   }
 
 }

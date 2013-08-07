@@ -116,7 +116,7 @@ public class TestConsumerPartitionRetention {
       LOG.debug("Cleaning Up the dir: " + rootDir.getParent());
       lfs.delete(rootDir.getParent(), true);
     }
-    lfs.delete(new Path(chkpointPath), true);
+    lfs.delete(new Path(chkpointPath).getParent(), true);
   }
 
   private static String getMessage(byte[] array) throws IOException {

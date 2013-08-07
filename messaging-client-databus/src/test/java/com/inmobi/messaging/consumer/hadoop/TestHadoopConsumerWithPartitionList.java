@@ -100,6 +100,6 @@ public class TestHadoopConsumerWithPartitionList  {
       lfs.delete(rootDir.getParent(), true);
     }
     // delete checkpoint dir
-    lfs.delete(new Path(ck1), true);
+    lfs.delete(new Path(ck1).getParent(), true);
   }
 }
