@@ -423,4 +423,18 @@ public class TestUtil {
     cal.add(Calendar.MINUTE, increment);
     return cal.getTime();
   }
+
+  public static String getConfiguredRootDir(InputStream inputStream,
+      String defaultProfileName) {
+    Properties properties = new Properties();
+    String profileName = defaultProfileName;
+    try {
+      properties.load(inputStream);
+      profileName = properties.getProperty("test.root.dir");
+    } catch (Exception e) {
+      LOG.info("could not get configured test root dir", e);
+    } finally {
+      return profileName;
+    }
+  }
 }
