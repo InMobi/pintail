@@ -74,7 +74,6 @@ public class TestConsumerPartitionStartTime {
     Assert.assertEquals(conf.get("myhadoop.property"), "myvalue");
 
     rootDirs = consumer.getRootDirs();
-    LOG.info("number of root dirs   "+ rootDirs.length);
     numSuffixDirs = suffixDirs != null ? suffixDirs.length : 1;
     numDataFiles = dataFiles != null ? dataFiles.length : 1;
     finalPaths = new Path[rootDirs.length][numSuffixDirs * numDataFiles];
