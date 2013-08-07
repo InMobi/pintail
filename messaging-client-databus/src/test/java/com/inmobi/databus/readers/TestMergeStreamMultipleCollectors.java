@@ -1,6 +1,7 @@
 package com.inmobi.databus.readers;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -42,9 +43,13 @@ public class TestMergeStreamMultipleCollectors {
   Map<Integer, PartitionCheckpoint> chkPoints;
   int conusmerNumber;
   String fsUri;
+  private String testRootDir;
 
   @BeforeTest
   public void setup() throws Exception {
+    InputStream inputStream = this.getClass().getClassLoader().
+        getResourceAsStream("rootdir.properties");
+    testRootDir = TestUtil.getConfiguredRootDir(inputStream, "/tmp/test/");
     conusmerNumber = 1;
     // initialize config
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),

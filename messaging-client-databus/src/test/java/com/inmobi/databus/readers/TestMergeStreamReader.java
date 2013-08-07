@@ -23,6 +23,7 @@ public class TestMergeStreamReader extends TestAbstractDatabusWaitingReader{
 
   @BeforeTest
   public void setup() throws Exception {
+    super.setUp();
     consumerNumber = 1;
     // initialize config
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
