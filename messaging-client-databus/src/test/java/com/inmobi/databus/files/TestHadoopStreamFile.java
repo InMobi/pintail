@@ -1,6 +1,7 @@
 package com.inmobi.databus.files;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.TreeMap;
 
 import org.apache.hadoop.conf.Configuration;
@@ -11,14 +12,20 @@ import org.testng.Assert;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.Test;
 
+import com.inmobi.messaging.consumer.util.TestUtil;
+
 public class TestHadoopStreamFile {
 
-  protected Path rootDir = new Path("/tmp/test/hadoop/",
-      this.getClass().getSimpleName());
+  protected Path rootDir;
   FileSystem fs;
+  private String testRootDir;
 
   @Test
   public void testHadoopStreamFile() throws IOException {
+    InputStream inputStream = this.getClass().getClassLoader().
+        getResourceAsStream("rootdir.properties");
+    testRootDir = TestUtil.getConfiguredRootDir(inputStream, "/tmp/test");
+    rootDir = new Path(testRootDir, this.getClass().getSimpleName());
     fs = FileSystem.getLocal(new Configuration());
     Path p1 = new Path(rootDir, "2012/12/12/12/11");
     Path p2 = new Path(rootDir, "2012/12/12/12/12");
