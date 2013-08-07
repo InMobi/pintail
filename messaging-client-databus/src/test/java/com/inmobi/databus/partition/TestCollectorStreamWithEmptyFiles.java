@@ -1,6 +1,7 @@
 package com.inmobi.databus.partition;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.hadoop.conf.Configuration;
@@ -39,9 +40,13 @@ public class TestCollectorStreamWithEmptyFiles {
   private FileSystem fs;
   int consumerNumber;
   String fsUri;
+  private String testRootDir;
 
   @BeforeTest
   public void setup() throws Exception {
+    InputStream inputStream = this.getClass().getClassLoader().
+        getResourceAsStream("rootdir.properties");
+    testRootDir = TestUtil.getConfiguredRootDir(inputStream, "/tmp/test");
     // setup cluster
     consumerNumber = 1;
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),

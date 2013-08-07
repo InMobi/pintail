@@ -1,6 +1,7 @@
 package com.inmobi.databus.partition;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,6 +15,7 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import com.inmobi.databus.files.HadoopStreamFile;
+import com.inmobi.messaging.consumer.util.TestUtil;
 
 public class TestLeastCheckpoint {
   
@@ -21,6 +23,7 @@ public class TestLeastCheckpoint {
   Map<Integer, PartitionCheckpoint> chkPoints;
   PartitionCheckpoint expectedLeastPck;
   protected Path rootDir;
+  private String testRootDir;
 
   public TestLeastCheckpoint() {
 
@@ -28,8 +31,11 @@ public class TestLeastCheckpoint {
 
   @BeforeTest
   public void setup() throws Exception {
+    InputStream inputStream = this.getClass().getClassLoader().
+        getResourceAsStream("rootdir.properties");
+    testRootDir = TestUtil.getConfiguredRootDir(inputStream, "/tmp/test/");
     fs =  FileSystem.getLocal(new Configuration());
-    rootDir = new Path("/tmp/test/hadoop/", this.getClass().getSimpleName());
+    rootDir = new Path(testRootDir, this.getClass().getSimpleName());
     chkPoints = new HashMap<Integer, PartitionCheckpoint>();
     createCheckpointList();
   }

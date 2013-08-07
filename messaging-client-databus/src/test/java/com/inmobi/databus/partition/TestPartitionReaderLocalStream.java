@@ -21,6 +21,7 @@ public class TestPartitionReaderLocalStream extends TestAbstractClusterReader {
   Cluster cluster;
   @BeforeTest
   public void setup() throws Exception {
+    super.setup();
     consumerNumber = 1;
     // setup cluster
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),

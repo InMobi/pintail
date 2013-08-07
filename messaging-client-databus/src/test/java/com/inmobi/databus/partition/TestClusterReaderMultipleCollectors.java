@@ -1,6 +1,7 @@
 package com.inmobi.databus.partition;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -52,9 +53,13 @@ public class TestClusterReaderMultipleCollectors {
   Set<Integer> partitionMinList;
   PartitionCheckpointList partitionCheckpointList;
   int consumerNumber;
+  private String testRootDir;
 
   @BeforeTest
   public void setup() throws Exception {
+    InputStream inputStream = this.getClass().getClassLoader().
+        getResourceAsStream("rootdir.properties");
+    testRootDir = TestUtil.getConfiguredRootDir(inputStream, "/tmp/test");
     // initialize config
     consumerNumber = 1;
     fs = MiniClusterUtil.getDFSCluster(conf).getFileSystem();

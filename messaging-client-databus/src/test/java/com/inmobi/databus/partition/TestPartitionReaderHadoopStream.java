@@ -20,12 +20,13 @@ public class TestPartitionReaderHadoopStream extends TestAbstractClusterReader {
   static final Log LOG = LogFactory.getLog(TestPartitionReaderHadoopStream.class);
   @BeforeTest
   public void setup() throws Exception {
+    super.setup();
     consumerNumber = 1;
     // setup fs
     files = new String[] {HadoopUtil.files[1], HadoopUtil.files[3],
         HadoopUtil.files[5]};
     fs = FileSystem.getLocal(conf);
-    streamDir = new Path("/tmp/test/hadoop/" + this.getClass().getSimpleName(),
+    streamDir = new Path(new Path(testRootDir, this.getClass().getSimpleName()),
         testStream).makeQualified(fs);
     HadoopUtil.setupHadoopCluster(conf, files, null, databusFiles, streamDir, false);
     inputFormatClass = SequenceFileInputFormat.class.getName();

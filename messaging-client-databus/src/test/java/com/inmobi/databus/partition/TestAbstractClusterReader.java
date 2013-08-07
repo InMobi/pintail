@@ -1,6 +1,7 @@
 package com.inmobi.databus.partition;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -42,6 +43,7 @@ public abstract class TestAbstractClusterReader {
   PartitionCheckpointList partitionCheckpointList;
   Map<Integer, PartitionCheckpoint> pchkPoints;
   int consumerNumber;
+  protected String testRootDir;
 
   protected String[] files = new String[] {TestUtil.files[1], TestUtil.files[3],
       TestUtil.files[5]};
@@ -52,6 +54,12 @@ public abstract class TestAbstractClusterReader {
   Path streamDir;
   Configuration conf = new Configuration();
   String inputFormatClass;
+
+  public void setup() throws Exception {
+    InputStream inputStream = this.getClass().getClassLoader().
+        getResourceAsStream("rootdir.properties");
+    testRootDir = TestUtil.getConfiguredRootDir(inputStream, "/tmp/test/");
+  }
 
   public void cleanup() throws IOException {
     LOG.debug("Cleaning up the dir: " + streamDir.getParent());

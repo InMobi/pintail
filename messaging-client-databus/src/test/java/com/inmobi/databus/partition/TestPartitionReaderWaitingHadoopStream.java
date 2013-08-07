@@ -23,6 +23,7 @@ public class TestPartitionReaderWaitingHadoopStream extends
       TestPartitionReaderWaitingHadoopStream.class);
   @BeforeMethod
   public void setup() throws Exception {
+    super.setup();
     consumerNumber = 1;
     conf = new Configuration();
     files = new String[] {HadoopUtil.files[1],
@@ -31,7 +32,7 @@ public class TestPartitionReaderWaitingHadoopStream extends
         HadoopUtil.files[7], HadoopUtil.files[8] };
     // setup fs
     fs = FileSystem.getLocal(conf);
-    streamDir = new Path("/tmp/test/hadoop/" + this.getClass().getSimpleName(),
+    streamDir = new Path(new Path(testRootDir, this.getClass().getSimpleName()),
         testStream).makeQualified(fs);
     HadoopUtil.setupHadoopCluster(conf, files, null, databusFiles, streamDir, false);
     inputFormatClass = SequenceFileInputFormat.class.getName();

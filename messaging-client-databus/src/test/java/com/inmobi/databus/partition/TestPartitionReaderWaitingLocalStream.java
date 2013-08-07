@@ -21,6 +21,7 @@ public class TestPartitionReaderWaitingLocalStream
 
   @BeforeMethod
   public void setup() throws Exception {
+    super.setup();
     files = new String[] {TestUtil.files[1],
         TestUtil.files[3], TestUtil.files[5]};
     newFiles = new String[] {TestUtil.files[6],

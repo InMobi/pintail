@@ -1,6 +1,7 @@
 package com.inmobi.databus.partition;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
@@ -48,14 +49,18 @@ public class TestClusterReaderEmptyStream {
   String inputFormatClass;
   int consumerNumber;
   String fsUri;
+  private String testRootDir;
 
   @BeforeTest
   public void setup() throws Exception {
+    InputStream inputStream = this.getClass().getClassLoader().
+        getResourceAsStream("rootdir.properties");
+    testRootDir = TestUtil.getConfiguredRootDir(inputStream, "/tmp/test");
     // setup cluster
     consumerNumber = 1;
     fs = FileSystem.getLocal(conf);
     fsUri = fs.getUri().toString();
-    streamDir = new Path("/tmp/test/hadoop/" + this.getClass().getSimpleName(),
+    streamDir = new Path(new Path(testRootDir, this.getClass().getSimpleName()),
         testStream).makeQualified(fs);
     HadoopUtil.setupHadoopCluster(conf, null, null, null, streamDir, false);
     inputFormatClass = SequenceFileInputFormat.class.getName();

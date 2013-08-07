@@ -1,6 +1,7 @@
 package com.inmobi.databus.partition;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.codec.binary.Base64;
@@ -45,6 +46,7 @@ public class TestCurrentFile {
   private Path streamsLocalDir;
   int consumerNumber;
   String fsUri;
+  private String testRootDir;
 
 
   private void writeMessages(FSDataOutputStream out, int num)
@@ -66,6 +68,9 @@ public class TestCurrentFile {
 
   @BeforeTest
   public void setup() throws Exception {
+    InputStream inputStream = this.getClass().getClassLoader().
+        getResourceAsStream("rootdir.properties");
+    testRootDir = TestUtil.getConfiguredRootDir(inputStream, "/tmp/test");
     consumerNumber = 1;
     cluster = TestUtil.setupDFSCluster(this.getClass().getSimpleName(),
         testStream, partitionId,
