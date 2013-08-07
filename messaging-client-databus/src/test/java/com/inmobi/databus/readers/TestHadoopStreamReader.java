@@ -29,7 +29,7 @@ public class TestHadoopStreamReader extends TestAbstractDatabusWaitingReader {
         HadoopUtil.files[5]};
     conf = new Configuration();
     fs = FileSystem.getLocal(conf);
-    streamDir = new Path("/tmp/test/hadoop/" + this.getClass().getSimpleName(),
+    streamDir = new Path(new Path(testRootDir, this.getClass().getSimpleName()),
         testStream).makeQualified(fs);
     // initialize config
     HadoopUtil.setupHadoopCluster(conf, files, null, finalFiles, streamDir, false);

@@ -75,7 +75,7 @@ public class TestCurrentFile {
     cluster = TestUtil.setupDFSCluster(this.getClass().getSimpleName(),
         testStream, partitionId,
         MiniClusterUtil.getDFSCluster(conf).getFileSystem().getUri().toString(),
-        null, null, 0);
+        null, null, 0, testRootDir);
     collectorDir = DatabusUtil.getCollectorStreamDir(
         new Path(cluster.getRootDir()), testStream,
         collectorName);

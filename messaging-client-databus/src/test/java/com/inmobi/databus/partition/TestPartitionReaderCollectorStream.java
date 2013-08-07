@@ -59,7 +59,7 @@ public class TestPartitionReaderCollectorStream {
     consumerNUmber = 1;
     // setup cluster
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
-        testStream, partitionId, files, null, 0);
+        testStream, partitionId, files, null, 0, testRootDir);
     collectorDir = DatabusUtil.getCollectorStreamDir(
         new Path(cluster.getRootDir()), testStream,
         collectorName);

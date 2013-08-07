@@ -242,27 +242,27 @@ public class TestUtil {
   public static Cluster setupLocalCluster(String className, String testStream,
       PartitionId pid, String[] collectorFiles,
       String[] emptyFiles, Path[] databusFiles,
-      int numFilesToMoveToStreamLocal) throws Exception {
+      int numFilesToMoveToStreamLocal, String testRootDir) throws Exception {
     return setupCluster(className, testStream, pid, "file:///", collectorFiles,
-        emptyFiles, databusFiles, numFilesToMoveToStreamLocal, 0);
+        emptyFiles, databusFiles, numFilesToMoveToStreamLocal, 0, testRootDir);
   }
 
   public static Cluster setupLocalCluster(String className, String testStream,
       PartitionId pid, String[] collectorFiles,
       String[] emptyFiles,
-      int numFilesToMoveToStreamLocal) throws Exception {
+      int numFilesToMoveToStreamLocal, String testRootDir) throws Exception {
     return setupCluster(className, testStream, pid, "file:///", collectorFiles,
-        emptyFiles, null, numFilesToMoveToStreamLocal, 0);
+        emptyFiles, null, numFilesToMoveToStreamLocal, 0, testRootDir);
   }
 
   public static Cluster setupLocalCluster(String className, String testStream,
       PartitionId pid, String[] collectorFiles,
       String[] emptyFiles, Path[] databusFiles,
-      int numFilesToMoveToStreamLocal, int numFilesToMoveToStreams)
+      int numFilesToMoveToStreamLocal, int numFilesToMoveToStreams, String testRootDir)
           throws Exception {
     return setupCluster(className, testStream, pid, "file:///", collectorFiles,
         emptyFiles, databusFiles, numFilesToMoveToStreamLocal,
-        numFilesToMoveToStreams);
+        numFilesToMoveToStreams, testRootDir);
   }
 
   public static Path getCollectorDir(Cluster cluster, String streamName,
@@ -274,7 +274,8 @@ public class TestUtil {
   private static Cluster setupCluster(String className, String testStream,
       PartitionId pid, String hdfsUrl, String[] collectorFiles,
       String[] emptyFiles, Path[] databusFiles,
-      int numFilesToMoveToStreamLocal, int numFilesToMoveToStreams)
+      int numFilesToMoveToStreamLocal, int numFilesToMoveToStreams,
+      String testRootDir)
           throws Exception {
     Set<String> sourceNames = new HashSet<String>();
     sourceNames.add(testStream);
@@ -285,7 +286,7 @@ public class TestUtil {
     clusterConf.put("jobqueuename", "default");
     
     Cluster cluster = new Cluster(clusterConf,
-        "/tmp/test/databus/" + className,
+        new Path(testRootDir, className).toString(),
          null, sourceNames);
 
     // setup stream and collector dirs
@@ -357,18 +358,20 @@ public class TestUtil {
   public static Cluster setupDFSCluster(String className, String testStream,
       PartitionId pid, String hdfsUrl, String[] collectorFiles,
       String[] emptyFiles, Path[] databusFiles,
-      int numFilesToMoveToStreamLocal, int numFilesToMoveToStreams)
+      int numFilesToMoveToStreamLocal, int numFilesToMoveToStreams,
+      String testRootDir)
           throws Exception {
     return setupCluster(className, testStream, pid, hdfsUrl, collectorFiles,
         emptyFiles, databusFiles, numFilesToMoveToStreamLocal,
-        numFilesToMoveToStreams);
+        numFilesToMoveToStreams, testRootDir);
   }
 
   public static Cluster setupDFSCluster(String className, String testStream,
       PartitionId pid, String hdfsUrl, String[] collectorFiles,
-      String[] emptyFiles, int numFilesToMoveToStreamLocal) throws Exception {
+      String[] emptyFiles, int numFilesToMoveToStreamLocal,
+      String testRootDir) throws Exception {
     return setupDFSCluster(className, testStream, pid, hdfsUrl, collectorFiles,
-        emptyFiles, null, numFilesToMoveToStreamLocal, 0);
+        emptyFiles, null, numFilesToMoveToStreamLocal, 0, testRootDir);
   }
 
   public static void cleanupCluster(Cluster cluster) throws IOException {

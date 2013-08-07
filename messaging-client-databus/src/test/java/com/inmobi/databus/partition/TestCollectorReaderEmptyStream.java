@@ -52,7 +52,7 @@ public class TestCollectorReaderEmptyStream {
     // setup cluster
   	consumerNumber = 1;
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
-        testStream, partitionId, null, null, 0);
+        testStream, partitionId, null, null, 0, testRootDir);
     collectorDir = DatabusUtil.getCollectorStreamDir(
         new Path(cluster.getRootDir()), testStream,
         collectorName);

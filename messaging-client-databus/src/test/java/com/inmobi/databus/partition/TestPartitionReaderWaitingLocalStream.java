@@ -30,7 +30,7 @@ public class TestPartitionReaderWaitingLocalStream
     // setup cluster
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
         testStream, new PartitionId(clusterName, collectorName), files, null,
-        databusFiles, 3, 0);
+        databusFiles, 3, 0, testRootDir);
     conf = cluster.getHadoopConf();
     fs = FileSystem.get(conf);
     streamDir = DatabusUtil.getStreamDir(StreamType.LOCAL,

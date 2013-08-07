@@ -55,7 +55,7 @@ public class TestPartitionReaderMovingFilesWithStopTime {
     // setup cluster
     consumerNumber = 1;
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
-        testStream, partitionId, files, null, databusFiles, 4);
+        testStream, partitionId, files, null, databusFiles, 4, testRootDir);
     collectorDir = DatabusUtil.getCollectorStreamDir(
         new Path(cluster.getRootDir()), testStream,
         collectorName);
