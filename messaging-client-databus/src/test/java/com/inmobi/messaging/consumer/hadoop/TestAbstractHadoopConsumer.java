@@ -79,29 +79,29 @@ public abstract class TestAbstractHadoopConsumer {
           finalPaths[i], rootDirs[i], true, createFilesInNextHour);
     }
     HadoopUtil.setUpHadoopFiles(rootDirs[0], conf,
-      new String[]{"_SUCCESS", "_DONE"}, suffixDirs, null);
+        new String[]{"_SUCCESS", "_DONE"}, suffixDirs, null);
   }
 
-    private void setUpCheckpointPaths() {
-      ck1 = new Path(chkpointPathPrefix, "checkpoint1").toString();
-        ck2 = new Path(chkpointPathPrefix, "checkpoint2").toString();
-        ck3 = new Path(chkpointPathPrefix, "checkpoint3").toString();
-        ck4 = new Path(chkpointPathPrefix, "checkpoint4").toString();
-        ck5 = new Path(chkpointPathPrefix, "checkpoint5").toString();
-        ck6 = new Path(chkpointPathPrefix, "checkpoint6").toString();
-        ck7 = new Path(chkpointPathPrefix, "checkpoint7").toString();
-        ck8 = new Path(chkpointPathPrefix, "checkpoint8").toString();
-        ck9 = new Path(chkpointPathPrefix, "checkpoint9").toString();
-        ck10 = new Path(chkpointPathPrefix, "checkpoint10").toString();
-        ck11 = new Path(chkpointPathPrefix, "checkpoint11").toString();
-        ck12 = new Path(chkpointPathPrefix, "checkpoint12").toString();
-        ck13 = new Path(chkpointPathPrefix, "checkpoint13").toString();
-        ck14 = new Path(chkpointPathPrefix, "checkpoint14").toString();
-        ck15 = new Path(chkpointPathPrefix, "checkpoint15").toString();
-        ck16 = new Path(chkpointPathPrefix, "checkpoint16").toString();
-        ck17 = new Path(chkpointPathPrefix, "checkpoint17").toString();
-        ck18 = new Path(chkpointPathPrefix, "checkpoint18").toString();
-    }
+  private void setUpCheckpointPaths() {
+    ck1 = new Path(chkpointPathPrefix, "checkpoint1").toString();
+    ck2 = new Path(chkpointPathPrefix, "checkpoint2").toString();
+    ck3 = new Path(chkpointPathPrefix, "checkpoint3").toString();
+    ck4 = new Path(chkpointPathPrefix, "checkpoint4").toString();
+    ck5 = new Path(chkpointPathPrefix, "checkpoint5").toString();
+    ck6 = new Path(chkpointPathPrefix, "checkpoint6").toString();
+    ck7 = new Path(chkpointPathPrefix, "checkpoint7").toString();
+    ck8 = new Path(chkpointPathPrefix, "checkpoint8").toString();
+    ck9 = new Path(chkpointPathPrefix, "checkpoint9").toString();
+    ck10 = new Path(chkpointPathPrefix, "checkpoint10").toString();
+    ck11 = new Path(chkpointPathPrefix, "checkpoint11").toString();
+    ck12 = new Path(chkpointPathPrefix, "checkpoint12").toString();
+    ck13 = new Path(chkpointPathPrefix, "checkpoint13").toString();
+    ck14 = new Path(chkpointPathPrefix, "checkpoint14").toString();
+    ck15 = new Path(chkpointPathPrefix, "checkpoint15").toString();
+    ck16 = new Path(chkpointPathPrefix, "checkpoint16").toString();
+    ck17 = new Path(chkpointPathPrefix, "checkpoint17").toString();
+    ck18 = new Path(chkpointPathPrefix, "checkpoint18").toString();
+  }
 
   public void testMarkAndReset() throws Exception {
     ClientConfig config = loadConfig();
@@ -342,10 +342,10 @@ public abstract class TestAbstractHadoopConsumer {
 
   public void cleanup() throws IOException {
     FileSystem lfs = FileSystem.getLocal(conf);
-      for (Path rootDir : rootDirs) {
-        LOG.debug("Cleaning up the dir: " + rootDir.getParent());
-        lfs.delete(rootDir.getParent(), true);
-      }
-      lfs.delete(new Path(chkpointPathPrefix).getParent(), true);
+    for (Path rootDir : rootDirs) {
+      LOG.debug("Cleaning up the dir: " + rootDir.getParent());
+      lfs.delete(rootDir.getParent(), true);
+    }
+    lfs.delete(new Path(chkpointPathPrefix).getParent(), true);
   }
 }
