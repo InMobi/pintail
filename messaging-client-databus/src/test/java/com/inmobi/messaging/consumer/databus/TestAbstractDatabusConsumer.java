@@ -60,7 +60,7 @@ public abstract class TestAbstractDatabusConsumer {
     sourceNames.add(testStream);
     chkpointPathPrefix = config.getString(
             DatabusConsumerConfig.checkpointDirConfig);
-
+    setUpCheckpointPaths();
     rootDirs = testConsumer.getRootDirs();
     for (int i = 0; i < rootDirs.length; i++) {
       Map<String, String> clusterConf = new HashMap<String, String>();
