@@ -44,7 +44,7 @@ public abstract class TestAbstractDatabusConsumer {
   protected String ck11;
   protected String ck12;
   protected String ck13;
-    protected String chkpointPathPrefix;
+  protected String chkpointPathPrefix;
 
   public void setup(int numFileToMove) throws Exception {
 
@@ -59,7 +59,7 @@ public abstract class TestAbstractDatabusConsumer {
     Set<String> sourceNames = new HashSet<String>();
     sourceNames.add(testStream);
     chkpointPathPrefix = config.getString(
-            DatabusConsumerConfig.checkpointDirConfig);
+        DatabusConsumerConfig.checkpointDirConfig);
     setUpCheckpointPaths();
     rootDirs = testConsumer.getRootDirs();
     for (int i = 0; i < rootDirs.length; i++) {
@@ -115,7 +115,7 @@ public abstract class TestAbstractDatabusConsumer {
 
   void assertMessages(
       ClientConfig config, int numClusters, int numCollectors)
-      throws Exception {
+          throws Exception {
     ConsumerUtil.assertMessages(config, testStream, consumerName, numClusters,
         numCollectors,
         numDataFiles, 100, false);
