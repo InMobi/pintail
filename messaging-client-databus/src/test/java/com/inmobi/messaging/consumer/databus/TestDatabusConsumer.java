@@ -98,7 +98,7 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
     ConsumerUtil.testConsumerStartUp(config, testStream,
         consumerName, false,
         CollectorStreamReader.getDateFromCollectorFile(dataFiles[1]),
-        rootDirs[0]);
+        rootDirs[0], chkpointPathPrefix);
   }
 
   @Test

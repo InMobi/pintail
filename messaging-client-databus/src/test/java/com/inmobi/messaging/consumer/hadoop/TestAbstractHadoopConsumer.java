@@ -178,7 +178,8 @@ public abstract class TestAbstractHadoopConsumer {
         relativeStartTime);
     ConsumerUtil.testConsumerStartUp(config, testStream, consumerName, true,
         DatabusStreamWaitingReader.
-        getDateFromStreamDir(rootDirs[0], finalPaths[0][1]), rootDirs[0]);
+        getDateFromStreamDir(rootDirs[0], finalPaths[0][1]), rootDirs[0],
+        chkpointPathPrefix);
   }
 
   public void testConsumerWithConfiguredStartTime() throws Exception {

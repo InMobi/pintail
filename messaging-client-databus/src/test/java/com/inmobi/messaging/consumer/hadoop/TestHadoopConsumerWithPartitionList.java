@@ -38,8 +38,7 @@ public class TestHadoopConsumerWithPartitionList  {
   Configuration conf;
   ClientConfig firstConsumerConfig;
   ClientConfig secondConsuemrConfig;
-  protected String ck1;
-  private String chkpointPathPrefix;
+  private String ck1;
 
   boolean hadoop = true;
 
@@ -49,9 +48,8 @@ public class TestHadoopConsumerWithPartitionList  {
     secondConsuemrConfig = ClientConfig.loadFromClasspath(secondConfFile);
 
     createFiles(consumer);
-    chkpointPathPrefix = firstConsumerConfig.getString(
+    ck1 = firstConsumerConfig.getString(
             HadoopConsumerConfig.checkpointDirConfig);
-    ck1 = new Path(chkpointPathPrefix, "checkpoint1").toString();
     consumer = new HadoopConsumer();
     secondConsumer = new HadoopConsumer();
   }
@@ -81,8 +79,7 @@ public class TestHadoopConsumerWithPartitionList  {
   public void testConsumerMarkAndResetWithStartTime() throws Exception {
     firstConsumerConfig.set(HadoopConsumerConfig.rootDirsConfig,
         rootDirs[1].toString());
-    firstConsumerConfig.set(HadoopConsumerConfig.checkpointDirConfig,
-            ck1);
+    firstConsumerConfig.set(HadoopConsumerConfig.checkpointDirConfig, ck1);
     secondConsuemrConfig.set(HadoopConsumerConfig.rootDirsConfig,
         rootDirs[1].toString());
     secondConsuemrConfig.set(HadoopConsumerConfig.checkpointDirConfig, ck1);
