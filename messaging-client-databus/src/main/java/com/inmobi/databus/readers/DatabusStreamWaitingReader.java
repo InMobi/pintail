@@ -269,7 +269,7 @@ public class DatabusStreamWaitingReader
     Calendar cal = Calendar.getInstance();
     cal.setTime(from);
     while (cal.getTime().before(to)) {
-      Integer currentMinute = Integer.valueOf(cal.get(Calendar.MINUTE));
+      Integer currentMinute = cal.get(Calendar.MINUTE);
       Date checkpointedTimeStamp = checkpointTimeStampMap.get(currentMinute);
       if (partitionMinList.contains(currentMinute)) {
         // create a checkpoint for that minute only if it does not have
@@ -277,8 +277,8 @@ public class DatabusStreamWaitingReader
         // current file time stamp
         if (checkpointedTimeStamp == null
             || checkpointedTimeStamp.before(cal.getTime())) {
-          deltaCheckpoint.put(currentMinute,
-              new PartitionCheckpoint(getStreamFile(cal.getTime()), -1));
+          deltaCheckpoint.put(currentMinute, new PartitionCheckpoint
+              (getStreamFile(cal.getTime()), -1));
         }
       }
       cal.add(Calendar.MINUTE, 1);
@@ -315,6 +315,7 @@ public class DatabusStreamWaitingReader
   public Message readLine() throws IOException, InterruptedException {
     Message line = readNextLine();
     if (!createdDeltaCheckpointForFirstFile) {
+      buildStartPartitionCheckpoints();
       setDeltaCheckpoint(buildTimestamp, getDateFromStreamDir(streamDir,
           getCurrentFile()));
       createdDeltaCheckpointForFirstFile = true;
@@ -447,5 +448,27 @@ public class DatabusStreamWaitingReader
 
   public void resetDeltaCheckpoint() {
     deltaCheckpoint.clear();
+  }
+
+  public boolean buildStartPartitionCheckpoints() {
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(buildTimestamp);
+    cal.add(Calendar.MINUTE, 60);
+    Date to = cal.getTime();
+    cal.setTime(buildTimestamp);
+    while (cal.getTime().before(to)) {
+      Integer currentMinute = cal.get(Calendar.MINUTE);
+      Date checkpointedTimeStamp = checkpointTimeStampMap.get(currentMinute);
+      if (partitionMinList.contains(currentMinute)) {
+        // create a checkpoint for that minute only if it does not have
+        // checkpoint so that for no minute the checkpoint is null
+        if (checkpointedTimeStamp == null) {
+          deltaCheckpoint.put(currentMinute, new PartitionCheckpoint
+              (getStreamFile(cal.getTime()), 0));
+        }
+      }
+      cal.add(Calendar.MINUTE, 1);
+    }
+    return true;
   }
 }

@@ -244,4 +244,12 @@ public class PartitionReader {
   public PartitionReaderStatsExposer getStatsExposer() {
     return prMetrics;
   }
+
+  public MessageCheckpoint getMessageCheckpoint() {
+    return reader.getMessageCheckpoint();
+  }
+
+  public boolean buildStartPartitionCheckpoints() {
+    return reader.buildStartPartitionCheckpoints();
+  }
 }

@@ -4,6 +4,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import com.inmobi.databus.files.HadoopStreamFile;
 import org.apache.hadoop.io.Writable;
 
 import com.inmobi.databus.files.StreamFile;
@@ -24,6 +25,13 @@ public class PartitionCheckpoint implements Writable, MessageCheckpoint {
 
   public String getFileName() {
     return streamFile.toString();
+  }
+
+  public String getName() {
+    if ( streamFile instanceof HadoopStreamFile)
+      return ((HadoopStreamFile) streamFile).getFileName();
+    else
+      return getFileName();
   }
 
   public StreamFile getStreamFile() {

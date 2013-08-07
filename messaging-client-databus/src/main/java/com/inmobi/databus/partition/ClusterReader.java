@@ -94,9 +94,14 @@ public class ClusterReader extends AbstractPartitionStreamReader {
           DatabusStreamWaitingReader.getBuildTimestamp(streamDir,
               partitionCheckpoint));
       if (!reader.isEmpty()) {
-        // if the partition checkpoint is completed checkpoint
-        //(i.e. line number is -1) then it has to start from the next checkpoint.
-        if (partitionCheckpoint.getLineNum() == -1) {
+        /*
+        If the partition checkpoint is completed checkpoint (i.e. line
+        number is -1) or if it the filename of the checkpoint is null (
+        when the checkpointing was done partially or before a single
+        message was read) then it has to start from the next checkpoint.
+        */
+        if (partitionCheckpoint.getLineNum() == -1 || partitionCheckpoint
+            .getName() == null) {
           ((DatabusStreamWaitingReader) reader).initFromNextCheckPoint();
         } else if (!reader.initializeCurrentFile(partitionCheckpoint)) {
           throw new IllegalArgumentException("Checkpoint file does not exist");
@@ -133,5 +138,11 @@ public class ClusterReader extends AbstractPartitionStreamReader {
   @Override
   public boolean shouldBeClosed() {
     return false;
+  }
+
+  public boolean buildStartPartitionCheckpoints() {
+    DatabusStreamWaitingReader dataWaitingReader =
+        (DatabusStreamWaitingReader) reader;
+    return dataWaitingReader.buildStartPartitionCheckpoints();
   }
 }

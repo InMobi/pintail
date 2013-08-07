@@ -38,6 +38,9 @@ public abstract class AbstractMessagingDatabusConsumer
   protected final Map<PartitionId, PartitionReader> readers =
       new HashMap<PartitionId, PartitionReader>();
 
+  protected Map<PartitionId, Boolean> messageConsumedMap = new HashMap
+      <PartitionId, Boolean>();
+
   protected CheckpointProvider checkpointProvider;
   protected ConsumerCheckpoint currentCheckpoint;
   protected long waitTimeForFileCreate;
@@ -206,13 +209,23 @@ public abstract class AbstractMessagingDatabusConsumer
         checkClosedReaders();
       }
     }
+    setMessageConsumedEntry(entry);
     setMessageCheckpoint(entry);
     return (Message) entry.getMessage();
   }
 
+  private void setMessageConsumedEntry(QueueEntry entry) {
+    PartitionId id = entry.getPartitionId();
+    messageConsumedMap.put(id, true);
+  }
+
   private void setMessageCheckpoint(QueueEntry entry) {
     MessageCheckpoint msgchk = entry.getMessageChkpoint();
-    currentCheckpoint.set(entry.getPartitionId(), msgchk);
+    setMessageCheckpoint(entry.getPartitionId(), msgchk);
+  }
+
+  private void setMessageCheckpoint(PartitionId id, MessageCheckpoint msgchk) {
+    currentCheckpoint.set(id, msgchk);
   }
 
   /**
@@ -320,8 +333,23 @@ public abstract class AbstractMessagingDatabusConsumer
 
   @Override
   protected void doMark() throws IOException {
+    checkAndCreateCheckpoint();
     currentCheckpoint.write(checkpointProvider, getChkpointKey());
     LOG.info("Committed checkpoint:" + currentCheckpoint);
+  }
+
+  private void checkAndCreateCheckpoint() {
+    for (Map.Entry<PartitionId, Boolean> msgConsumedEntry : messageConsumedMap
+        .entrySet()) {
+      if (!msgConsumedEntry.getValue()) {
+        PartitionId id = msgConsumedEntry.getKey();
+        PartitionReader reader = readers.get(id);
+        if (reader.buildStartPartitionCheckpoints()) {
+          MessageCheckpoint msgChk = reader.getMessageCheckpoint();
+          setMessageCheckpoint(id, msgChk);
+        }
+      }
+    }
   }
 
   @Override
