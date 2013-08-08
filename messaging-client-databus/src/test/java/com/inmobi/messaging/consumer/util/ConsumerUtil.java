@@ -332,14 +332,14 @@ public class ConsumerUtil {
       config = ClientConfig.loadFromClasspath(
           MessageConsumerFactory.MESSAGE_CLIENT_CONF_FILE);
       config.set(DatabusConsumer.checkpointDirConfig,
-          new Path(chkpointPathPrefix, "databus").toString());
+          new Path(chkpointPathPrefix, "random-databus").toString());
       config.set(DatabusConsumerConfig.databusRootDirsConfig,
           rootDir.toUri().toString());
     } else {
       config = ClientConfig.loadFromClasspath(
           "messaging-consumer-hadoop-conf.properties");
       config.set(HadoopConsumer.checkpointDirConfig,
-          new Path(chkpointPathPrefix, "hadoop").toString());
+          new Path(chkpointPathPrefix, "random-hadoop").toString());
       config.set(HadoopConsumerConfig.rootDirsConfig,
           rootDir.toString());
     }
