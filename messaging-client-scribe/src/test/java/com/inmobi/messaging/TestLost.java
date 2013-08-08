@@ -55,13 +55,12 @@ public class TestLost {
   public void testAckQueueSize() throws Exception {
     NtMultiServer tserver = null;
     try {
-      int port = PortNumberUtil.getFreePortNumber(7946);
-      tserver = new NtMultiServer(new ScribeSlacker(), port);
+      tserver = new NtMultiServer(new ScribeSlacker(), 0);
       tserver.start();
 
       int timeoutSeconds = 2;
       // create publisher with msgqueue size 1
-      ScribeMessagePublisher mb = TestServerStarter.createPublisher(port,
+      ScribeMessagePublisher mb = TestServerStarter.createPublisher(0,
           timeoutSeconds, 1, true, true, 1, 1);
 
       String topic = "retry";
