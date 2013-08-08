@@ -55,7 +55,7 @@ public abstract class TestAbstractWaitingClusterReader {
   public void setup() throws Exception {
     InputStream inputStream = this.getClass().getClassLoader().
         getResourceAsStream("rootdir.properties");
-    testRootDir = TestUtil.getConfiguredRootDir(inputStream, "/tmp/test");
+    testRootDir = TestUtil.getConfiguredRootDir();
   }
 
   public void cleanup() throws IOException {

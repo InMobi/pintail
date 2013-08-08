@@ -24,7 +24,7 @@ public class TestHadoopStreamFile {
   public void testHadoopStreamFile() throws IOException {
     InputStream inputStream = this.getClass().getClassLoader().
         getResourceAsStream("rootdir.properties");
-    testRootDir = TestUtil.getConfiguredRootDir(inputStream, "/tmp/test");
+    testRootDir = TestUtil.getConfiguredRootDir();
     rootDir = new Path(testRootDir, this.getClass().getSimpleName());
     fs = FileSystem.getLocal(new Configuration());
     Path p1 = new Path(rootDir, "2012/12/12/12/11");

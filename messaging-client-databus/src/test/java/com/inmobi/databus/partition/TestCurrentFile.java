@@ -70,7 +70,7 @@ public class TestCurrentFile {
   public void setup() throws Exception {
     InputStream inputStream = this.getClass().getClassLoader().
         getResourceAsStream("rootdir.properties");
-    testRootDir = TestUtil.getConfiguredRootDir(inputStream, "/tmp/test");
+    testRootDir = TestUtil.getConfiguredRootDir();
     consumerNumber = 1;
     cluster = TestUtil.setupDFSCluster(this.getClass().getSimpleName(),
         testStream, partitionId,

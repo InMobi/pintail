@@ -45,7 +45,7 @@ public abstract class TestAbstractDatabusWaitingReader {
   public void setUp() throws IOException {
     InputStream inputStream = this.getClass().getClassLoader().
         getResourceAsStream("rootdir.properties");
-    testRootDir = TestUtil.getConfiguredRootDir(inputStream, "/tmp/test/");
+    testRootDir = TestUtil.getConfiguredRootDir();
   }
 
   abstract Path getStreamsDir();

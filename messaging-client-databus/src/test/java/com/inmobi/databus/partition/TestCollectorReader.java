@@ -60,7 +60,7 @@ public class TestCollectorReader {
   public void setup() throws Exception {
     InputStream inputStream = this.getClass().getClassLoader().
         getResourceAsStream("rootdir.properties");
-    testRootDir = TestUtil.getConfiguredRootDir(inputStream, "/tmp/test");
+    testRootDir = TestUtil.getConfiguredRootDir();
     // setup cluster
   	consumerNumber = 1;
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),

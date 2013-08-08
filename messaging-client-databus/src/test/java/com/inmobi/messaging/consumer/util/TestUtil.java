@@ -1,7 +1,6 @@
 package com.inmobi.messaging.consumer.util;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -463,16 +462,7 @@ public class TestUtil {
     return cal.getTime();
   }
 
-  public static String getConfiguredRootDir(InputStream inputStream,
-      String defaultRootDir) {
-    Properties properties = new Properties();
-    String configuredRootDir = defaultRootDir;
-    try {
-      properties.load(inputStream);
-      configuredRootDir = properties.getProperty("test.root.dir");
-    } catch (Exception e) {
-      LOG.info("could not get configured test root dir", e);
-    }
-    return configuredRootDir;
+  public static String getConfiguredRootDir() {
+    return System.getProperty("test.root.dir", "/tmp/test");
   }
 }

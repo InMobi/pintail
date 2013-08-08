@@ -33,7 +33,7 @@ public class TestLeastCheckpoint {
   public void setup() throws Exception {
     InputStream inputStream = this.getClass().getClassLoader().
         getResourceAsStream("rootdir.properties");
-    testRootDir = TestUtil.getConfiguredRootDir(inputStream, "/tmp/test/");
+    testRootDir = TestUtil.getConfiguredRootDir();
     fs =  FileSystem.getLocal(new Configuration());
     rootDir = new Path(testRootDir, this.getClass().getSimpleName());
     chkPoints = new HashMap<Integer, PartitionCheckpoint>();

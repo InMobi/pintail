@@ -47,7 +47,7 @@ public class TestCollectorReaderWithoutStreamsLocal {
   public void setup() throws Exception {
     InputStream inputStream = this.getClass().getClassLoader().
         getResourceAsStream("rootdir.properties");
-    testRootDir = TestUtil.getConfiguredRootDir(inputStream, "/tmp/test");
+    testRootDir = TestUtil.getConfiguredRootDir();
     // setup cluster
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
         testStream, partitionId, files, emptyfiles, databusFiles, 3, testRootDir);

@@ -179,6 +179,7 @@
           <argLine>-Djava.security.krb5.realm= -Djava.security.krb5.kdc=</argLine>
           <systemPropertyVariables>
             <test.build.data>${test.build.data}</test.build.data>
+            <test.root.dir>${test.root.dir}</test.root.dir>
           </systemPropertyVariables>
           <forkedProcessTimeoutInSeconds>600</forkedProcessTimeoutInSeconds>
         </configuration>
