@@ -36,15 +36,13 @@ public class TestCollectorStreamReader {
   private Configuration conf;
   int consumerNumber;
   String fsUri;
-  private String testRootDir;
 
   @BeforeTest
   public void setup() throws Exception {
-    testRootDir = TestUtil.getConfiguredRootDir();
     consumerNumber = 1;
     // setup cluster
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
-        testStream, partitionId, files, null, 0, testRootDir);
+        testStream, partitionId, files, null, 0, TestUtil.getConfiguredRootDir());
     collectorDir = new Path(new Path(cluster.getDataDir(), testStream),
         collectorName);
     conf = cluster.getHadoopConf();

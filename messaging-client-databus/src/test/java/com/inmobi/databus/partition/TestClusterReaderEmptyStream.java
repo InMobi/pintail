@@ -48,17 +48,15 @@ public class TestClusterReaderEmptyStream {
   String inputFormatClass;
   int consumerNumber;
   String fsUri;
-  private String testRootDir;
 
   @BeforeTest
   public void setup() throws Exception {
-    testRootDir = TestUtil.getConfiguredRootDir();
     // setup cluster
     consumerNumber = 1;
     fs = FileSystem.getLocal(conf);
     fsUri = fs.getUri().toString();
-    streamDir = new Path(new Path(testRootDir, this.getClass().getSimpleName()),
-        testStream).makeQualified(fs);
+    streamDir = new Path(new Path(TestUtil.getConfiguredRootDir(),
+        this.getClass().getSimpleName()),testStream).makeQualified(fs);
     HadoopUtil.setupHadoopCluster(conf, null, null, null, streamDir, false);
     inputFormatClass = SequenceFileInputFormat.class.getName();
     partitionMinList = new TreeSet<Integer>();

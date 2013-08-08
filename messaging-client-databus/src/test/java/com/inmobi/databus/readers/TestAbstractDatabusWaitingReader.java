@@ -39,11 +39,6 @@ public abstract class TestAbstractDatabusWaitingReader {
   public PartitionCheckpointList partitionCheckpointList;
   Map<Integer, PartitionCheckpoint> chkPoints;
   int consumerNumber;
-  protected String testRootDir;
-
-  public void setUp() throws IOException {
-    testRootDir = TestUtil.getConfiguredRootDir();
-  }
 
   abstract Path getStreamsDir();
 

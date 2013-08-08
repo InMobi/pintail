@@ -45,7 +45,6 @@ public class TestCurrentFile {
   private Path streamsLocalDir;
   int consumerNumber;
   String fsUri;
-  private String testRootDir;
 
 
   private void writeMessages(FSDataOutputStream out, int num)
@@ -67,12 +66,11 @@ public class TestCurrentFile {
 
   @BeforeTest
   public void setup() throws Exception {
-    testRootDir = TestUtil.getConfiguredRootDir();
     consumerNumber = 1;
     cluster = TestUtil.setupDFSCluster(this.getClass().getSimpleName(),
         testStream, partitionId,
         MiniClusterUtil.getDFSCluster(conf).getFileSystem().getUri().toString(),
-        null, null, 0, testRootDir);
+        null, null, 0, TestUtil.getConfiguredRootDir());
     collectorDir = DatabusUtil.getCollectorStreamDir(
         new Path(cluster.getRootDir()), testStream,
         collectorName);

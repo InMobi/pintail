@@ -21,7 +21,6 @@ public class TestPartitionReaderWaitingMergeStream
 
   @BeforeMethod
   public void setup() throws Exception {
-    super.setup();
     files = new String[] {TestUtil.files[1],
         TestUtil.files[3], TestUtil.files[5]};
     newFiles = new String[] {TestUtil.files[6],
@@ -30,7 +29,7 @@ public class TestPartitionReaderWaitingMergeStream
     // setup cluster
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
         testStream, new PartitionId(clusterName, collectorName), files, null,
-        databusFiles, 0, 3, testRootDir);
+        databusFiles, 0, 3, TestUtil.getConfiguredRootDir());
     conf = cluster.getHadoopConf();
     fs = FileSystem.get(conf);
     streamDir = DatabusUtil.getStreamDir(StreamType.MERGED,

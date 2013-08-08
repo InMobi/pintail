@@ -23,12 +23,11 @@ public class TestMergeStreamReader extends TestAbstractDatabusWaitingReader{
 
   @BeforeTest
   public void setup() throws Exception {
-    super.setUp();
     consumerNumber = 1;
     // initialize config
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
         testStream, new PartitionId(clusterName, collectorName), files, null,
-        finalFiles, 0, 3, testRootDir);
+        finalFiles, 0, 3, TestUtil.getConfiguredRootDir());
     conf = cluster.getHadoopConf();
     fs = FileSystem.get(conf);
     streamDir = getStreamsDir();

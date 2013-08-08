@@ -22,7 +22,6 @@ public class TestLeastCheckpoint {
   Map<Integer, PartitionCheckpoint> chkPoints;
   PartitionCheckpoint expectedLeastPck;
   protected Path rootDir;
-  private String testRootDir;
 
   public TestLeastCheckpoint() {
 
@@ -30,9 +29,9 @@ public class TestLeastCheckpoint {
 
   @BeforeTest
   public void setup() throws Exception {
-    testRootDir = TestUtil.getConfiguredRootDir();
     fs =  FileSystem.getLocal(new Configuration());
-    rootDir = new Path(testRootDir, this.getClass().getSimpleName());
+    rootDir = new Path(TestUtil.getConfiguredRootDir(),
+        this.getClass().getSimpleName());
     chkPoints = new HashMap<Integer, PartitionCheckpoint>();
     createCheckpointList();
   }

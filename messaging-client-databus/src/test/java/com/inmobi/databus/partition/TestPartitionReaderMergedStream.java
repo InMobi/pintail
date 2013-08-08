@@ -21,12 +21,11 @@ public class TestPartitionReaderMergedStream extends TestAbstractClusterReader {
   Cluster cluster;
   @BeforeTest
   public void setup() throws Exception {
-    super.setup();
     consumerNumber = 1;
     // setup cluster
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
         testStream, new PartitionId(clusterName, collectorName), files, null,
-        databusFiles, 0, 3, testRootDir);
+        databusFiles, 0, 3, TestUtil.getConfiguredRootDir());
     fs = FileSystem.get(cluster.getHadoopConf());
     streamDir = DatabusStreamWaitingReader.getStreamsDir(cluster,
         testStream);

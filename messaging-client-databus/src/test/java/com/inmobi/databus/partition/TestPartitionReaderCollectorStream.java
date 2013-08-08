@@ -48,15 +48,13 @@ public class TestPartitionReaderCollectorStream {
   private FileSystem fs;
   int consumerNUmber;
   String fsUri;
-  private String testRootDir;
 
   @BeforeTest
   public void setup() throws Exception {
-    testRootDir = TestUtil.getConfiguredRootDir();
     consumerNUmber = 1;
     // setup cluster
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
-        testStream, partitionId, files, null, 0, testRootDir);
+        testStream, partitionId, files, null, 0, TestUtil.getConfiguredRootDir());
     collectorDir = DatabusUtil.getCollectorStreamDir(
         new Path(cluster.getRootDir()), testStream,
         collectorName);

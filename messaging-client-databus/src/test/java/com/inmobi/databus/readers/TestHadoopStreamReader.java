@@ -17,20 +17,20 @@ import org.testng.annotations.Test;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionCheckpointList;
 import com.inmobi.messaging.consumer.util.HadoopUtil;
+import com.inmobi.messaging.consumer.util.TestUtil;
 
 public class TestHadoopStreamReader extends TestAbstractDatabusWaitingReader {
   static final Log LOG = LogFactory.getLog(TestHadoopStreamReader.class);
 
   @BeforeTest
   public void setup() throws Exception {
-    super.setUp();
     consumerNumber = 1;
     files = new String[] {HadoopUtil.files[1], HadoopUtil.files[3],
         HadoopUtil.files[5]};
     conf = new Configuration();
     fs = FileSystem.getLocal(conf);
-    streamDir = new Path(new Path(testRootDir, this.getClass().getSimpleName()),
-        testStream).makeQualified(fs);
+    streamDir = new Path(new Path(TestUtil.getConfiguredRootDir(),
+        this.getClass().getSimpleName()), testStream).makeQualified(fs);
     // initialize config
     HadoopUtil.setupHadoopCluster(conf, files, null, finalFiles, streamDir, false);
     inputFormatClass = SequenceFileInputFormat.class.getCanonicalName();

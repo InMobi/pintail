@@ -45,15 +45,10 @@ public abstract class TestAbstractWaitingClusterReader {
   Path streamDir;
   Configuration conf;
   int consumerNumber;
-  protected String testRootDir;
 
   abstract void setupFiles(String[] files, Path[] newDatabusFiles) throws
       Exception;
   abstract boolean isDatabusData();
-
-  public void setup() throws Exception {
-    testRootDir = TestUtil.getConfiguredRootDir();
-  }
 
   public void cleanup() throws IOException {
     TestUtil.cleanupCluster(cluster);

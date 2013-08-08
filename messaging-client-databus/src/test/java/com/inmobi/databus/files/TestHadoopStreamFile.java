@@ -17,12 +17,11 @@ public class TestHadoopStreamFile {
 
   protected Path rootDir;
   FileSystem fs;
-  private String testRootDir;
 
   @Test
   public void testHadoopStreamFile() throws IOException {
-    testRootDir = TestUtil.getConfiguredRootDir();
-    rootDir = new Path(testRootDir, this.getClass().getSimpleName());
+    rootDir = new Path(TestUtil.getConfiguredRootDir(),
+        this.getClass().getSimpleName());
     fs = FileSystem.getLocal(new Configuration());
     Path p1 = new Path(rootDir, "2012/12/12/12/11");
     Path p2 = new Path(rootDir, "2012/12/12/12/12");

@@ -15,19 +15,19 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import com.inmobi.messaging.consumer.util.HadoopUtil;
+import com.inmobi.messaging.consumer.util.TestUtil;
 
 public class TestPartitionReaderHadoopStream extends TestAbstractClusterReader {
   static final Log LOG = LogFactory.getLog(TestPartitionReaderHadoopStream.class);
   @BeforeTest
   public void setup() throws Exception {
-    super.setup();
     consumerNumber = 1;
     // setup fs
     files = new String[] {HadoopUtil.files[1], HadoopUtil.files[3],
         HadoopUtil.files[5]};
     fs = FileSystem.getLocal(conf);
-    streamDir = new Path(new Path(testRootDir, this.getClass().getSimpleName()),
-        testStream).makeQualified(fs);
+    streamDir = new Path(new Path(TestUtil.getConfiguredRootDir(),
+        this.getClass().getSimpleName()), testStream).makeQualified(fs);
     HadoopUtil.setupHadoopCluster(conf, files, null, databusFiles, streamDir, false);
     inputFormatClass = SequenceFileInputFormat.class.getName();
     partitionMinList = new TreeSet<Integer>();

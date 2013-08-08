@@ -22,12 +22,11 @@ public class TestLocalStreamReader extends TestAbstractDatabusWaitingReader {
 
   @BeforeTest
   public void setup() throws Exception {
-    super.setUp();
     consumerNumber = 1;
     // initialize config
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
     testStream, new PartitionId(clusterName, collectorName), files, null,
-    finalFiles, 3, 0, testRootDir);
+    finalFiles, 3, 0, TestUtil.getConfiguredRootDir());
     conf = cluster.getHadoopConf();
     fs = FileSystem.get(conf);
     streamDir = getStreamsDir();

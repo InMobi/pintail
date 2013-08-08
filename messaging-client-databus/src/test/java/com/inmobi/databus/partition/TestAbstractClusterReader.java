@@ -42,7 +42,6 @@ public abstract class TestAbstractClusterReader {
   PartitionCheckpointList partitionCheckpointList;
   Map<Integer, PartitionCheckpoint> pchkPoints;
   int consumerNumber;
-  protected String testRootDir;
 
   protected String[] files = new String[] {TestUtil.files[1], TestUtil.files[3],
       TestUtil.files[5]};
@@ -53,10 +52,6 @@ public abstract class TestAbstractClusterReader {
   Path streamDir;
   Configuration conf = new Configuration();
   String inputFormatClass;
-
-  public void setup() throws Exception {
-    testRootDir = TestUtil.getConfiguredRootDir();
-  }
 
   public void cleanup() throws IOException {
     LOG.debug("Cleaning up the dir: " + streamDir.getParent());

@@ -32,15 +32,14 @@ public class TestPartitionReaderWithLeastFullCheckpoint extends TestAbstractClus
 
   @BeforeTest
   public void setup() throws Exception {
-    super.setup();
     consumerNumber = 1;
     files = new String[] {HadoopUtil.files[1], HadoopUtil.files[3],
         HadoopUtil.files[5]};
     databusFiles = new Path[6];
     conf = new Configuration();
     fs = FileSystem.getLocal(conf);
-    streamDir = new Path(new Path(testRootDir, this.getClass().getSimpleName()),
-        testStream).makeQualified(fs);
+    streamDir = new Path(new Path(TestUtil.getConfiguredRootDir(),
+        this.getClass().getSimpleName()), testStream).makeQualified(fs);
     // initialize config
     HadoopUtil.setupHadoopCluster(conf, files, null, databusFiles, streamDir,
         true);

@@ -52,17 +52,16 @@ public class TestClusterReaderMultipleCollectors {
   Set<Integer> partitionMinList;
   PartitionCheckpointList partitionCheckpointList;
   int consumerNumber;
-  private String testRootDir;
 
   @BeforeTest
   public void setup() throws Exception {
-    testRootDir = TestUtil.getConfiguredRootDir();
     // initialize config
     consumerNumber = 1;
     fs = MiniClusterUtil.getDFSCluster(conf).getFileSystem();
     cluster = TestUtil.setupDFSCluster(this.getClass().getSimpleName(),
         testStream, new PartitionId(clusterName, collectors[0]),
-        fs.getUri().toString(), files, null, databusFiles1, 0, 1, testRootDir);
+        fs.getUri().toString(), files, null, databusFiles1, 0, 1,
+        TestUtil.getConfiguredRootDir());
     TestUtil.setUpFiles(cluster, collectors[1], files, null, databusFiles2, 0,
         1);
     streamDir = DatabusUtil.getStreamDir(StreamType.MERGED,
