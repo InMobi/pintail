@@ -3,8 +3,6 @@ package com.inmobi.messaging;
 import static org.testng.Assert.assertEquals;
 
 import org.testng.Assert;
-import org.testng.annotations.AfterTest;
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import random.pkg.NtMultiServer;
