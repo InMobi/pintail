@@ -42,7 +42,8 @@ public class TestLocalStreamCollectorReader {
     // initialize config
     consumerNumber = 1;
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
-        testStream, partitionId, files, null, databusFiles, 3);
+        testStream, partitionId, files, null, databusFiles, 3,
+        TestUtil.getConfiguredRootDir());
     conf = cluster.getHadoopConf();
     fsUri = FileSystem.get(conf).getUri().toString();
   }

@@ -49,7 +49,7 @@ public abstract class TestAbstractWaitingClusterReader {
   abstract void setupFiles(String[] files, Path[] newDatabusFiles) throws
       Exception;
   abstract boolean isDatabusData();
-  
+
   public void cleanup() throws IOException {
     TestUtil.cleanupCluster(cluster);
   }

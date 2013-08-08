@@ -1,10 +1,14 @@
 package com.inmobi.messaging.consumer.databus;
 
+import java.io.IOException;
 import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 
 import org.testng.Assert;
 import org.testng.annotations.AfterTest;
@@ -21,6 +25,7 @@ public class TestConsumerPartitionMinList {
   int totalNumberOfConsumers = 2;
   Set<Integer> expectedPartitionMinList;
   DatabusConsumer testConsumer;
+  private String chkpointPath;
 
   @BeforeTest
   public void setup() throws Exception {
@@ -30,6 +35,7 @@ public class TestConsumerPartitionMinList {
     expectedPartitionMinList = new TreeSet<Integer>();
     testConsumer = new DatabusConsumer();
     testConsumer.initializeConfig(config);
+    chkpointPath = config.getString(DatabusConsumerConfig.checkpointDirConfig);
     if (totalNumberOfConsumers > 0 && consumerId > 0) {
       expectedPartitionMinList();
     }
@@ -54,8 +60,10 @@ public class TestConsumerPartitionMinList {
   }
 
   @AfterTest
-  public void cleanUp() {
+  public void cleanUp() throws IOException {
     testConsumer.close();
+    FileSystem fs = FileSystem.getLocal(new Configuration());
+    fs.delete(new Path(chkpointPath).getParent(), true);
   }
 
 }

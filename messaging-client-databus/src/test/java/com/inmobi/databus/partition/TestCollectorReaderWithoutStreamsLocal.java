@@ -45,7 +45,8 @@ public class TestCollectorReaderWithoutStreamsLocal {
   public void setup() throws Exception {
     // setup cluster
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
-        testStream, partitionId, files, emptyfiles, databusFiles, 3);
+        testStream, partitionId, files, emptyfiles, databusFiles, 3,
+        TestUtil.getConfiguredRootDir());
     collectorDir = DatabusUtil.getCollectorStreamDir(
         new Path(cluster.getRootDir()), testStream,
         collectorName);

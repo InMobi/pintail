@@ -273,7 +273,7 @@ public class ConsumerUtil {
 
   public static void testConsumerStartUp(ClientConfig config,
       String streamName, String consumerName, boolean hadoop,
-      Date absoluteStartTime, Path rootDir)
+      Date absoluteStartTime, Path rootDir, String chkpointPathPrefix)
           throws Exception {
     AbstractMessagingDatabusConsumer consumer = createConsumer(hadoop);
     // consumer config has both relative start time and absolute start time
@@ -332,14 +332,14 @@ public class ConsumerUtil {
       config = ClientConfig.loadFromClasspath(
           MessageConsumerFactory.MESSAGE_CLIENT_CONF_FILE);
       config.set(DatabusConsumer.checkpointDirConfig,
-          "/tmp/test/randaom-checkpoint/databus");
+          new Path(chkpointPathPrefix, "random-databus").toString());
       config.set(DatabusConsumerConfig.databusRootDirsConfig,
           rootDir.toUri().toString());
     } else {
       config = ClientConfig.loadFromClasspath(
           "messaging-consumer-hadoop-conf.properties");
       config.set(HadoopConsumer.checkpointDirConfig,
-          "/tmp/test/randaom-checkpoint/hadoop");
+          new Path(chkpointPathPrefix, "random-hadoop").toString());
       config.set(HadoopConsumerConfig.rootDirsConfig,
           rootDir.toString());
     }

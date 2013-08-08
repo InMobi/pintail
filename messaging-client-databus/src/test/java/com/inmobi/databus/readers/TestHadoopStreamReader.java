@@ -17,6 +17,7 @@ import org.testng.annotations.Test;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionCheckpointList;
 import com.inmobi.messaging.consumer.util.HadoopUtil;
+import com.inmobi.messaging.consumer.util.TestUtil;
 
 public class TestHadoopStreamReader extends TestAbstractDatabusWaitingReader {
   static final Log LOG = LogFactory.getLog(TestHadoopStreamReader.class);
@@ -28,8 +29,8 @@ public class TestHadoopStreamReader extends TestAbstractDatabusWaitingReader {
         HadoopUtil.files[5]};
     conf = new Configuration();
     fs = FileSystem.getLocal(conf);
-    streamDir = new Path("/tmp/test/hadoop/" + this.getClass().getSimpleName(),
-        testStream).makeQualified(fs);
+    streamDir = new Path(new Path(TestUtil.getConfiguredRootDir(),
+        this.getClass().getSimpleName()), testStream).makeQualified(fs);
     // initialize config
     HadoopUtil.setupHadoopCluster(conf, files, null, finalFiles, streamDir, false);
     inputFormatClass = SequenceFileInputFormat.class.getCanonicalName();

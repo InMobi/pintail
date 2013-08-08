@@ -20,11 +20,6 @@ public class TestHadoopConsumerMultipleSuffixDirs
   @BeforeTest
   public void setup() throws Exception {
     consumerName = "c2";
-    ck1 = "/tmp/test/hadoop/4/checkpoint1";
-    ck2 = "/tmp/test/hadoop/4/checkpoint2";
-    ck3 = "/tmp/test/hadoop/4/checkpoint3";
-    ck4 = "/tmp/test/hadoop/5/checkpoint1";
-    ck5 = "/tmp/test/hadoop/5/checkpoint2";
     suffixDirs = new String[] {"xyz", "abc"};
     super.setup();
     Assert.assertEquals(rootDirs.length, 3);

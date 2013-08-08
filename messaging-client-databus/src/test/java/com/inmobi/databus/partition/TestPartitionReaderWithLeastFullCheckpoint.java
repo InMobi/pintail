@@ -38,8 +38,8 @@ public class TestPartitionReaderWithLeastFullCheckpoint extends TestAbstractClus
     databusFiles = new Path[6];
     conf = new Configuration();
     fs = FileSystem.getLocal(conf);
-    streamDir = new Path("/tmp/test/hadoop/" + this.getClass().getSimpleName(),
-        testStream).makeQualified(fs);
+    streamDir = new Path(new Path(TestUtil.getConfiguredRootDir(),
+        this.getClass().getSimpleName()), testStream).makeQualified(fs);
     // initialize config
     HadoopUtil.setupHadoopCluster(conf, files, null, databusFiles, streamDir,
         true);

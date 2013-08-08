@@ -14,6 +14,7 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import com.inmobi.databus.files.HadoopStreamFile;
+import com.inmobi.messaging.consumer.util.TestUtil;
 
 public class TestLeastCheckpoint {
   
@@ -29,7 +30,8 @@ public class TestLeastCheckpoint {
   @BeforeTest
   public void setup() throws Exception {
     fs =  FileSystem.getLocal(new Configuration());
-    rootDir = new Path("/tmp/test/hadoop/", this.getClass().getSimpleName());
+    rootDir = new Path(TestUtil.getConfiguredRootDir(),
+        this.getClass().getSimpleName());
     chkPoints = new HashMap<Integer, PartitionCheckpoint>();
     createCheckpointList();
   }

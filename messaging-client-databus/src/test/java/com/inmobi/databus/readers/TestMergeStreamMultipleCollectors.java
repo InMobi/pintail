@@ -42,14 +42,16 @@ public class TestMergeStreamMultipleCollectors {
   Map<Integer, PartitionCheckpoint> chkPoints;
   int conusmerNumber;
   String fsUri;
+  private String testRootDir;
 
   @BeforeTest
   public void setup() throws Exception {
+    testRootDir = TestUtil.getConfiguredRootDir();
     conusmerNumber = 1;
     // initialize config
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
         testStream, new PartitionId(clusterName, collectors[0]), files, null,
-        databusFiles1, 0, 3);
+        databusFiles1, 0, 3, testRootDir);
     TestUtil.setUpFiles(cluster, collectors[1], files, null, databusFiles2, 0,
         3);
     conf = cluster.getHadoopConf();
