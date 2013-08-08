@@ -37,7 +37,7 @@ public class TestServerStarter {
     }
   }
 
-  public static final int port = 7912;
+  public static final int port = PortNumberUtil.getFreePortNumber(7912);
 
   public static ScribeMessagePublisher createPublisher(int port, int timeout)
       throws Exception {
