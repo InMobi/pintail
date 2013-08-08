@@ -213,14 +213,6 @@ public class TestPublisher {
     Assert.assertEquals(
         publisher.getStatsExposer(topic).getContexts()
             .get(TopicStatsExposer.TOPIC_CONTEXT_NAME), topic);
-    th = null;
-    // publishing to audit topic
-    try {
-      publisher.publish(AuditUtil.AUDIT_STREAM_TOPIC_NAME, msg);
-    } catch (Throwable t) {
-      th = t;
-    }
-    Assert.assertTrue(th instanceof IllegalArgumentException);
   }
 
   @Test (expectedExceptions = {IllegalStateException.class })

@@ -14,9 +14,10 @@ public class AuditUtil {
   private static final byte[] versions = {1};
   private static final int currentVersion = 1;
   private static final Log LOG = LogFactory.getLog(AuditUtil.class);
-  static final int HEADER_LENGTH = 16;
+  public static final int HEADER_LENGTH = 16;
   private static final long BASE_TIME = 1356998400000L;
   public static final String DATE_FORMAT = "dd-MM-yyyy-HH:mm";
+  private static final int POSITION_OF_TIMESTAMP = 4;
 
   public static void attachHeaders(Message m, Long timestamp) {
     byte[] b = m.getData().array();
@@ -104,4 +105,11 @@ public class AuditUtil {
     return true;
   }
 
+  public static long getTimestamp(byte[] msg) {
+    if (isValidHeaders(msg)) {
+      ByteBuffer buffer = ByteBuffer.wrap(msg);
+      return buffer.getLong(POSITION_OF_TIMESTAMP);
+    } else
+      return -1;
+  }
 }
