@@ -1,7 +1,6 @@
 package com.inmobi.databus.readers;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -47,8 +46,6 @@ public class TestMergeStreamMultipleCollectors {
 
   @BeforeTest
   public void setup() throws Exception {
-    InputStream inputStream = this.getClass().getClassLoader().
-        getResourceAsStream("rootdir.properties");
     testRootDir = TestUtil.getConfiguredRootDir();
     conusmerNumber = 1;
     // initialize config

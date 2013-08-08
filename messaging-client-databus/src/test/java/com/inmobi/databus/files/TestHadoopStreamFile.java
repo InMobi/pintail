@@ -1,7 +1,6 @@
 package com.inmobi.databus.files;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.TreeMap;
 
 import org.apache.hadoop.conf.Configuration;
@@ -22,8 +21,6 @@ public class TestHadoopStreamFile {
 
   @Test
   public void testHadoopStreamFile() throws IOException {
-    InputStream inputStream = this.getClass().getClassLoader().
-        getResourceAsStream("rootdir.properties");
     testRootDir = TestUtil.getConfiguredRootDir();
     rootDir = new Path(testRootDir, this.getClass().getSimpleName());
     fs = FileSystem.getLocal(new Configuration());

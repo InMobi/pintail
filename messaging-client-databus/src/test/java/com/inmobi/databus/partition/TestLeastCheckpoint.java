@@ -1,7 +1,6 @@
 package com.inmobi.databus.partition;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,8 +30,6 @@ public class TestLeastCheckpoint {
 
   @BeforeTest
   public void setup() throws Exception {
-    InputStream inputStream = this.getClass().getClassLoader().
-        getResourceAsStream("rootdir.properties");
     testRootDir = TestUtil.getConfiguredRootDir();
     fs =  FileSystem.getLocal(new Configuration());
     rootDir = new Path(testRootDir, this.getClass().getSimpleName());

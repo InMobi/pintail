@@ -1,7 +1,6 @@
 package com.inmobi.databus.partition;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,8 +52,6 @@ public abstract class TestAbstractWaitingClusterReader {
   abstract boolean isDatabusData();
 
   public void setup() throws Exception {
-    InputStream inputStream = this.getClass().getClassLoader().
-        getResourceAsStream("rootdir.properties");
     testRootDir = TestUtil.getConfiguredRootDir();
   }
 

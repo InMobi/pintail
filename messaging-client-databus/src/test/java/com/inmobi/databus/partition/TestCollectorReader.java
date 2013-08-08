@@ -1,7 +1,6 @@
 package com.inmobi.databus.partition;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -58,8 +57,6 @@ public class TestCollectorReader {
 
   @BeforeTest
   public void setup() throws Exception {
-    InputStream inputStream = this.getClass().getClassLoader().
-        getResourceAsStream("rootdir.properties");
     testRootDir = TestUtil.getConfiguredRootDir();
     // setup cluster
   	consumerNumber = 1;

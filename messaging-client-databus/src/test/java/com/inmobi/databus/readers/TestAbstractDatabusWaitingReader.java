@@ -1,7 +1,6 @@
 package com.inmobi.databus.readers;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Calendar;
 import java.util.Map;
 import java.util.Set;
@@ -43,8 +42,6 @@ public abstract class TestAbstractDatabusWaitingReader {
   protected String testRootDir;
 
   public void setUp() throws IOException {
-    InputStream inputStream = this.getClass().getClassLoader().
-        getResourceAsStream("rootdir.properties");
     testRootDir = TestUtil.getConfiguredRootDir();
   }
 

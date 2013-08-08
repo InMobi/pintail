@@ -1,7 +1,6 @@
 package com.inmobi.databus.readers;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -41,8 +40,6 @@ public class TestCollectorStreamReader {
 
   @BeforeTest
   public void setup() throws Exception {
-    InputStream inputStream = this.getClass().getClassLoader().
-        getResourceAsStream("rootdir.properties");
     testRootDir = TestUtil.getConfiguredRootDir();
     consumerNumber = 1;
     // setup cluster
