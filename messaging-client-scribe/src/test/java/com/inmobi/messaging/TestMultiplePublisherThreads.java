@@ -16,7 +16,7 @@ public class TestMultiplePublisherThreads {
   public void multipleThreadSinglePublisher() throws Exception{
     NtMultiServer tserver = null;
     try {
-      int port = 7932;
+      int port = PortNumberUtil.getFreePortNumber(7932);
       tserver = new NtMultiServer(new ScribeAlwaysSuccess(), port);
       tserver.start();
 

@@ -12,6 +12,7 @@ import random.pkg.ScribeSlackOnce;
 
 import com.inmobi.instrumentation.TimingAccumulator;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.PortNumberUtil;
 import com.inmobi.messaging.TestServerStarter;
 import com.inmobi.messaging.netty.ScribeMessagePublisher;
 
@@ -20,7 +21,7 @@ public class TestRetries {
   public void simpleSend() throws Exception {
     NtMultiServer tserver = null;
     try {
-      int port = 7901;
+      int port = PortNumberUtil.getFreePortNumber(7901);
       tserver = new NtMultiServer(new ScribeAlternateTryLater(), port);
       tserver.start();
 
@@ -47,8 +48,9 @@ public class TestRetries {
 
   @Test
   public void testEnableRetries() throws Exception {
-    testEnableRetries(true, 7902);
-    testEnableRetries(false, 7902);
+    int port = PortNumberUtil.getFreePortNumber(7902);
+    testEnableRetries(true, port);
+    testEnableRetries(false, port);
   }
 
   public void testEnableRetries(boolean enableRetries, int port)
@@ -100,7 +102,7 @@ public class TestRetries {
   public void testAlwaysTryAgain() throws Exception {
     NtMultiServer tserver = null;
     try {
-      int port = 7903;
+      int port = PortNumberUtil.getFreePortNumber(7903);
       tserver = new NtMultiServer(new ScribeAlwaysTryAgain(), port);
       tserver.start();
 
@@ -137,7 +139,7 @@ public class TestRetries {
   public void testResendOnAckLost(boolean resendOnAckLost) throws Exception {
     NtMultiServer tserver = null;
     try {
-      int port = 7904;
+      int port = PortNumberUtil.getFreePortNumber(7904);
       tserver = new NtMultiServer(new ScribeSlackOnce(), port);
       tserver.start();
 

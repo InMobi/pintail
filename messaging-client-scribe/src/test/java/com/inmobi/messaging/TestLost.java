@@ -20,7 +20,7 @@ public class TestLost {
   public void testMsgQueueSize() throws Exception {
     NtMultiServer tserver = null;
     try {
-      int port = 7945;
+      int port = PortNumberUtil.getFreePortNumber(7945);
       tserver = new NtMultiServer(new ScribeAlwaysSuccess(), port);
 
       int timeoutSeconds = 2;
@@ -57,7 +57,7 @@ public class TestLost {
   public void testAckQueueSize() throws Exception {
     NtMultiServer tserver = null;
     try {
-      int port = 7946;
+      int port = PortNumberUtil.getFreePortNumber(7946);
       tserver = new NtMultiServer(new ScribeSlacker(), port);
       tserver.start();
 
@@ -95,7 +95,7 @@ public class TestLost {
   public void testMsgQueueSizeOnRetries() throws Exception {
     NtMultiServer tserver = null;
     try {
-      int port = 7947;
+      int port = PortNumberUtil.getFreePortNumber(7947);
       tserver = new NtMultiServer(new ScribeAlwaysTryAgain(), port);
       tserver.start();
 

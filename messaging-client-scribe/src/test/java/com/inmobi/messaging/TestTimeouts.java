@@ -25,7 +25,7 @@ public class TestTimeouts {
   public void simpleSend() throws Exception {
     NtMultiServer tserver = null;
     try {
-      int port = 7914;
+      int port = PortNumberUtil.getFreePortNumber(7914);
       tserver = new NtMultiServer(new ScribeAlwaysSuccess(), port);
       tserver.start();
 
@@ -68,7 +68,7 @@ public class TestTimeouts {
     NtMultiServer tserver = null;
     ScribeMessagePublisher mb = null;
     try {
-      int port = 7924;
+      int port = PortNumberUtil.getFreePortNumber(7924);
       tserver = new NtMultiServer(new ScribeSlacker(), port);
       tserver.start();
 
