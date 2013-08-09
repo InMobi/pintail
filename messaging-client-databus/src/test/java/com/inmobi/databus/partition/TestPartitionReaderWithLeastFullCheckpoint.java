@@ -80,9 +80,8 @@ public class TestPartitionReaderWithLeastFullCheckpoint extends TestAbstractClus
         partitionCheckpointList, fs, buffer, streamDir, conf, inputFormatClass,
         null, 1000, isDatabusData(), prMetrics, true, partitionMinList, null);
     preader.init();
- /*   Thread.sleep(120000);
     Assert.assertEquals(preader.getCurrentFile().toString(),
-        getDateStringFromPath(databusFiles[3].toString()));*/
+        getDateStringFromPath(databusFiles[3].toString()));
     preader.execute();
     Date fromTime = getTimeStampFromFile(databusFiles[0]);
     Date toTime = getTimeStampFromFile(databusFiles[3]);
@@ -158,7 +157,6 @@ public class TestPartitionReaderWithLeastFullCheckpoint extends TestAbstractClus
     QueueEntry entry = buffer.take();
     Assert.assertEquals(((DeltaPartitionCheckPoint)entry.getMessageChkpoint()).
         getDeltaCheckpoint(), expectedDeltaPchk);
-    
   }
 
   @Override
