@@ -18,10 +18,12 @@ import org.apache.hadoop.fs.PathFilter;
 
 import com.inmobi.databus.files.FileMap;
 import com.inmobi.databus.files.HadoopStreamFile;
+import com.inmobi.databus.partition.DeltaPartitionCheckPoint;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionCheckpointList;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.consumer.databus.MessageCheckpoint;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
 public class DatabusStreamWaitingReader
@@ -471,4 +473,22 @@ public class DatabusStreamWaitingReader
     }
     return true;
   }
+
+  public MessageCheckpoint getEOFMessageCheckpoint() {
+    if (stopTime != null && getCurrentFile() != null) {
+      Date lastFileTimestamp = getDateFromStreamDir(streamDir, getCurrentFile());
+      /* create  a delta checkpoint till stop time from last file time stamp
+       * Ex: if last file is at 2nd hr 5th minute(02/05) and stop time at 02/10
+       * then we should have a delta checkpoint 02/06/null--1 till 02/10/null--1
+       */
+      setDeltaCheckpoint(getNextMinuteTimeStamp(lastFileTimestamp),
+          getNextMinuteTimeStamp(stopTime));
+      DeltaPartitionCheckPoint deltaPchk = new DeltaPartitionCheckPoint(
+          getCurrentStreamFile(), -1, getCurrentMin(), getDeltaCheckpoint());
+      resetDeltaCheckpoint();
+      return deltaPchk;
+    }
+    return null;
+  }
+
 }
