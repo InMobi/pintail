@@ -478,8 +478,8 @@ public class DatabusStreamWaitingReader
     if (stopTime != null && getCurrentFile() != null) {
       Date lastFileTimestamp = getDateFromStreamDir(streamDir, getCurrentFile());
       /* create  a delta checkpoint till stop time from last file time stamp
-       * Ex: if last file is at 2nd hr 5th minute(02/05) and stop time at 02/10
-       * then we should have a delta checkpoint 02/06/null--1 till 02/10/null--1
+       * Ex: if last file is at 2nd hr 5th minute(02/05) and stop time is 02/10
+       * then we should have a delta checkpoint 02/05/file--1, 02/06/null--1 till 02/10/null--1
        */
       setDeltaCheckpoint(getNextMinuteTimeStamp(lastFileTimestamp),
           getNextMinuteTimeStamp(stopTime));
