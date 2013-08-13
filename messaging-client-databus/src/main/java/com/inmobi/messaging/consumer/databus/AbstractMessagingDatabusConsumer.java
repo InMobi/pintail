@@ -343,8 +343,8 @@ public abstract class AbstractMessagingDatabusConsumer
       if (!msgConsumedEntry.getValue()) {
         PartitionId id = msgConsumedEntry.getKey();
         PartitionReader reader = readers.get(id);
-        if (reader.buildStartPartitionCheckpoints()) {
-          MessageCheckpoint msgChk = reader.getMessageCheckpoint();
+        MessageCheckpoint msgChk = reader.buildStartPartitionCheckpoints();
+        if (msgChk != null) {
           setMessageCheckpoint(id, msgChk);
         }
       }
