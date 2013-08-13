@@ -442,4 +442,8 @@ public abstract class StreamReader<T extends StreamFile> {
     }
     return false;
   }
+
+  public void initializeBuildTimeStamp(Date buildTimestamp) throws IOException {
+  }
+
 }

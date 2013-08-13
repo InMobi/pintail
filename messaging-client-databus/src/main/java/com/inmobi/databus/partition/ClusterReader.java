@@ -24,6 +24,8 @@ public class ClusterReader extends AbstractPartitionStreamReader {
   private final PartitionCheckpointList partitionCheckpointList;
   private final Date startTime;
   private final Path streamDir;
+  private PartitionCheckpoint partitionCheckpoint = null;
+  private Date buildTimeStamp;
 
   ClusterReader(PartitionId partitionId,
       PartitionCheckpointList partitionCheckpointList, FileSystem fs,
@@ -39,6 +41,23 @@ public class ClusterReader extends AbstractPartitionStreamReader {
     reader = new DatabusStreamWaitingReader(partitionId, fs, streamDir,
         inputFormatClass, conf, waitTimeForFileCreate, metrics, noNewFiles,
         partitionMinList, partitionCheckpointList, stopTime);
+    initializeBuildTimeStamp();
+  }
+
+  private void initializeBuildTimeStamp() throws IOException {
+    if (partitionCheckpointList != null) {
+      partitionCheckpoint = findLeastPartitionCheckPointTime(
+          partitionCheckpointList);
+    }
+    if (partitionCheckpoint != null) {
+      buildTimeStamp = DatabusStreamWaitingReader.
+          getBuildTimestamp(streamDir, partitionCheckpoint);
+    } else if (startTime != null) {
+      buildTimeStamp = startTime;
+    } else {
+      buildTimeStamp = null;
+    }
+    reader.initializeBuildTimeStamp(buildTimeStamp);
   }
 
   /*
@@ -82,11 +101,6 @@ public class ClusterReader extends AbstractPartitionStreamReader {
 
   public void initializeCurrentFile() throws IOException, InterruptedException {
     LOG.info("Initializing partition reader's current file");
-    PartitionCheckpoint partitionCheckpoint = null;
-    if (partitionCheckpointList != null) {
-      partitionCheckpoint = findLeastPartitionCheckPointTime(
-          partitionCheckpointList);
-    }
 
     if (partitionCheckpoint != null) {
       LOG.info("Least partition checkpoint " + partitionCheckpoint);

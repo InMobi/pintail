@@ -59,6 +59,15 @@ public class DatabusStreamWaitingReader
     createdDeltaCheckpointForFirstFile = false;
   }
 
+  public void initializeBuildTimeStamp(Date buildTimestamp)
+      throws IOException {
+    if (buildTimestamp != null) {
+      this.buildTimestamp = buildTimestamp;
+    } else {
+      this.buildTimestamp = getTimestampFromStartOfStream(null);
+    }
+  }
+
   public void prepareTimeStampsOfCheckpoints() {
     PartitionCheckpoint partitionCheckpoint = null;
     for (Integer min : partitionMinList) {
