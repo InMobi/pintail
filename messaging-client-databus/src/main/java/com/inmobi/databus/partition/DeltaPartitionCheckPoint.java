@@ -17,6 +17,12 @@ public class DeltaPartitionCheckPoint implements MessageCheckpoint {
         new PartitionCheckpoint(streamFile, lineNum));
   }
 
+  public DeltaPartitionCheckPoint(
+      Map<Integer, PartitionCheckpoint> deltaCheckpoint) {
+    this.deltaCheckpoint = new HashMap<Integer, PartitionCheckpoint>();
+    this.deltaCheckpoint.putAll(deltaCheckpoint);
+  }
+
   @Override
   public String toString() {
     return this.deltaCheckpoint.toString();

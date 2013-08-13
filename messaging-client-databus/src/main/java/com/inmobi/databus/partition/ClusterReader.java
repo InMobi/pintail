@@ -143,6 +143,7 @@ public class ClusterReader extends AbstractPartitionStreamReader {
   public MessageCheckpoint buildStartPartitionCheckpoints() {
     DatabusStreamWaitingReader dataWaitingReader =
         (DatabusStreamWaitingReader) reader;
-    return dataWaitingReader.buildStartPartitionCheckpoints();
+    return new DeltaPartitionCheckPoint(
+        dataWaitingReader.buildStartPartitionCheckpoints());
   }
 }
