@@ -26,5 +26,5 @@ public interface PartitionStreamReader {
 
   boolean shouldBeClosed();
 
-  boolean buildStartPartitionCheckpoints();
+  MessageCheckpoint buildStartPartitionCheckpoints();
 }

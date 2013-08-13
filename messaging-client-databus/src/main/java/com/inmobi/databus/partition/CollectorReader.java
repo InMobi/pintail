@@ -251,7 +251,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   }
 
   @Override
-  public boolean buildStartPartitionCheckpoints() {
-    return false;
+  public MessageCheckpoint buildStartPartitionCheckpoints() {
+    return null;
   }
 }
