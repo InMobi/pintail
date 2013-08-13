@@ -54,6 +54,8 @@ public abstract class AbstractMessagingDatabusConsumer
   protected Boolean startOfStream;
   private int closedReadercount;
   protected Configuration conf;
+  // enable this flag whenever user calls mark
+  private boolean isMarkCalled = false;
 
   @Override
   protected void init(ClientConfig config) throws IOException {
@@ -324,6 +326,11 @@ public abstract class AbstractMessagingDatabusConsumer
     // restart the service, consumer will start streaming from the last saved
     // checkpoint
     close();
+    // clear the messageConsumedMap if reset is called before mark
+    // as it does not consume any message till now.
+    if (isResetCalledBeforeMark()) {
+      messageConsumedMap.clear();
+    }
     currentCheckpoint.read(checkpointProvider, getChkpointKey());
     LOG.info("Resetting to checkpoint:" + currentCheckpoint);
     buffer = new LinkedBlockingQueue<QueueEntry>(bufferSize);
@@ -337,7 +344,12 @@ public abstract class AbstractMessagingDatabusConsumer
     LOG.info("Committed checkpoint:" + currentCheckpoint);
   }
 
+  private boolean isResetCalledBeforeMark() {
+    return !isMarkCalled;
+  }
+
   private void checkAndCreateCheckpoint() {
+    isMarkCalled = true;
     for (Map.Entry<PartitionId, Boolean> msgConsumedEntry : messageConsumedMap
         .entrySet()) {
       if (!msgConsumedEntry.getValue()) {
