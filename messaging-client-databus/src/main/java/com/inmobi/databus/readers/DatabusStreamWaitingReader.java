@@ -464,6 +464,9 @@ public class DatabusStreamWaitingReader
   public Map<Integer, PartitionCheckpoint> buildStartPartitionCheckpoints() {
     Map<Integer, PartitionCheckpoint> fullPartitionChkMap =
         new HashMap<Integer, PartitionCheckpoint>();
+    if (buildTimestamp == null) {
+      return fullPartitionChkMap;
+    }
     Calendar cal = Calendar.getInstance();
     cal.setTime(buildTimestamp);
     cal.add(Calendar.MINUTE, 60);
