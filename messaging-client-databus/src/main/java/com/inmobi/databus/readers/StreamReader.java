@@ -443,7 +443,8 @@ public abstract class StreamReader<T extends StreamFile> {
     return false;
   }
 
-  public void initializeBuildTimeStamp(Date buildTimestamp) throws IOException {
+  public Date initializeBuildTimeStamp(Date buildTimestamp) throws IOException {
+    return null;
   }
 
 }
