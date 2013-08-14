@@ -113,8 +113,8 @@ public class ClusterReader extends AbstractPartitionStreamReader {
         when the checkpointing was done partially or before a single
         message was read) then it has to start from the next checkpoint.
         */
-        if (leastPartitionCheckpoint.getLineNum() == -1 || leastPartitionCheckpoint
-            .getName() == null) {
+        if (leastPartitionCheckpoint.getLineNum() == -1
+            || leastPartitionCheckpoint.getName() == null) {
           ((DatabusStreamWaitingReader) reader).initFromNextCheckPoint();
         } else if (!reader.initializeCurrentFile(leastPartitionCheckpoint)) {
           throw new IllegalArgumentException("Checkpoint file does not exist");
