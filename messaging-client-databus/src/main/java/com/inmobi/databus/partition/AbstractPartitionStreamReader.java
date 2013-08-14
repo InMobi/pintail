@@ -5,7 +5,6 @@ import java.io.IOException;
 import com.inmobi.databus.files.StreamFile;
 import com.inmobi.databus.readers.StreamReader;
 import com.inmobi.messaging.Message;
-import com.inmobi.messaging.consumer.databus.MessageCheckpoint;
 
 public abstract class AbstractPartitionStreamReader implements
      PartitionStreamReader {
@@ -50,10 +49,4 @@ public abstract class AbstractPartitionStreamReader implements
     return reader.readLine();
   }
 
-  public MessageCheckpoint getEOFMessageCheckpoint() {
-    if (reader != null) {
-      return reader.getEOFMessageCheckpoint();
-    }
-    return null;
-  }
 }

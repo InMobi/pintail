@@ -205,14 +205,11 @@ public abstract class AbstractMessagingDatabusConsumer
       if (entry.getMessage() instanceof Message) {
         break;
       } else { // if (entry.getMessage() instanceof EOFMessage)
-        // set checkpoint with EOFMessage checkpoint
-        if (entry.getMessageChkpoint() != null) {
-          setMessageCheckpoint(entry);
-        }
         closedReadercount++;
         checkClosedReaders();
       }
     }
+    setMessageConsumedEntry(entry);
     setMessageCheckpoint(entry);
     return (Message) entry.getMessage();
   }
@@ -223,8 +220,8 @@ public abstract class AbstractMessagingDatabusConsumer
   }
 
   private void setMessageCheckpoint(QueueEntry entry) {
-    setMessageConsumedEntry(entry);
-    setMessageCheckpoint(entry.getPartitionId(), entry.getMessageChkpoint());
+    MessageCheckpoint msgchk = entry.getMessageChkpoint();
+    setMessageCheckpoint(entry.getPartitionId(), msgchk);
   }
 
   private void setMessageCheckpoint(PartitionId id, MessageCheckpoint msgchk) {
@@ -251,10 +248,6 @@ public abstract class AbstractMessagingDatabusConsumer
       if (entry.getMessage() instanceof Message) {
         break;
       } else { // if (entry.getMessage() instanceof EOFMessage)
-        // set checkpoint with EOFMessage checkpoint
-        if (entry.getMessageChkpoint() != null) {
-          setMessageCheckpoint(entry);
-        }
         closedReadercount++;
         checkClosedReaders();
       }
