@@ -16,7 +16,6 @@ import com.inmobi.databus.files.StreamFile;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.Message;
-import com.inmobi.messaging.consumer.databus.MessageCheckpoint;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.fs.s3.S3FileSystem;
@@ -442,9 +441,5 @@ public abstract class StreamReader<T extends StreamFile> {
       return true;
     }
     return false;
-  }
-
-  public MessageCheckpoint getEOFMessageCheckpoint() {
-    return null;
   }
 }
