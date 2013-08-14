@@ -21,11 +21,10 @@ public class ClusterReader extends AbstractPartitionStreamReader {
 
   private static final Log LOG = LogFactory.getLog(PartitionReader.class);
 
-  private final PartitionCheckpointList partitionCheckpointList;
   private final Date startTime;
   private final Path streamDir;
-  private PartitionCheckpoint partitionCheckpoint;
-  private Date buildTimeStamp;
+  private PartitionCheckpoint leastPartitionCheckpoint;
+  private Date buildTimestamp;
 
   ClusterReader(PartitionId partitionId,
       PartitionCheckpointList partitionCheckpointList, FileSystem fs,
@@ -36,28 +35,30 @@ public class ClusterReader extends AbstractPartitionStreamReader {
           throws IOException {
     this.startTime = startTime;
     this.streamDir = streamDir;
-    this.partitionCheckpointList = partitionCheckpointList;
 
     reader = new DatabusStreamWaitingReader(partitionId, fs, streamDir,
         inputFormatClass, conf, waitTimeForFileCreate, metrics, noNewFiles,
         partitionMinList, partitionCheckpointList, stopTime);
-    initializeBuildTimeStamp();
+
+    initializeBuildTimeStamp(partitionCheckpointList);
   }
 
-  private void initializeBuildTimeStamp() throws IOException {
+  private void initializeBuildTimeStamp(
+      PartitionCheckpointList partitionCheckpointList) throws IOException {
     if (partitionCheckpointList != null) {
-      partitionCheckpoint = findLeastPartitionCheckPointTime(
+      leastPartitionCheckpoint = findLeastPartitionCheckPointTime(
           partitionCheckpointList);
     }
-    if (partitionCheckpoint != null) {
-      buildTimeStamp = DatabusStreamWaitingReader.
-          getBuildTimestamp(streamDir, partitionCheckpoint);
+    if (leastPartitionCheckpoint != null) {
+      buildTimestamp = DatabusStreamWaitingReader.
+          getBuildTimestamp(streamDir, leastPartitionCheckpoint);
     } else if (startTime != null) {
-      buildTimeStamp = startTime;
+      buildTimestamp = startTime;
     } else {
-      buildTimeStamp = null;
+      buildTimestamp = ((DatabusStreamWaitingReader) reader).
+          getTimestampFromStartOfStream(null);
     }
-    buildTimeStamp = reader.initializeBuildTimeStamp(buildTimeStamp);
+    ((DatabusStreamWaitingReader) reader).initializeBuildTimeStamp(buildTimestamp);
   }
 
   /*
@@ -102,9 +103,9 @@ public class ClusterReader extends AbstractPartitionStreamReader {
   public void initializeCurrentFile() throws IOException, InterruptedException {
     LOG.info("Initializing partition reader's current file");
 
-    if (partitionCheckpoint != null) {
-      LOG.info("Least partition checkpoint " + partitionCheckpoint);
-      ((DatabusStreamWaitingReader) reader).build(buildTimeStamp);
+    if (leastPartitionCheckpoint != null) {
+      LOG.info("Least partition checkpoint " + leastPartitionCheckpoint);
+      ((DatabusStreamWaitingReader) reader).build(buildTimestamp);
       if (!reader.isEmpty()) {
         /*
         If the partition checkpoint is completed checkpoint (i.e. line
@@ -112,10 +113,10 @@ public class ClusterReader extends AbstractPartitionStreamReader {
         when the checkpointing was done partially or before a single
         message was read) then it has to start from the next checkpoint.
         */
-        if (partitionCheckpoint.getLineNum() == -1 || partitionCheckpoint
+        if (leastPartitionCheckpoint.getLineNum() == -1 || leastPartitionCheckpoint
             .getName() == null) {
           ((DatabusStreamWaitingReader) reader).initFromNextCheckPoint();
-        } else if (!reader.initializeCurrentFile(partitionCheckpoint)) {
+        } else if (!reader.initializeCurrentFile(leastPartitionCheckpoint)) {
           throw new IllegalArgumentException("Checkpoint file does not exist");
         }
       } else {
@@ -130,7 +131,7 @@ public class ClusterReader extends AbstractPartitionStreamReader {
     } else {
       // starting from start of the stream. Here, buildTimestamp is null if the
       // stream is empty
-      ((DatabusStreamWaitingReader) reader).build(buildTimeStamp);
+      ((DatabusStreamWaitingReader) reader).build(buildTimestamp);
       reader.startFromBegining();
     }
     LOG.info("Intialized currentFile:" + reader.getCurrentFile()

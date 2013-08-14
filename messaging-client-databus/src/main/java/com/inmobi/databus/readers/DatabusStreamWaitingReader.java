@@ -59,14 +59,9 @@ public class DatabusStreamWaitingReader
     createdDeltaCheckpointForFirstFile = false;
   }
 
-  public Date initializeBuildTimeStamp(Date buildTimestamp)
+  public void initializeBuildTimeStamp(Date buildTimestamp)
       throws IOException {
-    if (buildTimestamp != null) {
-      this.buildTimestamp = buildTimestamp;
-    } else {
-      this.buildTimestamp = getTimestampFromStartOfStream(null);
-    }
-    return this.buildTimestamp;
+    this.buildTimestamp = buildTimestamp;
   }
 
   public void prepareTimeStampsOfCheckpoints() {
