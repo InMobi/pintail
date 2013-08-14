@@ -326,6 +326,7 @@ public abstract class AbstractMessagingDatabusConsumer
     close();
     currentCheckpoint.read(checkpointProvider, getChkpointKey());
     LOG.info("Resetting to checkpoint:" + currentCheckpoint);
+    messageConsumedMap.clear();
     buffer = new LinkedBlockingQueue<QueueEntry>(bufferSize);
     start();
   }
