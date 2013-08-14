@@ -333,6 +333,15 @@ public class DatabusStreamWaitingReader
         if (!nextFile()) { // reached end of stream
           // stop reading if read till stopTime
           if (hasReadFully()) {
+            /* create  a delta checkpoint till stop time from last file timestamp
+             * Ex: If last file is in 2nd hr, 5th minute(02/05) and stop time is 02/10
+             * then we should have a delta checkpoint 02/05/file--1,
+             *  02/06/null--1 till 02/10/null--1
+             */
+            Date lastFileTimestamp = getDateFromStreamDir(streamDir, getCurrentFile());
+            setDeltaCheckpoint(getNextMinuteTimeStamp(lastFileTimestamp),
+                getNextMinuteTimeStamp(stopTime));
+            currentLineNum = -1;
             LOG.info("read all files till stop date");
             break;
           }

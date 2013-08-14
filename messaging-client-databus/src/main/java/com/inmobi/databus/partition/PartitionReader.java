@@ -238,7 +238,8 @@ public class PartitionReader {
 
   public void putEOFMessageInBuffer() throws InterruptedException {
     EOFMessage eofMessage = new EOFMessage();
-    buffer.put(new QueueEntry(eofMessage, partitionId, null));
+    buffer.put(new QueueEntry(eofMessage, partitionId,
+        reader.getMessageCheckpoint()));
   }
 
   public PartitionReaderStatsExposer getStatsExposer() {
