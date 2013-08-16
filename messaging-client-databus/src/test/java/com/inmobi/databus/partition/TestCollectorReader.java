@@ -418,25 +418,9 @@ public class TestCollectorReader {
     Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
   }
 
-  @Test
-  public void testReadFromCheckpointWhichDoesNotExistsWithStopTime()
-      throws Exception {
-    CollectorReaderStatsExposer prMetrics = new CollectorReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
-    Date stopDate = CollectorStreamReader.getDateFromCollectorFile(files[0]);
-    Calendar cal = Calendar.getInstance();
-    cal.setTime(stopDate);
-    cal.add(Calendar.HOUR_OF_DAY, -2);
-    preader = new PartitionReader(partitionId, new PartitionCheckpoint(
-        CollectorStreamReader.getCollectorFile(files[1]), 20), conf, fs,
-        collectorDir, streamsLocalDir, buffer, testStream, null,
-        10, 1000, prMetrics, true, cal.getTime());
-    preader.init();
-    Assert.assertTrue(buffer.isEmpty());
-    preader.execute();
-    Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
-  }
-
+  /*
+   * It tests the reader's behavior when stop time is behind the checkpoint
+   */
   @Test
   public void testReadFromCheckpointWithStopTime()
       throws Exception {
@@ -465,10 +449,10 @@ public class TestCollectorReader {
     Calendar cal = Calendar.getInstance();
     cal.setTime(firstFileTimestamp);
     cal.add(Calendar.MINUTE, -10);
-    // Start time is 10 minutes behind from first file time stamp
+    // Start time is 10 minutes behind the first file timestamp
     Date startTime = cal.getTime();
     cal.add(Calendar.MINUTE, 5);
-    // Stop time is 5 minutes behind first file time stamp
+    // Stop time is 5 minutes behind the first file timestamp
     Date stopTime = cal.getTime();
 
     preader = new PartitionReader(partitionId, null, conf, fs,
