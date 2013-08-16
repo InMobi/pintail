@@ -243,6 +243,9 @@ public abstract class AbstractMessagingDatabusConsumer
       if (entry.getMessage() instanceof Message) {
         break;
       } else { // if (entry.getMessage() instanceof EOFMessage)
+        if (entry.getMessageChkpoint() != null) {
+          setMessageCheckpoint(entry);
+        }
         closedReadercount++;
         checkClosedReaders();
       }
