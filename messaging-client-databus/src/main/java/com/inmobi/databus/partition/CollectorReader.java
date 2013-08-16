@@ -122,14 +122,12 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       if (cReader.initializeCurrentFile(partitionCheckpoint)) {
         reader = cReader;
       } else { //file could be moved to local stream
-        reader = lReader;
         String localStreamFileName =
             LocalStreamCollectorReader.getDatabusStreamFileName(
                 partitionId.getCollector(), fileName);
         initializeCurrentFileFromCheckpointLocalStream(localStreamFileName);
       }
     } else {
-      reader = lReader;
       LOG.debug("Checkpointed file is in local stream directory");
       initializeCurrentFileFromCheckpointLocalStream(fileName);
     }
@@ -166,8 +164,10 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       reader = cReader;
       initializeCurrentFileFromCollectorStreamOnly();
     }
-    LOG.info("Intialized currentFile:" + reader.getCurrentFile()
-        + " currentLineNum:" + reader.getCurrentLineNum());
+    if (reader != null) {
+      LOG.info("Intialized currentFile:" + reader.getCurrentFile()
+          + " currentLineNum:" + reader.getCurrentLineNum());
+    }
   }
 
   private void initializeCurrentFileFromCollectorStreamOnly()
