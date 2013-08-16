@@ -292,7 +292,7 @@ StreamReader<T> {
     return true;
   }
 
-  protected Date getTimestampFromStartOfStream(PathFilter pathFilter)
+  public Date getTimestampFromStartOfStream(PathFilter pathFilter)
       throws IOException {
     FileStatus leastTimeStampFileStatus = null;
     Path dir = streamDir;

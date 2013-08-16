@@ -249,7 +249,7 @@ public class PartitionReader {
     return reader.getMessageCheckpoint();
   }
 
-  public boolean buildStartPartitionCheckpoints() {
+  public MessageCheckpoint buildStartPartitionCheckpoints() {
     return reader.buildStartPartitionCheckpoints();
   }
 }

@@ -197,20 +197,7 @@ public abstract class AbstractMessagingDatabusConsumer
   @Override
   protected Message getNext()
       throws InterruptedException, EndOfStreamException {
-    // check whether it consumed all messages till stopTime
-    checkClosedReaders();
-    QueueEntry entry = null;
-    for (int i = 0; i < readers.size(); i++) {
-      entry = buffer.take();
-      if (entry.getMessage() instanceof Message) {
-        break;
-      } else { // if (entry.getMessage() instanceof EOFMessage)
-        closedReadercount++;
-        checkClosedReaders();
-      }
-    }
-    setMessageCheckpoint(entry);
-    return (Message) entry.getMessage();
+    return getMessage(-1, null);
   }
 
   private void setMessageConsumedEntry(QueueEntry entry) {
@@ -236,13 +223,22 @@ public abstract class AbstractMessagingDatabusConsumer
   @Override
   protected Message getNext(long timeout, TimeUnit timeunit)
       throws InterruptedException, EndOfStreamException {
+    return getMessage(timeout, timeunit);
+  }
+
+  private Message getMessage(long timeout, TimeUnit timeunit)
+      throws EndOfStreamException, InterruptedException {
     // check whether it consumed all messages till stopTime
     checkClosedReaders();
     QueueEntry entry = null;
     for (int i = 0; i < readers.size(); i++) {
-      entry = buffer.poll(timeout, timeunit);
-      if (entry == null) {
-        return null;
+      if (timeout != -1) {
+        entry = buffer.poll(timeout, timeunit);
+        if (entry == null) {
+          return null;
+        }
+      } else {
+        entry = buffer.take();
       }
       if (entry.getMessage() instanceof Message) {
         break;
@@ -326,6 +322,7 @@ public abstract class AbstractMessagingDatabusConsumer
     close();
     currentCheckpoint.read(checkpointProvider, getChkpointKey());
     LOG.info("Resetting to checkpoint:" + currentCheckpoint);
+    messageConsumedMap.clear();
     buffer = new LinkedBlockingQueue<QueueEntry>(bufferSize);
     start();
   }
@@ -343,8 +340,8 @@ public abstract class AbstractMessagingDatabusConsumer
       if (!msgConsumedEntry.getValue()) {
         PartitionId id = msgConsumedEntry.getKey();
         PartitionReader reader = readers.get(id);
-        if (reader.buildStartPartitionCheckpoints()) {
-          MessageCheckpoint msgChk = reader.getMessageCheckpoint();
+        MessageCheckpoint msgChk = reader.buildStartPartitionCheckpoints();
+        if (msgChk != null) {
           setMessageCheckpoint(id, msgChk);
         }
       }

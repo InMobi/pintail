@@ -59,6 +59,11 @@ public class DatabusStreamWaitingReader
     createdDeltaCheckpointForFirstFile = false;
   }
 
+  public void initializeBuildTimeStamp(Date buildTimestamp)
+      throws IOException {
+    this.buildTimestamp = buildTimestamp;
+  }
+
   public void prepareTimeStampsOfCheckpoints() {
     PartitionCheckpoint partitionCheckpoint = null;
     for (Integer min : partitionMinList) {
@@ -315,7 +320,8 @@ public class DatabusStreamWaitingReader
   public Message readLine() throws IOException, InterruptedException {
     Message line = readNextLine();
     if (!createdDeltaCheckpointForFirstFile) {
-      buildStartPartitionCheckpoints();
+      // prepare partition checkpoint for all minutes in the partitionMinList
+      deltaCheckpoint.putAll(buildStartPartitionCheckpoints());
       setDeltaCheckpoint(buildTimestamp, getDateFromStreamDir(streamDir,
           getCurrentFile()));
       createdDeltaCheckpointForFirstFile = true;
@@ -450,7 +456,12 @@ public class DatabusStreamWaitingReader
     deltaCheckpoint.clear();
   }
 
-  public boolean buildStartPartitionCheckpoints() {
+  public Map<Integer, PartitionCheckpoint> buildStartPartitionCheckpoints() {
+    Map<Integer, PartitionCheckpoint> fullPartitionChkMap =
+        new HashMap<Integer, PartitionCheckpoint>();
+    if (buildTimestamp == null) {
+      return fullPartitionChkMap;
+    }
     Calendar cal = Calendar.getInstance();
     cal.setTime(buildTimestamp);
     cal.add(Calendar.MINUTE, 60);
@@ -463,12 +474,12 @@ public class DatabusStreamWaitingReader
         // create a checkpoint for that minute only if it does not have
         // checkpoint so that for no minute the checkpoint is null
         if (checkpointedTimeStamp == null) {
-          deltaCheckpoint.put(currentMinute, new PartitionCheckpoint
+          fullPartitionChkMap.put(currentMinute, new PartitionCheckpoint
               (getStreamFile(cal.getTime()), 0));
         }
       }
       cal.add(Calendar.MINUTE, 1);
     }
-    return true;
+    return fullPartitionChkMap;
   }
 }
