@@ -442,7 +442,8 @@ public class TestCollectorReader {
    *  for a given stop time
    */
   @Test
-  public void testReaderWithStopTime() throws IOException, InterruptedException {
+  public void testReaderWithStopTime()
+      throws IOException, InterruptedException {
     CollectorReaderStatsExposer prMetrics = new CollectorReaderStatsExposer(
         testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
     Date firstFileTimestamp = CollectorStreamReader.getDateFromCollectorFile(files[0]);
@@ -466,6 +467,31 @@ public class TestCollectorReader {
     Assert.assertNull(entry.getMessageChkpoint());
   }
 
+  /*
+   * It tests the reader's behavior where checkpointed file does not exists
+   *  on the stream and checkpointed file is before the stream
+   */
+  @Test
+  public void testReadFromCheckpointWhichDoesNotExistsWithStopTime()
+      throws Exception {
+    CollectorReaderStatsExposer prMetrics = new CollectorReaderStatsExposer(
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
+    Date stopTime = CollectorStreamReader.getDateFromCollectorFile(files[1]);
+    preader = new PartitionReader(partitionId,new PartitionCheckpoint(
+        CollectorStreamReader.getCollectorFile(doesNotExist1), 20), conf, fs,
+        collectorDir, streamsLocalDir, buffer, testStream, null,
+        10, 1000, prMetrics, false, stopTime);
+    preader.init();
+    Assert.assertTrue(buffer.isEmpty());
+    preader.execute();
+    TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
+        collectorName, files[0]), 1,  0, 100, partitionId, buffer, true, null);
+    TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
+        collectorName, files[1]), 2,  0, 100, partitionId, buffer, true, null);
+    QueueEntry entry = buffer.take();
+    Assert.assertTrue(entry.getMessage() instanceof EOFMessage);
+    Assert.assertNotNull(entry.getMessageChkpoint());
+  }
   @Test
   public void testReadFromCheckpointWithLocalStreamFileName() throws Exception {
     CollectorReaderStatsExposer prMetrics = new CollectorReaderStatsExposer(
