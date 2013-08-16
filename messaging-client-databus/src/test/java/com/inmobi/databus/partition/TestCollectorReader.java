@@ -427,7 +427,6 @@ public class TestCollectorReader {
     Calendar cal = Calendar.getInstance();
     cal.setTime(stopDate);
     cal.add(Calendar.HOUR_OF_DAY, -2);
-    System.out.println("Stop date " + stopDate + " " + cal.getTime());
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
         CollectorStreamReader.getCollectorFile(files[1]), 20), conf, fs,
         collectorDir, streamsLocalDir, buffer, testStream, null,
@@ -452,6 +451,35 @@ public class TestCollectorReader {
     Assert.assertTrue(buffer.isEmpty());
     preader.execute();
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
+  }
+
+  /*
+   * It tests the reader's behavior when there are no files in the stream
+   *  for a given stop time
+   */
+  @Test
+  public void testReaderWithStopTime() throws IOException, InterruptedException {
+    CollectorReaderStatsExposer prMetrics = new CollectorReaderStatsExposer(
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
+    Date firstFileTimestamp = CollectorStreamReader.getDateFromCollectorFile(files[0]);
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(firstFileTimestamp);
+    cal.add(Calendar.MINUTE, -10);
+    // Start time is 10 minutes behind from first file time stamp
+    Date startTime = cal.getTime();
+    cal.add(Calendar.MINUTE, 5);
+    // Stop time is 5 minutes behind first file time stamp
+    Date stopTime = cal.getTime();
+
+    preader = new PartitionReader(partitionId, null, conf, fs,
+        collectorDir, streamsLocalDir, buffer, testStream, startTime,
+        10, 1000, prMetrics, false, stopTime);
+    preader.init();
+    Assert.assertTrue(buffer.isEmpty());
+    preader.execute();
+    QueueEntry entry = buffer.take();
+    Assert.assertTrue(entry.getMessage() instanceof EOFMessage);
+    Assert.assertNull(entry.getMessageChkpoint());
   }
 
   @Test
