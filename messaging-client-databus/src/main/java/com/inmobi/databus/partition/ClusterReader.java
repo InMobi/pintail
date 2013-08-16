@@ -142,6 +142,13 @@ public class ClusterReader extends AbstractPartitionStreamReader {
   public MessageCheckpoint getMessageCheckpoint() {
     DatabusStreamWaitingReader dataWaitingReader =
         (DatabusStreamWaitingReader) reader;
+    /*
+     * current file will be null only if there are no files in the stream
+     *  for a given stop time.
+     */
+    if (dataWaitingReader.getCurrentFile() == null) {
+      return null;
+    }
     DeltaPartitionCheckPoint consumerPartitionCheckPoint =
         new DeltaPartitionCheckPoint(dataWaitingReader.getCurrentStreamFile(),
             dataWaitingReader.getCurrentLineNum(), dataWaitingReader.
