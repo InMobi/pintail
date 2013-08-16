@@ -128,7 +128,7 @@ public class TestPartitionReaderWithLeastFullCheckpoint extends TestAbstractClus
     Date stopTime = cal.getTime();
     PartitionReader preader = new PartitionReader(partitionId,
         partitionCheckpointList, fs, buffer, streamDir, conf, inputFormatClass,
-        startTime, 1000, isDatabusData(), prMetrics, true, partitionMinList, stopTime);
+        startTime, 1000, isDatabusData(), prMetrics, false, partitionMinList, stopTime);
     preader.init();
     preader.execute();
     Date fromTime = getTimeStampFromFile(databusFiles[1]);

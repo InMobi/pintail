@@ -447,7 +447,7 @@ public class TestCollectorReader {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
         CollectorStreamReader.getCollectorFile(files[1]), 20), conf, fs,
         collectorDir, streamsLocalDir, buffer, testStream, null,
-        10, 1000, prMetrics, true, stopDate);
+        10, 1000, prMetrics, false, stopDate);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     preader.execute();

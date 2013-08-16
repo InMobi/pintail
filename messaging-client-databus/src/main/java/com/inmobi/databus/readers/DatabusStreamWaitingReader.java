@@ -345,9 +345,11 @@ public class DatabusStreamWaitingReader
              *  02/06/null--1 till 02/10/null--1
              */
             Date lastFileTimestamp = getDateFromStreamDir(streamDir, getCurrentFile());
-            setDeltaCheckpoint(getNextMinuteTimeStamp(lastFileTimestamp),
-                getNextMinuteTimeStamp(stopTime));
-            currentLineNum = -1;
+            if (stopTime != null) {
+              setDeltaCheckpoint(getNextMinuteTimeStamp(lastFileTimestamp),
+                  getNextMinuteTimeStamp(stopTime));
+              currentLineNum = -1;
+            }
             LOG.info("read all files till stop date");
             break;
           }
