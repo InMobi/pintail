@@ -191,8 +191,9 @@ public class PartitionReader {
     try {
       boolean closeReader = false;
       /*
-       * close the reader if there are no files present in the stream
-       *  for a given stopTime
+       * reader should be closed in either case
+       * 1) If checkpointed file does not exists and it is not before the stream
+       * 2) If there are no files present with in the stream for a given stop time
        */
       if (reader.shouldBeClosed()) {
         closeReader = true;
@@ -238,7 +239,8 @@ public class PartitionReader {
 
   public void putEOFMessageInBuffer() throws InterruptedException {
     EOFMessage eofMessage = new EOFMessage();
-    buffer.put(new QueueEntry(eofMessage, partitionId, null));
+    buffer.put(new QueueEntry(eofMessage, partitionId,
+        reader.getMessageCheckpoint()));
   }
 
   public PartitionReaderStatsExposer getStatsExposer() {

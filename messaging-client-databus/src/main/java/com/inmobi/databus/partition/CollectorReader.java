@@ -241,8 +241,11 @@ public class CollectorReader extends AbstractPartitionStreamReader {
 
   @Override
   public MessageCheckpoint getMessageCheckpoint() {
-    return new PartitionCheckpoint(reader.getCurrentStreamFile(),
-        reader.getCurrentLineNum());
+    if (reader != null && getCurrentFile() != null) {
+      return new PartitionCheckpoint(reader.getCurrentStreamFile(),
+          reader.getCurrentLineNum());
+    }
+    return null;
   }
 
   @Override

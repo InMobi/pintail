@@ -418,26 +418,9 @@ public class TestCollectorReader {
     Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
   }
 
-  @Test
-  public void testReadFromCheckpointWhichDoesNotExistsWithStopTime()
-      throws Exception {
-    CollectorReaderStatsExposer prMetrics = new CollectorReaderStatsExposer(
-        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
-    Date stopDate = CollectorStreamReader.getDateFromCollectorFile(files[0]);
-    Calendar cal = Calendar.getInstance();
-    cal.setTime(stopDate);
-    cal.add(Calendar.HOUR_OF_DAY, -2);
-    System.out.println("Stop date " + stopDate + " " + cal.getTime());
-    preader = new PartitionReader(partitionId, new PartitionCheckpoint(
-        CollectorStreamReader.getCollectorFile(files[1]), 20), conf, fs,
-        collectorDir, streamsLocalDir, buffer, testStream, null,
-        10, 1000, prMetrics, true, cal.getTime());
-    preader.init();
-    Assert.assertTrue(buffer.isEmpty());
-    preader.execute();
-    Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
-  }
-
+  /*
+   * It tests the reader's behavior when stop time is behind the checkpoint
+   */
   @Test
   public void testReadFromCheckpointWithStopTime()
       throws Exception {
@@ -447,13 +430,68 @@ public class TestCollectorReader {
     preader = new PartitionReader(partitionId, new PartitionCheckpoint(
         CollectorStreamReader.getCollectorFile(files[1]), 20), conf, fs,
         collectorDir, streamsLocalDir, buffer, testStream, null,
-        10, 1000, prMetrics, true, stopDate);
+        10, 1000, prMetrics, false, stopDate);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     preader.execute();
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
   }
 
+  /*
+   * It tests the reader's behavior when there are no files in the stream
+   *  for a given stop time
+   */
+  @Test
+  public void testReaderWithStopTime()
+      throws IOException, InterruptedException {
+    CollectorReaderStatsExposer prMetrics = new CollectorReaderStatsExposer(
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
+    Date firstFileTimestamp = CollectorStreamReader.getDateFromCollectorFile(files[0]);
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(firstFileTimestamp);
+    cal.add(Calendar.MINUTE, -10);
+    // Start time is 10 minutes behind the first file timestamp
+    Date startTime = cal.getTime();
+    cal.add(Calendar.MINUTE, 5);
+    // Stop time is 5 minutes behind the first file timestamp
+    Date stopTime = cal.getTime();
+
+    preader = new PartitionReader(partitionId, null, conf, fs,
+        collectorDir, streamsLocalDir, buffer, testStream, startTime,
+        10, 1000, prMetrics, false, stopTime);
+    preader.init();
+    Assert.assertTrue(buffer.isEmpty());
+    preader.execute();
+    QueueEntry entry = buffer.take();
+    Assert.assertTrue(entry.getMessage() instanceof EOFMessage);
+    Assert.assertNull(entry.getMessageChkpoint());
+  }
+
+  /*
+   * It tests the reader's behavior where checkpointed file does not exists
+   *  on the stream and checkpointed file is before the stream
+   */
+  @Test
+  public void testReadFromCheckpointWhichDoesNotExistsWithStopTime()
+      throws Exception {
+    CollectorReaderStatsExposer prMetrics = new CollectorReaderStatsExposer(
+        testStream, "c1", partitionId.toString(), consumerNumber, fsUri);
+    Date stopTime = CollectorStreamReader.getDateFromCollectorFile(files[1]);
+    preader = new PartitionReader(partitionId,new PartitionCheckpoint(
+        CollectorStreamReader.getCollectorFile(doesNotExist1), 20), conf, fs,
+        collectorDir, streamsLocalDir, buffer, testStream, null,
+        10, 1000, prMetrics, false, stopTime);
+    preader.init();
+    Assert.assertTrue(buffer.isEmpty());
+    preader.execute();
+    TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
+        collectorName, files[0]), 1,  0, 100, partitionId, buffer, true, null);
+    TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
+        collectorName, files[1]), 2,  0, 100, partitionId, buffer, true, null);
+    QueueEntry entry = buffer.take();
+    Assert.assertTrue(entry.getMessage() instanceof EOFMessage);
+    Assert.assertNotNull(entry.getMessageChkpoint());
+  }
   @Test
   public void testReadFromCheckpointWithLocalStreamFileName() throws Exception {
     CollectorReaderStatsExposer prMetrics = new CollectorReaderStatsExposer(
