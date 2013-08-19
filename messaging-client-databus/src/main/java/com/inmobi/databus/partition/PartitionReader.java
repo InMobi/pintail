@@ -115,6 +115,7 @@ public class PartitionReader {
         while (!stopped && !thread.isInterrupted()) {
           long startTime = System.currentTimeMillis();
           try {
+            // initialize the reader once, until init succeeds
             while (!stopped && !inited) {
               init();
             }
@@ -186,15 +187,17 @@ public class PartitionReader {
     return reader;
   }
 
+  /**
+   * Execute reads messages from the stream and adds them to the consumer buffer,
+   * until no more messages are present or any exception occurs while reading
+   */
   void execute() {
     assert (reader != null);
     try {
       boolean closeReader = false;
-      /*
-       * reader should be closed in either case
-       * 1) If checkpointed file does not exists and it is not before the stream
-       * 2) If there are no files present with in the stream for a given stop time
-       */
+      // Close the reader if it should closed 
+      // or reader not able to open the stream
+      // TODO when will reader wont be able to open the stream?
       if (reader.shouldBeClosed()) {
         closeReader = true;
       } else {
@@ -205,6 +208,7 @@ public class PartitionReader {
             + " and lineNum:" + reader.getCurrentLineNum());
       }
       while (!stopped && !closeReader) {
+        // read the message from the stream reader
         Message msg = reader.readLine();
         if (msg != null) {
           // add the data to queue
@@ -212,13 +216,14 @@ public class PartitionReader {
           buffer.put(new QueueEntry(msg, partitionId, checkpoint));
           prMetrics.incrementMessagesAddedToBuffer();
         } else {
+          // message will be null, if the all messages are read
+          // in case of stop criteria defined
           closeReader = true;
         }
       }
       if (closeReader) {
         LOG.info("No stream to read");
         putEOFMessageInBuffer();
-        // close the reader if reader's status is "closing"
         close();
         return;
       }
@@ -245,10 +250,6 @@ public class PartitionReader {
 
   public PartitionReaderStatsExposer getStatsExposer() {
     return prMetrics;
-  }
-
-  public MessageCheckpoint getMessageCheckpoint() {
-    return reader.getMessageCheckpoint();
   }
 
   public MessageCheckpoint buildStartPartitionCheckpoints() {

@@ -132,9 +132,6 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
         LOG.info("Creating partition readers for all the collectors");
         for (String collector : getCollectors(fs, streamDir)) {
           PartitionId id = new PartitionId(clusterName, collector);
-          if (partitionsChkPoints.get(id) == null) {
-            partitionsChkPoints.put(id, null);
-          }
           Date partitionTimestamp = getPartitionTimestamp(id,
               partitionsChkPoints.get(id));
           LOG.debug("Creating partition " + id);
@@ -161,12 +158,8 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
       } else {
         LOG.info("Creating partition reader for cluster");
         PartitionId id = new PartitionId(clusterName, null);
-        Map<Integer, PartitionCheckpoint> listofPartitionCheckpoints = new
-            HashMap<Integer, PartitionCheckpoint>();
-        PartitionCheckpointList partitionCheckpointList = new
-            PartitionCheckpointList(listofPartitionCheckpoints);
-        ((CheckpointList) currentCheckpoint).preaprePartitionCheckPointList(id,
-            partitionCheckpointList);
+        PartitionCheckpointList partitionCheckpointList = 
+        ((CheckpointList) currentCheckpoint).preaprePartitionCheckPointList(id);
         Date partitionTimestamp = getPartitionTimestamp(id,
             partitionCheckpointList);
         LOG.debug("Creating partition " + id);

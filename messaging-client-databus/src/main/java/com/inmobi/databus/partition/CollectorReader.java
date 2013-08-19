@@ -70,16 +70,17 @@ public class CollectorReader extends AbstractPartitionStreamReader {
    */
   private void initializeCurrentFileFromCheckpointLocalStream(
       String localStreamFileName) throws IOException, InterruptedException {
-    String error = "Checkpoint file does not exist";
     if (!lReader.isEmpty()) {
+      reader = lReader;
       if (lReader.initializeCurrentFile(new PartitionCheckpoint(
           DatabusStreamFile.create(streamName, localStreamFileName),
           partitionCheckpoint.getLineNum()))) {
-        reader = lReader;
       } else if (lReader.isStopped() || cReader.isStopped()) {
+        // reader should be closed if there are no files present 
+        // with in the stream for a given stop time
         shouldBeClosed  = true;
       } else {
-        throw new IllegalArgumentException(error);
+        lReader.startFromNextHigher(localStreamFileName);
       }
     } else {
       reader = cReader;
@@ -92,21 +93,10 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   private void initializeCurrentFileFromFailedCheckpoint(
       String collectorFileName)
       throws IOException, InterruptedException {
-    String error = "Checkpoint file does not exist";
-    if (!cReader.isEmpty()) {
-      if (cReader.isBeforeStream(collectorFileName)) {
-        reader.initFromStart();
-      } else if (checkAnyReaderIsStopped()) {
-        shouldBeClosed  = true;
-      } else {
-        throw new IllegalArgumentException(error);
-      }
+    if (checkAnyReaderIsStopped()) {
+      shouldBeClosed  = true;
     } else {
-      if (checkAnyReaderIsStopped()) {
-        shouldBeClosed = true;
-      } else {
-        cReader.startFromBegining();
-      }
+      cReader.startFromNextHigher(collectorFileName);
     }
   }
 

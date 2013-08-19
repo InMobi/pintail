@@ -13,15 +13,14 @@ import com.inmobi.messaging.consumer.databus.MessageCheckpoint;
 public class PartitionCheckpointList implements MessageCheckpoint {
 
   // map of static id to its checkpoint
-  private Map<Integer, PartitionCheckpoint> pChkpoints =
+  private final Map<Integer, PartitionCheckpoint> pChkpoints =
       new TreeMap<Integer, PartitionCheckpoint>();
 
   public PartitionCheckpointList(Map<Integer, PartitionCheckpoint> chkpoints) {
-    this.pChkpoints = chkpoints;
+    this.pChkpoints.putAll(chkpoints);
   }
 
-  public void setCheckpoint(Map<Integer, PartitionCheckpoint> chkpoints) {
-    this.pChkpoints = chkpoints;
+  public PartitionCheckpointList() {
   }
 
   public Map<Integer, PartitionCheckpoint> getCheckpoints() {

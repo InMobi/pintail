@@ -200,14 +200,12 @@ public abstract class AbstractMessagingDatabusConsumer
     return getMessage(-1, null);
   }
 
-  private void setMessageConsumedEntry(QueueEntry entry) {
+  private void setMessageCheckpoint(QueueEntry entry) {
     PartitionId id = entry.getPartitionId();
     messageConsumedMap.put(id, true);
-  }
-
-  private void setMessageCheckpoint(QueueEntry entry) {
-    setMessageConsumedEntry(entry);
-    setMessageCheckpoint(entry.getPartitionId(), entry.getMessageChkpoint());
+    if (entry.getMessageChkpoint() != null) {
+      setMessageCheckpoint(entry.getPartitionId(), entry.getMessageChkpoint());
+    }
   }
 
   private void setMessageCheckpoint(PartitionId id, MessageCheckpoint msgchk) {
@@ -240,17 +238,14 @@ public abstract class AbstractMessagingDatabusConsumer
       } else {
         entry = buffer.take();
       }
+      setMessageCheckpoint(entry);
       if (entry.getMessage() instanceof Message) {
         break;
       } else { // if (entry.getMessage() instanceof EOFMessage)
-        if (entry.getMessageChkpoint() != null) {
-          setMessageCheckpoint(entry);
-        }
         closedReadercount++;
         checkClosedReaders();
       }
     }
-    setMessageCheckpoint(entry);
     return (Message) entry.getMessage();
   }
 
@@ -325,7 +320,6 @@ public abstract class AbstractMessagingDatabusConsumer
     close();
     currentCheckpoint.read(checkpointProvider, getChkpointKey());
     LOG.info("Resetting to checkpoint:" + currentCheckpoint);
-    messageConsumedMap.clear();
     buffer = new LinkedBlockingQueue<QueueEntry>(bufferSize);
     start();
   }
@@ -364,6 +358,7 @@ public abstract class AbstractMessagingDatabusConsumer
     if (buffer != null) {
       buffer.clear();
     }
+    messageConsumedMap.clear();
     super.close();
   }
 

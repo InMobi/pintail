@@ -29,25 +29,25 @@ import org.apache.hadoop.util.ReflectionUtils;
 import com.inmobi.databus.Cluster;
 import com.inmobi.databus.files.FileMap;
 import com.inmobi.databus.files.StreamFile;
-import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
-public abstract class DatabusStreamReader<T extends StreamFile> extends
-StreamReader<T> {
+public abstract class DatabusStreamReader<T extends StreamFile>
+    extends StreamReader<T> {
 
   private static final Log LOG = LogFactory.getLog(DatabusStreamReader.class);
 
+  private final InputFormat<Object, Object> input;
+  private final Configuration conf;
+  private final ByteArrayOutputStream baos = new ByteArrayOutputStream();
   private FileSplit currentFileSplit;
   private RecordReader<Object, Object> recordReader;
-  private InputFormat<Object, Object> input;
-  private Configuration conf;
-  protected Date buildTimestamp;
   private Object msgKey;
   private Object msgValue;
-  private ByteArrayOutputStream baos = new ByteArrayOutputStream();
   private boolean needsSerialize;
+
+  protected Date buildTimestamp;
 
   protected DatabusStreamReader(PartitionId partitionId, FileSystem fs,
       Path streamDir, String inputFormatClass,
@@ -88,27 +88,6 @@ StreamReader<T> {
         }
       }
     }
-  }
-
-  /**
-   *  Comment out this method if partition reader should not read from start of
-   *   stream
-   *  if check point does not exist.
-   */
-  public boolean initializeCurrentFile(PartitionCheckpoint checkpoint)
-      throws IOException {
-    boolean ret = super.initializeCurrentFile(checkpoint);
-    if (!ret) {
-      T streamFile = (T) checkpoint.getStreamFile();
-      LOG.info("Could not find checkpointed file: " + streamFile);
-      if (isBeforeStream(streamFile)) {
-        LOG.info("Reading from start of the stream");
-        return initFromStart();
-      } else {
-        LOG.info("The checkpoint is not before the stream. Ignoring it");
-      }
-    }
-    return ret;
   }
 
   protected boolean openCurrentFile(boolean next) throws IOException {

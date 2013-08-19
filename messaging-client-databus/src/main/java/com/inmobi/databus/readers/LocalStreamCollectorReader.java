@@ -25,12 +25,10 @@ import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 public class LocalStreamCollectorReader extends
     DatabusStreamReader<DatabusStreamFile> {
 
-  protected final String streamName;
-
   private static final Log LOG = LogFactory.getLog(
       LocalStreamCollectorReader.class);
-
   private final String collector;
+  private final String streamName;
 
   public LocalStreamCollectorReader(PartitionId partitionId,
       FileSystem fs, String streamName, Path streamDir, Configuration conf,
@@ -40,7 +38,6 @@ public class LocalStreamCollectorReader extends
     super(partitionId, fs, streamDir,
         DatabusInputFormat.class.getCanonicalName(), conf, waitTimeForFileCreate,
         metrics, false, stopTime);
-    this.stopTime = stopTime;
     this.streamName = streamName;
     this.collector = partitionId.getCollector();
   }
@@ -188,7 +185,8 @@ public class LocalStreamCollectorReader extends
       }
       return null;
     } catch (Exception e) {
-      throw new IllegalArgumentException("Invalid fileName:" + fileName, e);
+      LOG.warn("Invalid fileName:" + fileName, e);
+      return null;
     }
   }
 

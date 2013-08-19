@@ -25,27 +25,23 @@ public abstract class StreamReader<T extends StreamFile> {
 
   private static final Log LOG = LogFactory.getLog(StreamReader.class);
 
-  protected Date timestamp;
-  protected PartitionCheckpoint checkpoint;
-  protected PartitionId partitionId;
-  protected FileStatus currentFile;
-  protected long currentLineNum = 0;
-  private FileSystem fs;
-  protected volatile boolean closed = false;
-  protected boolean noNewFiles = false; // this is purely for tests
-  private long waitTimeForCreate;
-  protected Path streamDir;
+  private final FileSystem fs;
+  private final long waitTimeForCreate;
+  private final FileMap<T> fileMap;
+  protected final Path streamDir;
   protected final PartitionReaderStatsExposer metrics;
-  private FileMap<T> fileMap;
-  protected Date stopTime;
+  protected final Date stopTime;
 
   private boolean listingStopped = false;
+  protected volatile boolean closed = false;
+  protected boolean noNewFiles = false; // this is purely for tests
+  protected FileStatus currentFile;
+  protected long currentLineNum = 0;
 
   protected StreamReader(PartitionId partitionId, FileSystem fs,
       Path streamDir, long waitTimeForCreate,
       PartitionReaderStatsExposer metrics, boolean noNewFiles, Date stopTime)
           throws IOException {
-    this.partitionId = partitionId;
     this.fs = fs;
     this.streamDir = streamDir;
     this.waitTimeForCreate = waitTimeForCreate;
@@ -94,7 +90,6 @@ public abstract class StreamReader<T extends StreamFile> {
 
   public boolean initializeCurrentFile(Date timestamp) throws IOException {
     initCurrentFile();
-    this.timestamp = timestamp;
     T file = getStreamFile(timestamp);
     LOG.debug("Stream file corresponding to timestamp:" + timestamp
         + " is " + file);
@@ -113,8 +108,6 @@ public abstract class StreamReader<T extends StreamFile> {
   public boolean initializeCurrentFile(PartitionCheckpoint checkpoint)
       throws IOException {
     initCurrentFile();
-    this.checkpoint = checkpoint;
-    LOG.debug("checkpoint:" + checkpoint);
     currentFile = fileMap.getValue(checkpoint.getStreamFile());
     if (currentFile != null) {
       currentLineNum = checkpoint.getLineNum();
@@ -272,7 +265,6 @@ public abstract class StreamReader<T extends StreamFile> {
   }
 
   protected boolean hasNextFile() throws IOException {
-    LOG.debug("In next file");
     if (!setIterator()) {
       LOG.info("could not set iterator for currentfile");
       return false;
@@ -314,7 +306,16 @@ public abstract class StreamReader<T extends StreamFile> {
     }
   }
 
+  public boolean startFromNextHigher(String fileName)
+      throws IOException, InterruptedException {
+    if (!setNextHigher(fileName)) {
+      waitForNextFileCreation(fileName);
+    }
+    return true;
+  }
+
   protected void waitForFileCreate() throws InterruptedException {
+    LOG.info("Waiting for next file creation");
     Thread.sleep(waitTimeForCreate);
     metrics.incrementWaitTimeUnitsNewFile();
   }
@@ -322,7 +323,14 @@ public abstract class StreamReader<T extends StreamFile> {
   private void waitForNextFileCreation() throws IOException,
   InterruptedException {
     while (!closed && !initFromStart() && !hasReadFully()) {
-      LOG.info("Waiting for next file creation");
+      waitForFileCreate();
+      build();
+    }
+  }
+
+  private void waitForNextFileCreation(String fileName)
+      throws IOException, InterruptedException {
+    while (!closed && !setNextHigher(fileName) && !hasReadFully()) {
       waitForFileCreate();
       build();
     }
@@ -331,18 +339,9 @@ public abstract class StreamReader<T extends StreamFile> {
   private void waitForNextFileCreation(Date timestamp)
       throws IOException, InterruptedException {
     while (!closed && !initializeCurrentFile(timestamp) && !hasReadFully()) {
-      LOG.info("Waiting for next file creation");
       waitForFileCreate();
       build();
     }
-  }
-
-  protected boolean isBeforeStream(T streamFile) {
-    return fileMap.isBefore(streamFile);
-  }
-
-  public boolean isBeforeStream(String fileName) throws IOException {
-    return fileMap.isBefore(fileName);
   }
 
   protected boolean isWithinStream(String fileName) throws IOException {

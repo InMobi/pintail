@@ -126,7 +126,6 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   }
 
   protected void initCurrentFile() {
-
     super.initCurrentFile();
     sameStream = false;
   }
@@ -162,6 +161,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
       inStream = null;
     }
   }
+
   protected Message readRawLine() throws IOException {
     int next = reader.read();
     while ((char) next != '\n') {
@@ -285,23 +285,6 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     boolean ret = startFromNextHigher(fileName);
     if (ret) {
       openCurrentFile(true);
-    }
-  }
-
-  public boolean startFromNextHigher(String fileName)
-      throws IOException, InterruptedException {
-    if (!setNextHigher(fileName)) {
-      waitForNextFileCreation(fileName);
-    }
-    return true;
-  }
-
-  private void waitForNextFileCreation(String fileName)
-      throws IOException, InterruptedException {
-    while (!closed && !setNextHigher(fileName) && !hasReadFully()) {
-      LOG.info("Waiting for next file creation");
-      waitForFileCreate();
-      build();
     }
   }
 

@@ -52,6 +52,9 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
         DEFAULT_INPUT_FORMAT_CLASSNAME);
   }
 
+  /**
+   * Creates one partition reader for one rootdir
+   */
   protected void createPartitionReaders() throws IOException {
     for (int i = 0; i < clusterNames.length; i++) {
       String clusterName = clusterNames[i];
@@ -60,13 +63,9 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
 
       // create partition id
       PartitionId id = new PartitionId(clusterName, null);
-      Map<Integer, PartitionCheckpoint> listofPartitionCheckpoints = new
-          HashMap<Integer, PartitionCheckpoint>();
-
-      PartitionCheckpointList partitionCheckpointList = new
-          PartitionCheckpointList(listofPartitionCheckpoints);
-      ((CheckpointList) currentCheckpoint).preaprePartitionCheckPointList(id,
-          partitionCheckpointList);
+      // Get the partition checkpoint list from consumer checkpoint
+      PartitionCheckpointList partitionCheckpointList = 
+          ((CheckpointList) currentCheckpoint).preaprePartitionCheckPointList(id);
 
       Date partitionTimestamp = getPartitionTimestamp(id,
           partitionCheckpointList);

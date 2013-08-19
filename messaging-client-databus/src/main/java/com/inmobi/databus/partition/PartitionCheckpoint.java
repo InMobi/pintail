@@ -55,7 +55,7 @@ public class PartitionCheckpoint implements Writable, MessageCheckpoint {
       clazz = Class.forName(streamFileClassName);
       streamFile = (StreamFile) clazz.newInstance();
     } catch (Exception e) {
-      throw new IllegalArgumentException("Invalid checkpoint");
+      throw new IllegalArgumentException("Invalid checkpoint", e);
     }
     streamFile.readFields(in);
     lineNum = in.readLong();
