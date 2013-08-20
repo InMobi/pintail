@@ -40,6 +40,7 @@ public abstract class TestAbstractHadoopConsumer {
   protected String ck16;
   protected String ck17;
   protected String ck18;
+  protected String ck19;
 
   int numMessagesPerFile = 100;
   int numDataFiles;
@@ -53,7 +54,7 @@ public abstract class TestAbstractHadoopConsumer {
   protected String consumerName;
   protected Path[] rootDirs;
   protected String[] chkDirs = new String[]{ck1, ck2, ck3, ck4, ck5, ck6, ck7,
-      ck8, ck9, ck10, ck11, ck12, ck13, ck14, ck15, ck16, ck17, ck18};
+      ck8, ck9, ck10, ck11, ck12, ck13, ck14, ck15, ck16, ck17, ck18, ck19};
   Path[][] finalPaths;
   Configuration conf;
   protected final String relativeStartTime = "30";
@@ -79,7 +80,7 @@ public abstract class TestAbstractHadoopConsumer {
           finalPaths[i], rootDirs[i], true, createFilesInNextHour);
     }
     HadoopUtil.setUpHadoopFiles(rootDirs[0], conf,
-      new String[]{"_SUCCESS", "_DONE"}, suffixDirs, null);
+        new String[]{"_SUCCESS", "_DONE"}, suffixDirs, null);
   }
 
   public void testMarkAndReset() throws Exception {
@@ -316,6 +317,22 @@ public abstract class TestAbstractHadoopConsumer {
         AbstractMessageConsumer.minDirFormat.get().format(stopDate));
     ConsumerUtil.testConsumerStartOfStreamWithStopTime(config, testStream,
         consumerName, true);
+  }
+
+  public void testMarkAndResetWithStopTime() throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(HadoopConsumerConfig.rootDirsConfig, rootDirs[0].toString());
+    config.set(HadoopConsumerConfig.checkpointDirConfig, ck19);
+    Date absoluteStartTime = DatabusStreamWaitingReader.
+        getDateFromStreamDir(rootDirs[0], finalPaths[0][0]);
+    config.set(MessageConsumerFactory.ABSOLUTE_START_TIME,
+        AbstractMessageConsumer.minDirFormat.get().format(absoluteStartTime));
+    Date stopDate = DatabusStreamWaitingReader.
+        getDateFromStreamDir(rootDirs[0], finalPaths[0][9]);
+    config.set(HadoopConsumerConfig.stopDateConfig,
+        AbstractMessageConsumer.minDirFormat.get().format(stopDate));
+    ConsumerUtil.testMarkAndResetWithStopTime(config, testStream, consumerName,
+        absoluteStartTime, true);
   }
 
   public void cleanup() throws IOException {
