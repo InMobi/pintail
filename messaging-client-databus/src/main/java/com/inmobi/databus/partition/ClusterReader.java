@@ -70,19 +70,23 @@ public class ClusterReader extends AbstractPartitionStreamReader {
     PartitionCheckpoint partitioncheckpoint = null;
     Iterator<PartitionCheckpoint> it = partitionCheckpointList.getCheckpoints().
         values().iterator();
-    Date timeStamp = null;
+    Date leastPckTimeStamp = null;
     if (it.hasNext()) {
       partitioncheckpoint = it.next();
-      timeStamp = DatabusStreamWaitingReader.getDateFromCheckpointPath(
-          partitioncheckpoint.getFileName());
+      if (partitioncheckpoint != null) {
+        leastPckTimeStamp = DatabusStreamWaitingReader.getDateFromCheckpointPath(
+            partitioncheckpoint.getFileName());
+      }
     }
     while (it.hasNext()) {
       PartitionCheckpoint tmpPartitionCheckpoint = it.next();
-      Date date = DatabusStreamWaitingReader.getDateFromCheckpointPath(
-          tmpPartitionCheckpoint.getFileName());
-      if (timeStamp.compareTo(date) > 0) {
-        partitioncheckpoint = tmpPartitionCheckpoint;
-        timeStamp = date;
+      if (tmpPartitionCheckpoint != null) {
+        Date pckTimeStamp = DatabusStreamWaitingReader
+            .getDateFromCheckpointPath(tmpPartitionCheckpoint.getFileName());
+        if (pckTimeStamp.before(leastPckTimeStamp)) {
+          partitioncheckpoint = tmpPartitionCheckpoint;
+          leastPckTimeStamp = pckTimeStamp;
+        }
       }
     }
     return partitioncheckpoint;
