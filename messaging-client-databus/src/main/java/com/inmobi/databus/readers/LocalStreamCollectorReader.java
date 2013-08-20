@@ -134,7 +134,7 @@ public class LocalStreamCollectorReader extends
     };
   }
 
-  public Message readLine() throws IOException {
+  public Message readLine() throws IOException, InterruptedException {
     Message line = readNextLine();
     while (line == null) { // reached end of file
       if (closed) {
@@ -236,6 +236,10 @@ public class LocalStreamCollectorReader extends
       String collectorFileName) {
     return new DatabusStreamFile(collector,
         CollectorFile.create(collectorFileName), "gz");
+  }
+
+  public boolean initFromNextHigher(String localStreamFileName) throws IOException {
+    return setNextHigher(localStreamFileName);
   }
 
 }

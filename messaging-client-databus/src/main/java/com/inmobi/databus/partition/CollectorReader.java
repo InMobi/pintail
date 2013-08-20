@@ -28,7 +28,6 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   private CollectorStreamReader cReader;
   private final CollectorReaderStatsExposer metrics;
   private boolean isLocalStreamAvailable = false;
-  private boolean shouldBeClosed = false;
 
   CollectorReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, FileSystem fs,
@@ -70,39 +69,33 @@ public class CollectorReader extends AbstractPartitionStreamReader {
    */
   private void initializeCurrentFileFromCheckpointLocalStream(
       String localStreamFileName) throws IOException, InterruptedException {
+    boolean useCReader = false;
     if (!lReader.isEmpty()) {
-      reader = lReader;
-      if (lReader.initializeCurrentFile(new PartitionCheckpoint(
+      if (!lReader.initializeCurrentFile(new PartitionCheckpoint(
           DatabusStreamFile.create(streamName, localStreamFileName),
           partitionCheckpoint.getLineNum()))) {
-      } else if (lReader.isStopped() || cReader.isStopped()) {
-        // reader should be closed if there are no files present 
-        // with in the stream for a given stop time
-        shouldBeClosed  = true;
-      } else {
-        lReader.startFromNextHigher(localStreamFileName);
+        // could not initialize from checkpoint
+        // for following reasons
+        // 1. checkpointed file does not exist or stop time has reached
+        // 1.1 there are more files higher than checkpointed file.
+        // 1.2 there are no files higher than checkpointed file.
+        // for case 1.2, we should switch to collector stream reader.
+        if (!lReader.initFromNextHigher(localStreamFileName)) {
+          useCReader = true;
+        }
       }
     } else {
+      useCReader = true;
+    }
+    
+    if (useCReader) {
       reader = cReader;
       String collectorFileName = CollectorStreamReader.getCollectorFileName(
           streamName, localStreamFileName);
-      initializeCurrentFileFromFailedCheckpoint(collectorFileName);
-    }
-  }
-
-  private void initializeCurrentFileFromFailedCheckpoint(
-      String collectorFileName)
-      throws IOException, InterruptedException {
-    if (checkAnyReaderIsStopped()) {
-      shouldBeClosed  = true;
-    } else {
       cReader.startFromNextHigher(collectorFileName);
+    } else {
+      reader = lReader;
     }
-  }
-
-  private boolean checkAnyReaderIsStopped() {
-    return cReader.isStopped()
-        || (isLocalStreamAvailable && lReader.isStopped());
   }
 
   private void initializeCurrentFileFromCheckpoint()
@@ -130,7 +123,6 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     } else {
       reader = cReader;
     }
-
     reader.startFromBegining();
   }
 
@@ -164,8 +156,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       throws IOException, InterruptedException {
     if (partitionCheckpoint != null) {
       if (!reader.initializeCurrentFile(partitionCheckpoint)) {
-        initializeCurrentFileFromFailedCheckpoint(partitionCheckpoint
-            .getFileName());
+        cReader.startFromNextHigher(partitionCheckpoint.getFileName());
       }
     } else if (startTime != null) {
       reader.startFromTimestmp(startTime);
@@ -236,11 +227,6 @@ public class CollectorReader extends AbstractPartitionStreamReader {
           reader.getCurrentLineNum());
     }
     return null;
-  }
-
-  @Override
-  public boolean shouldBeClosed() {
-    return shouldBeClosed;
   }
 
   @Override

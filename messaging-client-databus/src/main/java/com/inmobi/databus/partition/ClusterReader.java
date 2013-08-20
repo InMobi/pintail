@@ -97,18 +97,7 @@ public class ClusterReader extends AbstractPartitionStreamReader {
     if (leastPartitionCheckpoint != null) {
       LOG.info("Least partition checkpoint " + leastPartitionCheckpoint);
       if (!reader.isEmpty()) {
-        /* If the partition checkpoint is completed checkpoint (i.e. line
-        number is -1) or if it the filename of the checkpoint is null (
-        when the checkpointing was done partially or before a single
-        message was read) then it has to start from the next checkpoint.
-         */
-        if (leastPartitionCheckpoint.getLineNum() == -1
-            || leastPartitionCheckpoint.getName() == null) {
-          // TODO. what about initFromNextCheckPoint returning null?
-          ((DatabusStreamWaitingReader) reader).initFromNextCheckPoint();
-        } else if (!reader.initializeCurrentFile(leastPartitionCheckpoint)) {
-          reader.startFromNextHigher(leastPartitionCheckpoint.getFileName());
-        }
+        ((DatabusStreamWaitingReader) reader).startFromCheckPoint();
       } else {
         reader.startFromBegining();
       }
@@ -143,11 +132,6 @@ public class ClusterReader extends AbstractPartitionStreamReader {
             getCurrentMin(), dataWaitingReader.getDeltaCheckpoint());
     dataWaitingReader.resetDeltaCheckpoint();
     return consumerPartitionCheckPoint;
-  }
-
-  @Override
-  public boolean shouldBeClosed() {
-    return false;
   }
 
   public MessageCheckpoint buildStartPartitionCheckpoints() {

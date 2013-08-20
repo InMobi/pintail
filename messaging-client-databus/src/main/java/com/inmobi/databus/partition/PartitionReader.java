@@ -198,11 +198,7 @@ public class PartitionReader {
       // Close the reader if it should closed 
       // or reader not able to open the stream
       // TODO when will reader wont be able to open the stream?
-      if (reader.shouldBeClosed()) {
-        closeReader = true;
-      } else {
-        closeReader = !(reader.openStream());
-      }
+      closeReader = !(reader.openStream());
       if (!closeReader) {
         LOG.info("Reading file " + reader.getCurrentFile()
             + " and lineNum:" + reader.getCurrentLineNum());

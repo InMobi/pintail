@@ -36,7 +36,7 @@ public class DatabusStreamWaitingReader
   private boolean createdDeltaCheckpointForFirstFile;
   private int currentMin;
 
-  private class CheckpointInfo {
+  private static class CheckpointInfo {
     PartitionCheckpoint pck;
     Date timeStamp;
     boolean processed = false;
@@ -67,9 +67,9 @@ public class DatabusStreamWaitingReader
     currentMin = -1;
     if (partitionCheckpointList != null) {
       for (Integer min : partitionMinList) {
-        CheckpointInfo cps = new CheckpointInfo(
+        CheckpointInfo cpi = new CheckpointInfo(
             partitionCheckpointList.getCheckpoints().get(min));
-        pChkpoints.put(min, cps);
+        pChkpoints.put(min, cpi);
       }
     }
     deltaCheckpoint = new HashMap<Integer, PartitionCheckpoint>();
@@ -110,8 +110,9 @@ public class DatabusStreamWaitingReader
    * Get the minute id from the file and see the checkpoint value. If the
    * checkpointed file is not same as current file then it sets the iterator to
    * the checkpointed file if the checkpointed file exists.
+   * @throws InterruptedException 
    */
-  public boolean initFromNextCheckPoint() throws IOException {
+  public boolean initFromNextCheckPoint() throws IOException, InterruptedException {
     initCurrentFile();
     moveToCheckpoint(getFirstFileInStream());
     if (currentFile != null) {
@@ -150,6 +151,8 @@ public class DatabusStreamWaitingReader
             doRecursiveListing(dir, pathFilter, fmap);
             if (numFilesInFileMap != 0 &&
                 numFilesInFileMap != fmap.getSize()) {
+              // stopping after listing two non empty directories
+              LOG.debug("Listing stopped after listing two non empty directories");
               break;
             }
           } else {
@@ -186,10 +189,11 @@ public class DatabusStreamWaitingReader
    * check the next file is same as checkpointed file. If not same and checkpointed
    * file exists then sets the iterator to the checkpointed file.
    * @return false if it reads from the checkpointed file.
+   * @throws InterruptedException 
    */
   @Override
   public boolean prepareMoveToNext(FileStatus currentFile, FileStatus nextFile)
-      throws IOException {
+      throws IOException, InterruptedException {
     Date currentFileTimeStamp = getDateFromStreamDir(streamDir,
         currentFile.getPath().getParent());
     Calendar next = Calendar.getInstance();
@@ -198,7 +202,6 @@ public class DatabusStreamWaitingReader
     next.setTime(nextFileTimeStamp);
 
     boolean readFromCheckpoint = false;
-    FileStatus fileToRead = nextFile;
     if (currentMin != next.get(Calendar.MINUTE)) {
       setDeltaCheckpoint(getNextMinuteTimeStamp(currentFileTimeStamp),
           nextFileTimeStamp);
@@ -208,32 +211,39 @@ public class DatabusStreamWaitingReader
       
       // move to next file
       currentMin = next.get(Calendar.MINUTE);
-      readFromCheckpoint = moveToCheckpoint(fileToRead);
+      readFromCheckpoint = moveToCheckpoint(nextFile);
+    } else {
+      this.currentFile = nextFile;
     }
     setIterator();
     return !readFromCheckpoint;
   }
 
-  private boolean moveToCheckpoint(FileStatus fileToRead) throws IOException {
+  private boolean moveToCheckpoint(FileStatus fileToRead)
+      throws IOException, InterruptedException {
     boolean ret = false;
-    PartitionCheckpoint partitionCheckpoint = pChkpoints.get(currentMin).pck;
-    if (!pChkpoints.get(currentMin).processed &&
-        !pChkpoints.get(currentMin).readFully) {
-      Path checkPointedFileName = new Path(streamDir,
-          partitionCheckpoint.getFileName());
-      //set iterator to checkpointed file if there is a checkpoint
-      if (!fileToRead.getPath().equals(checkPointedFileName)) {
-        if (fsIsPathExists(checkPointedFileName)) {
-          fileToRead = fsGetFileStatus(checkPointedFileName);
-          currentLineNum = partitionCheckpoint.getLineNum();
+    CheckpointInfo cpi = pChkpoints.get(currentMin);
+    if (!cpi.processed && !cpi.readFully) {
+      cpi.processed = true;
+      PartitionCheckpoint partitionCheckpoint = cpi.pck;
+      if (((HadoopStreamFile)partitionCheckpoint.getStreamFile()).getFileName()
+          != null) {
+        Path checkPointedFileName = new Path(streamDir,
+            partitionCheckpoint.getFileName());
+        //set iterator to checkpointed file if there is a checkpoint
+        if (!fileToRead.getPath().equals(checkPointedFileName)) {
+          if (fsIsPathExists(checkPointedFileName)) {
+            fileToRead = fsGetFileStatus(checkPointedFileName);
+            currentLineNum = partitionCheckpoint.getLineNum();
+          } else {
+            startFromNextHigher(partitionCheckpoint.getFileName());
+            return true;
+          }
         } else {
-          currentLineNum = 0;
+          currentLineNum = partitionCheckpoint.getLineNum();
         }
-      } else {
-        currentLineNum = partitionCheckpoint.getLineNum();
+        ret = true;
       }
-      pChkpoints.get(currentMin).processed = true;
-      ret = true;
     }
     this.currentFile = fileToRead;
     return ret;
@@ -453,8 +463,8 @@ public class DatabusStreamWaitingReader
     cal.setTime(buildTimestamp);
     while (cal.getTime().before(to)) {
       Integer currentMinute = cal.get(Calendar.MINUTE);
-      Date checkpointedTimeStamp = pChkpoints.get(currentMinute).timeStamp;
       if (partitionMinList.contains(currentMinute)) {
+        Date checkpointedTimeStamp = pChkpoints.get(currentMinute).timeStamp;
         // create a checkpoint for that minute only if it does not have
         // checkpoint so that for no minute the checkpoint is null
         if (checkpointedTimeStamp == null) {
@@ -465,5 +475,27 @@ public class DatabusStreamWaitingReader
       cal.add(Calendar.MINUTE, 1);
     }
     return fullPartitionChkMap;
+  }
+
+  public void startFromCheckPoint() throws IOException, InterruptedException {
+    /* If the partition checkpoint is completed checkpoint (i.e. line
+    number is -1) or if it the filename of the checkpoint is null (
+    when the checkpointing was done partially or before a single
+    message was read) then it has to start from the next checkpoint.
+    if (leastPartitionCheckpoint.getLineNum() == -1
+        || leastPartitionCheckpoint.getName() == null) {
+      //TODO. what about initFromNextCheckPoint returning null?
+      ((DatabusStreamWaitingReader) reader).initFromNextCheckPoint();
+    } else if (!reader.initializeCurrentFile(leastPartitionCheckpoint)) {
+      reader.startFromNextHigher(leastPartitionCheckpoint.getFileName());
+    }
+     */
+    initCurrentFile();
+    moveToCheckpoint(getFirstFileInStream());
+    if (currentFile != null) {
+      LOG.debug("CurrentFile:" + getCurrentFile() + " currentLineNum:"
+          + currentLineNum);
+      setIterator();
+    }
   }
 }

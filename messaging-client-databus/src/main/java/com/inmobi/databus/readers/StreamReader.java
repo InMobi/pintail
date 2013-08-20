@@ -52,7 +52,7 @@ public abstract class StreamReader<T extends StreamFile> {
   }
 
   public boolean prepareMoveToNext(FileStatus currentFile, FileStatus nextFile)
-      throws IOException {
+      throws IOException, InterruptedException {
     this.currentFile = nextFile;
     return true;
   }
@@ -248,7 +248,7 @@ public abstract class StreamReader<T extends StreamFile> {
     currentLineNum = 0;
   }
 
-  protected boolean nextFile() throws IOException {
+  protected boolean nextFile() throws IOException, InterruptedException {
     if (hasNextFile()) {
       setNextFile();
       return true;
@@ -256,7 +256,7 @@ public abstract class StreamReader<T extends StreamFile> {
     return false;
   }
 
-  protected void setNextFile() throws IOException {
+  protected void setNextFile() throws IOException, InterruptedException {
     FileStatus nextFile = fileMap.getNext();
     if (nextFile != null) {
       boolean next = prepareMoveToNext(currentFile, nextFile);
@@ -380,6 +380,10 @@ public abstract class StreamReader<T extends StreamFile> {
       if (fileMap.isEmpty()) {
         return true;
       }
+      // currentFile will be null, if reader did not initialize properly,
+      // because stop time has reached and initializing criteria is not met
+      // For ex: starttime = stoptime and no files exists with that timestamp,
+      // in collector reader. 
       if (currentFile == null) {
         // no files were available on the stream for reading
         return true;

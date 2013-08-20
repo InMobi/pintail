@@ -154,7 +154,7 @@ public abstract class DatabusStreamReader<T extends StreamFile>
   }
 
   protected boolean setNextHigherAndOpen(FileStatus currentFile)
-      throws IOException {
+      throws IOException, InterruptedException {
     LOG.debug("finding next higher for " + getCurrentFile());
     FileStatus nextHigherFile  = getHigherValue(currentFile);
     boolean next = true;
