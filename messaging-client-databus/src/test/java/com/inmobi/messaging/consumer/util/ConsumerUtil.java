@@ -363,7 +363,7 @@ public class ConsumerUtil {
     consumer.init(streamName, consumerName, startTime, config);
     Assert.assertEquals(consumer.getTopicName(), streamName);
     Assert.assertEquals(consumer.getConsumerName(), consumerName);
-    for (int i = 0; i < 300; i++) {
+    for (int i = 0; i < 600; i++) {
       consumer.next(60, TimeUnit.SECONDS);
     }
     consumer.mark();
@@ -376,14 +376,14 @@ public class ConsumerUtil {
     //create consumer checkpoint
     createCheckpointList(expectedCheckpoint, checkpointMap, lastCheckpoint,
         consumer);
-    for (int i = 300; i < 310; i++) {
+    for (int i = 600; i < 610; i++) {
       consumer.next(1, TimeUnit.SECONDS);
     }
     compareConsumerCheckpoints(expectedCheckpoint, checkpointMap,
         lastCheckpoint, consumer);
     consumer.close();
     Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
-        consumer.getMetrics())).getNumMessagesConsumed(), 300);
+        consumer.getMetrics())).getNumMessagesConsumed(), 600);
     Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
         consumer.getMetrics())).getNumOfTiemOutsOnNext(), 10);
   }
@@ -838,5 +838,37 @@ public class ConsumerUtil {
     }
     Assert.assertTrue(th instanceof EndOfStreamException);
     consumer.close();
+  }
+
+  public static void testMarkAndResetWithStopTime(ClientConfig config,
+      String streamName, String consumerName, Date startTime, boolean hadoop)
+          throws Exception {
+    AbstractMessagingDatabusConsumer consumer = createConsumer(hadoop);
+    consumer.init(streamName, consumerName, startTime, config);
+    int i;
+    for (i = 0; i < 20; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    consumer.mark();
+    for (i = 20; i < 100; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    consumer.reset();
+    for (i = 20; i < 600; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    Throwable th = null;
+    try {
+      consumer.next();
+    } catch (Exception e) {
+      th = e;
+    }
+    Assert.assertTrue(th instanceof EndOfStreamException);
   }
 }
