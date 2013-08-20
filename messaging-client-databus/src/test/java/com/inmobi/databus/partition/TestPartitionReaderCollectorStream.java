@@ -161,33 +161,21 @@ public class TestPartitionReaderCollectorStream {
 
     // Read from checkpoint with collector file name which does not exist
     // but the collector file time stamp is after the stream
-    Throwable th = null;
-    try {
-      preader = new PartitionReader(partitionId, new PartitionCheckpoint(
-          CollectorStreamReader.getCollectorFile(doesNotExist3), 40), conf,
-          fs, collectorDir, streamsLocalDir, buffer,
-          testStream, null, 1000, 1000, prMetrics, false, null);
-      preader.init();
-    } catch (Exception e) {
-      th = e;
-    }
-    Assert.assertNotNull(th);
-    Assert.assertTrue(th instanceof IllegalArgumentException);
+    preader = new PartitionReader(partitionId, new PartitionCheckpoint(
+        CollectorStreamReader.getCollectorFile(doesNotExist3), 40), conf,
+        fs, collectorDir, streamsLocalDir, buffer,
+        testStream, null, 1000, 1000, prMetrics, true, null);
+    preader.init();
+    Assert.assertNull(preader.getCurrentFile());
 
     // Read from checkpoint with collector file name which does not exist
-    // but the collector file time stamp is within the stream
-    th = null;
-    try {
-      preader = new PartitionReader(partitionId, new PartitionCheckpoint(
-          CollectorStreamReader.getCollectorFile(doesNotExist2), 40), conf,
-          fs, collectorDir, streamsLocalDir, buffer, testStream,
-          null, 10, 1000, prMetrics, false, null);
-      preader.init();
-    } catch (Exception e) {
-      th = e;
-    }
-    Assert.assertNotNull(th);
-    Assert.assertTrue(th instanceof IllegalArgumentException);
+    // but the collector file time stamp is within the streams
+    preader = new PartitionReader(partitionId, new PartitionCheckpoint(
+        CollectorStreamReader.getCollectorFile(doesNotExist2), 40), conf,
+        fs, collectorDir, streamsLocalDir, buffer, testStream,
+        null, 10, 1000, prMetrics, true, null);
+    preader.init();
+    Assert.assertEquals(preader.getCurrentFile().toString(), files[1]);
 
     //Read from startTime in local stream directory, with no checkpoint
     preader = new PartitionReader(partitionId,
@@ -422,36 +410,24 @@ public class TestPartitionReaderCollectorStream {
   public void testReadFromCheckpointWhichDoesNotExist2() throws Exception {
     CollectorReaderStatsExposer prMetrics = new CollectorReaderStatsExposer(
         testStream, "c1", partitionId.toString(), consumerNUmber, fsUri);
-    Throwable th = null;
-    try {
-      preader = new PartitionReader(partitionId, new PartitionCheckpoint(
-          CollectorStreamReader.getCollectorFile(doesNotExist2), 20), conf,
-          fs, collectorDir, streamsLocalDir, buffer, testStream,
-        null, 1000, 1000, prMetrics, false, null);
-      preader.init();
-    } catch (Exception e) {
-      th = e;
-    }
-    Assert.assertNotNull(th);
-    Assert.assertTrue(th instanceof IllegalArgumentException);
+    preader = new PartitionReader(partitionId, new PartitionCheckpoint(
+        CollectorStreamReader.getCollectorFile(doesNotExist2), 20), conf,
+        fs, collectorDir, streamsLocalDir, buffer, testStream,
+        null, 1000, 1000, prMetrics, true, null);
+    preader.init();
+    Assert.assertEquals(preader.getCurrentFile().toString(), files[1]);
   }
 
   @Test
   public void testReadFromCheckpointWhichDoesNotExist3() throws Exception {
     CollectorReaderStatsExposer prMetrics = new CollectorReaderStatsExposer(
         testStream, "c1", partitionId.toString(), consumerNUmber, fsUri);
-    Throwable th = null;
-    try {
-      preader = new PartitionReader(partitionId, new PartitionCheckpoint(
-          CollectorStreamReader.getCollectorFile(doesNotExist3), 20), conf,
-          fs, collectorDir, streamsLocalDir, buffer, testStream,
-        null, 1000, 1000, prMetrics, false, null);
-      preader.init();
-    } catch (Exception e) {
-      th = e;
-    }
-    Assert.assertNotNull(th);
-    Assert.assertTrue(th instanceof IllegalArgumentException);
+    preader = new PartitionReader(partitionId, new PartitionCheckpoint(
+        CollectorStreamReader.getCollectorFile(doesNotExist3), 20), conf,
+        fs, collectorDir, streamsLocalDir, buffer, testStream,
+        null, 1000, 1000, prMetrics, true, null);
+    preader.init();
+    Assert.assertNull(preader.getCurrentFile());
   }
 
   @Test
