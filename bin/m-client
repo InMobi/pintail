@@ -107,9 +107,6 @@ if [ -z "${HADOOP_HOME}" ]; then
 fi
 
 # set default params
-CLIENT_CLASSPATH=`ls $HADOOP_HOME/*jar | tr "\n" :`;
-CLIENT_CLASSPATH=$CLIENT_CLASSPATH:`ls $HADOOP_HOME/lib/guava*jar | tr "\n" :`;
-CLIENT_CLASSPATH=$CLIENT_CLASSPATH:`ls $HADOOP_HOME/lib/commons-codec*jar | tr "\n" :`;
 CLIENT_JAVA_LIBRARY_PATH=""
 JAVA_OPTS="-Xmx128M"
 
@@ -218,6 +215,12 @@ fi
 if [ -n "$opt_conf" ]; then
   CLIENT_CLASSPATH="$opt_conf:$CLIENT_CLASSPATH"
 fi
+
+
+# set hadoop jars to classpath
+CLIENT_CLASSPATH=$CLIENT_CLASSPATH:`ls $HADOOP_HOME/*jar | tr "\n" :`;
+CLIENT_CLASSPATH=$CLIENT_CLASSPATH:`ls $HADOOP_HOME/lib/guava*jar | tr "\n" :`;
+CLIENT_CLASSPATH=$CLIENT_CLASSPATH:`ls $HADOOP_HOME/lib/commons-codec*jar | tr "\n" :`;
 
 # finally, invoke the appropriate command
 if [ -n "$opt_file" ] ; then
