@@ -157,7 +157,7 @@ public class HadoopUtil {
       cal.add(Calendar.HOUR_OF_DAY, 1);
       int index = files.length;
       // find number of non empty(i.e. data) files in 1 hour
-      int numberOfNonEmptyFiles = (int) Math.ceil(index/2.0);
+      int numberOfNonEmptyFiles = withEmptyFiles?(int) Math.ceil(index/2.0) : index;
       int startIndex = numberOfNonEmptyFiles * 100;
       setUpHadoopFiles(finalDir, conf, files, suffixDirs, finalFiles,
           withEmptyFiles, cal.getTime(), index, startIndex);
