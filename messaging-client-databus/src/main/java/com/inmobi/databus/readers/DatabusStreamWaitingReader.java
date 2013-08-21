@@ -236,8 +236,9 @@ public class DatabusStreamWaitingReader
             fileToRead = fsGetFileStatus(checkPointedFileName);
             currentLineNum = partitionCheckpoint.getLineNum();
           } else {
-            startFromNextHigher(partitionCheckpoint.getFileName());
-            return true;
+            currentLineNum = 0;
+            /*startFromNextHigher(partitionCheckpoint.getFileName());
+            return true;*/
           }
         } else {
           currentLineNum = partitionCheckpoint.getLineNum();
