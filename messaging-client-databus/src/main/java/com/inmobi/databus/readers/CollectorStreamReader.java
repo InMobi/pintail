@@ -280,6 +280,22 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     }
   }
 
+  public boolean startFromNextHigher(String fileName)
+      throws IOException, InterruptedException {
+    if (!setNextHigher(fileName)) {
+      waitForNextFileCreation(fileName);
+    }
+    return true;
+  }
+
+  private void waitForNextFileCreation(String fileName)
+      throws IOException, InterruptedException {
+    while (!closed && !setNextHigher(fileName) && !hasReadFully()) {
+      waitForFileCreate();
+      build();
+    }
+  }
+
   private void startFromNextHigherAndOpen(String fileName)
       throws IOException, InterruptedException {
     boolean ret = startFromNextHigher(fileName);

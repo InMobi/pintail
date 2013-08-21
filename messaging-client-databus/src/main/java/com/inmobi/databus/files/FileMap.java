@@ -62,7 +62,7 @@ public abstract class FileMap<T extends StreamFile> {
     return getHigherValue(fileKey);
   }
 
-  private FileStatus getHigherValue(T fileKey) {
+  public FileStatus getHigherValue(T fileKey) {
     Map.Entry<T, FileStatus> higherEntry = files.higherEntry(fileKey);
     if (higherEntry != null) {
       return higherEntry.getValue();

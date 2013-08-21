@@ -168,6 +168,21 @@ public abstract class DatabusStreamReader<T extends StreamFile>
     return ret;
   }
 
+  protected boolean setNextHigherAndOpen(T file)
+      throws IOException, InterruptedException {
+    LOG.debug("finding next higher for " + file);
+    FileStatus nextHigherFile  = getHigherValue(file);
+    boolean next = true;
+    if (nextHigherFile != null) {
+      next = prepareMoveToNext(null, nextHigherFile);
+    }
+    boolean ret = setIteratorToFile(nextHigherFile);
+    if (ret) {
+      openCurrentFile(next);
+    }
+    return ret;
+  }
+
   public static Date getDateFromStreamDir(Path streamDir, Path dir) {
     String pathStr = dir.toString();
     int startIndex = streamDir.toString().length() + 1;
