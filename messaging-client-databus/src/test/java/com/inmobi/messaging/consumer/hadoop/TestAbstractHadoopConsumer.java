@@ -104,7 +104,7 @@ public abstract class TestAbstractHadoopConsumer {
       rootDirs[0].toString());
     ConsumerUtil.testTimeoutStats(config, testStream, consumerName,
         DatabusStreamWaitingReader.getDateFromStreamDir(
-            rootDirs[0], finalPaths[0][0]), true);
+            rootDirs[0], finalPaths[0][0]), true, 600);
   }
 
   public void testMarkAndResetWithStartTime() throws Exception {

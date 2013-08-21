@@ -357,13 +357,13 @@ public class ConsumerUtil {
   }
 
   public static void testTimeoutStats(ClientConfig config, String streamName,
-      String consumerName, Date startTime, boolean hadoop)
+      String consumerName, Date startTime, boolean hadoop, int numOfMessagaes)
           throws Exception {
     AbstractMessagingDatabusConsumer consumer = createConsumer(hadoop);
     consumer.init(streamName, consumerName, startTime, config);
     Assert.assertEquals(consumer.getTopicName(), streamName);
     Assert.assertEquals(consumer.getConsumerName(), consumerName);
-    for (int i = 0; i < 600; i++) {
+    for (int i = 0; i < numOfMessagaes; i++) {
       consumer.next(60, TimeUnit.SECONDS);
     }
     consumer.mark();
@@ -376,14 +376,14 @@ public class ConsumerUtil {
     //create consumer checkpoint
     createCheckpointList(expectedCheckpoint, checkpointMap, lastCheckpoint,
         consumer);
-    for (int i = 600; i < 610; i++) {
+    for (int i = numOfMessagaes; i < numOfMessagaes + 10; i++) {
       consumer.next(1, TimeUnit.SECONDS);
     }
     compareConsumerCheckpoints(expectedCheckpoint, checkpointMap,
         lastCheckpoint, consumer);
     consumer.close();
     Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
-        consumer.getMetrics())).getNumMessagesConsumed(), 600);
+        consumer.getMetrics())).getNumMessagesConsumed(), numOfMessagaes);
     Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
         consumer.getMetrics())).getNumOfTiemOutsOnNext(), 10);
   }
