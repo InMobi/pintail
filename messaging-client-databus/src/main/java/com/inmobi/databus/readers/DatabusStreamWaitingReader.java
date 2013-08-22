@@ -59,6 +59,11 @@ public class DatabusStreamWaitingReader
     createdDeltaCheckpointForFirstFile = false;
   }
 
+  public void initializeBuildTimeStamp(Date buildTimestamp)
+      throws IOException {
+    this.buildTimestamp = buildTimestamp;
+  }
+
   public void prepareTimeStampsOfCheckpoints() {
     PartitionCheckpoint partitionCheckpoint = null;
     for (Integer min : partitionMinList) {
@@ -315,7 +320,8 @@ public class DatabusStreamWaitingReader
   public Message readLine() throws IOException, InterruptedException {
     Message line = readNextLine();
     if (!createdDeltaCheckpointForFirstFile) {
-      buildStartPartitionCheckpoints();
+      // prepare partition checkpoint for all minutes in the partitionMinList
+      deltaCheckpoint.putAll(buildStartPartitionCheckpoints());
       setDeltaCheckpoint(buildTimestamp, getDateFromStreamDir(streamDir,
           getCurrentFile()));
       createdDeltaCheckpointForFirstFile = true;
@@ -333,6 +339,17 @@ public class DatabusStreamWaitingReader
         if (!nextFile()) { // reached end of stream
           // stop reading if read till stopTime
           if (hasReadFully()) {
+            /* create  a delta checkpoint till stop time from last file timestamp
+             * Ex: If last file is in 2nd hr, 5th minute(02/05) and stop time is 02/10
+             * then we should have a delta checkpoint 02/05/file--1,
+             *  02/06/null--1 till 02/10/null--1
+             */
+            Date lastFileTimestamp = getDateFromStreamDir(streamDir, getCurrentFile());
+            if (stopTime != null) {
+              setDeltaCheckpoint(getNextMinuteTimeStamp(lastFileTimestamp),
+                  getNextMinuteTimeStamp(stopTime));
+              currentLineNum = -1;
+            }
             LOG.info("read all files till stop date");
             break;
           }
@@ -450,7 +467,12 @@ public class DatabusStreamWaitingReader
     deltaCheckpoint.clear();
   }
 
-  public boolean buildStartPartitionCheckpoints() {
+  public Map<Integer, PartitionCheckpoint> buildStartPartitionCheckpoints() {
+    Map<Integer, PartitionCheckpoint> fullPartitionChkMap =
+        new HashMap<Integer, PartitionCheckpoint>();
+    if (buildTimestamp == null) {
+      return fullPartitionChkMap;
+    }
     Calendar cal = Calendar.getInstance();
     cal.setTime(buildTimestamp);
     cal.add(Calendar.MINUTE, 60);
@@ -463,12 +485,12 @@ public class DatabusStreamWaitingReader
         // create a checkpoint for that minute only if it does not have
         // checkpoint so that for no minute the checkpoint is null
         if (checkpointedTimeStamp == null) {
-          deltaCheckpoint.put(currentMinute, new PartitionCheckpoint
+          fullPartitionChkMap.put(currentMinute, new PartitionCheckpoint
               (getStreamFile(cal.getTime()), 0));
         }
       }
       cal.add(Calendar.MINUTE, 1);
     }
-    return true;
+    return fullPartitionChkMap;
   }
 }

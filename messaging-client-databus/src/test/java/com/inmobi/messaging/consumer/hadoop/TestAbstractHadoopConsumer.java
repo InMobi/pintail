@@ -40,6 +40,7 @@ public abstract class TestAbstractHadoopConsumer {
   protected String ck16;
   protected String ck17;
   protected String ck18;
+  protected String chkpointPathPrefix;
 
   int numMessagesPerFile = 100;
   int numDataFiles;
@@ -52,8 +53,6 @@ public abstract class TestAbstractHadoopConsumer {
   protected String[] suffixDirs;
   protected String consumerName;
   protected Path[] rootDirs;
-  protected String[] chkDirs = new String[]{ck1, ck2, ck3, ck4, ck5, ck6, ck7,
-      ck8, ck9, ck10, ck11, ck12, ck13, ck14, ck15, ck16, ck17, ck18};
   Path[][] finalPaths;
   Configuration conf;
   protected final String relativeStartTime = "30";
@@ -66,7 +65,8 @@ public abstract class TestAbstractHadoopConsumer {
     ClientConfig config = loadConfig();
     testConsumer = new HadoopConsumer();
     testConsumer.initializeConfig(config);
-
+    chkpointPathPrefix = config.getString(HadoopConsumerConfig.checkpointDirConfig);
+    setUpCheckpointPaths();
     conf = testConsumer.getHadoopConf();
     Assert.assertEquals(conf.get("myhadoop.property"), "myvalue");
 
@@ -79,7 +79,28 @@ public abstract class TestAbstractHadoopConsumer {
           finalPaths[i], rootDirs[i], true, createFilesInNextHour);
     }
     HadoopUtil.setUpHadoopFiles(rootDirs[0], conf,
-      new String[]{"_SUCCESS", "_DONE"}, suffixDirs, null);
+        new String[]{"_SUCCESS", "_DONE"}, suffixDirs, null);
+  }
+
+  private void setUpCheckpointPaths() {
+    ck1 = new Path(chkpointPathPrefix, "checkpoint1").toString();
+    ck2 = new Path(chkpointPathPrefix, "checkpoint2").toString();
+    ck3 = new Path(chkpointPathPrefix, "checkpoint3").toString();
+    ck4 = new Path(chkpointPathPrefix, "checkpoint4").toString();
+    ck5 = new Path(chkpointPathPrefix, "checkpoint5").toString();
+    ck6 = new Path(chkpointPathPrefix, "checkpoint6").toString();
+    ck7 = new Path(chkpointPathPrefix, "checkpoint7").toString();
+    ck8 = new Path(chkpointPathPrefix, "checkpoint8").toString();
+    ck9 = new Path(chkpointPathPrefix, "checkpoint9").toString();
+    ck10 = new Path(chkpointPathPrefix, "checkpoint10").toString();
+    ck11 = new Path(chkpointPathPrefix, "checkpoint11").toString();
+    ck12 = new Path(chkpointPathPrefix, "checkpoint12").toString();
+    ck13 = new Path(chkpointPathPrefix, "checkpoint13").toString();
+    ck14 = new Path(chkpointPathPrefix, "checkpoint14").toString();
+    ck15 = new Path(chkpointPathPrefix, "checkpoint15").toString();
+    ck16 = new Path(chkpointPathPrefix, "checkpoint16").toString();
+    ck17 = new Path(chkpointPathPrefix, "checkpoint17").toString();
+    ck18 = new Path(chkpointPathPrefix, "checkpoint18").toString();
   }
 
   public void testMarkAndReset() throws Exception {
@@ -157,7 +178,8 @@ public abstract class TestAbstractHadoopConsumer {
         relativeStartTime);
     ConsumerUtil.testConsumerStartUp(config, testStream, consumerName, true,
         DatabusStreamWaitingReader.
-        getDateFromStreamDir(rootDirs[0], finalPaths[0][1]), rootDirs[0]);
+        getDateFromStreamDir(rootDirs[0], finalPaths[0][1]), rootDirs[0],
+        chkpointPathPrefix);
   }
 
   public void testConsumerWithConfiguredStartTime() throws Exception {
@@ -324,15 +346,6 @@ public abstract class TestAbstractHadoopConsumer {
       LOG.debug("Cleaning up the dir: " + rootDir.getParent());
       lfs.delete(rootDir.getParent(), true);
     }
-    //Cleanup checkpoint directories, if we don't clean it up will cause tests to be flaky.
-    for (String chk : chkDirs) {
-      if (chk != null) {
-        Path p = new Path(chk);
-        if (lfs.exists(p)) {
-          LOG.debug("Cleaning up the checkpoint dir: " + p);
-          lfs.delete(p, true);
-        }
-      }
-    }
+    lfs.delete(new Path(chkpointPathPrefix).getParent(), true);
   }
 }

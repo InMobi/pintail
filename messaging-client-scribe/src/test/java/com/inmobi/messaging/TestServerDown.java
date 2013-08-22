@@ -18,7 +18,7 @@ public class TestServerDown {
   public void testServerDownAtStart() throws Exception {
     NtMultiServer tserver = null;
     try {
-      int port = 7917;
+      int port = PortNumberUtil.getFreePortNumber(7917);
       tserver = new NtMultiServer(new ScribeAlwaysSuccess(), port);
 
       int timeoutSeconds = 6000;
@@ -57,7 +57,7 @@ public class TestServerDown {
   public void testServerDownAckLost() throws Exception {
     NtMultiServer tserver = null;
     try {
-      int port = 7918;
+      int port = PortNumberUtil.getFreePortNumber(7918);
       tserver = new NtMultiServer(new ScribeSlacker(), port);
       tserver.start();
 
@@ -88,7 +88,7 @@ public class TestServerDown {
   public void testServerGoingDownInTheMiddle() throws Exception {
     NtMultiServer tserver = null;
     try {
-      int port = 7916;
+      int port = PortNumberUtil.getFreePortNumber(7916);
       tserver = new NtMultiServer(new ScribeAlwaysSuccess(), port);
       tserver.start();
 
@@ -152,7 +152,7 @@ public class TestServerDown {
   public void testServerDownMsgLost() throws Exception {
     NtMultiServer tserver = null;
     try {
-      int port = 7919;
+      int port = PortNumberUtil.getFreePortNumber(7919);
       tserver = new NtMultiServer(new ScribeAlwaysSuccess(), port);
 
       int timeoutSeconds = 6000;

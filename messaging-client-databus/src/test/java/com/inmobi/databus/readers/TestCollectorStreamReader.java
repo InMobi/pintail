@@ -42,7 +42,7 @@ public class TestCollectorStreamReader {
     consumerNumber = 1;
     // setup cluster
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
-        testStream, partitionId, files, null, 0);
+        testStream, partitionId, files, null, 0, TestUtil.getConfiguredRootDir());
     collectorDir = new Path(new Path(cluster.getDataDir(), testStream),
         collectorName);
     conf = cluster.getHadoopConf();

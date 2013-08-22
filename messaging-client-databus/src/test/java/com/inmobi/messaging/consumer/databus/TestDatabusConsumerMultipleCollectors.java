@@ -34,8 +34,7 @@ public class TestDatabusConsumerMultipleCollectors
     ClientConfig config = loadConfig();
     config.set(DatabusConsumerConfig.databusRootDirsConfig,
         rootDirs[0].toString());
-    config.set(DatabusConsumerConfig.checkpointDirConfig,
-        "/tmp/test/databustest4/checkpoint1");
+    config.set(DatabusConsumerConfig.checkpointDirConfig, ck1);
     config.set(DatabusConsumerConfig.databusStreamType,
         StreamType.MERGED.name());
     config.set(MessagingConsumerConfig.relativeStartTimeConfig,
@@ -48,8 +47,7 @@ public class TestDatabusConsumerMultipleCollectors
     ClientConfig config = loadConfig();
     config.set(DatabusConsumerConfig.databusRootDirsConfig,
         rootDirs[0].toString() + "," + rootDirs[1].toString());
-    config.set(DatabusConsumerConfig.checkpointDirConfig,
-        "/tmp/test/databustest6/checkpoint1");
+    config.set(DatabusConsumerConfig.checkpointDirConfig, ck2);
     config.set(DatabusConsumerConfig.databusStreamType,
         StreamType.MERGED.name());
     config.set(MessagingConsumerConfig.relativeStartTimeConfig,
@@ -70,8 +68,7 @@ public class TestDatabusConsumerMultipleCollectors
     ClientConfig config = loadConfig();
     config.set(DatabusConsumerConfig.databusRootDirsConfig,
         rootDirs[0].toString());
-    config.set(DatabusConsumerConfig.checkpointDirConfig,
-        "/tmp/test/databustest4/checkpoint2");
+    config.set(DatabusConsumerConfig.checkpointDirConfig, ck3);
     config.set(DatabusConsumerConfig.databusStreamType,
         StreamType.LOCAL.name());
     config.set(MessagingConsumerConfig.relativeStartTimeConfig,
@@ -84,8 +81,7 @@ public class TestDatabusConsumerMultipleCollectors
     ClientConfig config = loadConfig();
     config.set(DatabusConsumerConfig.databusRootDirsConfig,
         rootDirs[0].toString() + "," + rootDirs[1].toString());
-    config.set(DatabusConsumerConfig.checkpointDirConfig,
-        "/tmp/test/databustest5/checkpoint1");
+    config.set(DatabusConsumerConfig.checkpointDirConfig, ck4);
     config.set(DatabusConsumerConfig.databusStreamType,
         StreamType.LOCAL.name());
     config.set(MessagingConsumerConfig.relativeStartTimeConfig,
@@ -99,8 +95,7 @@ public class TestDatabusConsumerMultipleCollectors
     config.set(DatabusConsumerConfig.databusRootDirsConfig,
         rootDirs[0].toString() + "," + rootDirs[1].toString() + ","
             + rootDirs[2].toString());
-    config.set(DatabusConsumerConfig.checkpointDirConfig,
-        "/tmp/test/databustest5/checkpoint2");
+    config.set(DatabusConsumerConfig.checkpointDirConfig, ck5);
     config.set(DatabusConsumerConfig.databusStreamType,
         StreamType.LOCAL.name());
     config.set(MessagingConsumerConfig.relativeStartTimeConfig,
@@ -113,8 +108,7 @@ public class TestDatabusConsumerMultipleCollectors
     ClientConfig config = loadConfig();
     config.set(DatabusConsumerConfig.databusRootDirsConfig,
         rootDirs[0].toString());
-    config.set(DatabusConsumerConfig.checkpointDirConfig,
-        "/tmp/test/databustest4/checkpoint3");
+    config.set(DatabusConsumerConfig.checkpointDirConfig, ck6);
     config.set(DatabusConsumerConfig.databusStreamType,
         StreamType.COLLECTOR.name());
     config.set(MessagingConsumerConfig.relativeStartTimeConfig,
@@ -128,8 +122,7 @@ public class TestDatabusConsumerMultipleCollectors
     ClientConfig config = loadConfig();
     config.set(DatabusConsumerConfig.databusRootDirsConfig,
         rootDirs[0].toString() + "," + rootDirs[1].toString());
-    config.set(DatabusConsumerConfig.checkpointDirConfig,
-        "/tmp/test/databustest5/checkpoint3");
+    config.set(DatabusConsumerConfig.checkpointDirConfig, ck7);
     config.set(DatabusConsumerConfig.databusStreamType,
         StreamType.COLLECTOR.name());
     config.set(MessagingConsumerConfig.relativeStartTimeConfig,
@@ -144,8 +137,7 @@ public class TestDatabusConsumerMultipleCollectors
     config.set(DatabusConsumerConfig.databusRootDirsConfig,
         rootDirs[0].toString()+ "," + rootDirs[1].toString() + ","
             + rootDirs[2].toString());
-    config.set(DatabusConsumerConfig.checkpointDirConfig,
-        "/tmp/test/databustest5/checkpoint4");
+    config.set(DatabusConsumerConfig.checkpointDirConfig, ck8);
     config.set(DatabusConsumerConfig.databusStreamType,
         StreamType.COLLECTOR.name());
     config.set(MessagingConsumerConfig.relativeStartTimeConfig,

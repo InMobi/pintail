@@ -45,7 +45,8 @@ public class TestCollectorStreamWithEmptyFiles {
     // setup cluster
     consumerNumber = 1;
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
-        testStream, partitionId, files, emptyfiles, 0);
+        testStream, partitionId, files, emptyfiles, 0,
+        TestUtil.getConfiguredRootDir());
     collectorDir = DatabusUtil.getCollectorStreamDir(
         new Path(cluster.getRootDir()), testStream,
         collectorName);

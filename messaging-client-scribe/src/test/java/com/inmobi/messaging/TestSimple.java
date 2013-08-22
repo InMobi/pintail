@@ -13,7 +13,7 @@ import com.inmobi.messaging.netty.ScribeMessagePublisher;
 public class TestSimple {
   private NtMultiServer server;
   private ScribeMessagePublisher publisher;
-  private int port = 7922;
+  private int port = PortNumberUtil.getFreePortNumber(7922);
 
   @Test()
   public void simpleSend() throws Exception {
@@ -50,7 +50,7 @@ public class TestSimple {
   }
 
   private void runTest() throws Exception {
-    publisher = TestServerStarter.createPublisher(7922, 5);
+    publisher = TestServerStarter.createPublisher(port, 5);
     sendMessages();
     publisher.close();
   }

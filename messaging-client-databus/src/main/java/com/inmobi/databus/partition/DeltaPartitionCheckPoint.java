@@ -7,14 +7,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DeltaPartitionCheckPoint implements MessageCheckpoint {
-  private Map<Integer, PartitionCheckpoint> deltaCheckpoint;
+  private final Map<Integer, PartitionCheckpoint> deltaCheckpoint =
+      new HashMap<Integer, PartitionCheckpoint>();
 
   public DeltaPartitionCheckPoint(StreamFile streamFile, long lineNum,
       Integer minId, Map<Integer, PartitionCheckpoint> deltaCheckpoint) {
-    this.deltaCheckpoint = new HashMap<Integer, PartitionCheckpoint>();
     this.deltaCheckpoint.putAll(deltaCheckpoint);
     this.deltaCheckpoint.put(minId,
         new PartitionCheckpoint(streamFile, lineNum));
+  }
+
+  public DeltaPartitionCheckPoint(
+      Map<Integer, PartitionCheckpoint> deltaCheckpoint) {
+    this.deltaCheckpoint.putAll(deltaCheckpoint);
   }
 
   @Override

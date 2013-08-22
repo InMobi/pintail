@@ -42,14 +42,11 @@ public class CheckpointList implements ConsumerCheckpoint {
   @Override
   public void set(PartitionId pid, MessageCheckpoint msgCkp) {
     DeltaPartitionCheckPoint checkPoint = (DeltaPartitionCheckPoint) msgCkp;
-    // set delta checkpoint
-    if (!checkPoint.getDeltaCheckpoint().isEmpty()) {
-      for (Map.Entry<Integer, PartitionCheckpoint> entry :
-        checkPoint.getDeltaCheckpoint().entrySet()) {
-        Integer minute = entry.getKey();
-        PartitionCheckpoint pck = entry.getValue();
-        setConsumerCheckpoint(pid, minute, pck);
-      }
+    for (Map.Entry<Integer, PartitionCheckpoint> entry :
+      checkPoint.getDeltaCheckpoint().entrySet()) {
+      Integer minute = entry.getKey();
+      PartitionCheckpoint pck = entry.getValue();
+      setConsumerCheckpoint(pid, minute, pck);
     }
   }
 

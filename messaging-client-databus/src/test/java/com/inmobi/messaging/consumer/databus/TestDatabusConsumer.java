@@ -18,20 +18,6 @@ import com.inmobi.messaging.consumer.util.TestUtil;
 
 public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
 
-  private String ck1 = "/tmp/test/databustest1/checkpoint1";
-  private String ck2 = "/tmp/test/databustest1/checkpoint2";
-  private String ck3 = "/tmp/test/databustest2/checkpoint1";
-  private String ck4 = "/tmp/test/databustest2/checkpoint2";
-  private String ck5 = "/tmp/test/databustest2/checkpoint3";
-  private String ck6 = "/tmp/test/databustest2/checkpoint4";
-  private String ck7 = "/tmp/test/databustest2/checkpoint5";
-  private String ck8 = "/tmp/test/databustest2/checkpoint6";
-  private String ck9 = "/tmp/test/databustest2/checkpoint7";
-  private String ck10 = "/tmp/test/databustest2/checkpoint8";
-  private String ck11 = "/tmp/test/databustest2/checkpoint9";
-  private String ck12 = "/tmp/test/databustest2/checkpoint10";
-  private String ck13 = "/tmp/test/databustest2/checkpoint11";
-
   ClientConfig loadConfig() {
     return ClientConfig.loadFromClasspath(
         MessageConsumerFactory.MESSAGE_CLIENT_CONF_FILE);
@@ -112,7 +98,7 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
     ConsumerUtil.testConsumerStartUp(config, testStream,
         consumerName, false,
         CollectorStreamReader.getDateFromCollectorFile(dataFiles[1]),
-        rootDirs[0]);
+        rootDirs[0], chkpointPathPrefix);
   }
 
   @Test

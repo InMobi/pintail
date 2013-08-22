@@ -19,25 +19,6 @@ public class TestHadoopConsumer extends TestAbstractHadoopConsumer {
   @BeforeTest
   public void setup() throws Exception {
     consumerName = "c1";
-    ck1 = "/tmp/test/hadoop/1/checkpoint1";
-    ck2 = "/tmp/test/hadoop/1/checkpoint2";
-    ck3 = "/tmp/test/hadoop/1/checkpoint3";
-    ck4 = "/tmp/test/hadoop/2/checkpoint1";
-    ck5 = "/tmp/test/hadoop/2/checkpoint2";
-    ck6 = "/tmp/test/hadoop/2/checkpoint3";
-    ck7 = "/tmp/test/hadoop/2/checkpoint4";
-    ck8 = "/tmp/test/hadoop/2/checkpoint5";
-    ck9 = "/tmp/test/hadoop/2/checkpoint6";
-    ck10 = "/tmp/test/hadoop/2/checkpoint7";
-    ck11 = "/tmp/test/hadoop/2/checkpoint8";
-    ck12 = "/tmp/test/hadoop/2/checkpoint9";
-    ck13 = "/tmp/test/hadoop/2/checkpoint10";
-    ck14 = "/tmp/test/hadoop/2/checkpoint11";
-    ck15 = "/tmp/test/hadoop/2/checkpoint12";
-    ck16 = "/tmp/test/hadoop/2/checkpoint13";
-    ck17 = "/tmp/test/hadoop/2/checkpoint14";
-    ck18 = "/tmp/test/hadoop/2/checkpoint15";
-
     super.setup();
     Assert.assertEquals(rootDirs.length, 3);
   }

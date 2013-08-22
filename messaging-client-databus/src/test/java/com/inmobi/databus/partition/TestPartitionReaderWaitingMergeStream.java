@@ -29,7 +29,7 @@ public class TestPartitionReaderWaitingMergeStream
     // setup cluster
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
         testStream, new PartitionId(clusterName, collectorName), files, null,
-        databusFiles, 0, 3);
+        databusFiles, 0, 3, TestUtil.getConfiguredRootDir());
     conf = cluster.getHadoopConf();
     fs = FileSystem.get(conf);
     streamDir = DatabusUtil.getStreamDir(StreamType.MERGED,

@@ -22,6 +22,7 @@
 
   <properties>
     <test.build.data>${project.build.directory}/test/data</test.build.data>
+    <test.root.dir>${project.build.directory}/tmp/test</test.root.dir>
     <databus.version>1.4.0</databus.version>
   </properties>
   <dependencyManagement>
@@ -154,6 +155,12 @@
 
   <build>
     <finalName>${groupId}-${artifactId}-${version}</finalName>
+    <testResources>
+      <testResource>
+        <directory>src/test/resources</directory>
+        <filtering>true</filtering>
+      </testResource>
+    </testResources>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -172,6 +179,7 @@
           <argLine>-Djava.security.krb5.realm= -Djava.security.krb5.kdc=</argLine>
           <systemPropertyVariables>
             <test.build.data>${test.build.data}</test.build.data>
+            <test.root.dir>${test.root.dir}</test.root.dir>
           </systemPropertyVariables>
           <forkedProcessTimeoutInSeconds>600</forkedProcessTimeoutInSeconds>
         </configuration>

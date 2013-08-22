@@ -11,14 +11,17 @@ import org.testng.Assert;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.Test;
 
+import com.inmobi.messaging.consumer.util.TestUtil;
+
 public class TestHadoopStreamFile {
 
-  protected Path rootDir = new Path("/tmp/test/hadoop/",
-      this.getClass().getSimpleName());
+  protected Path rootDir;
   FileSystem fs;
 
   @Test
   public void testHadoopStreamFile() throws IOException {
+    rootDir = new Path(TestUtil.getConfiguredRootDir(),
+        this.getClass().getSimpleName());
     fs = FileSystem.getLocal(new Configuration());
     Path p1 = new Path(rootDir, "2012/12/12/12/11");
     Path p2 = new Path(rootDir, "2012/12/12/12/12");

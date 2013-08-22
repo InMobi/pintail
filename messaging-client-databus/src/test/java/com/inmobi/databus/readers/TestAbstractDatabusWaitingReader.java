@@ -40,9 +40,6 @@ public abstract class TestAbstractDatabusWaitingReader {
   Map<Integer, PartitionCheckpoint> chkPoints;
   int consumerNumber;
 
-  public void cleanup() throws IOException {
-  }
-
   abstract Path getStreamsDir();
 
   public void testInitialize() throws Exception {

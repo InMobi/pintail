@@ -49,6 +49,7 @@ public class TestConsumerPartitionStartTime {
   protected Path[] rootDirs;
   Path [][] finalPaths;
   Configuration conf;
+  protected String chkpointPath;
 
   @BeforeTest
   public void setup() throws Exception {
@@ -60,7 +61,7 @@ public class TestConsumerPartitionStartTime {
     firstConsumedMessages = new ArrayList<String>();
     secondConsumedMessages = new ArrayList<String>();
     createFiles(consumer);
-
+    chkpointPath = config.getString(HadoopConsumerConfig.checkpointDirConfig);
     consumer = new HadoopConsumer();
     secondConsumer = new HadoopConsumer();
   }
@@ -73,7 +74,6 @@ public class TestConsumerPartitionStartTime {
     Assert.assertEquals(conf.get("myhadoop.property"), "myvalue");
 
     rootDirs = consumer.getRootDirs();
-    LOG.info("number of root dirs   "+ rootDirs.length);
     numSuffixDirs = suffixDirs != null ? suffixDirs.length : 1;
     numDataFiles = dataFiles != null ? dataFiles.length : 1;
     finalPaths = new Path[rootDirs.length][numSuffixDirs * numDataFiles];
@@ -122,6 +122,7 @@ public class TestConsumerPartitionStartTime {
       LOG.debug("Cleaning up the dir: " + rootDir.getParent());
       lfs.delete(rootDir.getParent(), true);
     }
+    lfs.delete(new Path(chkpointPath).getParent(), true);
   }
 
   private static String getMessage(byte[] array) throws IOException {

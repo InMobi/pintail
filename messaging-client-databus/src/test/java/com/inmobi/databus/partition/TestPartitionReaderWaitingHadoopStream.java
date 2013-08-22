@@ -16,6 +16,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.inmobi.messaging.consumer.util.HadoopUtil;
+import com.inmobi.messaging.consumer.util.TestUtil;
 
 public class TestPartitionReaderWaitingHadoopStream extends
     TestAbstractWaitingClusterReader {
@@ -31,8 +32,8 @@ public class TestPartitionReaderWaitingHadoopStream extends
         HadoopUtil.files[7], HadoopUtil.files[8] };
     // setup fs
     fs = FileSystem.getLocal(conf);
-    streamDir = new Path("/tmp/test/hadoop/" + this.getClass().getSimpleName(),
-        testStream).makeQualified(fs);
+    streamDir = new Path(new Path(TestUtil.getConfiguredRootDir(),
+        this.getClass().getSimpleName()), testStream).makeQualified(fs);
     HadoopUtil.setupHadoopCluster(conf, files, null, databusFiles, streamDir, false);
     inputFormatClass = SequenceFileInputFormat.class.getName();
     partitionMinList = new HashSet<Integer>();

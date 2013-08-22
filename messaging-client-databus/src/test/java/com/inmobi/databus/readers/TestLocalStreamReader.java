@@ -26,7 +26,7 @@ public class TestLocalStreamReader extends TestAbstractDatabusWaitingReader {
     // initialize config
     cluster = TestUtil.setupLocalCluster(this.getClass().getSimpleName(),
     testStream, new PartitionId(clusterName, collectorName), files, null,
-    finalFiles, 3, 0);
+    finalFiles, 3, 0, TestUtil.getConfiguredRootDir());
     conf = cluster.getHadoopConf();
     fs = FileSystem.get(conf);
     streamDir = getStreamsDir();
