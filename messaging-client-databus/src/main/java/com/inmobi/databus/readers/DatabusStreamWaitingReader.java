@@ -225,8 +225,6 @@ public class DatabusStreamWaitingReader
             LOG.info("Checkpointed file does not exist "
                 + partitionCheckpoint.getFileName());
             startFromNextHigher((HadoopStreamFile) partitionCheckpoint.getStreamFile());
-            LOG.info("Starting from next higher file for checkpoint "
-                + currentFile.getPath());
             return true;
           }
         } else {
