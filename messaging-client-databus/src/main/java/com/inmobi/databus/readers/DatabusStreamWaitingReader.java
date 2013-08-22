@@ -48,7 +48,7 @@ public class DatabusStreamWaitingReader
         this.timeStamp = getDateFromCheckpointPath(
           ((HadoopStreamFile)pck.getStreamFile()).getCheckpointPath());
         this.readFully = (pck.getLineNum() == -1);
-        if (readFully) {
+        if (readFully || (pck.getName() == null)) {
           processed = true;
         }
       } else {
@@ -222,7 +222,11 @@ public class DatabusStreamWaitingReader
             fileToRead = fsGetFileStatus(checkPointedFileName);
             currentLineNum = partitionCheckpoint.getLineNum();
           } else {
+            LOG.info("Checkpointed file does not exist "
+                + partitionCheckpoint.getFileName());
             startFromNextHigher((HadoopStreamFile) partitionCheckpoint.getStreamFile());
+            LOG.info("Starting from next higher file for checkpoint "
+                + currentFile.getPath());
             return true;
           }
         } else {
@@ -259,6 +263,7 @@ public class DatabusStreamWaitingReader
             || checkpointedTimeStamp.before(cal.getTime())) {
           deltaCheckpoint.put(currentMinute, new PartitionCheckpoint
               (getStreamFile(cal.getTime()), -1));
+          pChkpoints.get(currentMinute).processed = true;
         }
       }
       cal.add(Calendar.MINUTE, 1);
@@ -471,6 +476,7 @@ public class DatabusStreamWaitingReader
         if (checkpointedTimeStamp == null) {
           fullPartitionChkMap.put(currentMinute, new PartitionCheckpoint
               (getStreamFile(cal.getTime()), 0));
+          pChkpoints.get(currentMinute).processed = true;
         }
       }
       cal.add(Calendar.MINUTE, 1);
