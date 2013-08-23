@@ -229,6 +229,8 @@ public class DatabusStreamWaitingReader
       // set the line number as -1 as current file was read fully.
       deltaCheckpoint.put(currentMin,
           new PartitionCheckpoint(getStreamFile(currentFile), -1));
+      // update the partition checkpoint last after processing the checkpoint for that minute
+      updatePartitionCheckpointList(currentMin);
       currentMin = now.get(Calendar.MINUTE);
       PartitionCheckpoint partitionCheckpoint = partitionCheckpointList.
           getCheckpoints().get(currentMin);
@@ -253,6 +255,13 @@ public class DatabusStreamWaitingReader
     this.currentFile = fileToRead;
     setIterator();
     return !readFromCheckpoint;
+  }
+
+  private void updatePartitionCheckpointList(int prevMin) {
+    Map<Integer, PartitionCheckpoint> pckList = partitionCheckpointList.
+        getCheckpoints();
+    pckList.remove(prevMin);
+    partitionCheckpointList.setCheckpoint(pckList);
   }
 
   private Date getNextMinuteTimeStamp(Date currentFileTimeStamp) {

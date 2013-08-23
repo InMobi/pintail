@@ -41,12 +41,12 @@ public class HadoopUtil {
   public static void setUpHadoopFiles(Path streamDirPrefix, Configuration conf,
       String[] files, String[] suffixDirs, Path[] finalFiles) throws Exception {
     setUpHadoopFiles(streamDirPrefix, conf, files, suffixDirs, finalFiles,
-        false, null, 0);
+        false, null, 0, 0);
   }
 
   public static void setUpHadoopFiles(Path streamDirPrefix, Configuration conf,
       String[] files, String[] suffixDirs, Path[] finalFiles,
-      boolean alternateEmptyFiles, Date minuteDirTimeStamp, int index)
+      boolean alternateEmptyFiles, Date minuteDirTimeStamp, int index, int startIndex)
           throws Exception {
     FileSystem fs = streamDirPrefix.getFileSystem(conf);
     Path rootDir = streamDirPrefix.getParent();
@@ -54,7 +54,7 @@ public class HadoopUtil {
     boolean emptyFile = false;
     // setup data dirs
     if (files != null) {
-      int i = 0;
+      int i = startIndex;
       int j = index;
       for (String file : files) {
         if (alternateEmptyFiles && emptyFile) {
@@ -144,7 +144,7 @@ public class HadoopUtil {
 
     if (!createFilesInNextHour) {
       setUpHadoopFiles(finalDir, conf, files, suffixDirs, finalFiles,
-          withEmptyFiles, null, 0);
+          withEmptyFiles, null, 0, 0);
     } else {
       // start from 1 hour back as we need files in two diff hours.
       Calendar cal = Calendar.getInstance();
@@ -152,12 +152,15 @@ public class HadoopUtil {
       cal.add(Calendar.HOUR_OF_DAY, -1);
 
       setUpHadoopFiles(finalDir, conf, files, suffixDirs, finalFiles,
-          withEmptyFiles, cal.getTime(), 0);
+          withEmptyFiles, cal.getTime(), 0, 0);
       // go to next hour
       cal.add(Calendar.HOUR_OF_DAY, 1);
       int index = files.length;
+      // find number of non empty(i.e. data) files in 1 hour
+      int numberOfNonEmptyFiles = withEmptyFiles ? (int) Math.ceil(index/2.0) : index;
+      int startIndex = numberOfNonEmptyFiles * 100;
       setUpHadoopFiles(finalDir, conf, files, suffixDirs, finalFiles,
-          withEmptyFiles, cal.getTime(), index);
+          withEmptyFiles, cal.getTime(), index, startIndex);
     }
   }
 

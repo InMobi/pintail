@@ -53,7 +53,7 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
         rootDirs[0].toUri().toString());
     config.set(DatabusConsumerConfig.checkpointDirConfig, ck1);
     ConsumerUtil.testTimeoutStats(config, testStream, consumerName,
-        CollectorStreamReader.getDateFromCollectorFile(dataFiles[0]), false);
+        CollectorStreamReader.getDateFromCollectorFile(dataFiles[0]), false, 300);
   }
 
   @Test
