@@ -858,11 +858,26 @@ public class ConsumerUtil {
           MessageUtil.constructMessage(i));
     }
     consumer.reset();
-    for (i = 20; i < 600; i++) {
+    for (i = 20; i < 120; i++) {
       Message msg = consumer.next();
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
+    consumer.mark();
+    for (i = 120; i < 240; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    consumer.reset();
+    for (i = 120; i < 600; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    consumer.mark();
+    Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
+        consumer.getMetrics())).getNumMessagesConsumed(), 800);
     Throwable th = null;
     try {
       consumer.next();
