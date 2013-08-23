@@ -68,7 +68,7 @@ public class TestMergeStreamReader extends TestAbstractDatabusWaitingReader{
 
   @Override
   Path getStreamsDir() {
-    return DatabusStreamReader.getStreamsDir(cluster, testStream);
+    return TestUtil.getStreamsDir(cluster, testStream);
   }
 
 }

@@ -27,7 +27,7 @@ public class TestPartitionReaderMergedStream extends TestAbstractClusterReader {
         testStream, new PartitionId(clusterName, collectorName), files, null,
         databusFiles, 0, 3, TestUtil.getConfiguredRootDir());
     fs = FileSystem.get(cluster.getHadoopConf());
-    streamDir = DatabusStreamWaitingReader.getStreamsDir(cluster,
+    streamDir = TestUtil.getStreamsDir(cluster,
         testStream);
     inputFormatClass = DatabusInputFormat.class.getName();
   }

@@ -67,7 +67,7 @@ public class TestLocalStreamReader extends TestAbstractDatabusWaitingReader {
 
   @Override
   Path getStreamsDir() {
-    return DatabusStreamReader.getStreamsLocalDir(cluster, testStream);
+    return TestUtil.getStreamsLocalDir(cluster, testStream);
   }
 
 }
