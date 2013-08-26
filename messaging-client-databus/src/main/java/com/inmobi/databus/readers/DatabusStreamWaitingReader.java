@@ -220,8 +220,8 @@ public class DatabusStreamWaitingReader
             fileToRead = fsGetFileStatus(checkPointedFileName);
             currentLineNum = partitionCheckpoint.getLineNum();
           } else {
-            LOG.info("Checkpointed file does not exist "
-                + partitionCheckpoint.getFileName());
+            LOG.info("Checkpointed file " + partitionCheckpoint.getFileName()
+                + " does not exist");
             startFromNextHigher((HadoopStreamFile) partitionCheckpoint.getStreamFile());
             return true;
           }
