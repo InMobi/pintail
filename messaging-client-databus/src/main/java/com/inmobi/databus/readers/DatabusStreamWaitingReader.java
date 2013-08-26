@@ -46,8 +46,10 @@ public class DatabusStreamWaitingReader
       this.pck = pck;
       if (pck != null) {
         this.timeStamp = getDateFromCheckpointPath(
-          ((HadoopStreamFile)pck.getStreamFile()).getCheckpointPath());
+          ((HadoopStreamFile) pck.getStreamFile()).getCheckpointPath());
         this.readFully = (pck.getLineNum() == -1);
+        // no need to process the full checkpoint and
+        // checkpoint which has file name "null"
         if (readFully || (pck.getName() == null)) {
           processed = true;
         }
@@ -148,8 +150,7 @@ public class DatabusStreamWaitingReader
     }
 
     if (getFirstFileInStream() != null && (currentMin == -1)) {
-      FileStatus firstFileInStream = getFirstFileInStream();
-      currentMin = getMinuteFromFile(firstFileInStream);
+      currentMin = getMinuteFromFile(getFirstFileInStream());
     }
   }
 
@@ -268,8 +269,7 @@ public class DatabusStreamWaitingReader
 
   @Override
   protected HadoopStreamFile getStreamFile(Date timestamp) {
-    Path streamDirPath = streamDir;
-    return getHadoopStreamFile(streamDirPath, timestamp);
+    return getHadoopStreamFile(streamDir, timestamp);
   }
 
   protected HadoopStreamFile getStreamFile(FileStatus status) {
