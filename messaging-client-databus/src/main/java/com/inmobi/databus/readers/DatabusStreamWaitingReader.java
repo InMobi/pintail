@@ -68,12 +68,10 @@ public class DatabusStreamWaitingReader
         waitTimeForFileCreate, metrics, noNewFiles, stopTime);
     this.partitionMinList = partitionMinList;
     currentMin = -1;
-    if (partitionCheckpointList != null) {
-      for (Integer min : partitionMinList) {
-        CheckpointInfo cpi = new CheckpointInfo(
-            partitionCheckpointList.getCheckpoints().get(min));
-        pChkpoints.put(min, cpi);
-      }
+    for (Integer min : partitionMinList) {
+      CheckpointInfo cpi = new CheckpointInfo(
+          partitionCheckpointList.getCheckpoints().get(min));
+      pChkpoints.put(min, cpi);
     }
     deltaCheckpoint = new HashMap<Integer, PartitionCheckpoint>();
     createdDeltaCheckpointForFirstFile = false;

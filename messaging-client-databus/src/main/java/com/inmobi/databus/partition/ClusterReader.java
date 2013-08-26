@@ -43,10 +43,8 @@ public class ClusterReader extends AbstractPartitionStreamReader {
 
   private void initializeBuildTimeStamp(
       PartitionCheckpointList partitionCheckpointList) throws IOException {
-    if (partitionCheckpointList != null) {
-      leastPartitionCheckpoint = findLeastPartitionCheckPointTime(
-          partitionCheckpointList);
-    }
+    leastPartitionCheckpoint = findLeastPartitionCheckPointTime(
+        partitionCheckpointList);
     if (leastPartitionCheckpoint != null) {
       buildTimestamp = DatabusStreamWaitingReader.
           getBuildTimestamp(streamDir, leastPartitionCheckpoint);

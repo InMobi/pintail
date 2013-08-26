@@ -78,7 +78,7 @@ public class TestClusterReaderEmptyStream {
     PartitionReaderStatsExposer prMetrics = new PartitionReaderStatsExposer(
         testStream, "c1", clusterId.toString(), consumerNumber, fsUri);
     // Read from start time
-    preader = new PartitionReader(clusterId, null, fs, buffer,
+    preader = new PartitionReader(clusterId, partitionCheckpointList, fs, buffer,
         streamDir, conf, inputFormatClass,
         CollectorStreamReader.getDateFromCollectorFile(TestUtil.files[0]),
         1000,
