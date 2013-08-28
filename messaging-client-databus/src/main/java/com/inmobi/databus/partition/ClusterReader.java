@@ -81,7 +81,12 @@ public class ClusterReader extends AbstractPartitionStreamReader {
       if (tmpPartitionCheckpoint != null) {
         Date pckTimeStamp = DatabusStreamWaitingReader
             .getDateFromCheckpointPath(tmpPartitionCheckpoint.getFileName());
-        if (pckTimeStamp.before(leastPckTimeStamp)) {
+        if (leastPckTimeStamp == null) {
+          partitioncheckpoint = tmpPartitionCheckpoint;
+          leastPckTimeStamp = pckTimeStamp;
+          continue;
+        }
+        if (pckTimeStamp != null && pckTimeStamp.before(leastPckTimeStamp)) {
           partitioncheckpoint = tmpPartitionCheckpoint;
           leastPckTimeStamp = pckTimeStamp;
         }
