@@ -75,7 +75,7 @@ public class TestMergeStreamMultipleCollectors {
         testStream, "c1", partitionId.toString(), conusmerNumber, fsUri);
     reader = new DatabusStreamWaitingReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()),
-        DatabusStreamReader.getStreamsDir(cluster, testStream),
+        TestUtil.getStreamsDir(cluster, testStream),
         DatabusInputFormat.class.getCanonicalName(),
         conf, 1000, metrics, false, partitionMinList, partitionCheckpointList,
         null);

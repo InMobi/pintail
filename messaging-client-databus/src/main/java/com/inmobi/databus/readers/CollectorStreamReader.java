@@ -15,7 +15,6 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
 
-import com.inmobi.databus.Cluster;
 import com.inmobi.databus.files.CollectorFile;
 import com.inmobi.databus.files.DatabusStreamFile;
 import com.inmobi.databus.files.FileMap;
@@ -321,12 +320,6 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
       return false;
     }
     return true;
-  }
-
-  public static Path getCollectorDir(Cluster cluster, String streamName,
-      String collectorName) {
-    Path streamDataDir = new Path(cluster.getDataDir(), streamName);
-    return new Path(streamDataDir, collectorName);
   }
 
   public static String getCollectorFileName(String streamName,

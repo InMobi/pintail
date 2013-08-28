@@ -14,15 +14,15 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.security.SecurityUtil;
 import org.apache.hadoop.security.UserGroupInformation;
 
-import com.inmobi.databus.CheckpointProvider;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.partition.PartitionReader;
-import com.inmobi.databus.utils.SecureLoginUtil;
 import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.checkpoint.CheckpointProvider;
 import com.inmobi.messaging.consumer.AbstractMessageConsumer;
 import com.inmobi.messaging.consumer.EndOfStreamException;
 import com.inmobi.messaging.metrics.DatabusConsumerStatsExposer;
@@ -93,8 +93,12 @@ public abstract class AbstractMessagingDatabusConsumer
       String principal = config.getString(consumerPrincipal);
       String keytab = config.getString(consumerKeytab);
       if (principal != null && keytab != null) {
-        SecureLoginUtil.login(consumerPrincipal, principal,
-            consumerKeytab, keytab);
+        Configuration conf = new Configuration();
+        conf.set(consumerPrincipal, principal);
+        conf.set(consumerKeytab, keytab);
+        SecurityUtil.login(conf, consumerKeytab, consumerPrincipal);
+        UserGroupInformation ugi = UserGroupInformation.getLoginUser();
+        LOG.info("User logged in :" + ugi);
       } else {
         LOG.info("There is no principal or key tab file passed. Using the"
             + " commandline authentication.");

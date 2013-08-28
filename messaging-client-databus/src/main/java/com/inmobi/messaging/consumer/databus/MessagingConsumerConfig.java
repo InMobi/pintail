@@ -2,7 +2,8 @@ package com.inmobi.messaging.consumer.databus;
 
 import org.apache.hadoop.mapred.TextInputFormat;
 
-import com.inmobi.databus.FSCheckpointProvider;
+import com.inmobi.messaging.checkpoint.FSCheckpointProvider;
+
 
 public interface MessagingConsumerConfig {
 
