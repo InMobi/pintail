@@ -87,7 +87,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     } else {
       useCReader = true;
     }
-    
+
     if (useCReader) {
       reader = cReader;
       String collectorFileName = CollectorStreamReader.getCollectorFileName(

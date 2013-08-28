@@ -221,6 +221,7 @@ public class PartitionReader {
         LOG.info("No stream to read");
         putEOFMessageInBuffer();
         close();
+        join();
         return;
       }
     } catch (InterruptedException ie) {

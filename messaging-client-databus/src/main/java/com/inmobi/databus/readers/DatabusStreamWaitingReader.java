@@ -46,8 +46,13 @@ public class DatabusStreamWaitingReader
       this.pck = pck;
       if (pck != null) {
         this.timeStamp = getDateFromCheckpointPath(
-          ((HadoopStreamFile)pck.getStreamFile()).getCheckpointPath());
+          ((HadoopStreamFile) pck.getStreamFile()).getCheckpointPath());
         this.readFully = (pck.getLineNum() == -1);
+        // no need to process the full checkpoint and
+        // checkpoint which has file name "null"
+        if (readFully || (pck.getName() == null)) {
+          processed = true;
+        }
       } else {
         // nothing to process
         processed = true;
@@ -65,12 +70,10 @@ public class DatabusStreamWaitingReader
         waitTimeForFileCreate, metrics, noNewFiles, stopTime);
     this.partitionMinList = partitionMinList;
     currentMin = -1;
-    if (partitionCheckpointList != null) {
-      for (Integer min : partitionMinList) {
-        CheckpointInfo cpi = new CheckpointInfo(
-            partitionCheckpointList.getCheckpoints().get(min));
-        pChkpoints.put(min, cpi);
-      }
+    for (Integer min : partitionMinList) {
+      CheckpointInfo cpi = new CheckpointInfo(
+          partitionCheckpointList.getCheckpoints().get(min));
+      pChkpoints.put(min, cpi);
     }
     deltaCheckpoint = new HashMap<Integer, PartitionCheckpoint>();
     createdDeltaCheckpointForFirstFile = false;
@@ -101,24 +104,6 @@ public class DatabusStreamWaitingReader
       return true;
     } else if (currentTimeStamp.equals(checkpointedTimestamp)) {
       return pChkpoints.get(Integer.valueOf(minute)).readFully;
-    }
-    return false;
-  }
-
-  /**
-   * It reads from the next checkpoint. It retrieves the first file from the filemap.
-   * Get the minute id from the file and see the checkpoint value. If the
-   * checkpointed file is not same as current file then it sets the iterator to
-   * the checkpointed file if the checkpointed file exists.
-   * @throws InterruptedException 
-   */
-  public boolean initFromNextCheckPoint() throws IOException, InterruptedException {
-    initCurrentFile();
-    moveToCheckpoint(getFirstFileInStream());
-    if (currentFile != null) {
-      LOG.debug("CurrentFile:" + getCurrentFile() + " currentLineNum:"
-          + currentLineNum);
-      return setIterator();
     }
     return false;
   }
@@ -165,8 +150,7 @@ public class DatabusStreamWaitingReader
     }
 
     if (getFirstFileInStream() != null && (currentMin == -1)) {
-      FileStatus firstFileInStream = getFirstFileInStream();
-      currentMin = getMinuteFromFile(firstFileInStream);
+      currentMin = getMinuteFromFile(getFirstFileInStream());
     }
   }
 
@@ -194,8 +178,6 @@ public class DatabusStreamWaitingReader
   @Override
   public boolean prepareMoveToNext(FileStatus currentFile, FileStatus nextFile)
       throws IOException, InterruptedException {
-    Date currentFileTimeStamp = getDateFromStreamDir(streamDir,
-        currentFile.getPath().getParent());
     Calendar next = Calendar.getInstance();
     Date nextFileTimeStamp = getDateFromStreamDir(streamDir,
         nextFile.getPath().getParent());
@@ -203,12 +185,15 @@ public class DatabusStreamWaitingReader
 
     boolean readFromCheckpoint = false;
     if (currentMin != next.get(Calendar.MINUTE)) {
-      setDeltaCheckpoint(getNextMinuteTimeStamp(currentFileTimeStamp),
-          nextFileTimeStamp);
-      // set the line number as -1 as current file was read fully.
-      deltaCheckpoint.put(currentMin,
-          new PartitionCheckpoint(getStreamFile(currentFile), -1));
-      
+      if (currentFile != null) {
+        Date currentFileTimeStamp = getDateFromStreamDir(streamDir, currentFile
+            .getPath().getParent());
+        setDeltaCheckpoint(getNextMinuteTimeStamp(currentFileTimeStamp),
+            nextFileTimeStamp);
+        // set the line number as -1 as current file was read fully.
+        deltaCheckpoint.put(currentMin, new PartitionCheckpoint(
+            getStreamFile(currentFile), -1));
+      }
       // move to next file
       currentMin = next.get(Calendar.MINUTE);
       readFromCheckpoint = moveToCheckpoint(nextFile);
@@ -223,10 +208,10 @@ public class DatabusStreamWaitingReader
       throws IOException, InterruptedException {
     boolean ret = false;
     CheckpointInfo cpi = pChkpoints.get(currentMin);
-    if (!cpi.processed && !cpi.readFully) {
+    if (!cpi.processed) {
       cpi.processed = true;
       PartitionCheckpoint partitionCheckpoint = cpi.pck;
-      if (((HadoopStreamFile)partitionCheckpoint.getStreamFile()).getFileName()
+      if (((HadoopStreamFile) partitionCheckpoint.getStreamFile()).getFileName()
           != null) {
         Path checkPointedFileName = new Path(streamDir,
             partitionCheckpoint.getFileName());
@@ -236,7 +221,9 @@ public class DatabusStreamWaitingReader
             fileToRead = fsGetFileStatus(checkPointedFileName);
             currentLineNum = partitionCheckpoint.getLineNum();
           } else {
-            startFromNextHigher(partitionCheckpoint.getFileName());
+            LOG.info("Checkpointed file " + partitionCheckpoint.getFileName()
+                + " does not exist");
+            startFromNextHigher((HadoopStreamFile) partitionCheckpoint.getStreamFile());
             return true;
           }
         } else {
@@ -273,6 +260,7 @@ public class DatabusStreamWaitingReader
             || checkpointedTimeStamp.before(cal.getTime())) {
           deltaCheckpoint.put(currentMinute, new PartitionCheckpoint
               (getStreamFile(cal.getTime()), -1));
+          pChkpoints.get(currentMinute).processed = true;
         }
       }
       cal.add(Calendar.MINUTE, 1);
@@ -281,12 +269,26 @@ public class DatabusStreamWaitingReader
 
   @Override
   protected HadoopStreamFile getStreamFile(Date timestamp) {
-    Path streamDirPath = streamDir;
-    return getHadoopStreamFile(streamDirPath, timestamp);
+    return getHadoopStreamFile(streamDir, timestamp);
   }
 
   protected HadoopStreamFile getStreamFile(FileStatus status) {
     return getHadoopStreamFile(status);
+  }
+
+  protected void startFromNextHigher(HadoopStreamFile file)
+      throws IOException, InterruptedException {
+    if (!setNextHigherAndOpen(file)) {
+      waitForNextFileCreation(file);
+    }
+  }
+
+  private void waitForNextFileCreation(HadoopStreamFile file)
+      throws IOException, InterruptedException {
+    while (!closed && !setNextHigherAndOpen(file) && !hasReadFully()) {
+      waitForFileCreate();
+      build();
+    }
   }
 
   protected void startFromNextHigher(FileStatus file)
@@ -470,6 +472,7 @@ public class DatabusStreamWaitingReader
         if (checkpointedTimeStamp == null) {
           fullPartitionChkMap.put(currentMinute, new PartitionCheckpoint
               (getStreamFile(cal.getTime()), 0));
+          pChkpoints.get(currentMinute).processed = true;
         }
       }
       cal.add(Calendar.MINUTE, 1);

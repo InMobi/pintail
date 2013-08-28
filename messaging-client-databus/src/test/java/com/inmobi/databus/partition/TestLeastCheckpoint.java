@@ -56,7 +56,7 @@ public class TestLeastCheckpoint {
     HadoopStreamFile streamfile4 = createPaths(p4, 3);
     HadoopStreamFile streamfile5 = createPaths(p5, 4);
 
-    chkPoints.put(00, new PartitionCheckpoint(streamfile1, 20));
+    chkPoints.put(00, null);
     chkPoints.put(01, new PartitionCheckpoint(streamfile2, 100));
     chkPoints.put(02, new PartitionCheckpoint(streamfile3, -1));
     chkPoints.put(3, null);

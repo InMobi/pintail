@@ -148,6 +148,10 @@ public abstract class StreamReader<T extends StreamFile> {
     return fileMap.getHigherValue(file);
   }
 
+  protected FileStatus getHigherValue(T file) {
+    return fileMap.getHigherValue(file);
+  }
+
   protected boolean setIteratorToFile(FileStatus file)
       throws IOException {
     if (file != null) {
@@ -306,14 +310,6 @@ public abstract class StreamReader<T extends StreamFile> {
     }
   }
 
-  public boolean startFromNextHigher(String fileName)
-      throws IOException, InterruptedException {
-    if (!setNextHigher(fileName)) {
-      waitForNextFileCreation(fileName);
-    }
-    return true;
-  }
-
   protected void waitForFileCreate() throws InterruptedException {
     LOG.info("Waiting for next file creation");
     Thread.sleep(waitTimeForCreate);
@@ -323,14 +319,6 @@ public abstract class StreamReader<T extends StreamFile> {
   private void waitForNextFileCreation() throws IOException,
   InterruptedException {
     while (!closed && !initFromStart() && !hasReadFully()) {
-      waitForFileCreate();
-      build();
-    }
-  }
-
-  private void waitForNextFileCreation(String fileName)
-      throws IOException, InterruptedException {
-    while (!closed && !setNextHigher(fileName) && !hasReadFully()) {
       waitForFileCreate();
       build();
     }
