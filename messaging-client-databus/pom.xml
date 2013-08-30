@@ -4,7 +4,7 @@
   <parent>
     <artifactId>messaging-client-parent</artifactId>
     <groupId>com.inmobi.messaging</groupId>
-    <version>3.2.2</version>
+    <version>3.2.3-SNAPSHOT</version>
   </parent>
 
   <profiles>
