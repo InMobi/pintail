@@ -161,6 +161,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
       inStream = null;
     }
   }
+
   protected Message readRawLine() throws IOException {
     int next = reader.read();
     while ((char) next != '\n') {

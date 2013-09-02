@@ -17,6 +17,7 @@ import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.partition.PartitionReader;
 import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.databus.readers.LocalStreamCollectorReader;
+import com.inmobi.messaging.EOFMessage;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
 import com.inmobi.messaging.consumer.databus.StreamType;
 import com.inmobi.messaging.consumer.util.DatabusUtil;
@@ -77,7 +78,7 @@ public class TestPartitionReaderMovingFilesFromCollectorStream {
     preader = new PartitionReader(partitionId, null, conf, fs,
         collectorDir, streamsLocalDir, buffer,
         testStream, CollectorStreamReader.getDateFromCollectorFile(files[0]),
-        10, 1000, prMetrics, null);
+        10, 1000, prMetrics,true, null);
     preader.init();
     Assert.assertTrue(buffer.isEmpty());
     Assert.assertEquals(preader.getReader().getClass().getName(),
@@ -159,7 +160,7 @@ public class TestPartitionReaderMovingFilesFromCollectorStream {
         collectorName, files[7]), 8, 0, 100, partitionId, buffer, true, null);
     TestUtil.assertBuffer(CollectorStreamReader.getCollectorFile(files[8]),
         9, 0, 100, partitionId, buffer, true, null);
-    Assert.assertTrue(buffer.isEmpty());
+    Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
     preader.close();
     preader.join();
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 900);
