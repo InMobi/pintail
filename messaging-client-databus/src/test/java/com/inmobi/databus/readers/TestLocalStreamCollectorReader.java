@@ -61,7 +61,7 @@ public class TestLocalStreamCollectorReader {
     // Read from start
     lreader = new LocalStreamCollectorReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
-        DatabusStreamReader.getStreamsLocalDir(cluster, testStream), conf, 0L,
+        TestUtil.getStreamsLocalDir(cluster, testStream), conf, 0L,
         metrics, null);
     lreader.build(CollectorStreamReader.getDateFromCollectorFile(files[0]));
 
@@ -144,7 +144,7 @@ public class TestLocalStreamCollectorReader {
             consumerNumber, fsUri);
     lreader = new LocalStreamCollectorReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
-        DatabusStreamReader.getStreamsLocalDir(cluster, testStream), conf,
+        TestUtil.getStreamsLocalDir(cluster, testStream), conf,
         0L, metrics, null);
     lreader.build(CollectorStreamReader.getDateFromCollectorFile(files[0]));
     lreader.initFromStart();
@@ -173,7 +173,7 @@ public class TestLocalStreamCollectorReader {
             consumerNumber, fsUri);
     lreader = new LocalStreamCollectorReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
-        DatabusStreamReader.getStreamsLocalDir(cluster, testStream), conf, 0L,
+        TestUtil.getStreamsLocalDir(cluster, testStream), conf, 0L,
         metrics, null);
     PartitionCheckpoint pcp = new PartitionCheckpoint(
         LocalStreamCollectorReader.getDatabusStreamFile(collectorName,
@@ -204,7 +204,7 @@ public class TestLocalStreamCollectorReader {
             consumerNumber, fsUri);
     lreader = new LocalStreamCollectorReader(partitionId,
         FileSystem.get(cluster.getHadoopConf()), testStream,
-        DatabusStreamReader.getStreamsLocalDir(cluster, testStream), conf, 0L,
+        TestUtil.getStreamsLocalDir(cluster, testStream), conf, 0L,
         metrics, null);
     lreader.build(CollectorStreamReader.getDateFromCollectorFile(files[1]));
     lreader.initializeCurrentFile(

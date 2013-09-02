@@ -12,9 +12,9 @@ import java.util.Map;
 
 import org.apache.hadoop.io.Writable;
 
-import com.inmobi.databus.CheckpointProvider;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
+import com.inmobi.messaging.checkpoint.CheckpointProvider;
 
 /**
  * Checkpoint for the databus stream.

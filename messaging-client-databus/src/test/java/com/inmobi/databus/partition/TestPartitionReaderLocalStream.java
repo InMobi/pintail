@@ -27,7 +27,7 @@ public class TestPartitionReaderLocalStream extends TestAbstractClusterReader {
         testStream, new PartitionId(clusterName, collectorName), files, null,
         databusFiles, 3, TestUtil.getConfiguredRootDir());
     fs = FileSystem.get(cluster.getHadoopConf());
-    streamDir = DatabusStreamWaitingReader.getStreamsLocalDir(cluster,
+    streamDir = TestUtil.getStreamsLocalDir(cluster,
         testStream);
     inputFormatClass = DatabusInputFormat.class.getName();
   }

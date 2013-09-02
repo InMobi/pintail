@@ -465,4 +465,12 @@ public class TestUtil {
   public static String getConfiguredRootDir() {
     return System.getProperty("test.root.dir", "/tmp/test");
   }
+  
+  public static Path getStreamsLocalDir(Cluster cluster, String streamName) {
+    return new Path(cluster.getLocalFinalDestDirRoot(), streamName);
+  }
+
+  public static Path getStreamsDir(Cluster cluster, String streamName) {
+    return new Path(cluster.getFinalDestDirRoot(), streamName);
+  }
 }

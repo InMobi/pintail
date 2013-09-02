@@ -9,9 +9,7 @@
   <artifactId>messaging-client-core</artifactId>
   <packaging>jar</packaging>
 
-
   <dependencies>
-    
     <dependency>
       <groupId>com.inmobi.stats</groupId>
       <artifactId>common</artifactId>
@@ -40,9 +38,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-        <groupId>org.apache.thrift</groupId>
-        <artifactId>libthrift</artifactId>
-      </dependency>
+      <groupId>org.apache.thrift</groupId>
+      <artifactId>libthrift</artifactId>
+    </dependency>
   </dependencies>
 
 </project>

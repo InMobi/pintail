@@ -20,13 +20,12 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapred.FileSplit;
+import org.apache.hadoop.mapred.InputFormat;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordReader;
-import org.apache.hadoop.mapred.InputFormat;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.util.ReflectionUtils;
 
-import com.inmobi.databus.Cluster;
 import com.inmobi.databus.files.FileMap;
 import com.inmobi.databus.files.StreamFile;
 import com.inmobi.databus.partition.PartitionId;
@@ -225,14 +224,6 @@ public abstract class DatabusStreamReader<T extends StreamFile>
           + File.separator + "dd" + File.separator + "HH");
     }
   };
-
-  public static Path getStreamsLocalDir(Cluster cluster, String streamName) {
-    return new Path(cluster.getLocalFinalDestDirRoot(), streamName);
-  }
-
-  public static Path getStreamsDir(Cluster cluster, String streamName) {
-    return new Path(cluster.getFinalDestDirRoot(), streamName);
-  }
 
   public static Path getHourDirPath(Path streamDir, Date date) {
     return new Path(streamDir, hhDirFormat.get().format(date));

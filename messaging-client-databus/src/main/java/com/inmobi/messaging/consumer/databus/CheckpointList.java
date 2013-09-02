@@ -7,10 +7,10 @@ import java.util.TreeMap;
 
 import com.inmobi.databus.partition.DeltaPartitionCheckPoint;
 
-import com.inmobi.databus.CheckpointProvider;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionCheckpointList;
 import com.inmobi.databus.partition.PartitionId;
+import com.inmobi.messaging.checkpoint.CheckpointProvider;
 
 /**
  * Checkpoint for the segments of databus stream consumer.
