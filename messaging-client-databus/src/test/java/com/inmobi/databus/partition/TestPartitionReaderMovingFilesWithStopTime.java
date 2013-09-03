@@ -142,7 +142,8 @@ public class TestPartitionReaderMovingFilesWithStopTime {
     TestUtil.assertBuffer(LocalStreamCollectorReader.getDatabusStreamFile(
         collectorName, files[6]), 7, 0, 100, partitionId, buffer, true, null);
     Assert.assertTrue(buffer.take().getMessage() instanceof EOFMessage);
-
+    preader.close();
+    preader.join();
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 600);
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 600);
     Assert.assertEquals(prMetrics.getSwitchesFromLocalToCollector(), 1);
