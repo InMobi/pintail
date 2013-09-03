@@ -42,8 +42,8 @@ public class ClusterReader extends AbstractPartitionStreamReader {
 
   private void initializeBuildTimeStamp(
       PartitionCheckpointList partitionCheckpointList) throws IOException {
-    leastPartitionCheckpoint = findLeastPartitionCheckPointTime(
-        partitionCheckpointList);
+    leastPartitionCheckpoint = ((DatabusStreamWaitingReader)reader)
+        .getLeastCheckpoint();
     Date buildTimestamp = null;
     if (leastPartitionCheckpoint != null) {
       buildTimestamp = DatabusStreamWaitingReader.
@@ -55,41 +55,6 @@ public class ClusterReader extends AbstractPartitionStreamReader {
           getTimestampFromStartOfStream(null);
     }
     ((DatabusStreamWaitingReader) reader).initializeBuildTimeStamp(buildTimestamp);
-  }
-
-  /*
-   * this method is used to find the partition checkpoint which has least
-   * time stamp.
-   * So that reader starts build listing from this partition checkpoint
-   * time stamp).
-   */
-  public static PartitionCheckpoint findLeastPartitionCheckPointTime(
-      PartitionCheckpointList partitionCheckpointList) {
-    PartitionCheckpoint partitioncheckpoint = null;
-    Iterator<PartitionCheckpoint> it = partitionCheckpointList.getCheckpoints().
-        values().iterator();
-    Date leastPckTimeStamp = null;
-    if (it.hasNext()) {
-      partitioncheckpoint = it.next();
-      if (partitioncheckpoint != null) {
-        leastPckTimeStamp = DatabusStreamWaitingReader.getDateFromCheckpointPath(
-            partitioncheckpoint.getFileName());
-      }
-    }
-    while (it.hasNext()) {
-      PartitionCheckpoint tmpPartitionCheckpoint = it.next();
-      if (tmpPartitionCheckpoint != null) {
-        Date pckTimeStamp = DatabusStreamWaitingReader
-            .getDateFromCheckpointPath(tmpPartitionCheckpoint.getFileName());
-        if (pckTimeStamp != null && leastPckTimeStamp != null
-            && pckTimeStamp.before(leastPckTimeStamp)) {
-          partitioncheckpoint = tmpPartitionCheckpoint;
-          leastPckTimeStamp = pckTimeStamp;
-        }
-        
-      }
-    }
-    return partitioncheckpoint;
   }
 
   public void initializeCurrentFile() throws IOException, InterruptedException {

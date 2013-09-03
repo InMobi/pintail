@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -77,6 +78,23 @@ public class DatabusStreamWaitingReader
     }
     deltaCheckpoint = new HashMap<Integer, PartitionCheckpoint>();
     createdDeltaCheckpointForFirstFile = false;
+  }
+
+  public PartitionCheckpoint getLeastCheckpoint() {
+    CheckpointInfo least = null;
+    Iterator<CheckpointInfo> it = pChkpoints.values().iterator();
+    if (it.hasNext()) {
+      least = it.next();
+    }
+    while (it.hasNext()) {
+      CheckpointInfo tmp = it.next();
+      if (tmp.timeStamp != null) {
+        if (least.timeStamp == null || tmp.timeStamp.before(least.timeStamp)) {
+          least = tmp;
+        }
+      }
+    }
+    return least.pck;
   }
 
   /**

@@ -8,12 +8,14 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapred.TextInputFormat;
 import org.testng.Assert;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import com.inmobi.databus.files.HadoopStreamFile;
+import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
 public class TestLeastCheckpoint {
@@ -68,10 +70,13 @@ public class TestLeastCheckpoint {
 
   @Test
   public void testLeastCheckpoint() throws Exception {
-    PartitionCheckpoint leastPartitionCheckpoint = ClusterReader.
-        findLeastPartitionCheckPointTime(new PartitionCheckpointList(chkPoints));
+    DatabusStreamWaitingReader reader = new DatabusStreamWaitingReader(null, fs,
+        null, TextInputFormat.class.getCanonicalName(), new Configuration(), 0L,
+        null, false, chkPoints.keySet(),
+        new PartitionCheckpointList(chkPoints), null);
+    PartitionCheckpoint leastPartitionCheckpoint = reader.getLeastCheckpoint();
     System.out.println("least value " + leastPartitionCheckpoint);
-    Assert.assertEquals(expectedLeastPck, leastPartitionCheckpoint);
+    Assert.assertEquals(leastPartitionCheckpoint, expectedLeastPck);
   }
 
   @AfterTest
