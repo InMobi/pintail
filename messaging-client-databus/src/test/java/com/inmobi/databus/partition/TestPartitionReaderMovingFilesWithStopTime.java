@@ -73,7 +73,7 @@ public class TestPartitionReaderMovingFilesWithStopTime {
     preader = new PartitionReader(partitionId, null, conf, fs,
         collectorDir, streamsLocalDir, buffer,
         testStream, CollectorStreamReader.getDateFromCollectorFile(files[0]),
-        1000, 1000, prMetrics,
+        1000, 1000, prMetrics, true,
         CollectorStreamReader.getDateFromCollectorFile(files[6]));
 
     Assert.assertEquals(preader.getReader().getClass().getName(),
