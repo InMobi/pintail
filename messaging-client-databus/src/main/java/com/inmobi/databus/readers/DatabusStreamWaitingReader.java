@@ -318,6 +318,10 @@ public class DatabusStreamWaitingReader
 
   @Override
   public Message readLine() throws IOException, InterruptedException {
+    if (closed) {
+      LOG.info("Stream closed");
+      return null;
+    }
     Message line = readNextLine();
     if (!createdDeltaCheckpointForFirstFile) {
       // prepare partition checkpoint for all minutes in the partitionMinList
