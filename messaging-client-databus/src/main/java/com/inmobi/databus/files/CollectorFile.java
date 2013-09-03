@@ -43,7 +43,7 @@ public class CollectorFile implements StreamFile {
   }
 
   public static CollectorFile create(String fileName) {
-    String[] strs = fileName.split("-");
+    String [] strs = fileName.split("-[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}");
     if (strs.length < 2) {
       throw new IllegalArgumentException("Invalid file name:" + fileName);
     }
