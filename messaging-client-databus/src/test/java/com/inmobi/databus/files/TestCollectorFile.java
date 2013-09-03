@@ -12,7 +12,7 @@ public class TestCollectorFile {
   @Test
   public void testCollectorFile() throws ParseException {
     Calendar now = Calendar.getInstance();
-    String stream1 = "a";
+    String stream1 = "a-test";
     String stream2 = "b";
     Date date = now.getTime();
     String dateStr = CollectorFile.fileFormat.get().format(date);
