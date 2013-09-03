@@ -79,11 +79,6 @@ public class DatabusStreamWaitingReader
     createdDeltaCheckpointForFirstFile = false;
   }
 
-  public void initializeBuildTimeStamp(Date buildTimestamp)
-      throws IOException {
-    this.buildTimestamp = buildTimestamp;
-  }
-
   /**
    * This method is used to check whether the given minute directory is
    * completely read or not. It takes the current time stamp and the minute
@@ -481,18 +476,6 @@ public class DatabusStreamWaitingReader
   }
 
   public void startFromCheckPoint() throws IOException, InterruptedException {
-    /* If the partition checkpoint is completed checkpoint (i.e. line
-    number is -1) or if it the filename of the checkpoint is null (
-    when the checkpointing was done partially or before a single
-    message was read) then it has to start from the next checkpoint.
-    if (leastPartitionCheckpoint.getLineNum() == -1
-        || leastPartitionCheckpoint.getName() == null) {
-      //TODO. what about initFromNextCheckPoint returning null?
-      ((DatabusStreamWaitingReader) reader).initFromNextCheckPoint();
-    } else if (!reader.initializeCurrentFile(leastPartitionCheckpoint)) {
-      reader.startFromNextHigher(leastPartitionCheckpoint.getFileName());
-    }
-     */
     initCurrentFile();
     moveToCheckpoint(getFirstFileInStream());
     if (currentFile != null) {

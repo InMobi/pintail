@@ -30,6 +30,7 @@ import com.inmobi.databus.files.FileMap;
 import com.inmobi.databus.files.StreamFile;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.consumer.InvalidCheckpointException;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
 public abstract class DatabusStreamReader<T extends StreamFile>
@@ -68,6 +69,11 @@ public abstract class DatabusStreamReader<T extends StreamFile>
   public void build(Date date) throws IOException {
     this.buildTimestamp = date;
     build();
+  }
+
+  public void initializeBuildTimeStamp(Date buildTimestamp)
+      throws IOException {
+    this.buildTimestamp = buildTimestamp;
   }
 
   protected abstract void buildListing(FileMap<T> fmap, PathFilter pathFilter)
@@ -191,8 +197,8 @@ public abstract class DatabusStreamReader<T extends StreamFile>
       return minDirFormat.get().parse(dirString);
     } catch (ParseException e) {
       LOG.warn("Could not get date from directory passed", e);
+      throw new IllegalArgumentException(e);
     }
-    return null;
   }
 
   public static Date getDateFromCheckpointPath(String checkpointPath) {
@@ -201,8 +207,8 @@ public abstract class DatabusStreamReader<T extends StreamFile>
       return minDirFormat.get().parse(dirString);
     } catch (ParseException e) {
       LOG.warn("Could not get date from directory passed", e);
+      throw new InvalidCheckpointException("Invalid checkpoint", e);
     }
-    return null;
   }
 
   static String minDirFormatStr = "yyyy" + File.separator + "MM"

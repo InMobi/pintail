@@ -11,6 +11,7 @@ import org.apache.hadoop.fs.Path;
 
 import com.inmobi.databus.files.DatabusStreamFile;
 import com.inmobi.databus.readers.CollectorStreamReader;
+import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 import com.inmobi.databus.readers.LocalStreamCollectorReader;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.databus.MessageCheckpoint;
@@ -46,6 +47,17 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     if (streamsLocalDir != null) {
       lReader = new LocalStreamCollectorReader(partitionId,  fs, streamName,
           streamsLocalDir, conf, waitTimeForFileCreate, metrics, stopTime);
+      Date buildTimestamp = null;
+      if (partitionCheckpoint != null) {
+        buildTimestamp = LocalStreamCollectorReader.
+            getBuildTimestamp(streamName, partitionId.getCollector(), partitionCheckpoint);
+      } else if (startTime != null) {
+        buildTimestamp = startTime;
+      } else {
+        buildTimestamp = null;
+      }
+      lReader.initializeBuildTimeStamp(buildTimestamp);
+
       isLocalStreamAvailable = true;
     }
     cReader = new CollectorStreamReader(partitionId, fs, streamName,
@@ -131,15 +143,12 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     cReader.build();
 
     if (isLocalStreamAvailable) {
+      lReader.build();
       if (partitionCheckpoint != null) {
-        lReader.build(LocalStreamCollectorReader.getBuildTimestamp(streamName,
-            partitionId.getCollector(), partitionCheckpoint));
         initializeCurrentFileFromCheckpoint();
       } else if (startTime != null) {
-        lReader.build(startTime);
         initializeCurrentFileFromTimeStamp(startTime);
       } else {
-        lReader.build(null);
         initializeCurrentFileFromStartOfStream();
       }
     } else {

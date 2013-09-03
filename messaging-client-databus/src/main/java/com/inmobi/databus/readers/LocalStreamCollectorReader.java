@@ -19,6 +19,7 @@ import com.inmobi.databus.files.FileMap;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.consumer.InvalidCheckpointException;
 import com.inmobi.messaging.consumer.databus.mapred.DatabusInputFormat;
 import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 
@@ -185,8 +186,7 @@ public class LocalStreamCollectorReader extends
       }
       return null;
     } catch (Exception e) {
-      LOG.warn("Invalid fileName:" + fileName, e);
-      return null;
+      throw new InvalidCheckpointException("Invalid fileName:" + fileName, e);
     }
   }
 

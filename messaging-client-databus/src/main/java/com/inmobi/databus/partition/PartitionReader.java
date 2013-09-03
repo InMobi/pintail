@@ -197,7 +197,10 @@ public class PartitionReader {
       boolean closeReader = false;
       // Close the reader if it should closed 
       // or reader not able to open the stream
-      // TODO when will reader wont be able to open the stream?
+      // > when will reader wont be able to open the stream?
+      // If the reader could not be initialized - because the stop time
+      // has reached, then currentfile would be null and
+      // open stream returns false
       closeReader = !(reader.openStream());
       if (!closeReader) {
         LOG.info("Reading file " + reader.getCurrentFile()
@@ -221,7 +224,6 @@ public class PartitionReader {
         LOG.info("No stream to read");
         putEOFMessageInBuffer();
         close();
-        join();
         return;
       }
     } catch (InterruptedException ie) {

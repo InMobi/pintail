@@ -92,8 +92,7 @@ public class CounterClient {
               break;
             }
             msgCounter++;
-            if (numOfMsgsToBeConsumed != -1
-                && msgCounter == numOfMsgsToBeConsumed) {
+            if (msgCounter == numOfMsgsToBeConsumed) {
               keepRunnig = false;
               break;
             }

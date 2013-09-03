@@ -8,6 +8,7 @@ import com.inmobi.databus.files.HadoopStreamFile;
 import org.apache.hadoop.io.Writable;
 
 import com.inmobi.databus.files.StreamFile;
+import com.inmobi.messaging.consumer.InvalidCheckpointException;
 import com.inmobi.messaging.consumer.databus.MessageCheckpoint;
 
 public class PartitionCheckpoint implements Writable, MessageCheckpoint {
@@ -55,7 +56,7 @@ public class PartitionCheckpoint implements Writable, MessageCheckpoint {
       clazz = Class.forName(streamFileClassName);
       streamFile = (StreamFile) clazz.newInstance();
     } catch (Exception e) {
-      throw new IllegalArgumentException("Invalid checkpoint", e);
+      throw new InvalidCheckpointException("Invalid stream file class", e);
     }
     streamFile.readFields(in);
     lineNum = in.readLong();
