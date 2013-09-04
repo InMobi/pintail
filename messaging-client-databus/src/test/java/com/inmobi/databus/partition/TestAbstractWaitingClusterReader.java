@@ -81,6 +81,7 @@ public abstract class TestAbstractWaitingClusterReader {
 
   private void testReader(PartitionReader preader,
       PartitionReaderStatsExposer prMetrics) throws Exception {
+    buffer.clear();
     Map<Integer, PartitionCheckpoint> expectedDeltaPck = new HashMap<Integer,
         PartitionCheckpoint>();
     preader.init();
