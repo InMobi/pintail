@@ -13,6 +13,7 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.consumer.databus.mapreduce.util.HadoopCompat;
 
 public class DatabusInputFormat extends FileInputFormat<LongWritable, Message> {
 
@@ -26,7 +27,7 @@ public class DatabusInputFormat extends FileInputFormat<LongWritable, Message> {
   @Override
   protected boolean isSplitable(JobContext context, Path file) {
     CompressionCodec codec =
-      new CompressionCodecFactory(context.getConfiguration()).getCodec(file);
+      new CompressionCodecFactory(HadoopCompat.getConfiguration(context)).getCodec(file);
     return codec == null;
   }
 
