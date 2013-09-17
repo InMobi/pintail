@@ -330,8 +330,9 @@ public class DatabusStreamWaitingReader
     if (!createdDeltaCheckpointForFirstFile) {
       // prepare partition checkpoint for all minutes in the partitionMinList
       deltaCheckpoint.putAll(buildStartPartitionCheckpoints());
-      setDeltaCheckpoint(buildTimestamp, getDateFromStreamDir(streamDir,
-          getCurrentFile()));
+      setDeltaCheckpoint(
+          startTimestamp == null ? buildTimestamp : startTimestamp,
+              getDateFromStreamDir(streamDir, getCurrentFile()));
       createdDeltaCheckpointForFirstFile = true;
     }
     while (line == null) { // reached end of file

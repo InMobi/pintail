@@ -48,6 +48,7 @@ public abstract class DatabusStreamReader<T extends StreamFile>
   private boolean needsSerialize;
 
   protected Date buildTimestamp;
+  protected Date startTimestamp;
 
   protected DatabusStreamReader(PartitionId partitionId, FileSystem fs,
       Path streamDir, String inputFormatClass,
@@ -74,6 +75,7 @@ public abstract class DatabusStreamReader<T extends StreamFile>
   public void initializeBuildTimeStamp(Date buildTimestamp)
       throws IOException {
     this.buildTimestamp = buildTimestamp;
+    this.startTimestamp = buildTimestamp;
   }
 
   protected abstract void buildListing(FileMap<T> fmap, PathFilter pathFilter)
