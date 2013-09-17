@@ -62,6 +62,7 @@ public class TestPartitionReaderWithLeastFullCheckpoint extends TestAbstractClus
 
   @Test
   public void testReadFromLeastFullCheckpoint() throws Exception {
+    buffer.clear();
     String fsUri = fs.getUri().toString();
     Map<Integer, PartitionCheckpoint> expectedDeltaPchk = new HashMap<Integer,
         PartitionCheckpoint>();
@@ -113,6 +114,7 @@ public class TestPartitionReaderWithLeastFullCheckpoint extends TestAbstractClus
 
   @Test
   public void testDeltaCheckpointWithStoptime() throws Exception {
+    buffer.clear();
     String fsUri = fs.getUri().toString();
     Map<Integer, PartitionCheckpoint> expectedDeltaPchk = new HashMap<Integer,
         PartitionCheckpoint>();

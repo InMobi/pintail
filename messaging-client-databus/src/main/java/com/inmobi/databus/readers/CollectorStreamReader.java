@@ -213,6 +213,10 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
   }
 
   public Message readLine() throws IOException, InterruptedException {
+    if (closed) {
+      LOG.info("Stream closed");
+      return null;
+    }
     Message line = readNextLine();
     while (line == null) { // reached end of file?
       LOG.info("Read " + getCurrentFile() + " with lines:" + currentLineNum);
