@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -29,14 +30,36 @@ public class DatabusStreamWaitingReader
 
   private static final Log LOG = LogFactory.getLog(
       DatabusStreamWaitingReader.class);
-
-  private int currentMin;
   private final Set<Integer> partitionMinList;
-  private PartitionCheckpointList partitionCheckpointList;
-  private Map<Integer, Date> checkpointTimeStampMap;
-  private Map<Integer, PartitionCheckpoint> pChkpoints;
-  private Map<Integer, PartitionCheckpoint> deltaCheckpoint;
+  private final Map<Integer, CheckpointInfo> pChkpoints =
+      new HashMap<Integer, CheckpointInfo>();
+  private final Map<Integer, PartitionCheckpoint> deltaCheckpoint;
   private boolean createdDeltaCheckpointForFirstFile;
+  private int currentMin;
+
+  private static class CheckpointInfo {
+    PartitionCheckpoint pck;
+    Date timeStamp;
+    boolean processed = false;
+    boolean readFully = false;
+    
+    CheckpointInfo(PartitionCheckpoint pck) {
+      this.pck = pck;
+      if (pck != null) {
+        this.timeStamp = getDateFromCheckpointPath(
+          ((HadoopStreamFile) pck.getStreamFile()).getCheckpointPath());
+        this.readFully = (pck.getLineNum() == -1);
+        // no need to process the full checkpoint and
+        // checkpoint which has file name "null"
+        if (readFully || (pck.getName() == null)) {
+          processed = true;
+        }
+      } else {
+        // nothing to process
+        processed = true;
+      }
+    }
+  }
 
   public DatabusStreamWaitingReader(PartitionId partitionId, FileSystem fs,
       Path streamDir,  String inputFormatClass, Configuration conf,
@@ -46,38 +69,33 @@ public class DatabusStreamWaitingReader
           throws IOException {
     super(partitionId, fs, streamDir, inputFormatClass, conf,
         waitTimeForFileCreate, metrics, noNewFiles, stopTime);
-    this.partitionCheckpointList = partitionCheckpointList;
     this.partitionMinList = partitionMinList;
-    this.stopTime = stopTime;
     currentMin = -1;
-    this.checkpointTimeStampMap = new HashMap<Integer, Date>();
-    if (partitionCheckpointList != null) {
-      pChkpoints = partitionCheckpointList.getCheckpoints();
-      prepareTimeStampsOfCheckpoints();
+    for (Integer min : partitionMinList) {
+      CheckpointInfo cpi = new CheckpointInfo(
+          partitionCheckpointList.getCheckpoints().get(min));
+      pChkpoints.put(min, cpi);
     }
     deltaCheckpoint = new HashMap<Integer, PartitionCheckpoint>();
     createdDeltaCheckpointForFirstFile = false;
   }
 
-  public void initializeBuildTimeStamp(Date buildTimestamp)
-      throws IOException {
-    this.buildTimestamp = buildTimestamp;
-  }
-
-  public void prepareTimeStampsOfCheckpoints() {
-    PartitionCheckpoint partitionCheckpoint = null;
-    for (Integer min : partitionMinList) {
-      partitionCheckpoint = pChkpoints.get(min);
-      if (partitionCheckpoint != null) {
-        Date checkpointedTimestamp = getDateFromCheckpointPath(
-            partitionCheckpoint.getFileName());
-        checkpointTimeStampMap.put(min, checkpointedTimestamp);
-      } else {
-        checkpointTimeStampMap.put(min, null);
+  public PartitionCheckpoint getLeastCheckpoint() {
+    CheckpointInfo least = null;
+    Iterator<CheckpointInfo> it = pChkpoints.values().iterator();
+    if (it.hasNext()) {
+      least = it.next();
+    }
+    while (it.hasNext()) {
+      CheckpointInfo tmp = it.next();
+      if (tmp.timeStamp != null) {
+        if (least.timeStamp == null || tmp.timeStamp.before(least.timeStamp)) {
+          least = tmp;
+        }
       }
     }
+    return least.pck;
   }
-
 
   /**
    * This method is used to check whether the given minute directory is
@@ -90,62 +108,17 @@ public class DatabusStreamWaitingReader
    * If line num is -1 means all the files in that minute dir are already read.
    */
   public boolean isRead(Date currentTimeStamp, int minute) {
-    Date checkpointedTimestamp = checkpointTimeStampMap.get(
-        Integer.valueOf(minute));
+    Date checkpointedTimestamp = pChkpoints.get(
+        Integer.valueOf(minute)).timeStamp;
     if (checkpointedTimestamp == null) {
       return false;
     }
     if (currentTimeStamp.before(checkpointedTimestamp)) {
       return true;
     } else if (currentTimeStamp.equals(checkpointedTimestamp)) {
-      PartitionCheckpoint partitionCheckpoint = pChkpoints.get(
-          Integer.valueOf(minute));
-      if (partitionCheckpoint != null && partitionCheckpoint.getLineNum() == -1)
-      {
-        return true;
-      }
+      return pChkpoints.get(Integer.valueOf(minute)).readFully;
     }
     return false;
-  }
-
-  /**
-   * It reads from the next checkpoint. It retrieves the first file from the filemap.
-   * Get the minute id from the file and see the checkpoint value. If the
-   * checkpointed file is not same as current file then it sets the iterator to
-   * the checkpointed file if the checkpointed file exists.
-   */
-  public boolean initFromNextCheckPoint() throws IOException {
-    initCurrentFile();
-    currentFile = getFirstFileInStream();
-    Date date = DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
-        currentFile.getPath().getParent());
-    Calendar current = Calendar.getInstance();
-    current.setTime(date);
-    int currentMinute = current.get(Calendar.MINUTE);
-    PartitionCheckpoint partitioncheckpoint = partitionCheckpointList.
-        getCheckpoints().get(currentMinute);
-
-    if (partitioncheckpoint != null) {
-      Path checkpointedFileName = new Path(streamDir,
-          partitioncheckpoint.getFileName());
-      if (!(currentFile.getPath()).equals(checkpointedFileName)) {
-        if (fsIsPathExists(checkpointedFileName)
-            && (partitioncheckpoint.getLineNum() != -1)) {
-          currentFile = fsGetFileStatus(checkpointedFileName);
-          currentLineNum = partitioncheckpoint.getLineNum();
-        } else {
-          currentLineNum = 0;
-        }
-      } else {
-        currentLineNum = partitioncheckpoint.getLineNum();
-      }
-    }
-    if (currentFile != null) {
-      LOG.debug("CurrentFile:" + getCurrentFile() + " currentLineNum:"
-          + currentLineNum);
-      setIterator();
-    }
-    return currentFile != null;
   }
 
   @Override
@@ -176,6 +149,8 @@ public class DatabusStreamWaitingReader
             doRecursiveListing(dir, pathFilter, fmap);
             if (numFilesInFileMap != 0 &&
                 numFilesInFileMap != fmap.getSize()) {
+              // stopping after listing two non empty directories
+              LOG.debug("Listing stopped after listing two non empty directories");
               break;
             }
           } else {
@@ -188,8 +163,7 @@ public class DatabusStreamWaitingReader
     }
 
     if (getFirstFileInStream() != null && (currentMin == -1)) {
-      FileStatus firstFileInStream = getFirstFileInStream();
-      currentMin = getMinuteFromFile(firstFileInStream);
+      currentMin = getMinuteFromFile(getFirstFileInStream());
     }
   }
 
@@ -212,52 +186,68 @@ public class DatabusStreamWaitingReader
    * check the next file is same as checkpointed file. If not same and checkpointed
    * file exists then sets the iterator to the checkpointed file.
    * @return false if it reads from the checkpointed file.
+   * @throws InterruptedException 
    */
   @Override
   public boolean prepareMoveToNext(FileStatus currentFile, FileStatus nextFile)
-      throws IOException {
-    Date currentFileTimeStamp = getDateFromStreamDir(streamDir,
-        currentFile.getPath().getParent());
-    Calendar now = Calendar.getInstance();
-    now.setTime(currentFileTimeStamp);
-    currentMin = now.get(Calendar.MINUTE);
-
+      throws IOException, InterruptedException {
+    Calendar next = Calendar.getInstance();
     Date nextFileTimeStamp = getDateFromStreamDir(streamDir,
         nextFile.getPath().getParent());
-    now.setTime(nextFileTimeStamp);
+    next.setTime(nextFileTimeStamp);
 
     boolean readFromCheckpoint = false;
-    FileStatus fileToRead = nextFile;
-    if (currentMin != now.get(Calendar.MINUTE)) {
-      setDeltaCheckpoint(getNextMinuteTimeStamp(currentFileTimeStamp),
-          nextFileTimeStamp);
-      // set the line number as -1 as current file was read fully.
-      deltaCheckpoint.put(currentMin,
-          new PartitionCheckpoint(getStreamFile(currentFile), -1));
-      currentMin = now.get(Calendar.MINUTE);
-      PartitionCheckpoint partitionCheckpoint = partitionCheckpointList.
-          getCheckpoints().get(currentMin);
-      if (partitionCheckpoint != null && partitionCheckpoint.getLineNum() != -1)
-      {
+    if (currentMin != next.get(Calendar.MINUTE)) {
+      if (currentFile != null) {
+        Date currentFileTimeStamp = getDateFromStreamDir(streamDir, currentFile
+            .getPath().getParent());
+        setDeltaCheckpoint(getNextMinuteTimeStamp(currentFileTimeStamp),
+            nextFileTimeStamp);
+        // set the line number as -1 as current file was read fully.
+        deltaCheckpoint.put(currentMin, new PartitionCheckpoint(
+            getStreamFile(currentFile), -1));
+      }
+      // move to next file
+      currentMin = next.get(Calendar.MINUTE);
+      readFromCheckpoint = moveToCheckpoint(nextFile);
+    } else {
+      this.currentFile = nextFile;
+    }
+    setIterator();
+    return !readFromCheckpoint;
+  }
+
+  private boolean moveToCheckpoint(FileStatus fileToRead)
+      throws IOException, InterruptedException {
+    boolean ret = false;
+    CheckpointInfo cpi = pChkpoints.get(currentMin);
+    if (!cpi.processed) {
+      cpi.processed = true;
+      PartitionCheckpoint partitionCheckpoint = cpi.pck;
+      HadoopStreamFile sFile = (HadoopStreamFile) partitionCheckpoint.getStreamFile();
+      if (sFile.getFileName()!= null) {
         Path checkPointedFileName = new Path(streamDir,
             partitionCheckpoint.getFileName());
-        //set iterator to checkpoointed file if there is a checkpoint
+        //set iterator to checkpointed file if there is a checkpoint
         if (!fileToRead.getPath().equals(checkPointedFileName)) {
           if (fsIsPathExists(checkPointedFileName)) {
             fileToRead = fsGetFileStatus(checkPointedFileName);
             currentLineNum = partitionCheckpoint.getLineNum();
           } else {
-            currentLineNum = 0;
+            LOG.info("Checkpointed file " + partitionCheckpoint.getFileName()
+                + " does not exist");
+            build(getDateFromStreamDir(streamDir, fileToRead.getPath()));
+            startFromNextHigher(sFile);
+            return true;
           }
         } else {
           currentLineNum = partitionCheckpoint.getLineNum();
         }
-        readFromCheckpoint = true;
+        ret = true;
       }
     }
     this.currentFile = fileToRead;
-    setIterator();
-    return !readFromCheckpoint;
+    return ret;
   }
 
   private Date getNextMinuteTimeStamp(Date currentFileTimeStamp) {
@@ -275,15 +265,16 @@ public class DatabusStreamWaitingReader
     cal.setTime(from);
     while (cal.getTime().before(to)) {
       Integer currentMinute = cal.get(Calendar.MINUTE);
-      Date checkpointedTimeStamp = checkpointTimeStampMap.get(currentMinute);
       if (partitionMinList.contains(currentMinute)) {
         // create a checkpoint for that minute only if it does not have
         // checkpoint or checkpoint file time stamp is older than
         // current file time stamp
+        Date checkpointedTimeStamp = pChkpoints.get(currentMinute).timeStamp;
         if (checkpointedTimeStamp == null
-            || checkpointedTimeStamp.before(cal.getTime())) {
+            || !(checkpointedTimeStamp.after(cal.getTime()))) {
           deltaCheckpoint.put(currentMinute, new PartitionCheckpoint
               (getStreamFile(cal.getTime()), -1));
+          pChkpoints.get(currentMinute).processed = true;
         }
       }
       cal.add(Calendar.MINUTE, 1);
@@ -292,12 +283,26 @@ public class DatabusStreamWaitingReader
 
   @Override
   protected HadoopStreamFile getStreamFile(Date timestamp) {
-    Path streamDirPath = streamDir;
-    return getHadoopStreamFile(streamDirPath, timestamp);
+    return getHadoopStreamFile(streamDir, timestamp);
   }
 
   protected HadoopStreamFile getStreamFile(FileStatus status) {
     return getHadoopStreamFile(status);
+  }
+
+  protected void startFromNextHigher(HadoopStreamFile file)
+      throws IOException, InterruptedException {
+    if (!setNextHigherAndOpen(file)) {
+      waitForNextFileCreation(file);
+    }
+  }
+
+  private void waitForNextFileCreation(HadoopStreamFile file)
+      throws IOException, InterruptedException {
+    while (!closed && !setNextHigherAndOpen(file) && !hasReadFully()) {
+      waitForFileCreate();
+      build();
+    }
   }
 
   protected void startFromNextHigher(FileStatus file)
@@ -310,7 +315,6 @@ public class DatabusStreamWaitingReader
   private void waitForNextFileCreation(FileStatus file)
       throws IOException, InterruptedException {
     while (!closed && !setNextHigherAndOpen(file) && !hasReadFully()) {
-      LOG.info("Waiting for next file creation");
       waitForFileCreate();
       build();
     }
@@ -326,8 +330,9 @@ public class DatabusStreamWaitingReader
     if (!createdDeltaCheckpointForFirstFile) {
       // prepare partition checkpoint for all minutes in the partitionMinList
       deltaCheckpoint.putAll(buildStartPartitionCheckpoints());
-      setDeltaCheckpoint(buildTimestamp, getDateFromStreamDir(streamDir,
-          getCurrentFile()));
+      setDeltaCheckpoint(
+          startTimestamp == null ? buildTimestamp : startTimestamp,
+              getDateFromStreamDir(streamDir, getCurrentFile()));
       createdDeltaCheckpointForFirstFile = true;
     }
     while (line == null) { // reached end of file
@@ -412,12 +417,7 @@ public class DatabusStreamWaitingReader
 
   public static Date getBuildTimestamp(Path streamDir,
       PartitionCheckpoint partitionCheckpoint) {
-    try {
-      return getDateFromCheckpointPath(partitionCheckpoint.getFileName());
-    } catch (Exception e) {
-      throw new IllegalArgumentException("Invalid checkpoint: "
-          + partitionCheckpoint.getStreamFile(), e);
-    }
+    return getDateFromCheckpointPath(partitionCheckpoint.getFileName());
   }
 
   public static HadoopStreamFile getHadoopStreamFile(FileStatus status) {
@@ -447,7 +447,7 @@ public class DatabusStreamWaitingReader
   protected long getLineNumberForFirstFile(FileStatus firstFile) {
     int minute = getMinuteFromFile(firstFile);
     PartitionCheckpoint partitionChkPoint = pChkpoints.get(
-        Integer.valueOf(minute));
+        Integer.valueOf(minute)).pck;
     if (partitionChkPoint != null) {
       Path checkPointedFileName = new Path(streamDir, partitionChkPoint.
           getFileName());
@@ -484,17 +484,28 @@ public class DatabusStreamWaitingReader
     cal.setTime(buildTimestamp);
     while (cal.getTime().before(to)) {
       Integer currentMinute = cal.get(Calendar.MINUTE);
-      Date checkpointedTimeStamp = checkpointTimeStampMap.get(currentMinute);
       if (partitionMinList.contains(currentMinute)) {
+        Date checkpointedTimeStamp = pChkpoints.get(currentMinute).timeStamp;
         // create a checkpoint for that minute only if it does not have
         // checkpoint so that for no minute the checkpoint is null
         if (checkpointedTimeStamp == null) {
           fullPartitionChkMap.put(currentMinute, new PartitionCheckpoint
               (getStreamFile(cal.getTime()), 0));
+          pChkpoints.get(currentMinute).processed = true;
         }
       }
       cal.add(Calendar.MINUTE, 1);
     }
     return fullPartitionChkMap;
+  }
+
+  public void startFromCheckPoint() throws IOException, InterruptedException {
+    initCurrentFile();
+    moveToCheckpoint(getFirstFileInStream());
+    if (currentFile != null) {
+      LOG.debug("CurrentFile:" + getCurrentFile() + " currentLineNum:"
+          + currentLineNum);
+      setIterator();
+    }
   }
 }

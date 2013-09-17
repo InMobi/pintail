@@ -25,27 +25,23 @@ public abstract class StreamReader<T extends StreamFile> {
 
   private static final Log LOG = LogFactory.getLog(StreamReader.class);
 
-  protected Date timestamp;
-  protected PartitionCheckpoint checkpoint;
-  protected PartitionId partitionId;
-  protected FileStatus currentFile;
-  protected long currentLineNum = 0;
-  private FileSystem fs;
-  protected volatile boolean closed = false;
-  protected boolean noNewFiles = false; // this is purely for tests
-  private long waitTimeForCreate;
-  protected Path streamDir;
+  private final FileSystem fs;
+  private final long waitTimeForCreate;
+  private final FileMap<T> fileMap;
+  protected final Path streamDir;
   protected final PartitionReaderStatsExposer metrics;
-  private FileMap<T> fileMap;
-  protected Date stopTime;
+  protected final Date stopTime;
 
   private boolean listingStopped = false;
+  protected volatile boolean closed = false;
+  protected boolean noNewFiles = false; // this is purely for tests
+  protected FileStatus currentFile;
+  protected long currentLineNum = 0;
 
   protected StreamReader(PartitionId partitionId, FileSystem fs,
       Path streamDir, long waitTimeForCreate,
       PartitionReaderStatsExposer metrics, boolean noNewFiles, Date stopTime)
           throws IOException {
-    this.partitionId = partitionId;
     this.fs = fs;
     this.streamDir = streamDir;
     this.waitTimeForCreate = waitTimeForCreate;
@@ -56,7 +52,7 @@ public abstract class StreamReader<T extends StreamFile> {
   }
 
   public boolean prepareMoveToNext(FileStatus currentFile, FileStatus nextFile)
-      throws IOException {
+      throws IOException, InterruptedException {
     this.currentFile = nextFile;
     return true;
   }
@@ -93,7 +89,6 @@ public abstract class StreamReader<T extends StreamFile> {
 
   public boolean initializeCurrentFile(Date timestamp) throws IOException {
     initCurrentFile();
-    this.timestamp = timestamp;
     T file = getStreamFile(timestamp);
     LOG.debug("Stream file corresponding to timestamp:" + timestamp
         + " is " + file);
@@ -112,8 +107,6 @@ public abstract class StreamReader<T extends StreamFile> {
   public boolean initializeCurrentFile(PartitionCheckpoint checkpoint)
       throws IOException {
     initCurrentFile();
-    this.checkpoint = checkpoint;
-    LOG.debug("checkpoint:" + checkpoint);
     currentFile = fileMap.getValue(checkpoint.getStreamFile());
     if (currentFile != null) {
       currentLineNum = checkpoint.getLineNum();
@@ -151,6 +144,10 @@ public abstract class StreamReader<T extends StreamFile> {
   }
 
   protected FileStatus getHigherValue(FileStatus file) throws IOException {
+    return fileMap.getHigherValue(file);
+  }
+
+  protected FileStatus getHigherValue(T file) {
     return fileMap.getHigherValue(file);
   }
 
@@ -254,7 +251,7 @@ public abstract class StreamReader<T extends StreamFile> {
     currentLineNum = 0;
   }
 
-  protected boolean nextFile() throws IOException {
+  protected boolean nextFile() throws IOException, InterruptedException {
     if (hasNextFile()) {
       setNextFile();
       return true;
@@ -262,7 +259,7 @@ public abstract class StreamReader<T extends StreamFile> {
     return false;
   }
 
-  protected void setNextFile() throws IOException {
+  protected void setNextFile() throws IOException, InterruptedException {
     FileStatus nextFile = fileMap.getNext();
     if (nextFile != null) {
       boolean next = prepareMoveToNext(currentFile, nextFile);
@@ -271,7 +268,6 @@ public abstract class StreamReader<T extends StreamFile> {
   }
 
   protected boolean hasNextFile() throws IOException {
-    LOG.debug("In next file");
     if (!setIterator()) {
       LOG.info("could not set iterator for currentfile");
       return false;
@@ -314,6 +310,7 @@ public abstract class StreamReader<T extends StreamFile> {
   }
 
   protected void waitForFileCreate() throws InterruptedException {
+    LOG.info("Waiting for next file creation");
     Thread.sleep(waitTimeForCreate);
     metrics.incrementWaitTimeUnitsNewFile();
   }
@@ -321,7 +318,6 @@ public abstract class StreamReader<T extends StreamFile> {
   private void waitForNextFileCreation() throws IOException,
   InterruptedException {
     while (!closed && !initFromStart() && !hasReadFully()) {
-      LOG.info("Waiting for next file creation");
       waitForFileCreate();
       build();
     }
@@ -330,18 +326,9 @@ public abstract class StreamReader<T extends StreamFile> {
   private void waitForNextFileCreation(Date timestamp)
       throws IOException, InterruptedException {
     while (!closed && !initializeCurrentFile(timestamp) && !hasReadFully()) {
-      LOG.info("Waiting for next file creation");
       waitForFileCreate();
       build();
     }
-  }
-
-  protected boolean isBeforeStream(T streamFile) {
-    return fileMap.isBefore(streamFile);
-  }
-
-  public boolean isBeforeStream(String fileName) throws IOException {
-    return fileMap.isBefore(fileName);
   }
 
   protected boolean isWithinStream(String fileName) throws IOException {
@@ -380,6 +367,10 @@ public abstract class StreamReader<T extends StreamFile> {
       if (fileMap.isEmpty()) {
         return true;
       }
+      // currentFile will be null, if reader did not initialize properly,
+      // because stop time has reached and initializing criteria is not met
+      // For ex: starttime = stoptime and no files exists with that timestamp,
+      // in collector reader. 
       if (currentFile == null) {
         // no files were available on the stream for reading
         return true;

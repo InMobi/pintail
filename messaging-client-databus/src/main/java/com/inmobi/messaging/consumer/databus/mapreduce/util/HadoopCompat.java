@@ -81,20 +81,20 @@ public class HadoopCompat {
     try {
       if (v21) {
         jobContextCls =
-          Class.forName(PACKAGE+".task.JobContextImpl");
+            Class.forName(PACKAGE+".task.JobContextImpl");
         taskContextCls =
-          Class.forName(PACKAGE+".task.TaskAttemptContextImpl");
+            Class.forName(PACKAGE+".task.TaskAttemptContextImpl");
         taskIOContextCls =
-          Class.forName(PACKAGE+".task.TaskInputOutputContextImpl");
+            Class.forName(PACKAGE+".task.TaskInputOutputContextImpl");
         mapContextCls = Class.forName(PACKAGE + ".task.MapContextImpl");
         genericCounterCls = Class.forName(PACKAGE+".counters.GenericCounter");
       } else {
         jobContextCls =
-          Class.forName(PACKAGE+".JobContext");
+            Class.forName(PACKAGE+".JobContext");
         taskContextCls =
-          Class.forName(PACKAGE+".TaskAttemptContext");
+            Class.forName(PACKAGE+".TaskAttemptContext");
         taskIOContextCls =
-          Class.forName(PACKAGE+".TaskInputOutputContext");
+            Class.forName(PACKAGE+".TaskInputOutputContext");
         mapContextCls = Class.forName(PACKAGE + ".MapContext");
         genericCounterCls =
             Class.forName("org.apache.hadoop.mapred.Counters$Counter");
@@ -104,45 +104,45 @@ public class HadoopCompat {
     }
     try {
       JOB_CONTEXT_CONSTRUCTOR =
-        jobContextCls.getConstructor(Configuration.class, JobID.class);
+          jobContextCls.getConstructor(Configuration.class, JobID.class);
       JOB_CONTEXT_CONSTRUCTOR.setAccessible(true);
       TASK_CONTEXT_CONSTRUCTOR =
-        taskContextCls.getConstructor(Configuration.class,
-                                      TaskAttemptID.class);
+          taskContextCls.getConstructor(Configuration.class,
+              TaskAttemptID.class);
       TASK_CONTEXT_CONSTRUCTOR.setAccessible(true);
       GENERIC_COUNTER_CONSTRUCTOR =
           genericCounterCls.getDeclaredConstructor(String.class,
-                                                   String.class,
-                                                   Long.TYPE);
+              String.class,
+              Long.TYPE);
       GENERIC_COUNTER_CONSTRUCTOR.setAccessible(true);
 
       if (useV21) {
         MAP_CONTEXT_CONSTRUCTOR =
-          mapContextCls.getDeclaredConstructor(Configuration.class,
-                                               TaskAttemptID.class,
-                                               RecordReader.class,
-                                               RecordWriter.class,
-                                               OutputCommitter.class,
-                                               StatusReporter.class,
-                                               InputSplit.class);
-       Method get_counter;
-				try {
-					get_counter = Class.forName(PACKAGE + ".TaskAttemptContext").getMethod("getCounter", String.class,
-							String.class);
-				} catch (Exception e) {
-					get_counter = Class.forName(PACKAGE + ".TaskInputOutputContext").getMethod("getCounter",
-							String.class, String.class);
-				}
-				GET_COUNTER_METHOD = get_counter;
+            mapContextCls.getDeclaredConstructor(Configuration.class,
+                TaskAttemptID.class,
+                RecordReader.class,
+                RecordWriter.class,
+                OutputCommitter.class,
+                StatusReporter.class,
+                InputSplit.class);
+        Method get_counter;
+        try {
+          get_counter = Class.forName(PACKAGE + ".TaskAttemptContext").getMethod("getCounter", String.class,
+              String.class);
+        } catch (Exception e) {
+          get_counter = Class.forName(PACKAGE + ".TaskInputOutputContext").getMethod("getCounter",
+              String.class, String.class);
+        }
+        GET_COUNTER_METHOD = get_counter;
       } else {
         MAP_CONTEXT_CONSTRUCTOR =
-               mapContextCls.getConstructor(Configuration.class,
-                                            TaskAttemptID.class,
-                                            RecordReader.class,
-                                            RecordWriter.class,
-                                            OutputCommitter.class,
-                                            StatusReporter.class,
-                                            InputSplit.class);
+            mapContextCls.getConstructor(Configuration.class,
+                TaskAttemptID.class,
+                RecordReader.class,
+                RecordWriter.class,
+                OutputCommitter.class,
+                StatusReporter.class,
+                InputSplit.class);
         GET_COUNTER_METHOD = Class.forName(PACKAGE+".TaskInputOutputContext")
             .getMethod("getCounter", String.class, String.class);
       }
@@ -152,13 +152,13 @@ public class HadoopCompat {
       WRITER_FIELD = taskIOContextCls.getDeclaredField("output");
       WRITER_FIELD.setAccessible(true);
       GET_CONFIGURATION_METHOD = Class.forName(PACKAGE+".JobContext")
-                                    .getMethod("getConfiguration");
+          .getMethod("getConfiguration");
       SET_STATUS_METHOD = Class.forName(PACKAGE+".TaskAttemptContext")
-                                    .getMethod("setStatus", String.class);
+          .getMethod("setStatus", String.class);
       GET_TASK_ATTEMPT_ID = Class.forName(PACKAGE+".TaskAttemptContext")
-                                    .getMethod("getTaskAttemptID");
+          .getMethod("getTaskAttemptID");
       INCREMENT_COUNTER_METHOD = Class.forName(PACKAGE+".Counter")
-                                    .getMethod("increment", Long.TYPE);
+          .getMethod("increment", Long.TYPE);
     } catch (SecurityException e) {
       throw new IllegalArgumentException("Can't run constructor ", e);
     } catch (NoSuchMethodException e) {
@@ -202,7 +202,7 @@ public class HadoopCompat {
    * constructor for based on Hadoop version.
    */
   public static TaskAttemptContext newTaskAttemptContext(
-                            Configuration conf, TaskAttemptID taskAttemptId) {
+      Configuration conf, TaskAttemptID taskAttemptId) {
     return (TaskAttemptContext)
         newInstance(TASK_CONTEXT_CONSTRUCTOR, conf, taskAttemptId);
   }
@@ -211,12 +211,12 @@ public class HadoopCompat {
    * Instantiates MapContext under Hadoop 1 and MapContextImpl under Hadoop 2.
    */
   public static MapContext newMapContext(Configuration conf,
-                                         TaskAttemptID taskAttemptID,
-                                         RecordReader recordReader,
-                                         RecordWriter recordWriter,
-                                         OutputCommitter outputCommitter,
-                                         StatusReporter statusReporter,
-                                         InputSplit inputSplit) {
+      TaskAttemptID taskAttemptID,
+      RecordReader recordReader,
+      RecordWriter recordWriter,
+      OutputCommitter outputCommitter,
+      StatusReporter statusReporter,
+      InputSplit inputSplit) {
     return (MapContext) newInstance(MAP_CONTEXT_CONSTRUCTOR,
         conf, taskAttemptID, recordReader, recordWriter, outputCommitter,
         statusReporter, inputSplit);
@@ -281,7 +281,7 @@ public class HadoopCompat {
    * Hadoop 1 and 2.
    */
   public static Counter getCounter(TaskInputOutputContext context,
-                                   String groupName, String counterName) {
+      String groupName, String counterName) {
     return (Counter) invoke(GET_COUNTER_METHOD, context, groupName, counterName);
   }
 

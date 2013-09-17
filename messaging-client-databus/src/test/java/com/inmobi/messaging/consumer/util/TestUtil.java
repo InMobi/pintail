@@ -217,7 +217,7 @@ public class TestUtil {
         int minute = current.get(Calendar.MINUTE);
         if (partitionMinList.contains(minute)) {
           Date chkTime = chkTimeStampMap.get(minute);
-          if (chkTime == null || chkTime.before(current.getTime())) {
+          if (chkTime == null || !chkTime.after(current.getTime())) {
             expectedDeltaPck.put(Integer.valueOf(minute),
                 new PartitionCheckpoint(DatabusStreamWaitingReader.
                     getHadoopStreamFile(streamDir, current.getTime()), -1));

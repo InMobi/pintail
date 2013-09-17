@@ -11,6 +11,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.testng.Assert;
+
+import com.inmobi.databus.files.HadoopStreamFile;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionCheckpointList;
 import com.inmobi.databus.partition.PartitionId;
@@ -66,8 +68,10 @@ public abstract class TestAbstractDatabusWaitingReader {
     Assert.assertEquals(lreader.getCurrentFile(), finalFiles[1]);
 
     // Read from checkpoint with stream file name, which does not exist
-    lreader.initializeCurrentFile(new PartitionCheckpoint(
-        HadoopUtil.getOlderFile(streamDir, fs, finalFiles[0]), 20));
+    PartitionCheckpoint pck = new PartitionCheckpoint(
+        HadoopUtil.getOlderFile(streamDir, fs, finalFiles[0]), 20);
+    lreader.initializeCurrentFile(pck);
+    lreader.startFromNextHigher((HadoopStreamFile) pck.getStreamFile());
     Assert.assertEquals(lreader.getCurrentFile(), finalFiles[0]);
 
     //Read from startTime in stream directory, before the stream

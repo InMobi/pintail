@@ -88,7 +88,7 @@ public class HadoopStreamFile implements StreamFile {
   }
 
   public String toString() {
-    return checkpointPath + File.separator + fileName;
+    return checkpointPath + (fileName == null ? "" : File.separator + fileName);
   }
 
   @Override

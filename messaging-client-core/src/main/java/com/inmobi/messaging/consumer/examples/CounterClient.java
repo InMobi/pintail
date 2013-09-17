@@ -37,20 +37,29 @@ public class CounterClient {
 
   public static void main(String[] args) throws Exception {
     final Thread mainThread = Thread.currentThread();
-    long timeout = 300;
+    long timeout = -1;
     Integer min = -1;
-    if (args.length <= 2) {
-      if (args.length >= 1) { // 1 or 2
+    long numOfMsgsToBeConsumed = -1;
+    if (args.length <= 3) {
+      if (args.length >= 1) {
         min = Integer.parseInt(args[0]);
       }
-      if (args.length == 2) { // 2
+      if (args.length >= 2) {
         timeout = Long.parseLong(args[1]);
+      }
+      if (args.length >= 3) {
+        numOfMsgsToBeConsumed = Long.parseLong(args[2]);
       }
     } else {
       consumer = null;
-      System.out.println("Usage: counterclient [<minutes-to-read-from> "
-          + " <time-to-wait-NextMessage>]");
+      System.out.println("Usage: counter [<minutes-to-read-from> "
+          + " <time-to-wait-NextMessage> <maxNumMessages>]");
       System.exit(-1);
+    }
+
+    if (timeout == -1) {
+      // set default value if timeout is not provided or -1 provided
+      timeout = 300;
     }
 
     if (min != -1) {
@@ -83,6 +92,10 @@ public class CounterClient {
               break;
             }
             msgCounter++;
+            if (msgCounter == numOfMsgsToBeConsumed) {
+              keepRunnig = false;
+              break;
+            }
           } catch (EndOfStreamException e) {
             keepRunnig = false;
             break;

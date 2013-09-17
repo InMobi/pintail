@@ -25,11 +25,10 @@ import com.inmobi.messaging.checkpoint.CheckpointProvider;
 public class Checkpoint implements Writable, ConsumerCheckpoint {
 
   // map of partitionId to partition
-  private Map<PartitionId, PartitionCheckpoint> partitionsChkPoint =
+  private final Map<PartitionId, PartitionCheckpoint> partitionsChkPoint =
       new HashMap<PartitionId, PartitionCheckpoint>();
 
   public Checkpoint() {
-
   }
 
   public Checkpoint(byte[] bytes) throws IOException {
@@ -43,20 +42,12 @@ public class Checkpoint implements Writable, ConsumerCheckpoint {
     return bOut.toByteArray();
   }
 
-  Checkpoint(Map<PartitionId, PartitionCheckpoint> partitionsChkPoint) {
-    this.partitionsChkPoint = partitionsChkPoint;
-  }
-
   public Map<PartitionId, PartitionCheckpoint> getPartitionsCheckpoint() {
     return partitionsChkPoint;
   }
 
   public void set(PartitionId partitionId, MessageCheckpoint partCheckpoint) {
-    this.set(partitionId, (PartitionCheckpoint) partCheckpoint);
-  }
-
-  void set(PartitionId partitionId, PartitionCheckpoint partCheckpoint) {
-    partitionsChkPoint.put(partitionId, partCheckpoint);
+    partitionsChkPoint.put(partitionId, (PartitionCheckpoint) partCheckpoint);
   }
 
   @Override
@@ -82,7 +73,6 @@ public class Checkpoint implements Writable, ConsumerCheckpoint {
       throw new IOException("Could not checkpoint. ", e);
     }
   }
-
 
   @Override
   public void readFields(DataInput in) throws IOException {

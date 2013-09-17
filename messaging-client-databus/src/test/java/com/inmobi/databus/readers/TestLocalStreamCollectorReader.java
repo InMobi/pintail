@@ -78,9 +78,11 @@ public class TestLocalStreamCollectorReader {
 
     // Read from checkpoint with local stream file name, which does not exist
     // and is before the stream
-    lreader.initializeCurrentFile(new PartitionCheckpoint(
+    PartitionCheckpoint pck = new PartitionCheckpoint(
         LocalStreamCollectorReader.getDatabusStreamFile(collectorName,
-            doesNotExist1), 20));
+            doesNotExist1), 20);
+    lreader.initializeCurrentFile(pck);
+    lreader.initFromNextHigher(pck.getFileName());
     Assert.assertEquals(lreader.getCurrentFile(), databusFiles[0]);
 
     // Read from checkpoint with local stream file name, which does not exist

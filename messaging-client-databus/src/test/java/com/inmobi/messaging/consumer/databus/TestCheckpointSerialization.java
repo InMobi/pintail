@@ -17,8 +17,6 @@ public class TestCheckpointSerialization {
 
   @Test
   public void test() throws IOException {
-    Map<PartitionId, PartitionCheckpoint> partitionsChkPoint =
-        new HashMap<PartitionId, PartitionCheckpoint>();
     PartitionId id1 = new PartitionId("cluster1", "collector1");
     PartitionId id2 = new PartitionId("cluster1", "collector2");
     PartitionId id3 = new PartitionId("cluster1", "collector3");
@@ -26,11 +24,11 @@ public class TestCheckpointSerialization {
         CollectorStreamReader.getCollectorFile(TestUtil.files[0]), 100);
     PartitionCheckpoint pcp2 = new PartitionCheckpoint(
         CollectorStreamReader.getCollectorFile(TestUtil.files[1]), 100);
-    partitionsChkPoint.put(id1, pcp1);
-    partitionsChkPoint.put(id2, pcp2);
-    partitionsChkPoint.put(id3, null);
 
-    Checkpoint ckPoint1 = new Checkpoint(partitionsChkPoint);
+    Checkpoint ckPoint1 = new Checkpoint();
+    ckPoint1.set(id1, pcp1);
+    ckPoint1.set(id2, pcp2);
+    ckPoint1.set(id3, null);
     System.out.println("check point1: " + ckPoint1.toString());
     byte[] bytes = ckPoint1.toBytes();
     Checkpoint ckPoint2 = new Checkpoint(bytes);

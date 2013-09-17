@@ -108,6 +108,11 @@ public class TestHadoopConsumer extends TestAbstractHadoopConsumer {
     super.testConsumerStartOfStreamWithStopTime();
   }
 
+  @Test
+  public void testMarkAndResetWithStopTime() throws Exception {
+    super.testMarkAndResetWithStopTime();
+  }
+
   @AfterTest
   public void cleanup() throws IOException {
     super.cleanup();

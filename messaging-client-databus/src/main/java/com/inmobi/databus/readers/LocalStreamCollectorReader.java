@@ -19,18 +19,17 @@ import com.inmobi.databus.files.FileMap;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.consumer.InvalidCheckpointException;
 import com.inmobi.messaging.consumer.databus.mapred.DatabusInputFormat;
 import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
 
 public class LocalStreamCollectorReader extends
     DatabusStreamReader<DatabusStreamFile> {
 
-  protected final String streamName;
-
   private static final Log LOG = LogFactory.getLog(
       LocalStreamCollectorReader.class);
-
   private final String collector;
+  private final String streamName;
 
   public LocalStreamCollectorReader(PartitionId partitionId,
       FileSystem fs, String streamName, Path streamDir, Configuration conf,
@@ -40,7 +39,6 @@ public class LocalStreamCollectorReader extends
     super(partitionId, fs, streamDir,
         DatabusInputFormat.class.getCanonicalName(), conf, waitTimeForFileCreate,
         metrics, false, stopTime);
-    this.stopTime = stopTime;
     this.streamName = streamName;
     this.collector = partitionId.getCollector();
   }
@@ -137,7 +135,7 @@ public class LocalStreamCollectorReader extends
     };
   }
 
-  public Message readLine() throws IOException {
+  public Message readLine() throws IOException, InterruptedException {
     if (closed) {
       LOG.info("Stream closed");
       return null;
@@ -192,7 +190,7 @@ public class LocalStreamCollectorReader extends
       }
       return null;
     } catch (Exception e) {
-      throw new IllegalArgumentException("Invalid fileName:" + fileName, e);
+      throw new InvalidCheckpointException("Invalid fileName:" + fileName, e);
     }
   }
 
@@ -242,6 +240,10 @@ public class LocalStreamCollectorReader extends
       String collectorFileName) {
     return new DatabusStreamFile(collector,
         CollectorFile.create(collectorFileName), "gz");
+  }
+
+  public boolean initFromNextHigher(String localStreamFileName) throws IOException {
+    return setNextHigher(localStreamFileName);
   }
 
 }
