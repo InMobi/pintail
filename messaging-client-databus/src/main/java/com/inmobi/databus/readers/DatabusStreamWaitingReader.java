@@ -224,8 +224,8 @@ public class DatabusStreamWaitingReader
     if (!cpi.processed) {
       cpi.processed = true;
       PartitionCheckpoint partitionCheckpoint = cpi.pck;
-      if (((HadoopStreamFile) partitionCheckpoint.getStreamFile()).getFileName()
-          != null) {
+      HadoopStreamFile sFile = (HadoopStreamFile) partitionCheckpoint.getStreamFile();
+      if (sFile.getFileName()!= null) {
         Path checkPointedFileName = new Path(streamDir,
             partitionCheckpoint.getFileName());
         //set iterator to checkpointed file if there is a checkpoint
@@ -236,7 +236,8 @@ public class DatabusStreamWaitingReader
           } else {
             LOG.info("Checkpointed file " + partitionCheckpoint.getFileName()
                 + " does not exist");
-            startFromNextHigher((HadoopStreamFile) partitionCheckpoint.getStreamFile());
+            build(getDateFromStreamDir(streamDir, fileToRead.getPath()));
+            startFromNextHigher(sFile);
             return true;
           }
         } else {
@@ -270,7 +271,7 @@ public class DatabusStreamWaitingReader
         // current file time stamp
         Date checkpointedTimeStamp = pChkpoints.get(currentMinute).timeStamp;
         if (checkpointedTimeStamp == null
-            || checkpointedTimeStamp.before(cal.getTime())) {
+            || !(checkpointedTimeStamp.after(cal.getTime()))) {
           deltaCheckpoint.put(currentMinute, new PartitionCheckpoint
               (getStreamFile(cal.getTime()), -1));
           pChkpoints.get(currentMinute).processed = true;

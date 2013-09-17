@@ -162,30 +162,25 @@ public abstract class DatabusStreamReader<T extends StreamFile>
       throws IOException, InterruptedException {
     LOG.debug("finding next higher for " + getCurrentFile());
     FileStatus nextHigherFile  = getHigherValue(currentFile);
-    boolean next = true;
-    if (nextHigherFile != null) {
-      next = prepareMoveToNext(currentFile, nextHigherFile);
-    }
-    boolean ret = setIteratorToFile(nextHigherFile);
-    if (ret) {
-      openCurrentFile(next);
-    }
-    return ret;
+    return setNextAndOpen(nextHigherFile);
   }
 
   protected boolean setNextHigherAndOpen(T file)
       throws IOException, InterruptedException {
     LOG.debug("finding next higher for " + file);
     FileStatus nextHigherFile  = getHigherValue(file);
+    return setNextAndOpen(nextHigherFile);
+  }
+
+  private boolean setNextAndOpen(FileStatus nextHigherFile)
+      throws IOException, InterruptedException {
     boolean next = true;
     if (nextHigherFile != null) {
       next = prepareMoveToNext(null, nextHigherFile);
-    }
-    boolean ret = setIteratorToFile(nextHigherFile);
-    if (ret) {
       openCurrentFile(next);
+      return true;
     }
-    return ret;
+    return false;
   }
 
   public static Date getDateFromStreamDir(Path streamDir, Path dir) {
