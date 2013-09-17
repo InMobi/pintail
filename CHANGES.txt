@@ -1,4 +1,45 @@
-Release 3.2.1
+Release 4.0.0
+
+Incompatible changes:
+
+  3. Move FSCheckpointProvider from databu-core to messaging-client-databus
+
+  2. Move CheckpointProvider form databus-core to messaging-client-core
+
+  1. CDH4 compatible changes the hadoop dependencies to provided scope
+
+Bug fixes and Improvements:
+
+  13. Do not close the stream while reading a line, which was resulting in NPE during close
+
+  12. Make sure collector reader reads messages for a category name which contains "-"
+
+  11. Move FSCheckpointProvider from databu-core to messaging-client-databus
+
+  10. Move CheckpointProvider form databus-core to messaging-client-core
+
+  9. Stabilize starting from checkpoint and clean up the code
+    1. StartFromNextHigher incase if checkpoint does not exist
+    2. Consumer initialization will fail if checkpoint is corrupted
+
+  8. create a delta checkpoint till stoptime from last file timestamp
+
+  7. removing the check which prohibited external publisher from publishing 
+     on _audit topic
+
+  6. Make pintail tests to run parallelly in multiple builds 
+
+  5. Never do checkpointing partially
+
+  4. Remove jenkins profile
+
+  3. CDH4 compatible changes
+
+  2. Close all the PartitionReaders simultaneously
+
+  1. Update deb control to pick the version from project.version property
+
+Release 3.2.2
 
 Bug Fixes :
 
