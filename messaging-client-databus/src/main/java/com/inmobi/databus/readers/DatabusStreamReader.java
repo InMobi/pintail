@@ -164,21 +164,21 @@ public abstract class DatabusStreamReader<T extends StreamFile>
       throws IOException, InterruptedException {
     LOG.debug("finding next higher for " + getCurrentFile());
     FileStatus nextHigherFile  = getHigherValue(currentFile);
-    return setNextAndOpen(nextHigherFile);
+    return setNextAndOpen(currentFile, nextHigherFile);
   }
 
   protected boolean setNextHigherAndOpen(T file)
       throws IOException, InterruptedException {
     LOG.debug("finding next higher for " + file);
     FileStatus nextHigherFile  = getHigherValue(file);
-    return setNextAndOpen(nextHigherFile);
+    return setNextAndOpen(null, nextHigherFile);
   }
 
-  private boolean setNextAndOpen(FileStatus nextHigherFile)
+  private boolean setNextAndOpen(FileStatus currentFile, FileStatus nextHigherFile)
       throws IOException, InterruptedException {
     boolean next = true;
     if (nextHigherFile != null) {
-      next = prepareMoveToNext(null, nextHigherFile);
+      next = prepareMoveToNext(currentFile, nextHigherFile);
       openCurrentFile(next);
       return true;
     }
