@@ -30,7 +30,7 @@ public class TestDatabusInputFormat extends TestAbstractInputFormat {
   public void setUp() throws Exception {
     databusInputFormat = new DatabusInputFormat();
     rootDir = new Path("file:///",
-        new Path(System.getProperty("test.root.dir"), "/databustestMapRed"));
+        new Path(System.getProperty("test.root.dir"), "databustestMapRed"));
     super.setUp();
   }
 
