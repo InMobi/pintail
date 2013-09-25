@@ -38,7 +38,8 @@ public class TestDatabusInputFormatMapReduce extends TestAbstractInputFormat {
   @BeforeTest
   public void setUp() throws Exception {
     databusInputFormat = new DatabusInputFormat();
-    rootDir = new Path("file:///tmp/test/databustestMapRduce");
+    rootDir = new Path("file:///",
+        new Path(System.getProperty("test.root.dir"), "databustestMapRduce"));
     taskId = new TaskAttemptID("jt", 0, true, 0, 0);
     super.setUp();
   }
