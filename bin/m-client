@@ -229,6 +229,10 @@ CLIENT_CLASSPATH=$CLIENT_CLASSPATH:`ls $HADOOP_HOME/lib/commons-configuration*ja
 CLIENT_CLASSPATH=$CLIENT_CLASSPATH:`ls $HADOOP_HOME/lib/commons-lang*jar | tr "\n" :`;
 CLIENT_CLASSPATH=$CLIENT_CLASSPATH:`ls $HADOOP_HOME/lib/commons-cli*jar | tr "\n" :`;
 CLIENT_CLASSPATH=$CLIENT_CLASSPATH:`ls $HADOOP_HOME/lib/protobuf-java*jar | tr "\n" :`;
+
+#webhdfs
+CLIENT_CLASSPATH=$CLIENT_CLASSPATH:`ls $HADOOP_HOME/lib/jackson-*jar | tr "\n" :`;
+CLIENT_CLASSPATH=$CLIENT_CLASSPATH:`ls $HADOOP_HOME/lib/jersey-*jar | tr "\n" :`;
 # finally, invoke the appropriate command
 if [ -n "$opt_file" ] ; then
   run_client $CLIENT_FILELOGGER_CLASS $args
