@@ -103,4 +103,9 @@ public class CheckpointList implements ConsumerCheckpoint {
       chkpoints.put(id, checkpoint);
     }
   }
+
+  @Override
+  public void clear() {
+    chkpoints.clear();
+  }
 }

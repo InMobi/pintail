@@ -149,4 +149,9 @@ public class Checkpoint implements Writable, ConsumerCheckpoint {
     }
     return buf.toString();
   }
+
+  @Override
+  public void clear() {
+    partitionsChkPoint.clear();
+  }
 }

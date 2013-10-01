@@ -13,4 +13,6 @@ public interface ConsumerCheckpoint {
 
   public void write(CheckpointProvider checkpointProvider, String key)
       throws IOException;
+
+  public void clear();
 }
