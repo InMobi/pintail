@@ -363,6 +363,8 @@ public abstract class AbstractMessagingDatabusConsumer
       buffer.clear();
     }
     messageConsumedMap.clear();
+    currentCheckpoint.clear();
+    closedReadercount = 0;
     super.close();
   }
 
