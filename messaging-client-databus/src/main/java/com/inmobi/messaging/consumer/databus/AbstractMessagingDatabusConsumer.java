@@ -61,6 +61,7 @@ public abstract class AbstractMessagingDatabusConsumer
       initializeConfig(config);
       start();
     } catch (Throwable th) {
+      LOG.error("Error in intializing/starting the cosnumer ", th);
       close();
       throw new IllegalArgumentException(th);
     }
@@ -363,7 +364,9 @@ public abstract class AbstractMessagingDatabusConsumer
       buffer.clear();
     }
     messageConsumedMap.clear();
-    currentCheckpoint.clear();
+    if (currentCheckpoint != null) {
+      currentCheckpoint.clear();
+    }
     closedReadercount = 0;
     super.close();
   }
