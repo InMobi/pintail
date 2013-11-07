@@ -135,6 +135,15 @@ public class HadoopStreamFile implements StreamFile {
 
   @Override
   public void readFields(DataInput in) throws IOException {
+    boolean migrate = Boolean.parseBoolean(
+        System.getProperty("consumer.checkpoint.migrate", "false"));
+    if (migrate) {
+      String strPath = in.readUTF();
+      this.parent = new Path(strPath);
+      this.fileName = in.readUTF();
+      this.timeStamp = in.readLong();
+      constructCheckpointPath(); 
+    } else {
     String strPath = in.readUTF();
     this.parent = new Path(strPath);
     boolean notNull = in.readBoolean();
@@ -146,6 +155,7 @@ public class HadoopStreamFile implements StreamFile {
       this.timeStamp = in.readLong();
     }
     constructCheckpointPath();
+    }
   }
 
   public Path getParent() {
