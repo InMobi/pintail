@@ -1,3 +1,9 @@
+Release 4.0.3
+
+Bug Fixes :
+
+  1. Add Checkpoint migration utility from 2.x to 4.x
+
 Release 4.0.2
 
 Bug Fixes :
