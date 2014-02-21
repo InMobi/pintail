@@ -1,0 +1,437 @@
+ -----
+ Messaging Client
+ -----
+ -----
+ -----
+
+Messaging Client
+
+
+ Messaging client at Inmobi provides api for publishing and consuming messages.
+
+
+
+*Message
+
+
+ Each message contains data in bytes. A message can be created with byte array/byte buffer. See {{{https://github.com/inmobi/pintail/blob/master/messaging\-client\-core/src/main/java/com/inmobi/messaging/Message.java}Message specification}} for the api.
+
+
+
+*Publisher
+
+
+ {{{./MessagePublisher.html}MessagePublisher}} can publish messages to multiple topics. If topic does not exist, it will be created. The published message data will be Base\-64 encoded on the file system. See the {{{https://github.com/inmobi/pintail/blob/master/messaging\-client\-core/src/main/java/com/inmobi/messaging/publisher/MessagePublisher.java}Publisher API}} for more details.
+
+
+ A concrete publisher can be created using the {{{https://github.com/inmobi/pintail/blob/master/messaging\-client\-core/src/main/java/com/inmobi/messaging/publisher/MessagePublisherFactory.java}Publisher Factory API}}.
+
+
+
+**Usage
+
+
+ Users will have to add compile time dependency to the maven artifact of the messaging\-client\-core as follows. See available {{{./#Maven_artifacts.html}Maven artifacts}} for version numbers.
+
+
+
++------+
+<dependency>
+<groupId>com.inmobi.messaging</groupId>
+<artifactId>messaging-client-core</artifactId>
+<version>${messaging-client-version}\</version>
+</dependency>
++------+
+
+ For publishing messages to Databus
+
+ * Add the runtime dependency to {{{https://github.com/inmobi/pintail/tree/master/messaging\-client\-scribe}messaging\-client\-scribe}} as follows. See {{{./#Maven_artifacts.html}Maven artifacts}} for available versions.
+
+ []
+
++------+
+<dependency>
+<groupId>com.inmobi.messaging</groupId>
+<artifactId>messaging-client-scribe</artifactId>
+<version>${messaging-client-version}</version>
+<scope>runtime</scope>
+</dependency>
++------+
+
+
+***Configuration
+
+
+ The publisher factory reads the publisher configuration from a file named <<<messaging\-publisher\-conf.properties>>>. See sample configuration at {{{https://github.com/inmobi/pintail/blob/master/conf/messaging\-publisher\-conf.properties}messaging\-publisher\-conf.properties}}. The available configuration properties are described {{{http://twiki.corp.inmobi.com/TechPlatform/MessageProducerConfig}Here}}.
+
+
+
+**Topic Selector
+
+
+ This is a utility for selecting a topic bases on the message. Basically, it routes the message to a topic on which it has to publish. {{{https://github.com/inmobi/pintail/pull/4#issuecomment\-189}click here}} for the example code snippets of topic selector and configuration settings for the publisher.
+
+
+
+**Monitoring for publisher
+
+
+ The publisher factory reads the emitter configuration from a file specified in configuration property <<<statemitter.filename>>>. See {{{./#Monitoring.html}Monitoring}} section for more details.
+
+
+ The stats emitted from publisher are documented here : {{{https://twiki.corp.inmobi.com/TechPlatform/MessageProducerStats}Publisher stats}}
+
+
+
+*Streaming Consumer
+
+
+ {{{./MessageConsumer.html}MessageConsumer}} can consumer messages from a topic. Consumer can iterate over the messages through <<<next>>> call. {{{./MessageConsumer.html}MessageConsumer}} would also support mark and reset for checkpointing. See the {{{https://github.com/inmobi/pintail/blob/master/messaging\-client\-core/src/main/java/com/inmobi/messaging/consumer/MessageConsumer.java}Consumer API}} for more details.
+
+
+ A concrete consumer can be created using the {{{https://github.com/inmobi/pintail/blob/master/messaging\-client\-core/src/main/java/com/inmobi/messaging/consumer/MessageConsumerFactory.java}Consumer factory API}} . The Factory reads the consumer configuration from messaging\-consumer\-conf.properties file. Consumer configuration properties are described in below sections.
+
+
+
+**Start position
+
+
+ <<Consumer start\-up(pre 3.0.0 version)>>
+
+
+ Consumer can be initialized to accept messages from a startTime.
+
+ * If no startTime is passed, messages will be consumed from last marked position.
+
+ * If there is no last marked position and startTime, messages will be consumed from the starting of the available stream i.e. all messages that are not purged.
+
+ * If startTime is beyond the retention period of the stream, messages will be consumed from the retention period.
+
+ * If consumer is restarted with the checkpoint and if the last marked position does not exists in the stream, then messages will be consumed from starting of the available stream.
+
+ []
+<<Consumer start\-up(3.0.x later)>>
+
+
+ Consumer can be initialized from checkpoint or relative start time or absolute start time. One of the three start\-up options is mandatory for consumer to start.
+
+ * If checkpoint exists, then messages will be consumed from the last marked position
+
+ * If there is no checkpoint, then messages will be consumed from the relative start time. Config for relative start time is <<<"messaging.consumer.relative.starttime.inminutes">>>.
+
+ * If there is no checkpoint and relative start time , messages will be consumed from absolute start time. Absolute start time should be in this fromat <<<'yyyy/MM/dd/HH/mm'>>>. Config for absolute start time is <<<"messaging.consumer.absolute.starttime">>>.
+
+ * If more than one start up option is available then checkpoint will be given highest priority. Relative start Time has highest precedence over absolute start time.
+
+ * precedence order is Checkpoint \> Relative start time \> Absolute start time.
+
+ []
+<<Consumer start\-up(3.1.x later)>>
+
+
+ Consumer can be initialized from checkpoint or relative start time or absolute start time or start of stream. One of the four start\-up options is mandatory for consumer to start.
+
+ * If checkpoint exists, then messages will be consumed from the last marked position
+
+ * If there is no checkpoint, then messages will be consumed from the relative start time. Config for relative start time is <<<"messaging.consumer.relative.starttime.inminutes">>>.
+
+ * If there is no checkpoint and relative start time , messages will be consumed from absolute start time. Absolute start time should be in this fromat <<<'yyyy/MM/dd/HH/mm'>>>. Config for absolute start time is <<<"messaging.consumer.absolute.starttime">>>.
+
+ * If there is no checkpoint or relative start time or absolute start time, messages will be consumed from the start of the stream. Config for starting from start of stream : <<<"messaging.consumer.startofstream">>>. Set this property to <<true>> for starting from start of stream. Default value is <<false>>.
+
+ * The <<precedence order>> is Checkpoint &gt; Relative start time &gt; Absolute start time &gt; {{{./StartOfStream.html}StartOfStream}}.
+
+ * Added a new config <<<"messaging.consumer.read.localstream">>>. This provides an option to reading from streams_lcoal is optional in case of {{{./CollectorStreamReader.html}CollectorStreamReader}}. Set this property to <<false>> to disable reading streams_local. Default value is <<true>>.
+
+ []
+
+
+
+
+**Stop Time
+
+
+ This feature is available from 3.0.x and later.
+
+
+ User can provide absolute stop time for consumer. Messages will be consumed till stop time. Absolute stop time should be in the format <<<'yyyy/MM/dd/HH/mm'>>>. Config for stop time is <<<"messaging.consumer.absolute.stoptime">>>.
+
+ * The consumer will be reading messages upto the minute directory corresponding to the stop time in case of {{{./HadoopConsumer.html}HadoopConsumer}} and {{{./DatabusConsumer.html}DatabusConsumer}} \- LOCAL and MERGE stream readers, including the stop time directory.
+
+ * In case of {{{./DatabusConsumer.html}DatabusConsumer}} \- COLLECTOR stream, the consumer will be reading messages from the files upto to stop time, including files corresponding to stop time.
+
+ []
+
+
+
+
+**Checkpointing
+
+
+ Consumer library provides checkpointing feature. User can know if checkpointing is provided or not through the api isMarkSupported(). At any time during message consumption, user can call mark() to do checkpoint. When reset() is called by the consumer, the messages will consumed from last marked position.
+
+
+ Databus consumer provides checkpoint through {{{https://github.corp.inmobi.com/platform/conduit/blob/master/databus\-core/src/main/java/com/inmobi/databus/CheckpointProvider.java}CheckpointProvider}} interface. The default implementation uses file system checkpointing. User can checkpoint on local file system or HDFS by providing checkpoint directory. User can also provide a custom {{{https://github.corp.inmobi.com/platform/conduit/blob/master/databus\-core/src/main/java/com/inmobi/databus/CheckpointProvider.java}CheckpointProvider}} by implementing the above interface. See {{{http://twiki.corp.inmobi.com/TechPlatform/MessageConsumerConfig}the configuration}} for the avialble hooks.
+
+
+
+**Usage
+
+
+ Users will have to add compile time dependency to the maven artifact of the messaging\-client\-core as follows, See {{{./#Maven_artifacts.html}Maven artifacts}} for available versions.
+
+
+
++------+
+<dependency>
+<groupId>com.inmobi.messaging</groupId>
+<artifactId>messaging-client-core</artifactId>
+<version>${messaging-client-version}</version>
+</dependency>
++------+
+
+
+ * Add runtime dependency to {{{https://github.com/inmobi/pintail/tree/master/messaging\-client\-databus}messaging\-client\-databus}} as follows. See {{{./#Maven_artifacts.html}Maven artifacts}} for available versions.
+
+ []
+
+
++------+
+<dependency>
+<groupId>com.inmobi.messaging</groupId>
+<artifactId>messaging-client-databus</artifactId>
+<scope>runtime</scope>
+<version>${messaging-client-version}</version>
+</dependency>
+
++------+
+
+
+**Consuming messages from Databus
+
+
+
+***Consuming messages using DatabusConsumer
+
+
+ There are three ways to consume data from a Databus stream.    1 If you are interested in streaming the data directly from databus collector, you should use COLLECTOR type    1 If you are interested in streaming the data only after publishing in the local cluster, you should use LOCAL type    1 If you are interested in streaming the data from a merged/mirror stream, you should use MERGED type. Also, COLLECTOR and LOCAL data can be streamed from multiple clusters simultaneously. Data is not streamed from a minute directory in LOCAL and MERGED streams until next minute directory is available. COLLECTOR stream data is streamed as soon as it is available in File system.
+
+
+ Support for different stream types is available from 1.2.x and later. Earlier versions have only COLLECTOR type.
+
+
+
+***Configuration
+
+
+ 
+
+ * Sample configuration : {{{https://github.com/inmobi/pintail/blob/master/messaging\-client\-databus/src/test/resources/messaging\-consumer\-conf.properties}messaging\-consumer\-conf.properties}}
+
+ []
+The available configuration properties are described {{{http://twiki.corp.inmobi.com/TechPlatform/MessageConsumerConfig}Here}}
+
+
+**Consuming messages using HadoopConsumer
+
+
+ 
+
+ * This feature is available from 1.2.x and later
+
+ * Messages can be consumed from HDFS directories obeying to the following contract:
+
+  * The directory layout : <<<&lt;prefix&gt;/YYYY/MM/DD/HH/MN/>>>
+
+  * All minute directories should be created in increasing order. Gaps are not accepted between minute directories.
+
+  * Minute directory can contain nested directories as well.
+
+  * Minute directory becomes immutable after next minute directory is created. So, data will not be streamed from a minute directory until next minute directory is created.
+
+  * The files in minute directory should be dropped in atomically. Should not get modified once dropped.
+
+  * The filenames starting with underscore( \=_\=) are skipped
+
+
+
+ * Messages are read from the file using {{{./RecordReader.html}RecordReader}} from <<<org.apache.hadoop.mapred.InputFormat>>>
+
+  * {{{./RecordReader.html}RecordReader}} reads Key and Value on every call to next. So, the message would contain only Value; Key is ignored.
+
+  * The bytes sent in the message is the value serialized using <<<org.apache.hadoop.io.Writable>>>
+
+  * Consuming the message:
+
+   * For ex, If the value is of type org.apache.hadoop.io.Text, the following code illustrate the consumptio of message:
+
+
+
+
+
+ []
+
+
+
+
++------+
+        byte[] bytearray = message.getData().array();
+        Text text = new Text();
+        ByteArrayInputStream bais = new ByteArrayInputStream(bytearray);
+        text.readFields(new DataInputStream(bais));
++------+
+
+
+***Configuration
+ 
+
+ * Sample configuration : {{{https://github.com/inmobi/pintail/blob/master/messaging\-client\-databus/src/test/resources/messaging\-consumer\-hadoop\-conf.properties}hadoop messaging\-consumer\-conf.properties}}
+
+ []
+The available configuration properties are described {{{http://twiki.corp.inmobi.com/TechPlatform/MessageConsumerConfig}Here}}
+
+
+
+**Monitoring for Consumer
+
+
+ Monitoring for consumer is available from 1.3.x and later. The stats emitted from the consumer are documented {{{https://twiki.corp.inmobi.com/TechPlatform/MessageConsumerStats}here}}
+
+
+ The consumer factory reads the emitter configuration from a file specified in configuration property <<<consumer.statemitter.filename>>>. See {{{./#Monitoring.html}Monitoring}} section for more details.
+
+
+
+**Consumer\-Group
+
+
+ * This feature is available from 1.5.x and later
+
+ * Only single consumer was consuming all the data from a topic. (pre 1.5.0 version of messaging\-client).
+
+ * Consumer\-Group feature allows the user to have more than one consumer to consume the data from a topic.
+
+ * Basically Consumer\-Group contains a group of consumers where all the consumers consumes the data simultaneously from a topic.
+
+ * Consumer\-Group will have at most 60 consumers.
+
+ []
+Configuration
+
+ * Add a new configuration to the consumer specifying its group membership. The default value can be 1/1.
+
+ * messaging.consumer.group.membership\=consumer number/total number of consumers.
+
+ * Ex: messaging.consumer.group.membership\=1/2 i.e. first consumer in the consumer\-group.
+
+ * Sample Configuration for first consumer in the consumer\-group: {{{https://github.com/inmobi/pintail/blob/master/messaging\-client\-databus/src/test/resources/messaging\-consumer\-hadoop\-conf5.properties}messaging.consumer.conf.properties}}
+
+ * Sample Configuration for second consumer in the consumer\-group: {{{https://github.com/inmobi/pintail/blob/master/messaging\-client\-databus/src/test/resources/messaging\-consumer\-hadoop\-conf6.properties}messaging.consumer.conf.properties}}
+
+ []
+
+
+
+
+***How to increase or decrease the number of consumers in the Consumer\-Group
+
+
+ You can increase or decrease the consumers in the consumer\-group by following the steps.
+
+ * Stop all the consumers
+
+ * Change the configuration for each consumer in the consumer\-group.
+
+ * Start all the consumers.
+
+ []
+
+
+
+*Migrate\-Checkpoint Utility
+ 
+
+ * Available in 1.5.x and later.
+
+ * It migrates the old checkpoint to a new checkpoint for message consumer.
+
+ * run the bin/m\-client script, by passing migrate\-checkpoint option and existing message client configuration, which message consumer was using.
+
+ * <pre> bin/m\-client migrate\-checkpoint &lt;path\-to\-consumer\-configuration\-file&gt; </pre>
+
+ * <pre> Ex: bin/m\-client migrate\-checkpoint /etc/consumer\-conf.properties </pre>
+
+ []
+
+
+
+
+*Batch Consumer
+
+
+ The batch consumers can consume the data from Databus using {{{https://github.com/inmobi/pintail/blob/master/messaging\-client\-databus/src/main/java/com/inmobi/messaging/consumer/databus/mapreduce/DatabusInputFormat.java}DatabusInputFormat}} and {{{https://github.com/inmobi/pintail/blob/master/messaging\-client\-databus/src/main/java/com/inmobi/messaging/consumer/databus/mapreduce/DatabusRecordReader.java}DatabusRecordReader}}. The spec for batch consumer is published {{{https://twiki.corp.inmobi.com/TechPlatform/DataBusSpec#Batch_Consumer}here}}. These are available in 1.5.x and later.
+
+
+ The old api classes are \- <<com.inmobi.messaging.consumer.databus.mapred.DatabusInputFormat>> and <<com.inmobi.messaging.consumer.databus.mapred.DatabusRecordReader>>
+
+
+ The new api classes are \- <<com.inmobi.messaging.consumer.databus.mapreduce.DatabusInputFormat>> and <<com.inmobi.messaging.consumer.databus.mapreduce.DatabusRecordReader>>
+
+
+ Now the consumers should not do any decoding themselves, the {{{https://github.com/inmobi/pintail/blob/master/messaging\-client\-databus/src/main/java/com/inmobi/messaging/consumer/databus/mapreduce/DatabusRecordReader.java}DatabusRecordReader}} takes care of decoding.
+
+
+
+*Examples
+
+
+ Examples are available at {{{https://github.com/inmobi/pintail/tree/master/messaging\-client\-core/src/main/java/com/inmobi/messaging/publisher/examples}Publisher Examples}} and {{{https://github.com/inmobi/pintail/tree/master/messaging\-client\-core/src/main/java/com/inmobi/messaging/consumer/examples}Consumer Examples}}.
+
+
+ Messaging client also provides a script to run these examples at {{{https://github.com/inmobi/pintail/blob/master/bin/m\-client}m\-client script}}.
+
+
+ m\-client script is located in bin directory of messaging\-client(/usr/local/messaging\-client/bin).
+
+
+
+*Monitoring
+
+
+
+**Configuration
+
+
+ User should specify the implementation of the {{{./StatEmitter.html}StatEmitter}} class for the configuration <<<className>>>. See sample configuration at {{{https://github.com/inmobi/pintail/blob/master/messaging\-client\-core/src/test/resources/statemitter.properties}statemitter.properties}}. The available configuration properties are described {{{https://twiki.corp.inmobi.com/TechPlatform/StatEmitterConfiguration}Here}}.
+
+
+
+*FAQ
+
+
+ Please see the FAQ {{{http://twiki.corp.inmobi.com/TechPlatform/DataBusFAQ#Databus_client}Here}}
+
+
+
+*Version Compatibility
+
+
+ See {{{https://twiki.corp.inmobi.com/Ops/DataBusOperations#Databus_Deployed_versions}databus deployment page}} for current databus deployments.
+
+
+
+**Version compatibility with databus stack
+
+ 
+*----*--*
+|Messaging client version||Compatible Databus stack versions|
+*----*--*
+1.0.x|1.0.x|
+*----*--*
+1.x.x|1.*.*|
+*----*--*
+
+
+
+ See {{{https://twiki.corp.inmobi.com/TechPlatform/MessagingClientReleaseProcess#Releases}MessagingClient Releases}} and the compatibity
+

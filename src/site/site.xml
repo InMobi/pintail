@@ -1,0 +1,25 @@
+<project>
+ <body>
+    <menu name="Pintail" >
+      <item name="Overview" href="index.html" />
+      <item name="Publisher" href="./developer/Publisher.html" />
+      <item name="Consumer" href="./developer/Consumer.html" />
+      <item name="Monitoting" href="./developer/Monitoring.html" />
+    </menu>
+
+    <menu ref="modules" />
+    <breadcrumbs>
+      <item name="InMobi" href="https://github.com/inmobi/" />
+      <item name="Pintail" href="https://github.com/inmobi/pintail"/>
+    </breadcrumbs>
+  </body>
+  <skin>
+    <groupId>org.apache.maven.skins</groupId>
+    <artifactId>maven-classic-skin</artifactId>
+    <version>1.1</version>
+  </skin>
+  <poweredBy>
+    <logo name="inmobi" href="http://www.inmobi.com/"
+          img="../images/inmobi-logo.jpg"/>
+  </poweredBy>
+</project>

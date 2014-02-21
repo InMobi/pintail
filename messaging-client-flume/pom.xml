@@ -9,7 +9,7 @@
 
   <artifactId>messaging-client-flume</artifactId>
   <packaging>jar</packaging>
-
+  <name>messaging-client-flume</name>
 
   <dependencies>
     <dependency>

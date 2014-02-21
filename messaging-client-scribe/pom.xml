@@ -9,6 +9,7 @@
 
   <artifactId>messaging-client-scribe</artifactId>
   <packaging>jar</packaging>
+  <name>messaging-client-scribe</name>
 
   <properties>
     <!--maven.test.skip>true</maven.test.skip -->

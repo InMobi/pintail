@@ -1,0 +1,19 @@
+
+Monitoring
+
+* Monitoring for publisher
+
+ The stats emitted from publisher are documented here : {{{./MessageProducerStats.html}Publisher stats}}
+
+ The publisher factory reads the emitter configuration from a file specified in configuration property <<<statemitter.filename>>>. See {{{./Monitoring.html#Configuration}Monitoring}} section for more details.
+
+* Monitoring for Consumer
+
+ The stats emitted from the consumer are documented {{{./MessageConsumerStats.html}here}}
+
+ The consumer factory reads the emitter configuration from a file specified in configuration property <<<consumer.statemitter.filename>>>. See {{{./Monitoring.html#Configuration}Monitoring}} section for more details.
+
+**Configuration
+
+ User should specify the implementation of the {{{./StatEmitter.html}StatEmitter}} class for the configuration <<<className>>>. See sample configuration at {{{https://github.com/inmobi/pintail/blob/master/messaging\-client\-core/src/test/resources/statemitter.properties}statemitter.properties}}. The available configuration properties are described {{{https://twiki.corp.inmobi.com/TechPlatform/StatEmitterConfiguration}Here}}.
+

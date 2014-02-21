@@ -1,0 +1,8 @@
+
+Message
+
+
+ Each message contains data in bytes. A message can be created with byte array/byte buffer.
+ 
+ See {{{https://github.com/inmobi/pintail/blob/master/messaging\-client\-core/src/main/java/com/inmobi/messaging/Message.java}Message specification}} for the api.
+

@@ -1,0 +1,38 @@
+ -----
+ Stats from Message Publisher
+ -----
+ -----
+ -----
+
+Stats from Message Publisher
+
+
+ The metrics for publisher library for 1.3.x and earlier is documented {{{https://twiki.corp.inmobi.com/TechPlatform/MessageProducerStats?rev\=2}Here}}
+
+
+ Below are the metrics for 1.4.x and later :
+
+
+ 
+*----+--+
+|Stat Name||Description|
+*----+--+
+|invocationCount|Number of times publish api was invoked|
+*----+--+
+|successCount|Number of messages sent successfully|
+*----+--+
+|unhandledExceptionCount|Number of exception occurred|
+*----+--+
+|gracefulTerminates|Number of messages did not receive any acknowledgement or received TRY_LATER but not resent.|
+*----+--+
+|inFlight|Number of messages to be sent|
+*----+--+
+|lost|Number of messages droped by publisher|
+*----+--+
+|retryCount|Number of times publisher tried to resend messages|
+*----+--+
+|reconnects|Number of times publisher reconnected to the agent|
+*----+--+
+
+
+

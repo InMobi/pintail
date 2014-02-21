@@ -1,0 +1,67 @@
+ -----
+  Message consumer metrics
+ -----
+ -----
+ -----
+
+Message consumer metrics
+
+
+* Consumer Metrics
+
+
+ Consumer metrics are emitted at context <<<consumerName>>> , <<<topicName>>> and <<<ConsumerNumber>>>.
+
+ 
+*----+--+
+|Stat Name||Description|
+*----+--+
+messagesConsumed|Number of messages consumed since start|
+*----+--+
+markCalls|Number of times mark is called.|
+*----+--+
+resetCalls|Number of times reset is called|
+*----+--+
+
+
+ Databus consumer has one reader for each partition. The metrics are emitted at context <<<consumerName>>>, <<<topicName>>> , <<<consumerNumber>>> and <<<PartitionId>>> by each partition reader.
+
+
+*----+--+
+||Stat Name||Description|
+*----+--+
+messagesReadFromSource|Number of messages read from the source partition|
+*----+--+
+messagesAddedToBuffer|Number of messages added to consumption buffer|
+*----+--+
+handledExceptions|Number of times exceptions are handled|
+*----+--+
+waitTimeUnitsNewFile|Number of times consumer waited for new file creation. Actual waiting time will be this counter times the messaging.consumer.waittime.forfilecreate|
+*----+--+
+cumulativeNanosForFecthMessage|The cumulative time in nano seconds to fetch the messages from the souce|
+*----+--+
+numberRecordReaders|Number of ./RecordReaders.htmlRecordReaders created(In case of stream type COLLECTOR = 0)|
+*----+--+
+/<fsuri/>-list|Number of List ops for file systerm of URI /<fsuri/>|
+*----+--+
+/<fsuri/>-open|Number of Open ops for file system of URI /<fsuri/>(In case of stream type LOCAL/MERGED = 0)|
+*----+--+
+/<fsuri/>-getFileStatus|Number of getFileSystem() calls for file system /<fsuri/>(In case of stream type COLLECTOR = 0)|
+*----+--+
+/<fsuri/>-exists|Number of exists calls for file system /<fsuri/>|
+*----+--+
+The stats numberRecordReaders, /<fsuri/>\-list, /<fsuri/>\-open, /<fsuri/>\-getFileStatus, /<fsuri/>\-exists are available.
+
+
+ <<<DatabusConsumer>>> for the stream type <<<COLLECTOR>>>, has the following stats more, along with above.
+
+
+*----*--*
+||Stat Name||Description|
+*----+--+
+waitTimeUnitsInSameFile|Number of times consumer waited for data in the same file. Actual waiting time will be this counter times the databus.consumer.waittime.forcollectorflush|
+*----+--+
+switchesFromLocalToCollector|Number of times the reader has to switch from local stream to collector stream|
+*----+--+
+switchesFromCollectorToLocal|Number of times the reader has to switch from collector stream to local|
+*----+--+

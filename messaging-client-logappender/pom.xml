@@ -9,6 +9,7 @@
 
   <artifactId>messaging-client-logappender</artifactId>
   <packaging>jar</packaging>
+  <name>messaging-client-logappender</name>
 
   <dependencies>
     <dependency>
