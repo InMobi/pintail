@@ -4,6 +4,8 @@
   <artifactId>messaging-client-parent</artifactId>
   <version>4.0.4-SNAPSHOT</version>
   <packaging>pom</packaging>
+  <name>Pintail</name>
+  <url>https://github.com/InMobi/pintail</url>
 
   <parent>
     <artifactId>inmobi-master-pom</artifactId>
@@ -11,7 +13,18 @@
     <version>1.0.1</version>
   </parent>
 
+  <organization>
+    <name>InMobi</name>
+    <url>https://github.com/InMobi</url>
+  </organization>
 
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
 
   <scm>
     <connection>scm:git:https://github.inmobi.com/inmobi/pintail.git</connection>
@@ -20,6 +33,28 @@
     <tag>HEAD</tag>
   </scm>
 
+  <issueManagement>
+    <system>Github</system>
+    <url>https://github.com/InMobi/pintail/issues</url>
+  </issueManagement>
+
+  <ciManagement>
+    <system>Travis</system>
+    <url>https://travis-ci.org/InMobi/pintail</url>
+  </ciManagement>
+
+  <distributionManagement>
+    <site>
+      <id>conduit-site</id>
+      <url>https://inmobi.github.io/pintail/</url>
+    </site>
+    <repository>
+      <id>InMobiRepository</id>
+      <name>InMobi Repository</name>
+      <url>https://github.com/InMobi/mvn-repo/raw/master/releases</url>
+    </repository>
+  </distributionManagement>
+  
   <properties>
     <test.build.data>${project.build.directory}/test/data</test.build.data>
     <test.root.dir>${project.build.directory}/tmp/test</test.root.dir>
