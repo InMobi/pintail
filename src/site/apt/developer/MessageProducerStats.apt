@@ -6,14 +6,6 @@
 
 Stats from Message Publisher
 
-
- The metrics for publisher library for 1.3.x and earlier is documented {{{https://twiki.corp.inmobi.com/TechPlatform/MessageProducerStats?rev\=2}Here}}
-
-
- Below are the metrics for 1.4.x and later :
-
-
- 
 *----+--+
 |Stat Name||Description|
 *----+--+

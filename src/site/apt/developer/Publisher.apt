@@ -52,5 +52,5 @@ Publisher
 **Topic Selector
 
 
- This is a utility for selecting a topic bases on the message. Basically, it routes the message to a topic on which it has to publish. {{{https://github.com/inmobi/pintail/pull/4#issuecomment\-189}click here}} for the example code snippets of topic selector and configuration settings for the publisher.
+ This is a utility for selecting a topic bases on the message. Basically, it routes the message to a topic on which it has to publish. {{{https://github.com/inmobi/pintail/blob/develop/messaging\-client\-core/src/main/java/com/inmobi/messaging/util/TopicSelector.java}click here}} for the example code snippets of topic selector and configuration settings for the publisher.
 

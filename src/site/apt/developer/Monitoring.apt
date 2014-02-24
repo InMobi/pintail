@@ -15,5 +15,5 @@ Monitoring
 
 **Configuration
 
- User should specify the implementation of the {{{./StatEmitter.html}StatEmitter}} class for the configuration <<<className>>>. See sample configuration at {{{https://github.com/inmobi/pintail/blob/master/messaging\-client\-core/src/test/resources/statemitter.properties}statemitter.properties}}. The available configuration properties are described {{{https://twiki.corp.inmobi.com/TechPlatform/StatEmitterConfiguration}Here}}.
+ User should specify the implementation of the {{{./StatEmitter.html}StatEmitter}} class for the configuration <<<className>>>. See sample configuration at {{{https://github.com/inmobi/pintail/blob/master/messaging\-client\-core/src/test/resources/statemitter.properties}statemitter.properties}}. The available configuration properties are described {{{./StatEmitterConfiguration.html}Here}}.
 

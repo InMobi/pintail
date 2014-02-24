@@ -21,9 +21,9 @@
   </licenses>
 
   <scm>
-    <connection>scm:git:https://github.inmobi.com/inmobi/pintail.git</connection>
-    <url>https://github.inmobi.com/inmobi/pintail</url>
-    <developerConnection>scm:git:https://github.inmobi.com/inmobi/pintail.git</developerConnection>
+    <connection>scm:git:https://github.com/inmobi/pintail.git</connection>
+    <url>https://github.com/inmobi/pintail</url>
+    <developerConnection>scm:git:https://github.com/inmobi/pintail.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
 
@@ -47,6 +47,11 @@
       <name>InMobi Repository</name>
       <url>https://github.com/InMobi/mvn-repo/raw/master/releases</url>
     </repository>
+    <snapshotRepository>
+      <id>InMobiSnapshotRepository</id>
+      <name>InMobi Repository</name>
+      <url>https://github.com/InMobi/mvn-repo/raw/master/snapshots</url>
+    </snapshotRepository>
   </distributionManagement>
   
   <properties>
@@ -265,7 +270,6 @@
         <artifactId>maven-release-plugin</artifactId>
         <version>2.2</version>
       </plugin>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-site-plugin</artifactId>
@@ -372,7 +376,7 @@
 
   <reporting>
     <plugins>
-      plugin>
+     <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>2.9.1</version>

@@ -10,11 +10,11 @@ Message consumer metrics
 * Consumer Metrics
 
 
- Consumer metrics are emitted at context <<<consumerName>>> , <<<topicName>>> and <<<ConsumerNumber>>>.
+ Consumer metrics are emitted at context <<consumerName>> , <<topicName>> and <<ConsumerNumber>>.
 
  
 *----+--+
-|Stat Name||Description|
+||Stat Name||Description|
 *----+--+
 messagesConsumed|Number of messages consumed since start|
 *----+--+
@@ -24,7 +24,7 @@ resetCalls|Number of times reset is called|
 *----+--+
 
 
- Databus consumer has one reader for each partition. The metrics are emitted at context <<<consumerName>>>, <<<topicName>>> , <<<consumerNumber>>> and <<<PartitionId>>> by each partition reader.
+ Databus consumer has one reader for each partition. The metrics are emitted at context <<consumerName>>, <<topicName>> , <<consumerNumber>> and <<PartitionId>> by each partition reader.
 
 
 *----+--+
@@ -42,18 +42,16 @@ cumulativeNanosForFecthMessage|The cumulative time in nano seconds to fetch the 
 *----+--+
 numberRecordReaders|Number of ./RecordReaders.htmlRecordReaders created(In case of stream type COLLECTOR = 0)|
 *----+--+
-/<fsuri/>-list|Number of List ops for file systerm of URI /<fsuri/>|
+\<fsuri\>-list|Number of List ops for file systerm of URI \<fsuri\>|
 *----+--+
-/<fsuri/>-open|Number of Open ops for file system of URI /<fsuri/>(In case of stream type LOCAL/MERGED = 0)|
+\<fsuri\>-open|Number of Open ops for file system of URI \<fsuri\>(In case of stream type LOCAL/MERGED = 0)|
 *----+--+
-/<fsuri/>-getFileStatus|Number of getFileSystem() calls for file system /<fsuri/>(In case of stream type COLLECTOR = 0)|
+\<fsuri\>-getFileStatus|Number of getFileSystem() calls for file system \<fsuri\>(In case of stream type COLLECTOR = 0)|
 *----+--+
-/<fsuri/>-exists|Number of exists calls for file system /<fsuri/>|
+\<fsuri\>-exists|Number of exists calls for file system \<fsuri\>|
 *----+--+
-The stats numberRecordReaders, /<fsuri/>\-list, /<fsuri/>\-open, /<fsuri/>\-getFileStatus, /<fsuri/>\-exists are available.
 
-
- <<<DatabusConsumer>>> for the stream type <<<COLLECTOR>>>, has the following stats more, along with above.
+ <<DatabusConsumer>> for the stream type <<COLLECTOR>>, has the following stats more, along with above.
 
 
 *----*--*
