@@ -10,15 +10,14 @@ import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-import com.inmobi.databus.Cluster;
 import com.inmobi.databus.partition.PartitionId;
-import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 import com.inmobi.messaging.consumer.databus.mapred.DatabusInputFormat;
+import com.inmobi.messaging.consumer.util.ClusterUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
 public class TestPartitionReaderLocalStream extends TestAbstractClusterReader {
   static final Log LOG = LogFactory.getLog(TestPartitionReaderLocalStream.class);
-  Cluster cluster;
+  ClusterUtil cluster;
   @BeforeTest
   public void setup() throws Exception {
     consumerNumber = 1;

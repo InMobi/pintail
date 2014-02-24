@@ -13,9 +13,9 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.testng.Assert;
 
-import com.inmobi.databus.Cluster;
 import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
+import com.inmobi.messaging.consumer.util.ClusterUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
@@ -27,7 +27,7 @@ public abstract class TestAbstractWaitingClusterReader {
 
   protected LinkedBlockingQueue<QueueEntry> buffer =
       new LinkedBlockingQueue<QueueEntry>(150);
-  protected Cluster cluster;
+  protected ClusterUtil cluster;
   protected PartitionReader preader;
   Set<Integer>  partitionMinList;
   PartitionCheckpointList partitionCheckpointlist;
