@@ -173,18 +173,47 @@
         <artifactId>mockito-all</artifactId>
         <version>1.8.4</version>
         <scope>test</scope>
-      </dependency>
-      
-       
+      </dependency> 
     </dependencies>
   </dependencyManagement>
 
   <repositories>
-     <repository>
-       <id>releases</id>
-       <name>Releases</name>
-       <url>http://maven.scm.corp.inmobi.com/content/repositories/releases/</url>
-     </repository>
+    <repository>
+      <id>cloudera</id>
+      <url>https://repository.cloudera.com/artifactory/cloudera-repos</url>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+        <updatePolicy>never</updatePolicy>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>inmobi-external</id>
+      <url>https://raw.github.com/InMobi/mvn-repo/master/releases</url>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+        <updatePolicy>never</updatePolicy>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>inmobi-external-thirdparty</id>
+      <url>https://raw.github.com/InMobi/mvn-repo/master/thirdparty</url>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+        <updatePolicy>never</updatePolicy>
+      </snapshots>
+    </repository>
   </repositories>
 
   <build>
