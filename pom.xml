@@ -57,7 +57,6 @@
   <properties>
     <test.build.data>${project.build.directory}/test/data</test.build.data>
     <test.root.dir>${project.build.directory}/tmp/test</test.root.dir>
-    <databus.version>1.4.0</databus.version>
   </properties>
   <dependencyManagement>
     <dependencies>
