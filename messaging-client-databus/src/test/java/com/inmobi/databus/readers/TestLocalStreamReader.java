@@ -10,15 +10,15 @@ import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-import com.inmobi.databus.Cluster;
 import com.inmobi.databus.partition.PartitionCheckpointList;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.messaging.consumer.databus.mapred.DatabusInputFormat;
+import com.inmobi.messaging.consumer.util.ClusterUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
 public class TestLocalStreamReader extends TestAbstractDatabusWaitingReader {
-  protected Cluster cluster;
+  protected ClusterUtil cluster;
 
   @BeforeTest
   public void setup() throws Exception {

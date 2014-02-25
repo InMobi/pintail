@@ -1,0 +1,48 @@
+ 
+
+Producer configuration
+
+ 
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+|| Property                                    || Required    || Description                                                                              | Default value |
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+|  publisher.classname	                       |  Optional    |  The name of concrete pubisher class                                                      | com.inmobi.messaging.netty.ScribeMessagePublisher|
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+|  statemitter.filename                        |  Optional    |  The configuration file name of the stat emitter. If no value is passed for this \        | -             |     
+|                                              |              |  configuration stat emitter will be disabled.                                             |               |               
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+|  scribe.host                                 |  Optional    |  The host on which collector is running                                                   | localhost     |
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+|  scribe.port                                 |  Optional    |  The port on which collector is running                                                   | 1111          |
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+|  scribe.backoffSeconds                       |  Optional    |  The backoff time in seconds to reconnecting whenever there is exception                  | 5             |
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+|  scribe.timeoutSeconds                       |  Optional    |  The read timeout for ReadTimeoutHandler                                                  | 5             |
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+|  scribe.message.queuesize                    |  Optional    |  The size of the to-be-sent message queue for the publisher. If more messages needs to \  | 50000         |
+|                                              |              |  be buffered, the later messages will be dropped.                                         |               |
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+|  scribe.ack.queuesize                        |  Optional    |  The size of the ack queue for the publisher. If no ack comes from scribe for the  \      |  1000         |
+|                                              |              | messages in ack queue, the messages wont be sent and will be buffered in to-be-sent queue.|               |
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+|  scribe.enable.retries                       |  Optional    |  Whether to resend a message if ack is try_later. If true, message will be resend. \      |  true         |
+|                                              |              |  Otherwise, will be counted as gracefulTerminates.                                        |               |
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+|  scribe.resend.ackLost                       |  Optional    |  Whether to resend a message if ack is lost. If true, the message will be re-queued for \ |  true         |
+|                                              |              |  sending, otherwise, it willbe counted as gracefulTerminates and dropped.                 |               |
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+|  scribe.numdrains.onclose                    |  Optional    |  The number of times the publisher has to try draining the messages during close. \       | -1            |
+|                                              |              |  If value is -1, the publisher will try to drain all the messages in sent and ack queue \ |               |
+|                                              |              |  indefinitely. Otherwise, it will try for the specified number of times and drop the    \ |               |
+|                                              |              |  messages in both to-be-sent queue and ack queue.                                         |               |
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+|  scribe.async.sender.sleep.millis            |  Optional    |  The sleep interval in millis for the async sender who tries to send messages out of \    |  10           |
+|                                              |              |  the to-be-sent queue.                                                                    |               |
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+|  audit.enabled                               |  Optional    |  Add this property to turn audit feature on. By default, audit feature is turned off.     |  false        |
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+|  audit.window.size.sec                       |  Optional    |  At which incoming messages will be bucketed while generating audit stats                 |  60           |
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+|                                              |              |                                                                                           |               |
+*----------------------------------------------+---------------------------------------+---------------------------------------------------------------- -+---------------+
+

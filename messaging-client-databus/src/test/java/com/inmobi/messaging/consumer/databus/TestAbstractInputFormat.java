@@ -17,11 +17,10 @@ import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapred.TaskAttemptID;
-
 import org.testng.Assert;
 
-import com.inmobi.databus.Cluster;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.consumer.util.ClusterUtil;
 import com.inmobi.messaging.consumer.util.MessageUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
@@ -40,7 +39,7 @@ public class TestAbstractInputFormat {
   protected Configuration conf = new Configuration();
   protected FileSystem fs;
   protected Path collectorDir = null;
-  protected Cluster cluster;
+  protected ClusterUtil cluster;
   protected TaskAttemptID taskId;
 
   public void setUp() throws Exception {
@@ -67,13 +66,13 @@ public class TestAbstractInputFormat {
     clusterConf.put("hdfsurl", fs.getUri().toString());
     clusterConf.put("jturl", "local");
     clusterConf.put("name", "databusCluster" + 0);
-    clusterConf.put("jobqueuename", "default");
+    clusterConf.put("jobqueue", "default");
     String rootDirSuffix = null;
     if (rootDir.toString().startsWith("file:")) {
       String[] rootDirSplit = rootDir.toString().split("file:");
       rootDirSuffix = rootDirSplit[1];
     }
-    cluster = new Cluster(clusterConf, rootDirSuffix, null, sourceNames);
+    cluster = new ClusterUtil(clusterConf, rootDirSuffix, sourceNames);
   }
 
   /**

@@ -1,0 +1,69 @@
+ -----
+ MessageConsumerConfig
+ -----
+ -----
+
+
+MessageConsumerConfig
+
+* Consumer configuration
+
+*--------+-----------+-------------+-------------+
+|| Property||	Required ||	Description	|| Default value |
+*--------+-----------+-------------+-------------+
+|consumer.classname	 |    Optional | The name of concrete consumer class | com.inmobi.messaging.consumer.databus.DatabusConsumer |
+*--------+-----------+-------------+-------------+
+|topic.name	|   Optonal	| The topic from which messages should be read. If topic name is not set in the config, it can be passed from factory during consumer creation. | |
+*--------+-----------+-------------+-------------+
+|consumer.name	| Optonal |	Unique name identifying the consumer. If consumer name is not set in the config, it can be passed from factory during consumer creation. |-|
+*--------+-----------+-------------+-------------+
+|consumer.statemitter.filename	|Optional |	The configuration file for stat emitter. If nothing is passed, the stats will not emitted.	|-|
+*--------+-----------+-------------+-------------+
+|messaging.consumer.chkpoint.provider.classname|	Optional |	The checkpoint provider class name. It should extend com.inmobi.databus.CheckpointProvider |	com.inmobi.databus.FSCheckpointProvider|
+*--------+-----------+-------------+-------------+
+|messaging.consumer.checkpoint.dir |	Optional|	The path on which mark should store the checkpoint. This can be on Local filesystem or HDFS	. |(The current working directory)|
+*--------+-----------+-------------+-------------+
+|messaging.consumer.buffer.size |	Optional|	The maximum number of messages consumer would read into buffer before they are processed.|	5000|
+*--------+-----------+-------------+-------------+
+|messaging.consumer.principal.name |	Optional|	The kerberos principal name of the consumer, if security is enabled on the clusters. If principal name is not set, commandline authentication will be used.|	-|
+*--------+-----------+-------------+-------------+
+|messaging.consumer.keytab.path | Optional|	The path to the keytab file of the consumer, if security is enabled on the clusters. If keytab path is not set, commandline authentication will be used|-|
+*--------+-----------+-------------+-------------+
+|messaging.consumer.waittime.forfilecreate|	Optional |	Wait time in milli seconds for the consumer to check for new file creation |1000 |
+*--------+-----------+-------------+-------------+
+|messaging.consumer.inputformat.classname |	Optional|	The input format class name through which files should be read.	|For Databus Consumer: com.inmobi.messaging.consumer.databus.mapred.DatabusInputFormat For Hadoop Consumer: org.apache.hadoop.mapred.TextInputFormat|
+*--------+-----------+-------------+-------------+
+|messaging.consumer.topic.retention.inhours	| deprected| The retention period for the topic specified in hours |  -|
+*--------+-----------+-------------+-------------+
+|messaging.consumer.absolute.starttime| Optional | Start time for the topic specified in the format ''yyyy/MM/dd/HH/mm'	|  - |
+*--------+-----------+-------------+-------------+
+|messaging.consumer.relative.starttime.inminutes |	Optional | The relative time for the topic specified in minutes. To specify relative start time to go back.	|  - |
+*--------+-----------+-------------+-------------+
+|messaging.consumer.startofstream |	Optional |	Set this to true for starting from start of the stream	|false |
+*--------+-----------+-------------+-------------+
+|messaging.consumer.absolute.stoptime |	Optional |	Stop time for the topic specified in the format 'yyyy/MM/dd/HH/mm'	|  - |
+*--------+-----------+-------------+-------------+
+|messaging.consumer.read.localstream | Optional	| This allows user to reading from streams_local is optional incase CollectorStreamReader. Set this to false to disable reading streams_local incase CollecotrStreamreader.|true |
+*--------+-----------+-------------+-------------+
+|messaging.consumer.hadoop.conf	 | Optional | Hadoop configuration file that can be used by the consumer |- |
+*--------+-----------+-------------+-------------+
+|messaging.consumer.group.membership |	Optional | ConsumerNumber in the consumer group. (consumerNumber/totalConsumers) |	1/1 |
+*--------+-----------+-------------+-------------+
+
+* DatabusConsumer configuraton properties
+
+*--------+-----------+-------------+-------------+
+|databus.consumer.rootdirs |	Required |	Comma separated list of rootdirs of databus clusters from which messages should be consumed. |	- |
+*--------+-----------+-------------+-------------+
+|databus.consumer.stream.type |	Optional |	Different stream types consumable. The supported types are COLLECTOR, LOCAL, MERGED	|COLLECTOR |
+*--------+-----------+-------------+-------------+
+|databus.consumer.waittime.forcollectorflush|	Optional |	Wait time in milli seconds for consumer to read more messages, if the current file is being written. Applicable only for type COLLECTOR	| 5000 |
+*--------+-----------+-------------+-------------+
+
+* HadoopConsumer configuration propertes
+
+*----+----+---+
+|hadoop.consumer.rootdirs|	Required|	Comma seperated list of prefix directories in Hadoop FileSystem from which messages should be read.	| - |
+*----+----+---+
+
+

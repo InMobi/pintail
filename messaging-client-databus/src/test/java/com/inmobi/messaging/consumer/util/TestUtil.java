@@ -19,7 +19,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.testng.Assert;
 
-import com.inmobi.databus.Cluster;
+import com.inmobi.messaging.consumer.util.ClusterUtil;
 import com.inmobi.databus.files.StreamFile;
 import com.inmobi.databus.partition.DeltaPartitionCheckPoint;
 import com.inmobi.databus.partition.PartitionCheckpoint;
@@ -29,7 +29,6 @@ import com.inmobi.databus.readers.CollectorStreamReader;
 import com.inmobi.databus.readers.DatabusStreamReader;
 import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 import com.inmobi.databus.readers.LocalStreamCollectorReader;
-import com.inmobi.databus.utils.FileUtil;
 import com.inmobi.messaging.consumer.databus.QueueEntry;
 import com.inmobi.messaging.consumer.databus.StreamType;
 import com.inmobi.messaging.Message;
@@ -38,7 +37,7 @@ public class TestUtil {
   static final Log LOG = LogFactory.getLog(TestUtil.class);
 
   private static final String testStream = "testclient";
-  private static Map<Cluster, Date> lastCommitTimes = new HashMap<Cluster, Date>();
+  private static Map<ClusterUtil, Date> lastCommitTimes = new HashMap<ClusterUtil, Date>();
 
   public static String[] files = new String[12];
   private static int increment = 1;
@@ -69,7 +68,7 @@ public class TestUtil {
   }
 
   public static Path moveFileToStreamLocal(FileSystem fs, String streamName,
-      String collectorName, Cluster cluster, Path collectorDir,
+      String collectorName, ClusterUtil cluster, Path collectorDir,
       String collectorfileName)
           throws Exception {
     return moveCollectorFile(fs, streamName, collectorName, cluster,
@@ -77,7 +76,7 @@ public class TestUtil {
   }
 
   public static Path moveFileToStreams(FileSystem fs, String streamName,
-      String collectorName, Cluster cluster, Path collectorDir,
+      String collectorName, ClusterUtil cluster, Path collectorDir,
       String collectorfileName)
           throws Exception {
     return moveCollectorFile(fs, streamName, collectorName, cluster,
@@ -85,7 +84,7 @@ public class TestUtil {
   }
 
   public static Path moveCollectorFile(FileSystem fs, String streamName,
-      String collectorName, Cluster cluster, Path collectorDir,
+      String collectorName, ClusterUtil cluster, Path collectorDir,
       String collectorfileName, StreamType streamType)
           throws Exception {
     Path targetFile = getTargetPath(fs, streamName, collectorName, cluster,
@@ -97,7 +96,7 @@ public class TestUtil {
   }
 
   private static Path getTargetPath(FileSystem fs, String streamName,
-      String collectorName, Cluster cluster,
+      String collectorName, ClusterUtil cluster,
       String collectorfileName, StreamType streamType) throws IOException {
     String streamFileName = LocalStreamCollectorReader.getDatabusStreamFileName(
         collectorName, collectorfileName);
@@ -110,7 +109,7 @@ public class TestUtil {
     return new Path(streamMinDir, streamFileName);
   }
 
-  private static Path copyCollectorFile(Path targetFile, Cluster cluster,
+  private static Path copyCollectorFile(Path targetFile, ClusterUtil cluster,
       Path collectorDir, String collectorfileName) throws IOException {
     Path collectorPath = new Path(collectorDir, collectorfileName);
     FileUtil.gzip(collectorPath, targetFile, cluster.getHadoopConf());
@@ -119,7 +118,7 @@ public class TestUtil {
   }
 
   public static Path copyFileToStreamLocal(FileSystem fs, String streamName,
-      String collectorName, Cluster cluster, Path collectorDir,
+      String collectorName, ClusterUtil cluster, Path collectorDir,
       String collectorfileName)
           throws Exception {
     Path targetFile = getTargetPath(fs, streamName, collectorName, cluster,
@@ -130,7 +129,7 @@ public class TestUtil {
   }
 
   public static Path copyFileToStreams(FileSystem fs, String streamName,
-      String collectorName, Cluster cluster, Path collectorDir,
+      String collectorName, ClusterUtil cluster, Path collectorDir,
       String collectorfileName)
           throws Exception {
     Path targetFile = getTargetPath(fs, streamName, collectorName, cluster,
@@ -272,7 +271,7 @@ public class TestUtil {
     }
   }
 
-  public static Cluster setupLocalCluster(String className, String testStream,
+  public static ClusterUtil setupLocalCluster(String className, String testStream,
       PartitionId pid, String[] collectorFiles,
       String[] emptyFiles, Path[] databusFiles,
       int numFilesToMoveToStreamLocal, String testRootDir) throws Exception {
@@ -280,7 +279,7 @@ public class TestUtil {
         emptyFiles, databusFiles, numFilesToMoveToStreamLocal, 0, testRootDir);
   }
 
-  public static Cluster setupLocalCluster(String className, String testStream,
+  public static ClusterUtil setupLocalCluster(String className, String testStream,
       PartitionId pid, String[] collectorFiles,
       String[] emptyFiles,
       int numFilesToMoveToStreamLocal, String testRootDir) throws Exception {
@@ -288,7 +287,7 @@ public class TestUtil {
         emptyFiles, null, numFilesToMoveToStreamLocal, 0, testRootDir);
   }
 
-  public static Cluster setupLocalCluster(String className, String testStream,
+  public static ClusterUtil setupLocalCluster(String className, String testStream,
       PartitionId pid, String[] collectorFiles,
       String[] emptyFiles, Path[] databusFiles,
       int numFilesToMoveToStreamLocal, int numFilesToMoveToStreams, String testRootDir)
@@ -298,13 +297,13 @@ public class TestUtil {
         numFilesToMoveToStreams, testRootDir);
   }
 
-  public static Path getCollectorDir(Cluster cluster, String streamName,
+  public static Path getCollectorDir(ClusterUtil cluster, String streamName,
       String collectorName) {
     Path streamDir = new Path(cluster.getDataDir(), streamName);
     return new Path(streamDir, collectorName);
   }
 
-  private static Cluster setupCluster(String className, String testStream,
+  private static ClusterUtil setupCluster(String className, String testStream,
       PartitionId pid, String hdfsUrl, String[] collectorFiles,
       String[] emptyFiles, Path[] databusFiles,
       int numFilesToMoveToStreamLocal, int numFilesToMoveToStreams,
@@ -316,11 +315,10 @@ public class TestUtil {
     clusterConf.put("hdfsurl", hdfsUrl);
     clusterConf.put("jturl", "local");
     clusterConf.put("name", pid.getCluster());
-    clusterConf.put("jobqueuename", "default");
+    clusterConf.put("jobqueue", "default");
     
-    Cluster cluster = new Cluster(clusterConf,
-        new Path(testRootDir, className).toString(),
-         null, sourceNames);
+    ClusterUtil cluster = new ClusterUtil(clusterConf,
+        new Path(testRootDir, className).toString(), sourceNames);
 
     // setup stream and collector dirs
     FileSystem fs = FileSystem.get(cluster.getHadoopConf());
@@ -336,7 +334,7 @@ public class TestUtil {
     return cluster;
   }
 
-  public static void setUpFiles(Cluster cluster, String collectorName,
+  public static void setUpFiles(ClusterUtil cluster, String collectorName,
       String[] collectorFiles,
       String[] emptyFiles, Path[] databusFiles,
       int numFilesToMoveToStreamLocal, int numFilesToMoveToStreams)
@@ -388,7 +386,7 @@ public class TestUtil {
     }
   }
 
-  public static Cluster setupDFSCluster(String className, String testStream,
+  public static ClusterUtil setupDFSCluster(String className, String testStream,
       PartitionId pid, String hdfsUrl, String[] collectorFiles,
       String[] emptyFiles, Path[] databusFiles,
       int numFilesToMoveToStreamLocal, int numFilesToMoveToStreams,
@@ -399,7 +397,7 @@ public class TestUtil {
         numFilesToMoveToStreams, testRootDir);
   }
 
-  public static Cluster setupDFSCluster(String className, String testStream,
+  public static ClusterUtil setupDFSCluster(String className, String testStream,
       PartitionId pid, String hdfsUrl, String[] collectorFiles,
       String[] emptyFiles, int numFilesToMoveToStreamLocal,
       String testRootDir) throws Exception {
@@ -407,7 +405,7 @@ public class TestUtil {
         emptyFiles, null, numFilesToMoveToStreamLocal, 0, testRootDir);
   }
 
-  public static void cleanupCluster(Cluster cluster) throws IOException {
+  public static void cleanupCluster(ClusterUtil cluster) throws IOException {
     FileSystem fs = FileSystem.get(cluster.getHadoopConf());
     LOG.debug("Cleaning up the dir: " + cluster.getRootDir());
     fs.delete(new Path(cluster.getRootDir()), true);
@@ -447,7 +445,7 @@ public class TestUtil {
   }
 
   public static void publishLastPathForStreamsDir(FileSystem fs,
-      Cluster cluster, String streamName) throws IOException {
+      ClusterUtil cluster, String streamName) throws IOException {
     publishLastPath(fs, DatabusUtil.getStreamDir(StreamType.MERGED,
         new Path(cluster.getRootDir()), streamName),
         lastCommitTimes.get(cluster));
@@ -466,11 +464,11 @@ public class TestUtil {
     return System.getProperty("test.root.dir", "/tmp/test");
   }
   
-  public static Path getStreamsLocalDir(Cluster cluster, String streamName) {
+  public static Path getStreamsLocalDir(ClusterUtil cluster, String streamName) {
     return new Path(cluster.getLocalFinalDestDirRoot(), streamName);
   }
 
-  public static Path getStreamsDir(Cluster cluster, String streamName) {
+  public static Path getStreamsDir(ClusterUtil cluster, String streamName) {
     return new Path(cluster.getFinalDestDirRoot(), streamName);
   }
 }

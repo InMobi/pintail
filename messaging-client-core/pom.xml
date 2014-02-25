@@ -8,6 +8,7 @@
 
   <artifactId>messaging-client-core</artifactId>
   <packaging>jar</packaging>
+  <name>messaging-client-core</name>
 
   <dependencies>
     <dependency>

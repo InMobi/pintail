@@ -13,8 +13,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.testng.Assert;
 
-import com.inmobi.databus.Cluster;
 import com.inmobi.messaging.ClientConfig;
+import com.inmobi.messaging.consumer.util.ClusterUtil;
 import com.inmobi.messaging.consumer.util.ConsumerUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 
@@ -68,15 +68,14 @@ public abstract class TestAbstractDatabusConsumer {
       clusterConf.put("hdfsurl", fs.getUri().toString());
       clusterConf.put("jturl", "local");
       clusterConf.put("name", "databusCluster" + i);
-      clusterConf.put("jobqueuename", "default");
+      clusterConf.put("jobqueue", "default");
 
       String rootDir = rootDirs[i].toUri().toString();
       if (rootDirs[i].toString().startsWith("file:")) {
         String[] rootDirSplit = rootDirs[i].toString().split("file:");
         rootDir = rootDirSplit[1];
       }
-      Cluster cluster = new Cluster(clusterConf,
-          rootDir, null, sourceNames);
+      ClusterUtil cluster = new ClusterUtil(clusterConf, rootDir, sourceNames);
       fs.delete(new Path(cluster.getRootDir()), true);
       Path streamDir = new Path(cluster.getDataDir(), testStream);
       fs.delete(streamDir, true);
