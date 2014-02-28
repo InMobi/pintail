@@ -1,0 +1,11 @@
+com.inmobi.databus.files
+com.inmobi.databus.partition
+com.inmobi.databus.readers
+com.inmobi.messaging.checkpoint
+com.inmobi.messaging.consumer.databus
+com.inmobi.messaging.consumer.databus.mapred
+com.inmobi.messaging.consumer.databus.mapreduce
+com.inmobi.messaging.consumer.databus.mapreduce.util
+com.inmobi.messaging.consumer.hadoop
+com.inmobi.messaging.consumer.util
+com.inmobi.messaging.metrics
