@@ -7,7 +7,9 @@
       <item name="Monitoting" href="./developer/Monitoring.html" />
     </menu>
 
-    <menu ref="modules" />
+    <menu ref="modules"/>
+    <menu ref="reports"/>
+
     <breadcrumbs>
       <item name="InMobi" href="https://github.com/inmobi/" />
       <item name="Pintail" href="https://github.com/inmobi/pintail"/>
