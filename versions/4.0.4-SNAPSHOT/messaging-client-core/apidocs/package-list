@@ -1,0 +1,11 @@
+com.inmobi.audit.thrift
+com.inmobi.instrumentation
+com.inmobi.messaging
+com.inmobi.messaging.checkpoint
+com.inmobi.messaging.consumer
+com.inmobi.messaging.consumer.examples
+com.inmobi.messaging.consumer.impl
+com.inmobi.messaging.publisher
+com.inmobi.messaging.publisher.examples
+com.inmobi.messaging.publisher.impl
+com.inmobi.messaging.util
