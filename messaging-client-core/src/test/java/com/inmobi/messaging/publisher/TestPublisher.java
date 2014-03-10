@@ -72,6 +72,32 @@ public class TestPublisher {
     Assert.assertNull((publisher.getMetrics().getStatsEmitter()));
   }
 
+
+  @Test
+  public void testPublisherWithHugeMsg() throws IOException {
+    ClientConfig conf = new ClientConfig();
+    conf.set(MessagePublisherFactory.PUBLISHER_CLASS_NAME_KEY,
+        MockPublisher.class.getName());
+    AbstractMessagePublisher publisher =
+        (AbstractMessagePublisher) MessagePublisherFactory.create(conf);
+    long msgSize = 50 * 1024 + 1;
+    String topic = "hugeMsg";
+    StringBuffer str = new StringBuffer();
+    long i = 0;
+    while (i++ <= msgSize) {
+      str.append("A");
+    }
+    Message msg = new Message(str.toString().getBytes());
+    Exception exception = null;
+    try {
+    publisher.publish(topic, msg);
+    } catch (Exception e) {
+      exception = e;
+    }
+    Assert.assertTrue(exception instanceof UnsupportedOperationException);
+    Assert.assertEquals(1, publisher.getStats(topic).getExceededMsgSizeCount());
+  }
+
   @Test
   public void testMondemand() throws IOException {
     ClientConfig conf = new ClientConfig();
