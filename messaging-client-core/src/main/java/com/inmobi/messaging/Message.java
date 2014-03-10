@@ -48,6 +48,10 @@ public final class Message implements MessageBase {
     data.clear();
   }
 
+  public long getSize() {
+    return data.limit();
+  }
+
   @Override
   public int hashCode() {
     final int prime = 31;
