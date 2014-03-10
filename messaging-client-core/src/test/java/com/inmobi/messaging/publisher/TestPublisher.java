@@ -96,6 +96,7 @@ public class TestPublisher {
     }
     Assert.assertTrue(exception instanceof UnsupportedOperationException);
     Assert.assertEquals(1, publisher.getStats(topic).getExceededMsgSizeCount());
+    publisher.close();
   }
 
   @Test
