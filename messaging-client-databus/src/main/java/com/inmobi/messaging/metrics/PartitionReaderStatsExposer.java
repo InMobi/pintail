@@ -1,5 +1,6 @@
 package com.inmobi.messaging.metrics;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -18,6 +19,8 @@ public class PartitionReaderStatsExposer extends
   public static final String OPEN = "open";
   public static final String GET_FILE_STATUS = "getFileStatus";
   public static final String EXISTS = "exists";
+  public static final String READ_PATH_IN_TIME="readPathInTime";
+  public static final String LAST_WAIT_TIME_FOR_NEW_PATH="lastWaitTimeForNewPath";
 
   private final AtomicLong numMessagesReadFromSource = new AtomicLong(0);
   private final AtomicLong numMessagesAddedToBuffer = new AtomicLong(0);
@@ -32,6 +35,8 @@ public class PartitionReaderStatsExposer extends
   private final String pid;
   private final String fsUri;
   private final String FS_LIST, FS_OPEN, FS_GET_FILE_STATUS, FS_EXISTS;
+  private final AtomicLong readPathInTime = new AtomicLong(0);
+  private final AtomicLong lastWaitTimeForNewPath = new AtomicLong(0);
 
   public PartitionReaderStatsExposer(String topicName, String consumerName,
       String pid, int consumerNumber, String fsUri) {
@@ -84,6 +89,14 @@ public class PartitionReaderStatsExposer extends
     numberRecordReaders.incrementAndGet();
   }
 
+  public void setReadPathTimeStamp(Date currentpathTimeStamp) {
+    readPathInTime.set(currentpathTimeStamp.getTime());
+  }
+
+  public void setLastWaitTimeForNewPath(long lastWaitTime) {
+    lastWaitTimeForNewPath.set(lastWaitTime);
+  }
+
   @Override
   protected void addToStatsMap(Map<String, Number> map) {
     map.put(MESSAGES_READ_FROM_SOURCE, getMessagesReadFromSource());
@@ -96,6 +109,8 @@ public class PartitionReaderStatsExposer extends
     map.put(FS_OPEN, getOpenOps());
     map.put(FS_GET_FILE_STATUS, getFileStatusOps());
     map.put(FS_EXISTS, getExistsOps());
+    map.put(READ_PATH_IN_TIME, getReadPathTime());
+    map.put(LAST_WAIT_TIME_FOR_NEW_PATH, getLastWaitTimeForNewPath());
   }
 
   @Override
@@ -142,5 +157,13 @@ public class PartitionReaderStatsExposer extends
 
   public long getExistsOps() {
     return existsOps.get();
+  }
+
+  public long getReadPathTime() {
+    return readPathInTime.get();
+  }
+
+  public long getLastWaitTimeForNewPath() {
+    return lastWaitTimeForNewPath.get();
   }
 }
