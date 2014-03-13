@@ -99,7 +99,7 @@ public class TestClusterReaderMultipleCollectors {
     Assert.assertEquals(((ClusterReader) preader.getReader())
         .getReader().getClass().getName(),
         DatabusStreamWaitingReader.class.getName());
-    preader.start();
+    preader.start(null);
     // move file11
     TestUtil.incrementCommitTime();
     Path movedPath1 = TestUtil.moveFileToStreams(fs, testStream, collectors[1],
@@ -240,7 +240,7 @@ public class TestClusterReaderMultipleCollectors {
     preader = new PartitionReader(partitionId,  partitionCheckpointList, fs,
         buffer, streamDir, conf, DatabusInputFormat.class.getCanonicalName(),
         null, 1000, true, prMetrics, false, partitionMinList, null);
-    preader.start();
+    preader.start(null);
     TestUtil.prepareExpectedDeltaPck(fromTime, toTime, expectedDeltaPck,
         fs.getFileStatus(movedPath5), streamDir, partitionMinList,
         partitionCheckpointList, true, false);
