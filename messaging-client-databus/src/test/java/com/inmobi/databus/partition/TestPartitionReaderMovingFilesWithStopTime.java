@@ -148,5 +148,6 @@ public class TestPartitionReaderMovingFilesWithStopTime {
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 600);
     Assert.assertEquals(prMetrics.getSwitchesFromLocalToCollector(), 1);
     Assert.assertEquals(prMetrics.getSwitchesFromCollectorToLocal(), 1);
+    //Assert.assertEquals(prMetrics.getCurrentReadingDirTimestamp(), LocalStreamCollectorReader.getDateF);
   }
 }

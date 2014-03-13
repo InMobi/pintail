@@ -109,9 +109,12 @@ public class TestPartitionReaderWithLeastFullCheckpoint extends TestAbstractClus
         isDatabusData(), expectedDeltaPchk);
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 300);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 300);
-
+    Assert.assertEquals(prMetrics.getReadPathTime(),
+        DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
+            databusFiles[5]).getTime());
   }
 
+// TODO fix the test
   @Test
   public void testDeltaCheckpointWithStoptime() throws Exception {
     buffer.clear();
@@ -157,6 +160,7 @@ public class TestPartitionReaderWithLeastFullCheckpoint extends TestAbstractClus
     QueueEntry entry = buffer.take();
     Assert.assertEquals(((DeltaPartitionCheckPoint)entry.getMessageChkpoint()).
         getDeltaCheckpoint(), expectedDeltaPchk);
+    Assert.assertEquals(prMetrics.getReadPathTime(), stopTime.getTime());
   }
 
   @Override

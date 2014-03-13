@@ -154,5 +154,7 @@ public class TestPartitionReaderMovingFilesFromLocalStream {
     Assert.assertEquals(prMetrics.getSwitchesFromCollectorToLocal(), 0);
     Assert.assertEquals(prMetrics.getSwitchesFromLocalToCollector(), 1);
     Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
+    Assert.assertEquals(prMetrics.getReadPathTime(),
+        CollectorStreamReader.getDateFromCollectorFile(files[6]).getTime());
   }
 }
