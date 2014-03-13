@@ -152,7 +152,10 @@ public class DatabusStreamWaitingReader
               // stopping after listing two non empty directories
               LOG.debug("Listing stopped after listing two non empty directories");
               break;
+            } else if (numFilesInFileMap == 0) {
+              setReadPathMetric(currenTimestamp);
             }
+            updateReadPathMetric(currenTimestamp);
           } else {
             LOG.info("Reached end of file listing. Not looking at the last"
                 + " minute directory:" + dir);
@@ -165,6 +168,17 @@ public class DatabusStreamWaitingReader
     if (getFirstFileInStream() != null && (currentMin == -1)) {
       currentMin = getMinuteFromFile(getFirstFileInStream());
     }
+  }
+
+  private void updateReadPathMetric(Date currentTimeStamp) {
+    if (getCurrentMin() != -1
+        && isUpdateRequired(currentTimeStamp)) {
+      setReadPathMetric(currentTimeStamp);
+    }
+  }
+
+  private boolean isUpdateRequired(Date currentTimeStamp) {
+    return currentTimeStamp.getTime() > getReadCurrentPathTimeMetric();
   }
 
   /*
@@ -507,5 +521,13 @@ public class DatabusStreamWaitingReader
           + currentLineNum);
       setIterator();
     }
+  }
+
+  /*
+   * This method is for getting the time stamp from databus collector stream file.
+   */
+  @Override
+  protected Date getTimeStampFromCollectorStreamFile(FileStatus file) {
+    throw new UnsupportedOperationException("Can not be supported ");
   }
 }

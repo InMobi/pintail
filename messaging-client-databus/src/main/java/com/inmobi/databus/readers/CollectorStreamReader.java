@@ -166,6 +166,11 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     while ((char) next != '\n') {
       if (next == -1) {
         LOG.info("reading EOF before a line feed ");
+        //TODO update metrics
+        if (builder.toString().isEmpty()) {
+          //TODO update metrics
+         //updateReadPathMetricForCollectorReader(true);
+        }
         return null;
       }
       builder.append((char) next);
@@ -180,6 +185,17 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     }
   }
 
+  @Override
+  protected Date getTimeStampFromCollectorStreamFile(FileStatus file) {
+    try {
+      return CollectorStreamReader.getDateFromCollectorFile(
+          getCurrentFile().getName());
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    return null;
+  }
   protected Message readNextLine()
       throws IOException {
     Message line = null;
@@ -241,6 +257,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
           if (isWithinStream(getCurrentFile().getName()) || !isLocalStreamAvailable) {
             LOG.info("Staying in collector stream as earlier files still exist");
             startFromNextHigherAndOpen(getCurrentFile().getName());
+            updateReadPathMetricForCollectorReader();
             LOG.info("Reading from the next higher file");
           } else {
             LOG.info("Current file would have been moved to Local Stream");
@@ -256,6 +273,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
         if (moveToNext
             || (lastFile != null && !(lastFile.equals(getCurrentFile())))) {
           setNextFile();
+          updateReadPathMetricForCollectorReader();
           LOG.info("Reading from next file: " + getCurrentFile());
         } else {
           LOG.info("Reading from same file before moving to next");
@@ -265,6 +283,9 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
         }
       }
       line = readNextLine();
+      if (line != null) {
+        //updateReadPathMetricForCollectorReader(false);
+      }
     }
     return line;
   }
