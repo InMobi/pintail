@@ -86,18 +86,11 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
     } else {
       throw new IllegalArgumentException("Databus root directory not specified");
     }
-
-    if (streamType.equals(StreamType.COLLECTOR)) {
-      // No op
-    } else {
-      preparePartitionIdMap(config, rootDirSplits, clusterNames);
-      if (!partitionIdMap.isEmpty()) {
-        currentCheckpoint.migrateCheckpoint(partitionIdMap);
-      }
-    }
+    clusterNames = new String[rootDirSplits.length];
     rootDirs = new Path[rootDirSplits.length];
     for (int i = 0; i < rootDirSplits.length; i++) {
       rootDirs[i] = new Path(rootDirSplits[i]);
+      clusterNames[i] = getDefaultClusterName(i);
     }
     if (streamType.equals(StreamType.MERGED)) {
       if (rootDirs.length > 1) {
@@ -105,10 +98,35 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
             + " allowed for merge stream");
       }
     }
+    /*
+     * Parse the clusterNames config string and
+     * migrate to new checkpoint if required
+     */
+    if (streamType.equals(StreamType.COLLECTOR)) {
+      getClusterNames(config, rootDirSplits);
+    } else {
+      preparePartitionIdMap(config, rootDirSplits, clusterNames);
+      if (!partitionIdMap.isEmpty()) {
+        currentCheckpoint.migrateCheckpoint(partitionIdMap);
+      }
+    }
     LOG.info("Databus consumer initialized with streamName:" + topicName
         + " consumerName:" + consumerName + " startTime:" + startTime
         + " queueSize:" + bufferSize + " checkPoint:" + currentCheckpoint
         + " streamType:" + streamType);
+  }
+
+  private void getClusterNames(ClientConfig config, String[] rootDirSplits) {
+    String clusterNameStr = config.getString(clustersNameConfig);
+    if (clusterNameStr != null) {
+      String [] clusterNameStrs = clusterNameStr.split(",");
+      assert clusterNameStrs.length == rootDirSplits.length;
+      for (int i = 0; i < clusterNameStrs.length; i++) {
+        clusterNames[i] = clusterNameStrs[i];
+      }
+    } else {
+      LOG.info("using default cluster names as clustersName config is missing");
+    }
   }
 
   private List<String> getCollectors(FileSystem fs, Path baseDir)
@@ -134,7 +152,6 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
       String fsuri = fs.getUri().toString();
       Path streamDir = DatabusUtil.getStreamDir(streamType, rootDirs[i],
           topicName);
-      //String clusterName = clusterNamePrefix + i;
       String clusterName;
       if (clusterNames != null) {
         clusterName = clusterNames[i];
