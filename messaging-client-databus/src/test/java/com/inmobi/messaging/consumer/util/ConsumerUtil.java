@@ -24,6 +24,7 @@ import com.inmobi.messaging.consumer.databus.CheckpointList;
 import com.inmobi.messaging.consumer.databus.ConsumerCheckpoint;
 import com.inmobi.messaging.consumer.databus.DatabusConsumer;
 import com.inmobi.messaging.consumer.databus.DatabusConsumerConfig;
+import com.inmobi.messaging.consumer.databus.MessagingConsumerConfig;
 import com.inmobi.messaging.consumer.hadoop.HadoopConsumer;
 import com.inmobi.messaging.consumer.hadoop.HadoopConsumerConfig;
 
@@ -144,7 +145,6 @@ public class ConsumerUtil {
 
     // test checkpoint and consumer crash
     consumer = createConsumer(hadoop);
-
     consumer.init(streamName, consumerName, null, config);
 
     compareConsumerCheckpoints(temp, checkpointMap, lastCheckpoint, consumer);
@@ -163,9 +163,10 @@ public class ConsumerUtil {
     for (int i = 0; i < numCounters; i++) {
       Assert.assertEquals(markedcounter2[i], numDataFiles * numMessagesPerFile);
     }
+    consumer.mark();
     consumer.close();
     Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
-        consumer.getMetrics())).getNumMarkCalls(), 0);
+        consumer.getMetrics())).getNumMarkCalls(), 1);
     Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumResetCalls(), 0);
     Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
@@ -304,6 +305,7 @@ public class ConsumerUtil {
     Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMessagesConsumed(), 250);
     consumer = createConsumer(hadoop);
+    config.set(MessagingConsumerConfig.clustersNameConfig, "testCluster");
     consumer.init(streamName, consumerName, absoluteStartTime, config);
     // consumer starts consuming messages from the checkpoint
     for (i = 120; i < 240; i++) {
@@ -326,7 +328,6 @@ public class ConsumerUtil {
     consumer.close();
     Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMessagesConsumed(), 140);
-
     consumer = createConsumer(hadoop);
     if (!hadoop) {
       config = ClientConfig.loadFromClasspath(
@@ -335,6 +336,7 @@ public class ConsumerUtil {
           new Path(chkpointPathPrefix, "random-databus").toString());
       config.set(DatabusConsumerConfig.databusRootDirsConfig,
           rootDir.toUri().toString());
+      config.set(MessagingConsumerConfig.clustersNameConfig, "testCluster");
     } else {
       config = ClientConfig.loadFromClasspath(
           "messaging-consumer-hadoop-conf.properties");
@@ -342,6 +344,7 @@ public class ConsumerUtil {
           new Path(chkpointPathPrefix, "random-hadoop").toString());
       config.set(HadoopConsumerConfig.rootDirsConfig,
           rootDir.toString());
+      config.set(MessagingConsumerConfig.clustersNameConfig, "testCluster");
     }
 
     // consumer starts from absolute start time
@@ -351,6 +354,7 @@ public class ConsumerUtil {
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
+    consumer.mark();
     consumer.close();
     Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMessagesConsumed(), 200);
