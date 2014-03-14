@@ -142,12 +142,15 @@ public class ConsumerUtil {
     Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
         consumer.getMetrics())).getNumMessagesConsumed(),
         (totalMessages + totalMessages / 2));
-
+    compareConsumerCheckpoints(temp, checkpointMap, lastCheckpoint, consumer);
     // test checkpoint and consumer crash
     consumer = createConsumer(hadoop);
+    if (numClusters == 1) {
+      config.set(MessagingConsumerConfig.clustersNameConfig, "testCluster1");
+    } else if (numClusters == 2) {
+      config.set(MessagingConsumerConfig.clustersNameConfig, "testCluster1,testCluster2");
+    }
     consumer.init(streamName, consumerName, null, config);
-
-    compareConsumerCheckpoints(temp, checkpointMap, lastCheckpoint, consumer);
 
     for (int i = 0; i < totalMessages / 2; i++) {
       Message msg = consumer.next();
@@ -163,6 +166,7 @@ public class ConsumerUtil {
     for (int i = 0; i < numCounters; i++) {
       Assert.assertEquals(markedcounter2[i], numDataFiles * numMessagesPerFile);
     }
+
     consumer.mark();
     consumer.close();
     Assert.assertEquals(((BaseMessageConsumerStatsExposer) (
