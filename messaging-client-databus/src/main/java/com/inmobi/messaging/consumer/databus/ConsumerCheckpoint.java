@@ -1,6 +1,7 @@
 package com.inmobi.messaging.consumer.databus;
 
 import java.io.IOException;
+import java.util.Map;
 
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.checkpoint.CheckpointProvider;
@@ -15,4 +16,7 @@ public interface ConsumerCheckpoint {
       throws IOException;
 
   public void clear();
+
+  public void migrateCheckpoint(Map<PartitionId, PartitionId> pidMap)
+      throws IOException;
 }

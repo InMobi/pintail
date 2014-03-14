@@ -1,12 +1,12 @@
 package com.inmobi.messaging.consumer.databus;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
 import com.inmobi.databus.partition.DeltaPartitionCheckPoint;
-
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionCheckpointList;
 import com.inmobi.databus.partition.PartitionId;
@@ -107,5 +107,46 @@ public class CheckpointList implements ConsumerCheckpoint {
   @Override
   public void clear() {
     chkpoints.clear();
+  }
+
+  @Override
+  public void migrateCheckpoint(Map<PartitionId, PartitionId> defaultAndNewPidMap) {
+    for (Map.Entry<Integer, Checkpoint> entry : chkpoints.entrySet()) {
+      boolean migrateRequired = false;
+      Checkpoint checkpoint = chkpoints.get(entry.getKey());
+      for (PartitionId pid : checkpoint.getPartitionsCheckpoint().keySet()) {
+        if (defaultAndNewPidMap.containsKey(pid)) {
+          migrateRequired = true;
+          break;
+        }
+      }
+      if (!migrateRequired) {
+        break;
+      }
+      Checkpoint newCheckpoint = new Checkpoint();
+      /*Map<PartitionId, PartitionCheckpoint> tmpPckMap =
+            new HashMap<PartitionId, PartitionCheckpoint>();
+        for (Map.Entry<PartitionId, PartitionCheckpoint> entryTmpPck : checkpoint.getPartitionsCheckpoint().entrySet()) {
+          tmpPckMap.put(entryTmpPck.getKey(), entryTmpPck.getValue());
+        }
+        System.out.println("TTTTTMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM " + tmpPckMap);*/
+      for (Map.Entry<PartitionId, PartitionCheckpoint> partitionCkEntry :
+        checkpoint.getPartitionsCheckpoint().entrySet()) {
+        PartitionId defaultPid = partitionCkEntry.getKey();
+        if (defaultAndNewPidMap.containsKey(defaultPid)) {
+          PartitionCheckpoint pck = partitionCkEntry.getValue();
+          PartitionId newPid = defaultAndNewPidMap.get(defaultPid);
+          newCheckpoint.set(newPid, pck);
+          /*tmpPckMap.put(newPid, pck);
+          tmpPckMap.remove(oldPid);*/
+        }
+      }
+      /* for (Map.Entry<PartitionId, PartitionCheckpoint> entryTmpPck : tmpPckMap.entrySet()) {
+        checkpoint.set(entryTmpPck.getKey(), entryTmpPck.getValue());
+      }*/
+      chkpoints.put(entry.getKey(), newCheckpoint);
+    }
+
+    System.out.println("CCCCCCCCCCCCCCCCCCCCCChhhhhhhhhkList " + chkpoints.toString());
   }
 }

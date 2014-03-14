@@ -48,8 +48,22 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
       clusterNames[i] = clusterNamePrefix + i;
     }
 
+    /*
+     * construct a map with default pid as key and
+     * new pid (for a given cluster name) as value
+     */
+    preparePartitionIdMap(config, rootDirStrs, clusterNames);
+
+    /*
+     * Migrate if require
+     */
+    if (!partitionIdMap.isEmpty()) {
+      currentCheckpoint.migrateCheckpoint(partitionIdMap);
+    }
+
     inputFormatClassName = config.getString(inputFormatClassNameConfig,
         DEFAULT_INPUT_FORMAT_CLASSNAME);
+
   }
 
   /**
@@ -63,6 +77,7 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
 
       // create partition id
       PartitionId id = new PartitionId(clusterName, null);
+
       // Get the partition checkpoint list from consumer checkpoint
       PartitionCheckpointList partitionCheckpointList = 
           ((CheckpointList) currentCheckpoint).preaprePartitionCheckPointList(id);

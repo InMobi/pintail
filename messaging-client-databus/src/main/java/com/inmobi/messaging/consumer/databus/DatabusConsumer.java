@@ -69,6 +69,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
   public static String clusterNamePrefix = "databusCluster";
   private Boolean readFromLocalStream;
   private int numList = 0;
+  private String[] clusterNames;
 
   protected void initializeConfig(ClientConfig config) throws IOException {
     String type = config.getString(databusStreamType, DEFAULT_STREAM_TYPE);
@@ -86,6 +87,14 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
       throw new IllegalArgumentException("Databus root directory not specified");
     }
 
+    if (streamType.equals(StreamType.COLLECTOR)) {
+      // No op
+    } else {
+      preparePartitionIdMap(config, rootDirSplits, clusterNames);
+      if (!partitionIdMap.isEmpty()) {
+        currentCheckpoint.migrateCheckpoint(partitionIdMap);
+      }
+    }
     rootDirs = new Path[rootDirSplits.length];
     for (int i = 0; i < rootDirSplits.length; i++) {
       rootDirs[i] = new Path(rootDirSplits[i]);
@@ -125,15 +134,36 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
       String fsuri = fs.getUri().toString();
       Path streamDir = DatabusUtil.getStreamDir(streamType, rootDirs[i],
           topicName);
-      String clusterName = clusterNamePrefix + i;
+      //String clusterName = clusterNamePrefix + i;
+      String clusterName;
+      if (clusterNames != null) {
+        clusterName = clusterNames[i];
+      } else {
+        clusterName = getDefaultClusterName(i);
+      }
       if (streamType.equals(StreamType.COLLECTOR)) {
         Map<PartitionId, PartitionCheckpoint> partitionsChkPoints =
             ((Checkpoint) currentCheckpoint).getPartitionsCheckpoint();
         LOG.info("Creating partition readers for all the collectors");
         for (String collector : getCollectors(fs, streamDir)) {
           PartitionId id = new PartitionId(clusterName, collector);
-          Date partitionTimestamp = getPartitionTimestamp(id,
-              partitionsChkPoints.get(id));
+          PartitionCheckpoint pck = partitionsChkPoints.get(id);
+          /*
+           * Migration of checkpoint required in this case
+           * If user provides a cluster name and partition checkpoint is null
+           */
+          if (!clusterName.equals(getDefaultClusterName(i)) && pck == null) {
+            PartitionId defaultPid = new PartitionId(getDefaultClusterName(i),
+                collector);
+            pck = partitionsChkPoints.get(defaultPid);
+            /*
+             * create a checkpoint with new pid and partition id
+             * remove an entry of default pid as it does not useful anymore
+             */
+            ((Checkpoint) currentCheckpoint).set(id, pck);
+            ((Checkpoint) currentCheckpoint).remove(defaultPid);
+          }
+          Date partitionTimestamp = getPartitionTimestamp(id, pck);
           LOG.debug("Creating partition " + id);
           PartitionReaderStatsExposer collectorMetrics = new
               CollectorReaderStatsExposer(topicName, consumerName,
@@ -147,11 +177,10 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
           for (int c = 0; c < numList; c++) {
             collectorMetrics.incrementListOps();
           }
-          readers.put(id, new PartitionReader(id, partitionsChkPoints.get(id),
-              conf, fs, new Path(streamDir, collector),
-              streamsLocalDir, buffer, topicName, partitionTimestamp,
-              waitTimeForFlush, waitTimeForFileCreate, collectorMetrics,
-              stopTime));
+          readers.put(id, new PartitionReader(id, pck, conf, fs,
+              new Path(streamDir, collector), streamsLocalDir, buffer, topicName,
+              partitionTimestamp, waitTimeForFlush, waitTimeForFileCreate,
+              collectorMetrics, stopTime));
           messageConsumedMap.put(id, false);
           numList = 0;
         }
@@ -175,6 +204,10 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
         messageConsumedMap.put(id, false);
       }
     }
+  }
+
+  private String getDefaultClusterName(int i) {
+    return clusterNamePrefix + i;
   }
 
   Path[] getRootDirs() {
