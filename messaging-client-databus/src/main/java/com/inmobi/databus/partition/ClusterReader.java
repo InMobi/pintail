@@ -2,7 +2,6 @@ package com.inmobi.databus.partition;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
