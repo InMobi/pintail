@@ -124,12 +124,6 @@ public class CheckpointList implements ConsumerCheckpoint {
         break;
       }
       Checkpoint newCheckpoint = new Checkpoint();
-      /*Map<PartitionId, PartitionCheckpoint> tmpPckMap =
-            new HashMap<PartitionId, PartitionCheckpoint>();
-        for (Map.Entry<PartitionId, PartitionCheckpoint> entryTmpPck : checkpoint.getPartitionsCheckpoint().entrySet()) {
-          tmpPckMap.put(entryTmpPck.getKey(), entryTmpPck.getValue());
-        }
-        System.out.println("TTTTTMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM " + tmpPckMap);*/
       for (Map.Entry<PartitionId, PartitionCheckpoint> partitionCkEntry :
         checkpoint.getPartitionsCheckpoint().entrySet()) {
         PartitionId defaultPid = partitionCkEntry.getKey();
@@ -137,16 +131,9 @@ public class CheckpointList implements ConsumerCheckpoint {
           PartitionCheckpoint pck = partitionCkEntry.getValue();
           PartitionId newPid = defaultAndNewPidMap.get(defaultPid);
           newCheckpoint.set(newPid, pck);
-          /*tmpPckMap.put(newPid, pck);
-          tmpPckMap.remove(oldPid);*/
         }
       }
-      /* for (Map.Entry<PartitionId, PartitionCheckpoint> entryTmpPck : tmpPckMap.entrySet()) {
-        checkpoint.set(entryTmpPck.getKey(), entryTmpPck.getValue());
-      }*/
       chkpoints.put(entry.getKey(), newCheckpoint);
     }
-
-    System.out.println("CCCCCCCCCCCCCCCCCCCCCChhhhhhhhhkList " + chkpoints.toString());
   }
 }

@@ -17,6 +17,6 @@ public interface ConsumerCheckpoint {
 
   public void clear();
 
-  public void migrateCheckpoint(Map<PartitionId, PartitionId> pidMap)
+  public void migrateCheckpoint(Map<PartitionId, PartitionId> defaultAndNewPidMap)
       throws IOException;
 }
