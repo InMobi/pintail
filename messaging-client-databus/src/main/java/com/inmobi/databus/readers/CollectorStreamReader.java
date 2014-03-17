@@ -166,11 +166,6 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     while ((char) next != '\n') {
       if (next == -1) {
         LOG.info("reading EOF before a line feed ");
-        //TODO update metrics
-        if (builder.toString().isEmpty()) {
-          //TODO update metrics
-         //updateReadPathMetricForCollectorReader(true);
-        }
         return null;
       }
       builder.append((char) next);
@@ -283,9 +278,6 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
         }
       }
       line = readNextLine();
-      if (line != null) {
-        //updateReadPathMetricForCollectorReader(false);
-      }
     }
     return line;
   }

@@ -172,13 +172,9 @@ public class LocalStreamCollectorReader extends
       } else {
         // read line from next file
         LOG.info("Reading from next file " + getCurrentFile());
-       // updateReadPathMetricForCollectorReader(false);
-      }
-      line = readNextLine();
-      if (line != null) {
-        // TODO
         updateReadPathMetricForCollectorReader();
       }
+      line = readNextLine();
     }
     return line;
   }
@@ -260,25 +256,8 @@ public class LocalStreamCollectorReader extends
       return LocalStreamCollectorReader.
           getDateFromStreamFile(streamName, file.getPath().getName());
     } catch (Exception e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     }
-    /*String fileName = file.getPath().getName();
-    String [] splits = fileName.split(streamName);
-    
-     * split[0] ----> collector
-     * split[1] ----> yyyy-mm-dd-hh-mn_00000.gz
-     
-    String timeStampString;
-    if (splits.length == 2) {
-      timeStampString = splits[1].substring(1, splits[1].length() - FILE_EXTENSION.length());
-      try {
-        return CollectorFile.fileFormat.get().parse(timeStampString);
-      } catch (ParseException e1) {
-        LOG.warn("Exception occured while parsing local stream file "
-            + file.getPath() + " for the timestamp ");
-      }
-    }*/
     return null;
   }
 }
