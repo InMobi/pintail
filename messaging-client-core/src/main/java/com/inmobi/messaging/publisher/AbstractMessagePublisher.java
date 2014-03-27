@@ -56,11 +56,12 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
   void publish(String topicName, Message m,
       boolean isPublishedByAuditService) {
     Long timestamp = null;
+    Long messageLength = 0l;
     if (!isPublishedByAuditService && isAuditEnabled) {
       // Add timstamp to the message
       timestamp = new Date().getTime();
+      messageLength = Long.valueOf(m.getData().array().length);
       AuditUtil.attachHeaders(m, timestamp);
-
     }
     // initialization should happen only by one thread
     synchronized (this) {
@@ -71,7 +72,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
       getStats(topicName).accumulateInvocation();
       initTopic(topicName, getStats(topicName));
       if (!isPublishedByAuditService && isAuditEnabled) {
-        auditService.incrementReceived(topicName, timestamp);
+        auditService.incrementReceived(topicName, timestamp, messageLength);
       }
     }
     // TODO: generate headers

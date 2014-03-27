@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import com.inmobi.audit.thrift.AuditMetrics;
 import org.apache.thrift.TException;
 import org.apache.thrift.TSerializer;
 
@@ -23,12 +24,14 @@ public class SampleTestConsumer extends MockConsumer {
   private List<byte[]> createData() throws IOException, TException {
 
     Map<Long, Long> received = new HashMap<Long, Long>();
+    Map<Long, AuditMetrics> receivedMetrics = new HashMap<Long, AuditMetrics>();
     long time = System.currentTimeMillis() - 60000;
     long window = time - time % 60000;
     received.put(window, 100L);
+    receivedMetrics.put(window, new AuditMetrics(100L, 1000L));
     AuditMessage packet = new AuditMessage(System.currentTimeMillis(),
         "testTopic", "publisher", "localhost", 1, received, received, null,
-        null);
+        null, receivedMetrics, receivedMetrics);
     TSerializer serializer = new TSerializer();
     // serializer.serialize(packet);
     byte[] output = serializer.serialize(packet);

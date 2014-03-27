@@ -6,6 +6,7 @@ import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
 
+import com.inmobi.audit.thrift.AuditMetrics;
 import org.apache.thrift.TDeserializer;
 import org.apache.thrift.TException;
 import org.testng.Assert;
@@ -127,22 +128,47 @@ public class TestPublisher {
         MessagePublisherFactory.create(conf,
             MockInMemoryPublisher.class.getName());
     publisher.publish("topic", new Message("message".getBytes()));
+    publisher.publish("topic", new Message("message2".getBytes()));
+    publisher.publish("topic1", new Message("message".getBytes()));
     publisher.close();
+
     conf.set("topic.name", AuditUtil.AUDIT_STREAM_TOPIC_NAME);
     conf.set("consumer.name", "c1");
+
     MessageConsumer consumer =
         MessageConsumerFactory.create(conf,
             MockInMemoryConsumer.class.getName());
     ((MockInMemoryConsumer) consumer)
         .setSource(((MockInMemoryPublisher) (publisher)).source);
-    Message m = consumer.next();
-    TDeserializer deserializer = new TDeserializer();
-    AuditMessage audit = new AuditMessage();
-    deserializer.deserialize(audit, m.getData().array());
-    Collection<Long> values = audit.getReceived().values();
-    assert (values.iterator().hasNext());
-    assert (values.iterator().next() == 1);
 
+    int numAuditMessages = 2;
+    int index = 0;
+    while (index < numAuditMessages) {
+      Message m = consumer.next();
+      TDeserializer deserializer = new TDeserializer();
+      AuditMessage audit = new AuditMessage();
+      deserializer.deserialize(audit, m.getData().array());
+      Collection<Long> values = audit.getReceived().values();
+      assert (values.iterator().hasNext());
+      assert (audit.getReceivedMetrics().size() == 1);
+      AuditMetrics topicMetrics = audit.getReceivedMetrics().values().iterator
+          ().next();
+      if (audit.getTopic().equals("topic")) {
+        assert (values.iterator().next() == 2);
+        assert (topicMetrics.getCount() == 2);
+        assert (topicMetrics.getSize() == ("message".getBytes().length +
+            "message2".getBytes().length));
+      } else if (audit.getTopic().equals("topic1")) {
+        assert (values.iterator().next() == 1);
+        assert (topicMetrics.getCount() == 1);
+        assert (topicMetrics.getSize() == "message".getBytes().length);
+      }
+      assert (audit.getTags() != null);
+      assert (audit.getTags().size() == 1);
+      assert (audit.getTags().get(AuditService.AUDIT_VERSION_TAG).equals(String
+          .valueOf(AuditUtil.currentVersion)));
+      index++;
+    }
   }
 
   @Test
