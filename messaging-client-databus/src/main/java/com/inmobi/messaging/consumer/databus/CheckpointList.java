@@ -110,17 +110,19 @@ public class CheckpointList implements ConsumerCheckpoint {
 
   @Override
   public void migrateCheckpoint(Map<PartitionId, PartitionId> defaultAndNewPidMap) {
+    boolean migrateRequired = false;
     for (Map.Entry<Integer, Checkpoint> entry : chkpoints.entrySet()) {
-      boolean migrateRequired = false;
       Checkpoint checkpoint = chkpoints.get(entry.getKey());
-      for (PartitionId pid : checkpoint.getPartitionsCheckpoint().keySet()) {
-        if (defaultAndNewPidMap.containsKey(pid)) {
-          migrateRequired = true;
+      if (!migrateRequired) {
+        for (PartitionId pid : checkpoint.getPartitionsCheckpoint().keySet()) {
+          if (defaultAndNewPidMap.containsKey(pid)) {
+            migrateRequired = true;
+            break;
+          }
+        }
+        if (!migrateRequired) {
           break;
         }
-      }
-      if (!migrateRequired) {
-        break;
       }
       Checkpoint newCheckpoint = new Checkpoint();
       for (Map.Entry<PartitionId, PartitionCheckpoint> partitionCkEntry :
