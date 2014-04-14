@@ -64,7 +64,7 @@ public class CheckpointList implements ConsumerCheckpoint {
       } else {
         buf.append("null");
       }
-      buf.append(", ");
+      buf.append("\n ");
     }
     return buf.toString();
   }

@@ -76,7 +76,7 @@ public class TestCollectorStreamWithEmptyFiles {
     Assert.assertEquals(((CollectorReader) preader.getReader())
         .getReader().getClass().getName(),
         CollectorStreamReader.class.getName());
-    preader.start();
+    preader.start(null);
     
     // Test reading from next file
     while (buffer.remainingCapacity() != 1) {

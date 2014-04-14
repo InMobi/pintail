@@ -84,7 +84,7 @@ public class TestPartitionReaderMovingFilesWithStopTime {
         .getReader().getClass().getName(),
         LocalStreamCollectorReader.class.getName());
 
-    preader.start();
+    preader.start(null);
     while (buffer.remainingCapacity() > 0) {
       Thread.sleep(10);
     }

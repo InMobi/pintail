@@ -108,7 +108,7 @@ public class PartitionReader {
     this.prMetrics = prMetrics;
   }
 
-  public synchronized void start() {
+  public synchronized void start(String readerNameSuffix) {
     Runnable runnable = new Runnable() {
       @Override
       public void run() {
@@ -143,7 +143,8 @@ public class PartitionReader {
         }
       }
     };
-    thread = new Thread(runnable, this.partitionId.toString());
+    thread = new Thread(runnable, this.partitionId.toString() + "_"
+        + readerNameSuffix);
     LOG.info("Starting thread " + thread.getName());
     thread.start();
   }

@@ -91,7 +91,7 @@ public abstract class TestAbstractWaitingClusterReader {
     Assert.assertEquals(((ClusterReader) preader.getReader())
         .getReader().getClass().getName(),
         DatabusStreamWaitingReader.class.getName());
-    preader.start();
+    preader.start(null);
     while (buffer.remainingCapacity() > 0) {
       Thread.sleep(10);
     }

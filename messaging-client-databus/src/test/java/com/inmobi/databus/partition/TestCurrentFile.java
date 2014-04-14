@@ -88,7 +88,7 @@ public class TestCurrentFile {
         collectorDir, streamsLocalDir, buffer, testStream,
         CollectorStreamReader.getDateFromCollectorFile(currentScribeFile), 1000,
         1000, prMetrics, null);
-    preader.start();
+    preader.start(null);
     Assert.assertTrue(buffer.isEmpty());
     FSDataOutputStream out = fs.create(
         new Path(collectorDir, currentScribeFile));
