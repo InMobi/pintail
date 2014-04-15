@@ -54,7 +54,6 @@ public abstract class AbstractMessagingDatabusConsumer
   protected Boolean startOfStream;
   private int closedReadercount;
   protected Configuration conf;
-  public Map<PartitionId, PartitionId> partitionIdMap;
   public String[] clusterNames;
 
   @Override
@@ -107,7 +106,6 @@ public abstract class AbstractMessagingDatabusConsumer
             + " commandline authentication.");
       }
     }
-    partitionIdMap = new HashMap<PartitionId, PartitionId>();
     // Read consumer id
     String consumerIdStr = config.getString(consumerIdInGroupConfig,
         DEFAULT_CONSUMER_ID);
@@ -166,10 +164,6 @@ public abstract class AbstractMessagingDatabusConsumer
     startOfStream = config.getBoolean(startOfStreamConfig,
         DEFAULT_START_OF_STREAM);
     closedReadercount = 0;
-  }
-
-  public Map<PartitionId, PartitionId> getPartitionIdMap() {
-    return partitionIdMap;
   }
 
   protected boolean isValidConfiguration() {
@@ -390,8 +384,8 @@ public abstract class AbstractMessagingDatabusConsumer
 
   protected void parseClusterNamesAndMigrateCheckpoint(ClientConfig config,
       String[] rootDirStrs) {
-
-    preparePartitionIdMap(config, rootDirStrs, clusterNames);
+    Map<PartitionId, PartitionId> partitionIdMap = new HashMap<PartitionId, PartitionId>();
+    preparePartitionIdMap(config, rootDirStrs, clusterNames, partitionIdMap);
 
     /*
      * Migrate if require
@@ -407,7 +401,8 @@ public abstract class AbstractMessagingDatabusConsumer
    * modifying the cluster names with the user provided cluster names
    */
   protected void preparePartitionIdMap(ClientConfig config,
-      String[] rootDirStrs, String [] clusterNames) {
+      String[] rootDirStrs, String [] clusterNames,
+      Map<PartitionId, PartitionId> partitionIdMap) {
     String clusterNameStr = config.getString(clustersNameConfig);
     if (clusterNameStr != null) {
       String [] clusterNameStrs = clusterNameStr.split(",");
