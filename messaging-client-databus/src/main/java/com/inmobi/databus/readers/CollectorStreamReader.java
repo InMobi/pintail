@@ -185,9 +185,9 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     try {
       return CollectorStreamReader.getDateFromCollectorFile(
           getCurrentFile().getName());
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+    } catch (IOException exception) {
+      LOG.info("Not able to get timestamp from " + getCurrentFile() +
+          " file " + exception);
     }
     return null;
   }

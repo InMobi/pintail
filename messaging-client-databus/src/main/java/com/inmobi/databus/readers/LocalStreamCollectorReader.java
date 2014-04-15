@@ -255,8 +255,9 @@ public class LocalStreamCollectorReader extends
     try {
       return LocalStreamCollectorReader.
           getDateFromStreamFile(streamName, file.getPath().getName());
-    } catch (Exception e) {
-      e.printStackTrace();
+    } catch (Exception exception) {
+      LOG.info("Not able to get timestamp from " + file.getPath() +
+          " file " + exception);
     }
     return null;
   }

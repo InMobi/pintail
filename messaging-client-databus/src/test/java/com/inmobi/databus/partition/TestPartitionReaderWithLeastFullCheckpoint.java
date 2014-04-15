@@ -114,7 +114,6 @@ public class TestPartitionReaderWithLeastFullCheckpoint extends TestAbstractClus
             databusFiles[5]).getTime());
   }
 
-// TODO fix the test
   @Test
   public void testDeltaCheckpointWithStoptime() throws Exception {
     buffer.clear();

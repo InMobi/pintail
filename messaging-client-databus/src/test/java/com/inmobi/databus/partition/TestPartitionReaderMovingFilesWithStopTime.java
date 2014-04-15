@@ -1,6 +1,8 @@
 package com.inmobi.databus.partition;
 
 import java.io.IOException;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.hadoop.conf.Configuration;
@@ -148,6 +150,14 @@ public class TestPartitionReaderMovingFilesWithStopTime {
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 600);
     Assert.assertEquals(prMetrics.getSwitchesFromLocalToCollector(), 1);
     Assert.assertEquals(prMetrics.getSwitchesFromCollectorToLocal(), 1);
-    //Assert.assertEquals(prMetrics.getCurrentReadingDirTimestamp(), LocalStreamCollectorReader.getDateF);
+    Assert.assertEquals(prMetrics.getCurrentMinuteBeingRead(),
+        getPrevTimeStamp(CollectorStreamReader.getDateFromCollectorFile(files[6])).getTime());
+  }
+
+  private Date getPrevTimeStamp(Date currentFileTimeStamp) {
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(currentFileTimeStamp);
+    cal.add(Calendar.MINUTE, -1);
+    return cal.getTime();
   }
 }

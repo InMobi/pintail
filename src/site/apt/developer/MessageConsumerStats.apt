@@ -42,6 +42,14 @@ cumulativeNanosForFecthMessage|The cumulative time in nano seconds to fetch the 
 *----+--+
 numberRecordReaders|Number of ./RecordReaders.htmlRecordReaders created(In case of stream type COLLECTOR = 0)|
 *----+--+
+currentMinuteBeingRead | gives the time corresponding to the current minute directory being read|
+*----+--+
+currentDirectoryLagTime | gives the time difference in minutes from current system time to current minute directory being read|
+*----+--+
+lastWaitTimeForNewPath | gives the last time at which partition reader waited for a path|
+*----+--+
+readerWaitLagTime | gives the time difference in minutes from current system time to the last time when reader waited for a new path|
+*----+--+
 \<fsuri\>-list|Number of List ops for file systerm of URI \<fsuri\>|
 *----+--+
 \<fsuri\>-open|Number of Open ops for file system of URI \<fsuri\>(In case of stream type LOCAL/MERGED = 0)|
@@ -50,6 +58,7 @@ numberRecordReaders|Number of ./RecordReaders.htmlRecordReaders created(In case 
 *----+--+
 \<fsuri\>-exists|Number of exists calls for file system \<fsuri\>|
 *----+--+
+
 
  <<DatabusConsumer>> for the stream type <<COLLECTOR>>, has the following stats more, along with above.
 
