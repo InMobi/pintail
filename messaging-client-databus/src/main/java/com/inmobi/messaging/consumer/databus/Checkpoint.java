@@ -160,9 +160,14 @@ public class Checkpoint implements Writable, ConsumerCheckpoint {
     partitionsChkPoint.clear();
   }
 
-  @Override
-  public void migrateCheckpoint(
-      Map<PartitionId, PartitionId> defaultAndNewPidMap) {
-   // TODO
+  public void migrateCheckpoint(PartitionCheckpoint pck,
+      PartitionId defaultPid, PartitionId newPid) {
+    /*
+     * Create a checkpoint with new pid and partition checkpoint.
+     * Remove an entry of default/old pid from checkpoint as it does not
+     * useful anymore
+     */
+    set(newPid, pck);
+    remove(defaultPid);
   }
 }

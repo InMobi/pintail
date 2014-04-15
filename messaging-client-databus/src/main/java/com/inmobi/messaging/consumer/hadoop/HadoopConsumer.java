@@ -17,7 +17,6 @@ import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 public class HadoopConsumer extends AbstractMessagingDatabusConsumer
     implements HadoopConsumerConfig {
 
-  private String[] clusterNames;
   private Path[] rootDirs;
   private FileSystem[] fileSystems;
   private String inputFormatClassName;
@@ -44,18 +43,7 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
       clusterNames[i] = clusterNamePrefix + i;
     }
 
-    /*
-     * construct a map with default pid as key and
-     * new pid (for a given cluster name) as value
-     */
-    preparePartitionIdMap(config, rootDirStrs, clusterNames);
-
-    /*
-     * Migrate if require
-     */
-    if (!partitionIdMap.isEmpty()) {
-      currentCheckpoint.migrateCheckpoint(partitionIdMap);
-    }
+    parseClusterNamesAndMigrateCheckpoint(config, rootDirStrs);
 
     inputFormatClassName = config.getString(inputFormatClassNameConfig,
         DEFAULT_INPUT_FORMAT_CLASSNAME);

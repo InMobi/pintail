@@ -108,7 +108,6 @@ public class CheckpointList implements ConsumerCheckpoint {
     chkpoints.clear();
   }
 
-  @Override
   public void migrateCheckpoint(Map<PartitionId, PartitionId> defaultAndNewPidMap) {
     boolean migrateRequired = false;
     for (Map.Entry<Integer, Checkpoint> entry : chkpoints.entrySet()) {

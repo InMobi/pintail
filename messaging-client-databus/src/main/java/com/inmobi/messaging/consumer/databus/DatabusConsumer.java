@@ -68,7 +68,6 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
   public static String clusterNamePrefix = "databusCluster";
   private Boolean readFromLocalStream;
   private int numList = 0;
-  private String[] clusterNames;
 
   protected void initializeConfig(ClientConfig config) throws IOException {
     String type = config.getString(databusStreamType, DEFAULT_STREAM_TYPE);
@@ -104,10 +103,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
     if (streamType.equals(StreamType.COLLECTOR)) {
       getClusterNames(config, rootDirSplits);
     } else {
-      preparePartitionIdMap(config, rootDirSplits, clusterNames);
-      if (!partitionIdMap.isEmpty()) {
-        currentCheckpoint.migrateCheckpoint(partitionIdMap);
-      }
+      parseClusterNamesAndMigrateCheckpoint(config, rootDirSplits);
     }
     LOG.info("Databus consumer initialized with streamName:" + topicName
         + " consumerName:" + consumerName + " startTime:" + startTime
@@ -173,11 +169,9 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
                 collector);
             pck = partitionsChkPoints.get(defaultPid);
             /*
-             * create a checkpoint with new pid and partition id
-             * remove an entry of default pid as it does not useful anymore
+             * Migrate to new checkpoint
              */
-            ((Checkpoint) currentCheckpoint).set(id, pck);
-            ((Checkpoint) currentCheckpoint).remove(defaultPid);
+            ((Checkpoint) currentCheckpoint).migrateCheckpoint(pck, defaultPid, id);
           }
           Date partitionTimestamp = getPartitionTimestamp(id, pck);
           LOG.debug("Creating partition " + id);

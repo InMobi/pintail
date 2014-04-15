@@ -55,6 +55,7 @@ public abstract class AbstractMessagingDatabusConsumer
   private int closedReadercount;
   protected Configuration conf;
   public Map<PartitionId, PartitionId> partitionIdMap;
+  public String[] clusterNames;
 
   @Override
   protected void init(ClientConfig config) throws IOException {
@@ -387,6 +388,24 @@ public abstract class AbstractMessagingDatabusConsumer
         consumerNumber);
   }
 
+  protected void parseClusterNamesAndMigrateCheckpoint(ClientConfig config,
+      String[] rootDirStrs) {
+
+    preparePartitionIdMap(config, rootDirStrs, clusterNames);
+
+    /*
+     * Migrate if require
+     */
+    if (!partitionIdMap.isEmpty()) {
+      ((CheckpointList) currentCheckpoint).migrateCheckpoint(partitionIdMap);
+    }
+  }
+
+  /*
+   * construct a map with default pid as key and
+   * new pid (for a given cluster name) as value and
+   * modifying the cluster names with the user provided cluster names
+   */
   protected void preparePartitionIdMap(ClientConfig config,
       String[] rootDirStrs, String [] clusterNames) {
     String clusterNameStr = config.getString(clustersNameConfig);
