@@ -468,7 +468,7 @@ public class TestPartitionReaderCollectorStream {
     Assert.assertEquals(prMetrics.getSwitchesFromCollectorToLocal(), 0);
     Assert.assertEquals(prMetrics.getSwitchesFromLocalToCollector(), 0);
     Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
-    Assert.assertEquals(prMetrics.getReadPathTime(),
+    Assert.assertEquals(prMetrics.getCurrentMinuteBeingRead(),
         getPrevTimeStamp(CollectorStreamReader.getDateFromCollectorFile(files[2])).getTime());
 
   }
@@ -581,6 +581,6 @@ public class TestPartitionReaderCollectorStream {
     Assert.assertEquals(prMetrics.getSwitchesFromCollectorToLocal(), 0);
     Assert.assertEquals(prMetrics.getSwitchesFromLocalToCollector(), 0);
     Assert.assertEquals(prMetrics.getCumulativeNanosForFetchMessage(), 0);
-    Assert.assertEquals(prMetrics.getReadPathTime(), 0);
+    Assert.assertEquals(prMetrics.getCurrentMinuteBeingRead(), 0);
   }
 }

@@ -39,6 +39,7 @@ public abstract class StreamReader<T extends StreamFile> {
   protected boolean noNewFiles = false; // this is purely for tests
   protected FileStatus currentFile;
   protected long currentLineNum = 0;
+  private static final long NUMBER_OF_MILLI_SECONDS_IN_MINUTE = 60 * 1000 * 1000;
 
   protected StreamReader(PartitionId partitionId, FileSystem fs,
       Path streamDir, long waitTimeForCreate,
@@ -317,7 +318,14 @@ public abstract class StreamReader<T extends StreamFile> {
     LOG.info("Waiting for next file creation");
     Thread.sleep(waitTimeForCreate);
     metrics.incrementWaitTimeUnitsNewFile();
-    metrics.setLastWaitTimeForNewPath(System.currentTimeMillis());
+    long currenTimeInMillis = System.currentTimeMillis();
+    metrics.setReaderWaitLagTime((currenTimeInMillis
+        - getLastWaitTimeForNewPathMetric()) / NUMBER_OF_MILLI_SECONDS_IN_MINUTE);
+    metrics.setLastWaitTimeForNewPath(currenTimeInMillis);
+  }
+
+  private long getLastWaitTimeForNewPathMetric() {
+    return metrics.getLastWaitTimeForNewPath();
   }
 
   private void waitForNextFileCreation() throws IOException,
@@ -438,12 +446,14 @@ public abstract class StreamReader<T extends StreamFile> {
     return false;
   }
 
-  protected void setReadPathMetric(Date pathTimeStamp) {
-    metrics.setReadPathTimeStamp(pathTimeStamp);
+  protected void setReadPathMetric(Date currentMinBeingRead) {
+    metrics.setCurrentDirectoryLagTime((currentMinBeingRead.getTime()
+        - getCurrentMinBeingReadMetric()) / NUMBER_OF_MILLI_SECONDS_IN_MINUTE);
+    metrics.setCurrentMinBeingRead(currentMinBeingRead);
   }
 
-  protected long getReadCurrentPathTimeMetric() {
-    return metrics.getReadPathTime();
+  protected long getCurrentMinBeingReadMetric() {
+    return metrics.getCurrentMinuteBeingRead();
   }
 
   public void updateReadPathMetricForCollectorReader() {

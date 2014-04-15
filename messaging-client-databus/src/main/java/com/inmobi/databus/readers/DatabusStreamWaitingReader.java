@@ -178,7 +178,7 @@ public class DatabusStreamWaitingReader
   }
 
   private boolean isUpdateRequired(Date currentTimeStamp) {
-    return currentTimeStamp.getTime() > getReadCurrentPathTimeMetric();
+    return currentTimeStamp.getTime() > getCurrentMinBeingReadMetric();
   }
 
   /*

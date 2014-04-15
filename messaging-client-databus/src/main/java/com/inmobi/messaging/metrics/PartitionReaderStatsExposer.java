@@ -19,8 +19,10 @@ public class PartitionReaderStatsExposer extends
   public static final String OPEN = "open";
   public static final String GET_FILE_STATUS = "getFileStatus";
   public static final String EXISTS = "exists";
-  public static final String READ_PATH_IN_TIME="readPathInTime";
-  public static final String LAST_WAIT_TIME_FOR_NEW_PATH="lastWaitTimeForNewPath";
+  public static final String CURRENT_MINUTE_BEING_READ= "currentMinuteBeingRead";
+  public static final String CURRENT_DIRECTORY_LAG_TIME= "currentDirectoryLagTime";
+  public static final String LAST_WAIT_TIME_FOR_NEW_PATH= "lastWaitTimeForNewPath";
+  public static final String READER_WAIT_LAG_TIME = "readerWaitLagTime";
 
   private final AtomicLong numMessagesReadFromSource = new AtomicLong(0);
   private final AtomicLong numMessagesAddedToBuffer = new AtomicLong(0);
@@ -35,8 +37,10 @@ public class PartitionReaderStatsExposer extends
   private final String pid;
   private final String fsUri;
   private final String FS_LIST, FS_OPEN, FS_GET_FILE_STATUS, FS_EXISTS;
-  private final AtomicLong readPathInTime = new AtomicLong(0);
+  private final AtomicLong currentMinuteBeingRead = new AtomicLong(0);
+  private final AtomicLong currentDirectoryLagTime = new AtomicLong(0);
   private final AtomicLong lastWaitTimeForNewPath = new AtomicLong(0);
+  private final AtomicLong readerWaitLagTime = new AtomicLong(0);
 
   public PartitionReaderStatsExposer(String topicName, String consumerName,
       String pid, int consumerNumber, String fsUri) {
@@ -89,12 +93,20 @@ public class PartitionReaderStatsExposer extends
     numberRecordReaders.incrementAndGet();
   }
 
-  public void setReadPathTimeStamp(Date currentpathTimeStamp) {
-    readPathInTime.set(currentpathTimeStamp.getTime());
+  public void setCurrentMinBeingRead(Date currentpathTimeStamp) {
+    currentMinuteBeingRead.set(currentpathTimeStamp.getTime());
+  }
+
+  public void setCurrentDirectoryLagTime(long currentDirLagTimeInMins) {
+    currentDirectoryLagTime.set(currentDirLagTimeInMins);
   }
 
   public void setLastWaitTimeForNewPath(long lastWaitTime) {
     lastWaitTimeForNewPath.set(lastWaitTime);
+  }
+
+  public void setReaderWaitLagTime(long waitLagTime) {
+    readerWaitLagTime.set(waitLagTime);
   }
 
   @Override
@@ -109,8 +121,10 @@ public class PartitionReaderStatsExposer extends
     map.put(FS_OPEN, getOpenOps());
     map.put(FS_GET_FILE_STATUS, getFileStatusOps());
     map.put(FS_EXISTS, getExistsOps());
-    map.put(READ_PATH_IN_TIME, getReadPathTime());
+    map.put(CURRENT_MINUTE_BEING_READ, getCurrentMinuteBeingRead());
+    map.put(CURRENT_DIRECTORY_LAG_TIME, getCurrentDirectoryLagTime());
     map.put(LAST_WAIT_TIME_FOR_NEW_PATH, getLastWaitTimeForNewPath());
+    map.put(READER_WAIT_LAG_TIME, getReaderWaitLagTime());
   }
 
   @Override
@@ -159,11 +173,19 @@ public class PartitionReaderStatsExposer extends
     return existsOps.get();
   }
 
-  public long getReadPathTime() {
-    return readPathInTime.get();
+  public long getCurrentMinuteBeingRead() {
+    return currentMinuteBeingRead.get();
+  }
+
+  public long getCurrentDirectoryLagTime() {
+    return currentDirectoryLagTime.get();
   }
 
   public long getLastWaitTimeForNewPath() {
     return lastWaitTimeForNewPath.get();
+  }
+
+  public long getReaderWaitLagTime() {
+    return readerWaitLagTime.get();
   }
 }

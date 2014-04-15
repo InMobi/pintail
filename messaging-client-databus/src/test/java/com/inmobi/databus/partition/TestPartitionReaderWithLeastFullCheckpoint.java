@@ -109,7 +109,7 @@ public class TestPartitionReaderWithLeastFullCheckpoint extends TestAbstractClus
         isDatabusData(), expectedDeltaPchk);
     Assert.assertEquals(prMetrics.getMessagesReadFromSource(), 300);
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 300);
-    Assert.assertEquals(prMetrics.getReadPathTime(),
+    Assert.assertEquals(prMetrics.getCurrentMinuteBeingRead(),
         DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
             databusFiles[5]).getTime());
   }
@@ -160,7 +160,7 @@ public class TestPartitionReaderWithLeastFullCheckpoint extends TestAbstractClus
     QueueEntry entry = buffer.take();
     Assert.assertEquals(((DeltaPartitionCheckPoint)entry.getMessageChkpoint()).
         getDeltaCheckpoint(), expectedDeltaPchk);
-    Assert.assertEquals(prMetrics.getReadPathTime(), stopTime.getTime());
+    Assert.assertEquals(prMetrics.getCurrentMinuteBeingRead(), stopTime.getTime());
   }
 
   @Override
