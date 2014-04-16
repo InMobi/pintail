@@ -54,6 +54,7 @@ public abstract class AbstractMessagingDatabusConsumer
   protected Boolean startOfStream;
   private int closedReadercount;
   protected Configuration conf;
+  public String[] clusterNames;
 
   @Override
   protected void init(ClientConfig config) throws IOException {
@@ -105,7 +106,6 @@ public abstract class AbstractMessagingDatabusConsumer
             + " commandline authentication.");
       }
     }
-
     // Read consumer id
     String consumerIdStr = config.getString(consumerIdInGroupConfig,
         DEFAULT_CONSUMER_ID);
@@ -390,5 +390,47 @@ public abstract class AbstractMessagingDatabusConsumer
   protected AbstractMessagingClientStatsExposer getMetricsImpl() {
     return new DatabusConsumerStatsExposer(topicName, consumerName,
         consumerNumber);
+  }
+
+  protected void parseClusterNamesAndMigrateCheckpoint(ClientConfig config,
+      String[] rootDirStrs) {
+    Map<PartitionId, PartitionId> partitionIdMap = new HashMap<PartitionId, PartitionId>();
+    preparePartitionIdMap(config, rootDirStrs, clusterNames, partitionIdMap);
+
+    /*
+     * Migrate if require
+     */
+    if (!partitionIdMap.isEmpty()) {
+      ((CheckpointList) currentCheckpoint).migrateCheckpoint(partitionIdMap);
+    }
+  }
+
+  /*
+   * construct a map with default pid as key and
+   * new pid (for a given cluster name) as value and
+   * modifying the cluster names with the user provided cluster names
+   */
+  protected void preparePartitionIdMap(ClientConfig config,
+      String[] rootDirStrs, String [] clusterNames,
+      Map<PartitionId, PartitionId> partitionIdMap) {
+    String clusterNameStr = config.getString(clustersNameConfig);
+    if (clusterNameStr != null) {
+      String [] clusterNameStrs = clusterNameStr.split(",");
+      if (clusterNameStrs.length != rootDirStrs.length) {
+        throw new IllegalArgumentException("Cluster names were not specified for all root dirs."
+            + " Mismatch between number of root dirs and number of user specified cluster names");
+      }
+      // prepare a map with default pid as key and new pid as value
+      for (int i = 0; i < clusterNameStrs.length; i++) {
+        PartitionId defaultPid = new PartitionId(clusterNames[i], null);
+        clusterNames[i] = clusterNameStrs[i];
+        PartitionId newPid = new PartitionId(clusterNames[i], null);
+        if (!defaultPid.equals(newPid)) {
+          partitionIdMap.put(defaultPid, newPid);
+        }
+      }
+    } else {
+      LOG.info("using default cluster names as clustersName config is missing");
+    }
   }
 }

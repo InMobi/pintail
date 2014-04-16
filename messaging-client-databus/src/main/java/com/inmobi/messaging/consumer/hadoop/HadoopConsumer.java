@@ -2,14 +2,10 @@ package com.inmobi.messaging.consumer.hadoop;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
-import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionCheckpointList;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.partition.PartitionReader;
@@ -21,7 +17,6 @@ import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 public class HadoopConsumer extends AbstractMessagingDatabusConsumer
     implements HadoopConsumerConfig {
 
-  private String[] clusterNames;
   private Path[] rootDirs;
   private FileSystem[] fileSystems;
   private String inputFormatClassName;
@@ -48,8 +43,11 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
       clusterNames[i] = clusterNamePrefix + i;
     }
 
+    parseClusterNamesAndMigrateCheckpoint(config, rootDirStrs);
+
     inputFormatClassName = config.getString(inputFormatClassNameConfig,
         DEFAULT_INPUT_FORMAT_CLASSNAME);
+
   }
 
   /**
@@ -63,6 +61,7 @@ public class HadoopConsumer extends AbstractMessagingDatabusConsumer
 
       // create partition id
       PartitionId id = new PartitionId(clusterName, null);
+
       // Get the partition checkpoint list from consumer checkpoint
       PartitionCheckpointList partitionCheckpointList = 
           ((CheckpointList) currentCheckpoint).preaprePartitionCheckPointList(id);

@@ -3,7 +3,6 @@ package com.inmobi.messaging.consumer.databus;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -85,10 +84,11 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
     } else {
       throw new IllegalArgumentException("Databus root directory not specified");
     }
-
+    clusterNames = new String[rootDirSplits.length];
     rootDirs = new Path[rootDirSplits.length];
     for (int i = 0; i < rootDirSplits.length; i++) {
       rootDirs[i] = new Path(rootDirSplits[i]);
+      clusterNames[i] = getDefaultClusterName(i);
     }
     if (streamType.equals(StreamType.MERGED)) {
       if (rootDirs.length > 1) {
@@ -96,10 +96,35 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
             + " allowed for merge stream");
       }
     }
+    /*
+     * Parse the clusterNames config string and
+     * migrate to new checkpoint if required
+     */
+    if (streamType.equals(StreamType.COLLECTOR)) {
+      getClusterNames(config, rootDirSplits);
+    } else {
+      parseClusterNamesAndMigrateCheckpoint(config, rootDirSplits);
+    }
     LOG.info("Databus consumer initialized with streamName:" + topicName
         + " consumerName:" + consumerName + " startTime:" + startTime
         + " queueSize:" + bufferSize + " checkPoint:" + currentCheckpoint
         + " streamType:" + streamType);
+  }
+
+  private void getClusterNames(ClientConfig config, String[] rootDirSplits) {
+    String clusterNameStr = config.getString(clustersNameConfig);
+    if (clusterNameStr != null) {
+      String [] clusterNameStrs = clusterNameStr.split(",");
+      if (clusterNameStrs.length != rootDirSplits.length) {
+        throw new IllegalArgumentException("Cluster names were not specified for all root dirs."
+            + " Mismatch between number of root dirs and number of user specified cluster names");
+      }
+      for (int i = 0; i < clusterNameStrs.length; i++) {
+        clusterNames[i] = clusterNameStrs[i];
+      }
+    } else {
+      LOG.info("using default cluster names as clustersName config is missing");
+    }
   }
 
   private List<String> getCollectors(FileSystem fs, Path baseDir)
@@ -125,15 +150,33 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
       String fsuri = fs.getUri().toString();
       Path streamDir = DatabusUtil.getStreamDir(streamType, rootDirs[i],
           topicName);
-      String clusterName = clusterNamePrefix + i;
+      String clusterName;
+      if (clusterNames != null) {
+        clusterName = clusterNames[i];
+      } else {
+        clusterName = getDefaultClusterName(i);
+      }
       if (streamType.equals(StreamType.COLLECTOR)) {
         Map<PartitionId, PartitionCheckpoint> partitionsChkPoints =
             ((Checkpoint) currentCheckpoint).getPartitionsCheckpoint();
         LOG.info("Creating partition readers for all the collectors");
         for (String collector : getCollectors(fs, streamDir)) {
           PartitionId id = new PartitionId(clusterName, collector);
-          Date partitionTimestamp = getPartitionTimestamp(id,
-              partitionsChkPoints.get(id));
+          PartitionCheckpoint pck = partitionsChkPoints.get(id);
+          /*
+           * Migration of checkpoint required in this case
+           * If user provides a cluster name and partition checkpoint is null
+           */
+          if (!clusterName.equals(getDefaultClusterName(i)) && pck == null) {
+            PartitionId defaultPid = new PartitionId(getDefaultClusterName(i),
+                collector);
+            pck = partitionsChkPoints.get(defaultPid);
+            /*
+             * Migrate to new checkpoint
+             */
+            ((Checkpoint) currentCheckpoint).migrateCheckpoint(pck, defaultPid, id);
+          }
+          Date partitionTimestamp = getPartitionTimestamp(id, pck);
           LOG.debug("Creating partition " + id);
           PartitionReaderStatsExposer collectorMetrics = new
               CollectorReaderStatsExposer(topicName, consumerName,
@@ -147,11 +190,10 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
           for (int c = 0; c < numList; c++) {
             collectorMetrics.incrementListOps();
           }
-          readers.put(id, new PartitionReader(id, partitionsChkPoints.get(id),
-              conf, fs, new Path(streamDir, collector),
-              streamsLocalDir, buffer, topicName, partitionTimestamp,
-              waitTimeForFlush, waitTimeForFileCreate, collectorMetrics,
-              stopTime));
+          readers.put(id, new PartitionReader(id, pck, conf, fs,
+              new Path(streamDir, collector), streamsLocalDir, buffer, topicName,
+              partitionTimestamp, waitTimeForFlush, waitTimeForFileCreate,
+              collectorMetrics, stopTime));
           messageConsumedMap.put(id, false);
           numList = 0;
         }
@@ -175,6 +217,10 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
         messageConsumedMap.put(id, false);
       }
     }
+  }
+
+  private String getDefaultClusterName(int i) {
+    return clusterNamePrefix + i;
   }
 
   Path[] getRootDirs() {

@@ -62,4 +62,7 @@ public interface MessagingConsumerConfig {
   public static final String readFromLocalStreamConfig =
       "messaging.consumer.read.localstream";
   public static final boolean DEFAULT_READ_LOCAL_STREAM = true;
+
+  public static final String clustersNameConfig =
+      "messaging.consumer.clusternames";
 }

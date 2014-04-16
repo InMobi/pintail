@@ -6,7 +6,6 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import com.inmobi.databus.partition.DeltaPartitionCheckPoint;
-
 import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionCheckpointList;
 import com.inmobi.databus.partition.PartitionId;
@@ -107,5 +106,34 @@ public class CheckpointList implements ConsumerCheckpoint {
   @Override
   public void clear() {
     chkpoints.clear();
+  }
+
+  public void migrateCheckpoint(Map<PartitionId, PartitionId> defaultAndNewPidMap) {
+    boolean migrateRequired = false;
+    for (Map.Entry<Integer, Checkpoint> entry : chkpoints.entrySet()) {
+      Checkpoint checkpoint = chkpoints.get(entry.getKey());
+      if (!migrateRequired) {
+        for (PartitionId pid : checkpoint.getPartitionsCheckpoint().keySet()) {
+          if (defaultAndNewPidMap.containsKey(pid)) {
+            migrateRequired = true;
+            break;
+          }
+        }
+        if (!migrateRequired) {
+          break;
+        }
+      }
+      Checkpoint newCheckpoint = new Checkpoint();
+      for (Map.Entry<PartitionId, PartitionCheckpoint> partitionCkEntry :
+        checkpoint.getPartitionsCheckpoint().entrySet()) {
+        PartitionId defaultPid = partitionCkEntry.getKey();
+        if (defaultAndNewPidMap.containsKey(defaultPid)) {
+          PartitionCheckpoint pck = partitionCkEntry.getValue();
+          PartitionId newPid = defaultAndNewPidMap.get(defaultPid);
+          newCheckpoint.set(newPid, pck);
+        }
+      }
+      chkpoints.put(entry.getKey(), newCheckpoint);
+    }
   }
 }

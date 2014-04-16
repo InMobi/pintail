@@ -50,6 +50,11 @@ public class Checkpoint implements Writable, ConsumerCheckpoint {
     partitionsChkPoint.put(partitionId, (PartitionCheckpoint) partCheckpoint);
   }
 
+
+  public void remove(PartitionId pid) {
+    partitionsChkPoint.remove(pid);
+  }
+
   @Override
   public void read(CheckpointProvider checkpointProvider, String key)
       throws IOException {
@@ -153,5 +158,16 @@ public class Checkpoint implements Writable, ConsumerCheckpoint {
   @Override
   public void clear() {
     partitionsChkPoint.clear();
+  }
+
+  public void migrateCheckpoint(PartitionCheckpoint pck,
+      PartitionId defaultPid, PartitionId newPid) {
+    /*
+     * Create a checkpoint with new pid and partition checkpoint.
+     * Remove an entry of default/old pid from checkpoint as it does not
+     * useful anymore
+     */
+    set(newPid, pck);
+    remove(defaultPid);
   }
 }

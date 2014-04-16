@@ -11,7 +11,6 @@ import org.apache.hadoop.fs.Path;
 
 import com.inmobi.databus.files.DatabusStreamFile;
 import com.inmobi.databus.readers.CollectorStreamReader;
-import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 import com.inmobi.databus.readers.LocalStreamCollectorReader;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.databus.MessageCheckpoint;

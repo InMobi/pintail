@@ -49,6 +49,9 @@ MessageConsumerConfig
 *--------+-----------+-------------+-------------+
 |messaging.consumer.group.membership |	Optional | ConsumerNumber in the consumer group. (consumerNumber/totalConsumers) |	1/1 |
 *--------+-----------+-------------+-------------+
+|messaging.consumer.clusternames   | Optional    | user specific cluster name for each root dir.| for databus consumer : databusCluster0,databusCluster1,... \ |
+|                                  |             | This property is <<Mondatory>> in case if user wants to remove a rootdir| hadoop consumer : hadoopcluster0,hadoopcluster1,... |
+*--------+-----------+-------------+-------------+
 
 * DatabusConsumer configuraton properties
 
