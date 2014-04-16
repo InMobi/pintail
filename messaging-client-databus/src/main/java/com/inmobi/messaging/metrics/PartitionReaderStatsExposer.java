@@ -39,9 +39,7 @@ public class PartitionReaderStatsExposer extends
   private final String fsUri;
   private final String FS_LIST, FS_OPEN, FS_GET_FILE_STATUS, FS_EXISTS;
   private final AtomicLong latestMinuteAlreadyRead = new AtomicLong(0);
-  private final AtomicLong latestDirectoryLagTime = new AtomicLong(0);
   private final AtomicLong lastWaitTimeForNewFile = new AtomicLong(0);
-  private final AtomicLong readerWaitLagTime = new AtomicLong(0);
 
   public PartitionReaderStatsExposer(String topicName, String consumerName,
       String pid, int consumerNumber, String fsUri) {
