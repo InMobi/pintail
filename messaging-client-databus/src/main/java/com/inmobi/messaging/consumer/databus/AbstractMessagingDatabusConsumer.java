@@ -406,7 +406,10 @@ public abstract class AbstractMessagingDatabusConsumer
     String clusterNameStr = config.getString(clustersNameConfig);
     if (clusterNameStr != null) {
       String [] clusterNameStrs = clusterNameStr.split(",");
-      assert clusterNameStrs.length == rootDirStrs.length;
+      if (clusterNameStrs.length != rootDirStrs.length) {
+        throw new IllegalArgumentException("Cluster names were not specified for all root dirs."
+            + " Mismatch between number of root dirs and number of user specified cluster names");
+      }
       // prepare a map with default pid as key and new pid as value
       for (int i = 0; i < clusterNameStrs.length; i++) {
         PartitionId defaultPid = new PartitionId(clusterNames[i], null);

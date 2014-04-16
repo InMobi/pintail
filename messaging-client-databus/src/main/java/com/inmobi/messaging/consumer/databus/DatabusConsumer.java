@@ -115,7 +115,10 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
     String clusterNameStr = config.getString(clustersNameConfig);
     if (clusterNameStr != null) {
       String [] clusterNameStrs = clusterNameStr.split(",");
-      assert clusterNameStrs.length == rootDirSplits.length;
+      if (clusterNameStrs.length != rootDirSplits.length) {
+        throw new IllegalArgumentException("Cluster names were not specified for all root dirs."
+            + " Mismatch between number of root dirs and number of user specified cluster names");
+      }
       for (int i = 0; i < clusterNameStrs.length; i++) {
         clusterNames[i] = clusterNameStrs[i];
       }
