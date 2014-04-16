@@ -163,6 +163,7 @@ public abstract class TestAbstractWaitingClusterReader {
     Assert.assertEquals(prMetrics.getMessagesAddedToBuffer(), 500);
     Assert.assertTrue(prMetrics.getWaitTimeUnitsNewFile() > 0);
     Assert.assertTrue(prMetrics.getCumulativeNanosForFetchMessage() > 0);
+    Assert.assertTrue(prMetrics.getLastWaitTimeForNewFile() > 0);
   }
 
   private Date getTimeStampFromFile(Path dir) {

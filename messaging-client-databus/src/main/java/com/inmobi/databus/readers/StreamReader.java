@@ -2,6 +2,7 @@ package com.inmobi.databus.readers;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.Date;
 
 import org.apache.commons.logging.Log;
@@ -17,6 +18,7 @@ import com.inmobi.databus.partition.PartitionCheckpoint;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
+
 import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.fs.s3.S3FileSystem;
 import org.apache.hadoop.fs.s3native.NativeS3FileSystem;
@@ -70,6 +72,8 @@ public abstract class StreamReader<T extends StreamFile> {
   }
 
   protected abstract FileMap<T> createFileMap() throws IOException;
+
+  protected abstract Date getTimeStampFromCollectorStreamFile(FileStatus file);
 
   public void build() throws IOException {
     fileMap.build();
@@ -313,6 +317,7 @@ public abstract class StreamReader<T extends StreamFile> {
     LOG.info("Waiting for next file creation");
     Thread.sleep(waitTimeForCreate);
     metrics.incrementWaitTimeUnitsNewFile();
+    metrics.setLastWaitTimeForNewFile(System.currentTimeMillis());
   }
 
   private void waitForNextFileCreation() throws IOException,
@@ -431,5 +436,25 @@ public abstract class StreamReader<T extends StreamFile> {
       return true;
     }
     return false;
+  }
+
+  protected void setLatestMinuteAlreadyRead(Date currentMinBeingRead) {
+    metrics.setLatestMinuteAlreadyRead(currentMinBeingRead);
+  }
+
+  protected long getLatestMinuteAlreadyRead() {
+    return metrics.getLatestMinuteAlreadyRead();
+  }
+
+  public void updateLatestMinuteAlreadyReadForCollectorReader() {
+    Date currentFileTimeStamp = getTimeStampFromCollectorStreamFile(currentFile);
+    setLatestMinuteAlreadyRead(getPrevTimeStamp(currentFileTimeStamp));
+  }
+
+  private Date getPrevTimeStamp(Date currentFileTimeStamp) {
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(currentFileTimeStamp);
+    cal.add(Calendar.MINUTE, -1);
+    return cal.getTime();
   }
 }

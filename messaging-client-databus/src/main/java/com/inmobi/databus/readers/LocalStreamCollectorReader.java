@@ -28,6 +28,7 @@ public class LocalStreamCollectorReader extends
 
   private static final Log LOG = LogFactory.getLog(
       LocalStreamCollectorReader.class);
+
   private final String collector;
   private final String streamName;
 
@@ -171,6 +172,7 @@ public class LocalStreamCollectorReader extends
       } else {
         // read line from next file
         LOG.info("Reading from next file " + getCurrentFile());
+        updateLatestMinuteAlreadyReadForCollectorReader();
       }
       line = readNextLine();
     }
@@ -246,4 +248,17 @@ public class LocalStreamCollectorReader extends
     return setNextHigher(localStreamFileName);
   }
 
+  /*
+   * Returns the time stamp for a given file
+   */
+  protected Date getTimeStampFromCollectorStreamFile(FileStatus file) {
+    try {
+      return LocalStreamCollectorReader.
+          getDateFromStreamFile(streamName, file.getPath().getName());
+    } catch (Exception exception) {
+      LOG.info("Not able to get timestamp from " + file.getPath() +
+          " file " + exception);
+    }
+    return null;
+  }
 }

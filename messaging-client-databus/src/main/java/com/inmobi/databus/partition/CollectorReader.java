@@ -220,6 +220,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       if (ret) {
         LOG.info("Reading file " + reader.getCurrentFile()
             + " and lineNum:" + reader.getCurrentLineNum());
+        reader.updateLatestMinuteAlreadyReadForCollectorReader();
         line = super.readLine();
       } else {
         return null;

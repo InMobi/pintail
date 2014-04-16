@@ -180,6 +180,17 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     }
   }
 
+  @Override
+  protected Date getTimeStampFromCollectorStreamFile(FileStatus file) {
+    try {
+      return CollectorStreamReader.getDateFromCollectorFile(
+          getCurrentFile().getName());
+    } catch (IOException exception) {
+      LOG.info("Not able to get timestamp from " + getCurrentFile() +
+          " file " + exception);
+    }
+    return null;
+  }
   protected Message readNextLine()
       throws IOException {
     Message line = null;
@@ -241,6 +252,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
           if (isWithinStream(getCurrentFile().getName()) || !isLocalStreamAvailable) {
             LOG.info("Staying in collector stream as earlier files still exist");
             startFromNextHigherAndOpen(getCurrentFile().getName());
+            updateLatestMinuteAlreadyReadForCollectorReader();
             LOG.info("Reading from the next higher file");
           } else {
             LOG.info("Current file would have been moved to Local Stream");
@@ -256,6 +268,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
         if (moveToNext
             || (lastFile != null && !(lastFile.equals(getCurrentFile())))) {
           setNextFile();
+          updateLatestMinuteAlreadyReadForCollectorReader();
           LOG.info("Reading from next file: " + getCurrentFile());
         } else {
           LOG.info("Reading from same file before moving to next");

@@ -1,10 +1,12 @@
 package com.inmobi.messaging.metrics;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class PartitionReaderStatsExposer extends
     DatabusConsumerStatsExposer {
+  private static final long NUMBER_OF_MILLI_SECONDS_IN_MINUTE = 60 * 1000;
   public static final String MESSAGES_READ_FROM_SOURCE =
       "messagesReadFromSource";
   public static final String MESSAGES_ADDED_TO_BUFFER = "messagesAddedToBuffer";
@@ -18,6 +20,10 @@ public class PartitionReaderStatsExposer extends
   public static final String OPEN = "open";
   public static final String GET_FILE_STATUS = "getFileStatus";
   public static final String EXISTS = "exists";
+  public static final String LATEST_MINUTE_ALREADY_READ= "latestMinuteAlreadyRead";
+  public static final String LATEST_DIRECTORY_LAG_TIME= "latestDirectoryLagTime";
+  public static final String LAST_WAIT_TIME_FOR_NEW_FILE= "lastWaitTimeForNewFile";
+  public static final String READER_WAIT_LAG_TIME = "readerWaitLagTime";
 
   private final AtomicLong numMessagesReadFromSource = new AtomicLong(0);
   private final AtomicLong numMessagesAddedToBuffer = new AtomicLong(0);
@@ -32,6 +38,8 @@ public class PartitionReaderStatsExposer extends
   private final String pid;
   private final String fsUri;
   private final String FS_LIST, FS_OPEN, FS_GET_FILE_STATUS, FS_EXISTS;
+  private final AtomicLong latestMinuteAlreadyRead = new AtomicLong(0);
+  private final AtomicLong lastWaitTimeForNewFile = new AtomicLong(0);
 
   public PartitionReaderStatsExposer(String topicName, String consumerName,
       String pid, int consumerNumber, String fsUri) {
@@ -84,6 +92,14 @@ public class PartitionReaderStatsExposer extends
     numberRecordReaders.incrementAndGet();
   }
 
+  public void setLatestMinuteAlreadyRead(Date currentpathTimeStamp) {
+    latestMinuteAlreadyRead.set(currentpathTimeStamp.getTime());
+  }
+
+  public void setLastWaitTimeForNewFile(long lastWaitTime) {
+    lastWaitTimeForNewFile.set(lastWaitTime);
+  }
+
   @Override
   protected void addToStatsMap(Map<String, Number> map) {
     map.put(MESSAGES_READ_FROM_SOURCE, getMessagesReadFromSource());
@@ -96,6 +112,10 @@ public class PartitionReaderStatsExposer extends
     map.put(FS_OPEN, getOpenOps());
     map.put(FS_GET_FILE_STATUS, getFileStatusOps());
     map.put(FS_EXISTS, getExistsOps());
+    map.put(LATEST_MINUTE_ALREADY_READ, getLatestMinuteAlreadyRead());
+    map.put(LATEST_DIRECTORY_LAG_TIME, getLatestDirectoryLagTime());
+    map.put(LAST_WAIT_TIME_FOR_NEW_FILE, getLastWaitTimeForNewFile());
+    map.put(READER_WAIT_LAG_TIME, getReaderWaitLagTime());
   }
 
   @Override
@@ -142,5 +162,23 @@ public class PartitionReaderStatsExposer extends
 
   public long getExistsOps() {
     return existsOps.get();
+  }
+
+  public long getLatestMinuteAlreadyRead() {
+    return latestMinuteAlreadyRead.get();
+  }
+
+  public long getLatestDirectoryLagTime() {
+    return (System.currentTimeMillis()
+        - getLatestMinuteAlreadyRead()) / NUMBER_OF_MILLI_SECONDS_IN_MINUTE;
+  }
+
+  public long getLastWaitTimeForNewFile() {
+    return lastWaitTimeForNewFile.get();
+  }
+
+  public long getReaderWaitLagTime() {
+    return (System.currentTimeMillis()
+        - getLastWaitTimeForNewFile()) / NUMBER_OF_MILLI_SECONDS_IN_MINUTE;
   }
 }
