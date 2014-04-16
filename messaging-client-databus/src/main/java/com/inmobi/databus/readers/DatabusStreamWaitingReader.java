@@ -152,10 +152,10 @@ public class DatabusStreamWaitingReader
               // stopping after listing two non empty directories
               LOG.debug("Listing stopped after listing two non empty directories");
               break;
-            } else if (numFilesInFileMap == 0) {
-              setReadPathMetric(currenTimestamp);
+            } else if (fmap.isEmpty()) {
+              setPathBeingReadMetrics(currenTimestamp);
             }
-            updateReadPathMetric(currenTimestamp);
+            updatePathBeingReadMetrics(currenTimestamp);
           } else {
             LOG.info("Reached end of file listing. Not looking at the last"
                 + " minute directory:" + dir);
@@ -170,10 +170,10 @@ public class DatabusStreamWaitingReader
     }
   }
 
-  private void updateReadPathMetric(Date currentTimeStamp) {
+  private void updatePathBeingReadMetrics(Date currentTimeStamp) {
     if (getCurrentMin() != -1
         && isUpdateRequired(currentTimeStamp)) {
-      setReadPathMetric(currentTimeStamp);
+      setPathBeingReadMetrics(currentTimeStamp);
     }
   }
 

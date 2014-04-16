@@ -446,7 +446,7 @@ public abstract class StreamReader<T extends StreamFile> {
     return false;
   }
 
-  protected void setReadPathMetric(Date currentMinBeingRead) {
+  protected void setPathBeingReadMetrics(Date currentMinBeingRead) {
     metrics.setCurrentDirectoryLagTime((currentMinBeingRead.getTime()
         - getCurrentMinBeingReadMetric()) / NUMBER_OF_MILLI_SECONDS_IN_MINUTE);
     metrics.setCurrentMinBeingRead(currentMinBeingRead);
@@ -458,7 +458,7 @@ public abstract class StreamReader<T extends StreamFile> {
 
   public void updateReadPathMetricForCollectorReader() {
     Date currentFileTimeStamp = getTimeStampFromCollectorStreamFile(currentFile);
-    setReadPathMetric(getPrevTimeStamp(currentFileTimeStamp));
+    setPathBeingReadMetrics(getPrevTimeStamp(currentFileTimeStamp));
   }
 
   private Date getPrevTimeStamp(Date currentFileTimeStamp) {
