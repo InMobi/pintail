@@ -153,7 +153,7 @@ public class DatabusStreamWaitingReader
               LOG.debug("Listing stopped after listing two non empty directories");
               break;
             } else if (fmap.isEmpty()) {
-              setPathBeingReadMetrics(currenTimestamp);
+              setLatestMinuteAlreadyRead(currenTimestamp);
             }
             updatePathBeingReadMetrics(currenTimestamp);
           } else {
@@ -173,12 +173,12 @@ public class DatabusStreamWaitingReader
   private void updatePathBeingReadMetrics(Date currentTimeStamp) {
     if (getCurrentMin() != -1
         && isUpdateRequired(currentTimeStamp)) {
-      setPathBeingReadMetrics(currentTimeStamp);
+      setLatestMinuteAlreadyRead(currentTimeStamp);
     }
   }
 
   private boolean isUpdateRequired(Date currentTimeStamp) {
-    return currentTimeStamp.getTime() > getCurrentMinBeingReadMetric();
+    return currentTimeStamp.getTime() > getLatestMinuteAlreadyRead();
   }
 
   /*

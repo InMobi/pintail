@@ -252,7 +252,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
           if (isWithinStream(getCurrentFile().getName()) || !isLocalStreamAvailable) {
             LOG.info("Staying in collector stream as earlier files still exist");
             startFromNextHigherAndOpen(getCurrentFile().getName());
-            updateReadPathMetricForCollectorReader();
+            updateLatestMinuteAlreadyReadForCollectorReader();
             LOG.info("Reading from the next higher file");
           } else {
             LOG.info("Current file would have been moved to Local Stream");
@@ -268,7 +268,7 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
         if (moveToNext
             || (lastFile != null && !(lastFile.equals(getCurrentFile())))) {
           setNextFile();
-          updateReadPathMetricForCollectorReader();
+          updateLatestMinuteAlreadyReadForCollectorReader();
           LOG.info("Reading from next file: " + getCurrentFile());
         } else {
           LOG.info("Reading from same file before moving to next");

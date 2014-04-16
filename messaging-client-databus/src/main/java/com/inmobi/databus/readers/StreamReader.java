@@ -39,7 +39,6 @@ public abstract class StreamReader<T extends StreamFile> {
   protected boolean noNewFiles = false; // this is purely for tests
   protected FileStatus currentFile;
   protected long currentLineNum = 0;
-  private static final long NUMBER_OF_MILLI_SECONDS_IN_MINUTE = 60 * 1000 * 1000;
 
   protected StreamReader(PartitionId partitionId, FileSystem fs,
       Path streamDir, long waitTimeForCreate,
@@ -318,14 +317,7 @@ public abstract class StreamReader<T extends StreamFile> {
     LOG.info("Waiting for next file creation");
     Thread.sleep(waitTimeForCreate);
     metrics.incrementWaitTimeUnitsNewFile();
-    long currenTimeInMillis = System.currentTimeMillis();
-    metrics.setReaderWaitLagTime((currenTimeInMillis
-        - getLastWaitTimeForNewPathMetric()) / NUMBER_OF_MILLI_SECONDS_IN_MINUTE);
-    metrics.setLastWaitTimeForNewPath(currenTimeInMillis);
-  }
-
-  private long getLastWaitTimeForNewPathMetric() {
-    return metrics.getLastWaitTimeForNewPath();
+    metrics.setLastWaitTimeForNewFile(System.currentTimeMillis());
   }
 
   private void waitForNextFileCreation() throws IOException,
@@ -446,19 +438,17 @@ public abstract class StreamReader<T extends StreamFile> {
     return false;
   }
 
-  protected void setPathBeingReadMetrics(Date currentMinBeingRead) {
-    metrics.setCurrentDirectoryLagTime((currentMinBeingRead.getTime()
-        - getCurrentMinBeingReadMetric()) / NUMBER_OF_MILLI_SECONDS_IN_MINUTE);
-    metrics.setCurrentMinBeingRead(currentMinBeingRead);
+  protected void setLatestMinuteAlreadyRead(Date currentMinBeingRead) {
+    metrics.setLatestMinuteAlreadyRead(currentMinBeingRead);
   }
 
-  protected long getCurrentMinBeingReadMetric() {
-    return metrics.getCurrentMinuteBeingRead();
+  protected long getLatestMinuteAlreadyRead() {
+    return metrics.getLatestMinuteAlreadyRead();
   }
 
-  public void updateReadPathMetricForCollectorReader() {
+  public void updateLatestMinuteAlreadyReadForCollectorReader() {
     Date currentFileTimeStamp = getTimeStampFromCollectorStreamFile(currentFile);
-    setPathBeingReadMetrics(getPrevTimeStamp(currentFileTimeStamp));
+    setLatestMinuteAlreadyRead(getPrevTimeStamp(currentFileTimeStamp));
   }
 
   private Date getPrevTimeStamp(Date currentFileTimeStamp) {

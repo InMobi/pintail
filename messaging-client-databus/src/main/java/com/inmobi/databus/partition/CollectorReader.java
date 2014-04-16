@@ -11,7 +11,6 @@ import org.apache.hadoop.fs.Path;
 
 import com.inmobi.databus.files.DatabusStreamFile;
 import com.inmobi.databus.readers.CollectorStreamReader;
-import com.inmobi.databus.readers.DatabusStreamWaitingReader;
 import com.inmobi.databus.readers.LocalStreamCollectorReader;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.databus.MessageCheckpoint;
@@ -221,7 +220,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       if (ret) {
         LOG.info("Reading file " + reader.getCurrentFile()
             + " and lineNum:" + reader.getCurrentLineNum());
-        reader.updateReadPathMetricForCollectorReader();
+        reader.updateLatestMinuteAlreadyReadForCollectorReader();
         line = super.readLine();
       } else {
         return null;

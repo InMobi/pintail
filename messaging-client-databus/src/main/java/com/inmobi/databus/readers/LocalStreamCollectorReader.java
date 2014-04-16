@@ -172,7 +172,7 @@ public class LocalStreamCollectorReader extends
       } else {
         // read line from next file
         LOG.info("Reading from next file " + getCurrentFile());
-        updateReadPathMetricForCollectorReader();
+        updateLatestMinuteAlreadyReadForCollectorReader();
       }
       line = readNextLine();
     }

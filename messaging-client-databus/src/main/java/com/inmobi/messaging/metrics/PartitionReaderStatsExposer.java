@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class PartitionReaderStatsExposer extends
     DatabusConsumerStatsExposer {
+  private static final long NUMBER_OF_MILLI_SECONDS_IN_MINUTE = 60 * 1000;
   public static final String MESSAGES_READ_FROM_SOURCE =
       "messagesReadFromSource";
   public static final String MESSAGES_ADDED_TO_BUFFER = "messagesAddedToBuffer";
@@ -19,9 +20,9 @@ public class PartitionReaderStatsExposer extends
   public static final String OPEN = "open";
   public static final String GET_FILE_STATUS = "getFileStatus";
   public static final String EXISTS = "exists";
-  public static final String CURRENT_MINUTE_BEING_READ= "currentMinuteBeingRead";
-  public static final String CURRENT_DIRECTORY_LAG_TIME= "currentDirectoryLagTime";
-  public static final String LAST_WAIT_TIME_FOR_NEW_PATH= "lastWaitTimeForNewPath";
+  public static final String LATEST_MINUTE_ALREADY_READ= "latestMinuteAlreadyRead";
+  public static final String LATEST_DIRECTORY_LAG_TIME= "latestDirectoryLagTime";
+  public static final String LAST_WAIT_TIME_FOR_NEW_FILE= "lastWaitTimeForNewFile";
   public static final String READER_WAIT_LAG_TIME = "readerWaitLagTime";
 
   private final AtomicLong numMessagesReadFromSource = new AtomicLong(0);
@@ -37,9 +38,9 @@ public class PartitionReaderStatsExposer extends
   private final String pid;
   private final String fsUri;
   private final String FS_LIST, FS_OPEN, FS_GET_FILE_STATUS, FS_EXISTS;
-  private final AtomicLong currentMinuteBeingRead = new AtomicLong(0);
-  private final AtomicLong currentDirectoryLagTime = new AtomicLong(0);
-  private final AtomicLong lastWaitTimeForNewPath = new AtomicLong(0);
+  private final AtomicLong latestMinuteAlreadyRead = new AtomicLong(0);
+  private final AtomicLong latestDirectoryLagTime = new AtomicLong(0);
+  private final AtomicLong lastWaitTimeForNewFile = new AtomicLong(0);
   private final AtomicLong readerWaitLagTime = new AtomicLong(0);
 
   public PartitionReaderStatsExposer(String topicName, String consumerName,
@@ -93,20 +94,12 @@ public class PartitionReaderStatsExposer extends
     numberRecordReaders.incrementAndGet();
   }
 
-  public void setCurrentMinBeingRead(Date currentpathTimeStamp) {
-    currentMinuteBeingRead.set(currentpathTimeStamp.getTime());
+  public void setLatestMinuteAlreadyRead(Date currentpathTimeStamp) {
+    latestMinuteAlreadyRead.set(currentpathTimeStamp.getTime());
   }
 
-  public void setCurrentDirectoryLagTime(long currentDirLagTimeInMins) {
-    currentDirectoryLagTime.set(currentDirLagTimeInMins);
-  }
-
-  public void setLastWaitTimeForNewPath(long lastWaitTime) {
-    lastWaitTimeForNewPath.set(lastWaitTime);
-  }
-
-  public void setReaderWaitLagTime(long waitLagTime) {
-    readerWaitLagTime.set(waitLagTime);
+  public void setLastWaitTimeForNewFile(long lastWaitTime) {
+    lastWaitTimeForNewFile.set(lastWaitTime);
   }
 
   @Override
@@ -121,9 +114,9 @@ public class PartitionReaderStatsExposer extends
     map.put(FS_OPEN, getOpenOps());
     map.put(FS_GET_FILE_STATUS, getFileStatusOps());
     map.put(FS_EXISTS, getExistsOps());
-    map.put(CURRENT_MINUTE_BEING_READ, getCurrentMinuteBeingRead());
-    map.put(CURRENT_DIRECTORY_LAG_TIME, getCurrentDirectoryLagTime());
-    map.put(LAST_WAIT_TIME_FOR_NEW_PATH, getLastWaitTimeForNewPath());
+    map.put(LATEST_MINUTE_ALREADY_READ, getLatestMinuteAlreadyRead());
+    map.put(LATEST_DIRECTORY_LAG_TIME, getLatestDirectoryLagTime());
+    map.put(LAST_WAIT_TIME_FOR_NEW_FILE, getLastWaitTimeForNewFile());
     map.put(READER_WAIT_LAG_TIME, getReaderWaitLagTime());
   }
 
@@ -173,19 +166,21 @@ public class PartitionReaderStatsExposer extends
     return existsOps.get();
   }
 
-  public long getCurrentMinuteBeingRead() {
-    return currentMinuteBeingRead.get();
+  public long getLatestMinuteAlreadyRead() {
+    return latestMinuteAlreadyRead.get();
   }
 
-  public long getCurrentDirectoryLagTime() {
-    return currentDirectoryLagTime.get();
+  public long getLatestDirectoryLagTime() {
+    return (System.currentTimeMillis()
+        - getLatestMinuteAlreadyRead()) / NUMBER_OF_MILLI_SECONDS_IN_MINUTE;
   }
 
-  public long getLastWaitTimeForNewPath() {
-    return lastWaitTimeForNewPath.get();
+  public long getLastWaitTimeForNewFile() {
+    return lastWaitTimeForNewFile.get();
   }
 
   public long getReaderWaitLagTime() {
-    return readerWaitLagTime.get();
+    return (System.currentTimeMillis()
+        - getLastWaitTimeForNewFile()) / NUMBER_OF_MILLI_SECONDS_IN_MINUTE;
   }
 }
