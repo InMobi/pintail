@@ -11,7 +11,8 @@
     <name>InMobi</name>
     <url>https://github.com/InMobi</url>
   </organization>
-
+ 
+  <inceptionYear>2014</inceptionYear>
   <licenses>
     <license>
       <name>The Apache Software License, Version 2.0</name>
@@ -309,6 +310,14 @@
             <version>1.5<!-- doxia version appropriate to the site plugin version --></version>
           </dependency>
         </dependencies>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>1.6</version>
+        <configuration>
+        <licenseName>apache_v2</licenseName>
+        </configuration>
       </plugin>
     </plugins>
   </build>
