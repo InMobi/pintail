@@ -184,9 +184,11 @@ public class PartitionReaderStatsExposer extends
   }
 
   public long getLatestDirectoryLagTime() {
-    long latestDirLagTime = (System.currentTimeMillis()
+    if (getLatestMinuteAlreadyRead() != 0) {
+      return -1;
+    }
+    return(System.currentTimeMillis()
         - getLatestMinuteAlreadyRead()) / NUMBER_OF_MILLI_SECONDS_IN_MINUTE;
-    return (getLatestMinuteAlreadyRead() != 0) ? latestDirLagTime : -1;
   }
 
   public long getLastWaitTimeForNewFile() {
@@ -194,8 +196,10 @@ public class PartitionReaderStatsExposer extends
   }
 
   public long getReaderWaitLagTime() {
-    long readerWaitLagTime = (System.currentTimeMillis()
+    if (getLastWaitTimeForNewFile() != 0) {
+      return -1;
+    }
+    return (System.currentTimeMillis()
         - getLastWaitTimeForNewFile()) / NUMBER_OF_MILLI_SECONDS_IN_MINUTE;
-    return (getLastWaitTimeForNewFile() != 0) ? readerWaitLagTime : -1;
   }
 }
