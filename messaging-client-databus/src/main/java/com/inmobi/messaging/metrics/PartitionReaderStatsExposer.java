@@ -40,9 +40,24 @@ public class PartitionReaderStatsExposer extends
   public static final String OPEN = "open";
   public static final String GET_FILE_STATUS = "getFileStatus";
   public static final String EXISTS = "exists";
+
+  /*
+   * Gives the time corresponding to the latest minute directory which is already read
+   */
   public static final String LATEST_MINUTE_ALREADY_READ= "latestMinuteAlreadyRead";
+  /*
+   * Gives the time difference in minutes from current system time to
+   * latest minute directory which is already read
+   */
   public static final String LATEST_DIRECTORY_LAG_TIME= "latestDirectoryLagTime";
+  /*
+   * Gives the last time at which partition reader waited for a new file
+   */
   public static final String LAST_WAIT_TIME_FOR_NEW_FILE= "lastWaitTimeForNewFile";
+  /*
+   * Gives the time difference in minutes from current system time to the
+   * last time when reader waited for a new file
+   */
   public static final String READER_WAIT_LAG_TIME = "readerWaitLagTime";
 
   private final AtomicLong numMessagesReadFromSource = new AtomicLong(0);
@@ -189,7 +204,10 @@ public class PartitionReaderStatsExposer extends
   }
 
   public long getLatestDirectoryLagTime() {
-    return (System.currentTimeMillis()
+    if (getLatestMinuteAlreadyRead() != 0) {
+      return -1;
+    }
+    return(System.currentTimeMillis()
         - getLatestMinuteAlreadyRead()) / NUMBER_OF_MILLI_SECONDS_IN_MINUTE;
   }
 
@@ -198,6 +216,9 @@ public class PartitionReaderStatsExposer extends
   }
 
   public long getReaderWaitLagTime() {
+    if (getLastWaitTimeForNewFile() != 0) {
+      return -1;
+    }
     return (System.currentTimeMillis()
         - getLastWaitTimeForNewFile()) / NUMBER_OF_MILLI_SECONDS_IN_MINUTE;
   }

@@ -46,37 +46,37 @@ resetCalls|Number of times reset is called|
  Databus consumer has one reader for each partition. The metrics are emitted at context <<consumerName>>, <<topicName>> , <<consumerNumber>> and <<PartitionId>> by each partition reader.
 
 
-*----+--+
-||Stat Name||Description|
-*----+--+
-messagesReadFromSource|Number of messages read from the source partition|
-*----+--+
-messagesAddedToBuffer|Number of messages added to consumption buffer|
-*----+--+
-handledExceptions|Number of times exceptions are handled|
-*----+--+
-waitTimeUnitsNewFile|Number of times consumer waited for new file creation. Actual waiting time will be this counter times the messaging.consumer.waittime.forfilecreate|
-*----+--+
-cumulativeNanosForFecthMessage|The cumulative time in nano seconds to fetch the messages from the souce|
-*----+--+
-numberRecordReaders|Number of ./RecordReaders.htmlRecordReaders created(In case of stream type COLLECTOR = 0)|
-*----+--+
-LatestMinuteAlreadyRead | Time(in milli seconds) corresponding to the minute which is already read|
-*----+--+
-LatestDirectoryLagTime | Time difference in minutes from current system time to latest minute directory which is already read|
-*----+--+
-lastWaitTimeForNewFile | Last Time (in milliseconds) at which partition reader waited for a new file|
-*----+--+
-readerWaitLagTime | Time difference in minutes from current system time to the last time when reader waited for a new file|
-*----+--+
-\<fsuri\>-list|Number of List ops for file systerm of URI \<fsuri\>|
-*----+--+
-\<fsuri\>-open|Number of Open ops for file system of URI \<fsuri\>(In case of stream type LOCAL/MERGED = 0)|
-*----+--+
-\<fsuri\>-getFileStatus|Number of getFileSystem() calls for file system \<fsuri\>(In case of stream type COLLECTOR = 0)|
-*----+--+
-\<fsuri\>-exists|Number of exists calls for file system \<fsuri\>|
-*----+--+
+*----+--+----+
+||Stat Name||Description|| Default Value|
+*----+--+----+
+messagesReadFromSource|Number of messages read from the source partition| 0 |
+*----+--+----+
+messagesAddedToBuffer|Number of messages added to consumption buffer| 0 |
+*----+--+----+
+handledExceptions|Number of times exceptions are handled| 0 |
+*----+--+----+
+waitTimeUnitsNewFile|Number of times consumer waited for new file creation. Actual waiting time will be this counter times the messaging.consumer.waittime.forfilecreate| 0 |
+*----+--+----+
+cumulativeNanosForFecthMessage|The cumulative time in nano seconds to fetch the messages from the souce| 0 |
+*----+--+----+
+numberRecordReaders|Number of ./RecordReaders.htmlRecordReaders created(In case of stream type COLLECTOR = 0)| 0 |
+*----+--+----+
+LatestMinuteAlreadyRead | Time(in milli seconds) corresponding to the minute which is already read| 0 |
+*----+--+----+
+LatestDirectoryLagTime | Time difference in minutes from current system time to latest minute directory which is already read| -1 |
+*----+--+----+
+lastWaitTimeForNewFile | Last Time (in milliseconds) at which partition reader waited for a new file| 0 |
+*----+--+----+
+readerWaitLagTime | Time difference in minutes from current system time to the last time when reader waited for a new file| -1 |
+*----+--+----+
+\<fsuri\>-list|Number of List ops for file systerm of URI \<fsuri\>| 0 |
+*----+--+----+
+\<fsuri\>-open|Number of Open ops for file system of URI \<fsuri\>(In case of stream type LOCAL/MERGED = 0)| 0 |
+*----+--+----+
+\<fsuri\>-getFileStatus|Number of getFileSystem() calls for file system \<fsuri\>(In case of stream type COLLECTOR = 0)| 0 |
+*----+--+----+
+\<fsuri\>-exists|Number of exists calls for file system \<fsuri\>| 0 |
+*----+--+----+
 
 
  <<DatabusConsumer>> for the stream type <<COLLECTOR>>, has the following stats more, along with above.
