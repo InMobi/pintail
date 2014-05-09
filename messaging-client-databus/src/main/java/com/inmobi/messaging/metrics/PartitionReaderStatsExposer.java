@@ -184,7 +184,7 @@ public class PartitionReaderStatsExposer extends
   }
 
   public long getLatestDirectoryLagTime() {
-    if (getLatestMinuteAlreadyRead() != 0) {
+    if (getLatestMinuteAlreadyRead() == 0) {
       return -1;
     }
     return(System.currentTimeMillis()
@@ -196,7 +196,7 @@ public class PartitionReaderStatsExposer extends
   }
 
   public long getReaderWaitLagTime() {
-    if (getLastWaitTimeForNewFile() != 0) {
+    if (getLastWaitTimeForNewFile() == 0) {
       return -1;
     }
     return (System.currentTimeMillis()
