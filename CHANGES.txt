@@ -7,6 +7,10 @@ Bug Fixes and Improvements:
   2. Add stream name and consumer name to the consumer thread name
 
   3. Add new gauge metricis at consumer thread (PartitionReader) level
+  
+  4. Move pintail to external github
+  
+  5. Add documentation in github pages. Documentation can be found at http://inmobi.github.io/pintail/
 
 Release 4.0.3
 
