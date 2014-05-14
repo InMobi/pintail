@@ -1,0 +1,57 @@
+~~~
+~~ #%L
+~~ Pintail
+~~ %%
+~~ Copyright (C) 2012 - 2014 InMobi
+~~ %%
+~~ Licensed under the Apache License, Version 2.0 (the "License");
+~~ you may not use this file except in compliance with the License.
+~~ You may obtain a copy of the License at
+~~ 
+~~      http://www.apache.org/licenses/LICENSE-2.0
+~~ 
+~~ Unless required by applicable law or agreed to in writing, software
+~~ distributed under the License is distributed on an "AS IS" BASIS,
+~~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~~ See the License for the specific language governing permissions and
+~~ limitations under the License.
+~~ #L%
+~~~
+ -----
+ Emitter configuration
+ -----
+ -----
+ -----
+
+
+Emitter configuration
+
+
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+|| Property                                    || Required    || Description                                                                              | Default value |
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+|  className   	                               |  Required    |  The classname of the class which implements com.inmobi.stats.StatsEmitter The value \    | -             |
+|                                              |              |  should be com.inmobi.stats.emitter.EmitMondemand in case of mondemand                    |               |
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+
+Mondemand (com.inmobi.stats.emitter.EmitMondemand) configuration propertes
+
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+|  emit_address                                |  Optional    |  The host address to emit to.                                                             | 224.1.1.11    |
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+|  emit_port                                   |  Optional    |  The port to emit to.                                                                     | 9191          |
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+|  poll_interval                               |  Optional    | The time in milli seconds for polling for stats                                           | 10000         |
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+|  app_name                                    |  Optional    |  The app name of the emitter                                                              | sample_app    |
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+
+Text Emitter (com.inmobi.messaging.util.TextStatsEmitter) configuration propertes
+
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+|  text.emitter.poll.interval                  |  Optional    |  The time in milli seconds for polling for stats                                          | 10000         |
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+|  text.emitter.statspath                      |  Optional    |  The directory in which stat files will be created                                        | .(pwd)        |
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+|  text.emitter.append.stats	               |  Optional    |  Whether append the stats in file or just overwrite. If true stats will be appended, if false stats will be overwritten | true |
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+

@@ -1,0 +1,98 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>messaging-client-databus</artifactId>
+  <name>messaging-client-databus</name>
+  <packaging>jar</packaging>
+
+  <parent>
+    <artifactId>messaging-client-parent</artifactId>
+    <groupId>com.inmobi.messaging</groupId>
+    <version>4.1.0-SNAPSHOT</version>
+  </parent>
+
+  <profiles>
+    <profile>
+      <id>hadoop-1.0</id>
+      <activation>
+        <property>
+         <name>hadoop.profile</name>
+           <value>1</value>
+        </property>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+     <dependencies>
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-core</artifactId>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-test</artifactId>
+      </dependency>
+      </dependencies>
+      
+    </profile>
+
+    <profile>
+      <id>hadoop-2.0</id>
+      <activation>
+        <property>
+          <name>hadoop.profile</name>
+           <value>2</value>
+        </property>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <dependencies>
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-mapreduce-client-core</artifactId>
+      </dependency>
+      <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-core</artifactId>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-hdfs</artifactId>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-common</artifactId>
+      </dependency>
+       <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-minicluster</artifactId>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-test</artifactId>
+        </dependency>
+      </dependencies>
+     
+    </profile>  
+  </profiles>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.inmobi.messaging</groupId>
+      <artifactId>messaging-client-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testng</groupId>
+      <artifactId>testng</artifactId>
+      <scope>test</scope>
+    </dependency>
+     <dependency>
+     <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+</project>

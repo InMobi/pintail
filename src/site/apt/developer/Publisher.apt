@@ -1,0 +1,75 @@
+~~~
+~~ #%L
+~~ Pintail
+~~ %%
+~~ Copyright (C) 2012 - 2014 InMobi
+~~ %%
+~~ Licensed under the Apache License, Version 2.0 (the "License");
+~~ you may not use this file except in compliance with the License.
+~~ You may obtain a copy of the License at
+~~ 
+~~      http://www.apache.org/licenses/LICENSE-2.0
+~~ 
+~~ Unless required by applicable law or agreed to in writing, software
+~~ distributed under the License is distributed on an "AS IS" BASIS,
+~~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~~ See the License for the specific language governing permissions and
+~~ limitations under the License.
+~~ #L%
+~~~
+
+Publisher
+
+
+*MessagePublisher
+
+ <<MessagePublisher>> can publish messages to multiple topics. If topic does not exist, it will be created. The published message data will be Base\-64 encoded on the file system. See the {{{https://github.com/inmobi/pintail/blob/master/messaging\-client\-core/src/main/java/com/inmobi/messaging/publisher/MessagePublisher.java}Publisher API}} for more details.
+
+
+ A concrete publisher can be created using the {{{https://github.com/inmobi/pintail/blob/master/messaging\-client\-core/src/main/java/com/inmobi/messaging/publisher/MessagePublisherFactory.java}Publisher Factory API}}.
+
+
+
+**Usage
+
+
+ Users will have to add compile time dependency to the maven artifact of the messaging\-client\-core as follows. See available {{{./#Maven_artifacts.html}Maven artifacts}} for version numbers.
+
+
+
++------+
+<dependency>
+<groupId>com.inmobi.messaging</groupId>
+<artifactId>messaging-client-core</artifactId>
+<version>${messaging-client-version}\</version>
+</dependency>
++------+
+
+ For publishing messages to Databus
+
+ * Add the runtime dependency to {{{https://github.com/inmobi/pintail/tree/master/messaging\-client\-scribe}messaging\-client\-scribe}} as follows. See {{{./#Maven_artifacts.html}Maven artifacts}} for available versions.
+
+ []
+
++------+
+<dependency>
+<groupId>com.inmobi.messaging</groupId>
+<artifactId>messaging-client-scribe</artifactId>
+<version>${messaging-client-version}</version>
+<scope>runtime</scope>
+</dependency>
++------+
+
+
+**Configuration
+
+
+ The publisher factory reads the publisher configuration from a file named <<<messaging\-publisher\-conf.properties>>>. See sample configuration at {{{https://github.com/inmobi/pintail/blob/master/conf/messaging\-publisher\-conf.properties}messaging\-publisher\-conf.properties}}. The available configuration properties are described {{{./MessageProducerConfig.html}Here}}.
+
+
+
+**Topic Selector
+
+
+ This is a utility for selecting a topic bases on the message. Basically, it routes the message to a topic on which it has to publish. {{{https://github.com/inmobi/pintail/blob/develop/messaging\-client\-core/src/main/java/com/inmobi/messaging/util/TopicSelector.java}click here}} for the example code snippets of topic selector and configuration settings for the publisher.
+

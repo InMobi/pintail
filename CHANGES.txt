@@ -1,0 +1,364 @@
+Release 4.1.0
+
+Bug Fixes and Improvements:
+
+  1. Add cluster names feature
+
+  2. Add stream name and consumer name to the consumer thread name
+
+  3. Add new gauge metricis at consumer thread (PartitionReader) level
+  
+  4. Move pintail to external github
+  
+  5. Add documentation in github pages. Documentation can be found at http://inmobi.github.io/pintail/
+
+Release 4.0.3
+
+Bug Fixes :
+
+  1. Add Checkpoint migration utility from 2.x to 4.x
+
+Release 4.0.2
+
+Bug Fixes :
+
+  1. Fix NPE during startup failure
+
+Release 4.0.1
+
+Incompatible changes:
+
+  3. Move FSCheckpointProvider from databu-core to messaging-client-databus
+
+  2. Move CheckpointProvider form databus-core to messaging-client-core
+
+  1. CDH4 compatible changes the hadoop dependencies to provided scope
+
+Bug fixes and Improvements:
+
+  13. Do not close the stream while reading a line, which was resulting in NPE during close
+
+  12. Make sure collector reader reads messages for a category name which contains "-"
+
+  11. Move FSCheckpointProvider from databu-core to messaging-client-databus
+
+  10. Move CheckpointProvider form databus-core to messaging-client-core
+
+  9. Stabilize starting from checkpoint and clean up the code
+    1. StartFromNextHigher incase if checkpoint does not exist
+    2. Consumer initialization will fail if checkpoint is corrupted
+
+  8. create a delta checkpoint till stoptime from last file timestamp
+
+  7. removing the check which prohibited external publisher from publishing 
+     on _audit topic
+
+  6. Make pintail tests to run parallelly in multiple builds 
+
+  5. Never do checkpointing partially
+
+  4. Remove jenkins profile
+
+  3. CDH4 compatible changes
+
+  2. Close all the PartitionReaders simultaneously
+
+  1. Update deb control to pick the version from project.version property
+
+Release 3.2.2
+
+Bug Fixes :
+
+   1. Make sure partitionReader reads the files correctly from a minute which
+   has a partition checkpoint 
+
+Release 3.2.0
+
+Incompatible changes :
+
+   3. Remove audit client from m-client
+
+   2. Removing audit validation from streaming benchmark
+
+   1. Remove checkpoint migration util code to migrate from 2.4.x
+
+
+Buf fixes and Improvements:
+
+   9. Add more logging for better debugging
+
+   8. Make sure all test directories are cleanup after the tests
+
+   7. Populate checkpoint for empty directories and empty files also
+
+   6. Remove checkpoint migration util code to migrate from 1.4.x
+
+   5. Disable testResendOnAckLost
+
+   4. Accept hadoop configuration file in DatabusConsumer also
+
+   3. Remove audit client
+
+   2. Removing audit validation from streaming benchmark
+
+   1. Listing only one non empty directory during startup
+Release 3.1.1
+
+Bug fixes :
+
+    1. Fix expection handling during mark and reset to throw IOException for all 
+    RuntimeExceptions as well.
+
+Release 3.1.0
+
+Bug fixes and Improvements :
+
+    6. Fix the warnings which were identified by findbugs plugin and check-style
+
+    5. Fix consumer stuck in infinite loop
+
+    4. Fix the stopTime configuration in AuditStatsQuery
+
+    3. Provide a hook for starting from the start of the stream
+
+    2. Make reading from streams_local optional incase of COLLECTOR Reader
+
+    1. Add file system statistics
+
+Release 3.0.0
+
+Incompatible Changes :
+
+    1. Changed the signature of next() to 
+      public Message next() throws InterruptedException, EndOfStreamException;
+ 
+Bug Fixes and Improvements :
+
+   14. Fix NPE while doing next in hadoop consumer with minute directories
+   containing zero byte files
+
+   13. Remove slf4j logs and use commons-logging instead
+
+   12. Fix starting file if checkpointed file is purged
+
+   11. Remove unnecessary remote fs.exists calls during start up
+
+   10. Fix test timeouts in messaging-client-scribe
+
+    9. Fix connectException handling in ScribeMessagePublisher
+
+    8. Use stop time in audit query client
+
+    7. Remove unnecessary transitive dependencies
+
+    6. Added commons-logging dependecy in parent pom
+
+    5. Add stop time feature to stop streaming the messages once stop time
+    is seen.
+
+    4. Added configuration for absolute stop time specified by the config '
+    messaging.consumer.absolute.stoptime' in the format 'yyyy/MM/dd/HH/mm'. 
+
+    3. Checkpoint takes precedence over relative and absolute start time.
+    Relative start time takes precedence over absolute starte time.
+
+    2. Added configuration messaging.consumer.absolute.starttime for
+    specifying the absolute start time in the format 'yyyy/MM/dd/HH/mm' 
+
+    1. Deprecate messaging.consumer.topic.retention.inhours. Add
+    messaging.consumer.relative.starttime.inminutes to specify relative time
+    to go back.
+
+Release 2.1.1
+
+    1. Fix DatabusRecordReader to create message with proper byte array.
+
+Release 2.1.0
+
+    7. Add test for resend on acklost
+
+    6. publish cannot happen on closed publisher
+
+    5. private publish for audit
+
+    4. upgraded to cdh3u5
+
+    3. Remove unnecessary synchronizations in scribe topic publisher to reduce publish latency
+
+    2. Add multi-threaded support in Streaming Benchmark producer
+
+    1. changes to execute randomized seq generator in m-client
+
+Release 2.0.0
+Bug Fixes and Improvements :
+    10. Change scm section to use https instead of ssh
+
+    9. Fix bug in Auditworker run
+
+    8. Add new randomized seq generator test
+
+    7. Modify counter client to use next with timeout.
+
+    6.skipping the deployment of deb package in mvn deploy
+
+    5. Add closeTopic to close each topic separately
+
+    4. method to pintail for retreiving next message with a specified timeout
+
+    3. Update pom to use inmobi-master-pom
+
+    2. Adding changes in Streaming benchmark to execute audit query as part of consumer
+
+    1. Add Auditing to publisher and consumer 
+Release 1.5.0 
+
+Incompatible Changes:
+    1. Feature : Consumer groups added
+
+Bug Fixes and Improvements:
+    14. consumer should exit whenever it gets run time exception
+
+    13. changed inmobi-stats dependency version to 0.0.3
+
+    12. databus dependency upgraded 1.3.1
+
+    11. Adding logs to data validation failures in benchmark 
+
+    10. Add topic selector example
+
+    9. init() and close() added to TopicSelector
+
+    8. Ignore seek exceptions in CollectorStream and skiplines if seek fails
+
+    7. Add tests for DatabusInputFormat
+
+    6. Fix for part of message being read by CollectorStreamReader from currentFile 
+
+    5. Use DatabusInputFormat in all databus readers
+
+    4. Add DatabusInpuFormat for both mapred and mapreduce packages
+
+    3. Counter client modified to start from checkpoint and print stats while closing
+
+    2. Client utility to publish to multiple topics
+
+    1. Checkpoint does not include hdfs uri
+
+Release 1.4.1 - 2012-12-05
+
+Bug Fixes and Improvements:
+    3. Example for multithreaded publishing
+
+    2. Fix NPE in CollectorReader.close()
+
+    1. Multithreaded publish - initializing topic in synchronized block
+Release 1.4.0 - 2012-10-25
+
+Bug Fixes and Improvements:
+
+    10. Modify seqgen to wait for all messages to be sent before closing
+
+    8. Allow float value for number of messages per second sothat fractional values can be given
+
+    9. Change example publishers not wait for messages to be sent fully, since close is graceful now
+
+    7. Add retrying and buffering capability to scribe publisher
+
+    6. Close publisher super class at the end i.e. after closing all the connections
+
+    5. Fix indentation in TimingAccumulator
+
+    4. Add message size parameter to the benchmark
+
+    3. Throw illegalArgumentException if topic or message is null
+
+    2. Add thirdparty inmobi repository to pom.xml
+
+    1. Add mondemand dependency to messaging-client-core
+Release 1.3.0 - 2012-09-03
+Incompatible changes:
+    1. Publisher to emit stats for each topic.  
+       Incompatibility : AbstractMessagePublisher.getStats() method signature
+        got changed to AbstractMessagePublisher.getStats(String topicName)
+
+Bug Fixes and Improvements:
+
+    28. Add example for multi topic publisher
+
+    27. Stop timer in scribeTopicPublisher is connection fails
+
+    26. Fix duplicate counting in streaming benchmark
+
+    25. Undeprecate set topic for logappender
+
+    24. Fix typo in the log
+
+    23. Skip InterruptedException from handledException count
+
+    22. Add thread join for partition reader close
+
+    21. Add the reading log when stream is closed
+
+    20. Add TextStatsEmitter
+
+    19. Remove close from MessagingClientStatsBuilder which is removing all statsexposers
+
+    18. Add counter for cumulative nanoseconds for fecthing message form source
+
+    17. Remove partitionreader's statsexposer in close
+
+    16. Fix flaky test failure in collector metrics
+
+    15. Populate partitionreader metrics and update tests
+
+    14. Add PartitionReaderStatsExposers to the statsBuilder
+
+    13. Change metric class names wrt inmobi stats interface
+
+    12. Add message consumer metrics
+
+    11. Change PartitionId.toString() not to include null collector name
+
+    10. Add break to buildListing when next minute directory does not exist
+
+    9. Enable TestClusterReaderMultipleCollectors
+
+    8. Add missing test in TestPartitionReaderWaitingHadoopStream
+
+    7. Change surefire properties - version, timeout
+
+    6. Fix ClusterReader not to stream last minute directory until next minute directory is available
+
+    5. Fix purging the messages from TreeMap and numDuplicates
+
+    4. Fix typo for rootdir configuration in conf
+
+    3. Create a new buffer after reset()
+
+    2. Reduce memory footprint of consumer
+
+    1. Add fileset for bin and conf explicitly for jenkins build to work after deb packaging
+
+Release 1.2.1 - 2012-07-30
+
+    11. timeoutSeconds for producer should be optional even in case of conusmer argument being passed
+
+    10. Make install directory for jdeb as /usr/local/messaging-client
+
+    9. Add exit codes and timeouts to producer and consumer of streaming benchmark
+
+    8. Make messaging-client installable through deb package
+
+    7. StreamingBenchmark producer to take number of messages per second instead of sleeptime
+
+    6. Add hadoopconsumerflag usage for m-client
+
+    5. Producer should wait for positive inflight messages, not zero.
+
+    4. Fix data skipping in Collector stream while reading currently written data
+
+    3. Fix TestClusterReaderMultipleCollectors to use HDFS instead of Local FileSystem to fix flaky failure
+
+    2. Fix flaky test failure in TestClusterReaderMultipleCollectors
+
+    1. Add timeout to tests with logging at INFO level

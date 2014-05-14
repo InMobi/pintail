@@ -1,0 +1,38 @@
+~~~
+~~ #%L
+~~ Pintail
+~~ %%
+~~ Copyright (C) 2012 - 2014 InMobi
+~~ %%
+~~ Licensed under the Apache License, Version 2.0 (the "License");
+~~ you may not use this file except in compliance with the License.
+~~ You may obtain a copy of the License at
+~~ 
+~~      http://www.apache.org/licenses/LICENSE-2.0
+~~ 
+~~ Unless required by applicable law or agreed to in writing, software
+~~ distributed under the License is distributed on an "AS IS" BASIS,
+~~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~~ See the License for the specific language governing permissions and
+~~ limitations under the License.
+~~ #L%
+~~~
+
+Monitoring
+
+* Monitoring for publisher
+
+ The stats emitted from publisher are documented here : {{{./MessageProducerStats.html}Publisher stats}}
+
+ The publisher factory reads the emitter configuration from a file specified in configuration property <<<statemitter.filename>>>. See {{{./Monitoring.html#Configuration}Monitoring}} section for more details.
+
+* Monitoring for Consumer
+
+ The stats emitted from the consumer are documented {{{./MessageConsumerStats.html}here}}
+
+ The consumer factory reads the emitter configuration from a file specified in configuration property <<<consumer.statemitter.filename>>>. See {{{./Monitoring.html#Configuration}Monitoring}} section for more details.
+
+**Configuration
+
+ User should specify the implementation of the {{{./StatEmitter.html}StatEmitter}} class for the configuration <<<className>>>. See sample configuration at {{{https://github.com/inmobi/pintail/blob/master/messaging\-client\-core/src/test/resources/statemitter.properties}statemitter.properties}}. The available configuration properties are described {{{./StatEmitterConfiguration.html}Here}}.
+
