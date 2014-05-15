@@ -12,6 +12,8 @@ Bug Fixes and Improvements:
   
   5. Add documentation in github pages. Documentation can be found at http://inmobi.github.io/pintail/
 
+  6. Add license file
+
 Release 4.0.3
 
 Bug Fixes :
