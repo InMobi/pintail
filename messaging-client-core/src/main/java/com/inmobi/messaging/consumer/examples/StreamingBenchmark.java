@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-import com.inmobi.instrumentation.TimingAccumulator;
+import com.inmobi.instrumentation.PintailTimingAccumulator;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.MessageConsumer;
@@ -296,7 +296,7 @@ public class StreamingBenchmark {
       publisher.close();
       System.out.println(LogDateFormat.format(System.currentTimeMillis())
           + " Producer closed");
-      TimingAccumulator stats = publisher.getStats(topic);
+      PintailTimingAccumulator stats = publisher.getStats(topic);
       if (stats != null && stats.getSuccessCount() == maxSent * numThreads) {
         exitcode = 0;
       }
@@ -558,7 +558,7 @@ public class StreamingBenchmark {
 
     void constructProducerString(StringBuffer sb) {
       // check whether TimingAccumulator is created for this topic
-      TimingAccumulator stats = producer.publisher.getStats(producer.topic);
+      PintailTimingAccumulator stats = producer.publisher.getStats(producer.topic);
       if (stats == null) {
         return;
       }

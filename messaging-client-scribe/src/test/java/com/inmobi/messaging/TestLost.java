@@ -30,7 +30,7 @@ import random.pkg.ScribeAlwaysSuccess;
 import random.pkg.ScribeAlwaysTryAgain;
 import random.pkg.ScribeSlacker;
 
-import com.inmobi.instrumentation.TimingAccumulator;
+import com.inmobi.instrumentation.PintailTimingAccumulator;
 import com.inmobi.messaging.netty.ScribeMessagePublisher;
 
 public class TestLost {
@@ -50,7 +50,7 @@ public class TestLost {
       // publish two messages
       mb.publish(topic, new Message("mmmm".getBytes()));
       mb.publish(topic, new Message("mmmm".getBytes()));
-      TimingAccumulator inspector = mb.getStats(topic);
+      PintailTimingAccumulator inspector = mb.getStats(topic);
       assertEquals(inspector.getLostCount(), 1,
           "Lost not incremented");
       tserver.start();
@@ -89,7 +89,7 @@ public class TestLost {
       mb.publish(topic, new Message("mmmm".getBytes()));
       mb.publish(topic, new Message("mmmm".getBytes()));
       mb.publish(topic, new Message("mmmm".getBytes()));
-      TimingAccumulator inspector = mb.getStats(topic);
+      PintailTimingAccumulator inspector = mb.getStats(topic);
       assertEquals(inspector.getLostCount(), 1,
           "Lost not incremented");
       while (inspector.getInFlight() != 0) {
@@ -127,7 +127,7 @@ public class TestLost {
       mb.publish(topic, new Message("mmmm".getBytes()));
       mb.publish(topic, new Message("mmmm".getBytes()));
       mb.publish(topic, new Message("mmmm".getBytes()));
-      TimingAccumulator inspector = mb.getStats(topic);
+      PintailTimingAccumulator inspector = mb.getStats(topic);
       Assert.assertTrue(inspector.getLostCount() >= 1,
           "Wrong lost count");
       mb.close();

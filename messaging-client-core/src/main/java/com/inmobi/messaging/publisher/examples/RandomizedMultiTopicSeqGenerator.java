@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.thrift.TException;
 
-import com.inmobi.instrumentation.TimingAccumulator;
+import com.inmobi.instrumentation.PintailTimingAccumulator;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.EndOfStreamException;
@@ -133,7 +133,7 @@ public class RandomizedMultiTopicSeqGenerator {
       Counters[] counters = new Counters[numTopics];
       for (int j = 0; j < counters.length; j++) {
         counters[j] = new Counters();
-        TimingAccumulator accum = publisher.getStats(topics[j]);
+        PintailTimingAccumulator accum = publisher.getStats(topics[j]);
         if (accum != null) {
           counters[j].invocations = accum.getInvocationCount();
           System.out.println("Total invocations for topic  " + topics[j]

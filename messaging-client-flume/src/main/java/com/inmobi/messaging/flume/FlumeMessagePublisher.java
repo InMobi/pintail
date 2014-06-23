@@ -34,7 +34,7 @@ import org.apache.flume.api.RpcClient;
 import org.apache.flume.api.RpcClientFactory;
 import org.apache.flume.event.EventBuilder;
 
-import com.inmobi.instrumentation.TimingAccumulator.Outcome;
+import com.inmobi.instrumentation.PintailTimingAccumulator.Outcome;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.publisher.AbstractMessagePublisher;

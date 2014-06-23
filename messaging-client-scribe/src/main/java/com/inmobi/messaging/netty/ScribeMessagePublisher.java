@@ -27,7 +27,7 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.inmobi.instrumentation.TimingAccumulator;
+import com.inmobi.instrumentation.PintailTimingAccumulator;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.publisher.AbstractMessagePublisher;
@@ -88,7 +88,7 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher implements
         + ackQueueSize + "numDrainsOnClose:" + numDrainsOnClose);
   }
 
-  protected void initTopic(String topic, TimingAccumulator stats) {
+  protected void initTopic(String topic, PintailTimingAccumulator stats) {
     super.initTopic(topic, stats);
     if (scribeConnections.get(topic) == null) {
       ScribeTopicPublisher connection = new ScribeTopicPublisher();

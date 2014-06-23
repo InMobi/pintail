@@ -23,7 +23,7 @@ package com.inmobi.messaging.publisher;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.inmobi.instrumentation.TimingAccumulator.Outcome;
+import com.inmobi.instrumentation.PintailTimingAccumulator.Outcome;
 import com.inmobi.messaging.Message;
 
 public class MockPublisher extends AbstractMessagePublisher {

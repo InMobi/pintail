@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * (cumulativeNanoseconds / successCount) can be used to figure out mean time
  * spent under normal circumstances i.e. free of unhandled exceptions
  */
-public class TimingAccumulator {
+public class PintailTimingAccumulator {
 
   private final AtomicLong invocationCount = new AtomicLong(0);
 
