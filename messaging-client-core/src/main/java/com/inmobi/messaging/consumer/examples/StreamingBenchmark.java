@@ -30,11 +30,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-import com.inmobi.instrumentation.PintailTimingAccumulator;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.MessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
+import com.inmobi.messaging.instrumentation.PintailTimingAccumulator;
 import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 import com.inmobi.messaging.publisher.MessagePublisherFactory;
 import com.inmobi.messaging.util.ConsumerUtil;

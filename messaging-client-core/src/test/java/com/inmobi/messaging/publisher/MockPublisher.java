@@ -23,8 +23,8 @@ package com.inmobi.messaging.publisher;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.inmobi.instrumentation.PintailTimingAccumulator.Outcome;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.instrumentation.PintailTimingAccumulator.Outcome;
 
 public class MockPublisher extends AbstractMessagePublisher {
   private static Map<String, Message> msgs = new HashMap<String, Message>();

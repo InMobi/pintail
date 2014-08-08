@@ -26,8 +26,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.instrumentation.AbstractMessagingClientStatsExposer;
 import com.inmobi.messaging.util.AuditUtil;
 
 public class MockInMemoryConsumer extends AbstractMessageConsumer {

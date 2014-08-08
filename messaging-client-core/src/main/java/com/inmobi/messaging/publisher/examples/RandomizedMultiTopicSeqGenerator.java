@@ -38,12 +38,12 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.thrift.TException;
 
-import com.inmobi.instrumentation.PintailTimingAccumulator;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.EndOfStreamException;
 import com.inmobi.messaging.consumer.MessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
+import com.inmobi.messaging.instrumentation.PintailTimingAccumulator;
 import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 import com.inmobi.messaging.publisher.MessagePublisherFactory;
 import com.inmobi.messaging.util.AuditUtil;

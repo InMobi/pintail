@@ -27,10 +27,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
-import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
-import com.inmobi.instrumentation.MessagingClientStatBuilder;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.instrumentation.AbstractMessagingClientStatsExposer;
+import com.inmobi.messaging.instrumentation.MessagingClientStatBuilder;
 
 /**
  * Abstract class implementing {@link MessageConsumer} interface.

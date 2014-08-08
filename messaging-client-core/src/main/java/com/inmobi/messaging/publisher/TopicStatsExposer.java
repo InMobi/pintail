@@ -22,8 +22,8 @@ package com.inmobi.messaging.publisher;
 
 import java.util.Map;
 
-import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
-import com.inmobi.instrumentation.PintailTimingAccumulator;
+import com.inmobi.messaging.instrumentation.AbstractMessagingClientStatsExposer;
+import com.inmobi.messaging.instrumentation.PintailTimingAccumulator;
 
 public class TopicStatsExposer extends AbstractMessagingClientStatsExposer {
 

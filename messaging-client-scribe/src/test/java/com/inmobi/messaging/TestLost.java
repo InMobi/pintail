@@ -30,7 +30,7 @@ import random.pkg.ScribeAlwaysSuccess;
 import random.pkg.ScribeAlwaysTryAgain;
 import random.pkg.ScribeSlacker;
 
-import com.inmobi.instrumentation.PintailTimingAccumulator;
+import com.inmobi.messaging.instrumentation.PintailTimingAccumulator;
 import com.inmobi.messaging.netty.ScribeMessagePublisher;
 
 public class TestLost {

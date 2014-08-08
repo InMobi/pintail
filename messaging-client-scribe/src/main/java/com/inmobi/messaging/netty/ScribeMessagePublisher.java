@@ -27,9 +27,9 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.inmobi.instrumentation.PintailTimingAccumulator;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.instrumentation.PintailTimingAccumulator;
 import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 
 public class ScribeMessagePublisher extends AbstractMessagePublisher implements

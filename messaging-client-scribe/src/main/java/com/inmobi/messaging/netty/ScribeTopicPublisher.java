@@ -36,9 +36,9 @@ import org.jboss.netty.util.Timer;
 
 import scribe.thrift.ResultCode;
 
-import com.inmobi.instrumentation.PintailTimingAccumulator;
-import com.inmobi.instrumentation.PintailTimingAccumulator.Outcome;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.instrumentation.PintailTimingAccumulator;
+import com.inmobi.messaging.instrumentation.PintailTimingAccumulator.Outcome;
 
 public class ScribeTopicPublisher {
   private static final Log LOG = LogFactory.getLog(ScribeTopicPublisher.class);

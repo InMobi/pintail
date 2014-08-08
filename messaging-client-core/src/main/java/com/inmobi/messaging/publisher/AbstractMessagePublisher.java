@@ -29,10 +29,10 @@ import java.util.Map.Entry;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.inmobi.instrumentation.MessagingClientStatBuilder;
-import com.inmobi.instrumentation.PintailTimingAccumulator;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.instrumentation.MessagingClientStatBuilder;
+import com.inmobi.messaging.instrumentation.PintailTimingAccumulator;
 import com.inmobi.messaging.util.AuditUtil;
 import com.inmobi.stats.StatsEmitter;
 import com.inmobi.stats.StatsExposer;

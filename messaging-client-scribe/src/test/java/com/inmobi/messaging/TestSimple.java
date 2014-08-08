@@ -27,7 +27,7 @@ import org.testng.annotations.Test;
 import random.pkg.NtMultiServer;
 import random.pkg.ScribeAlwaysSuccess;
 
-import com.inmobi.instrumentation.PintailTimingAccumulator;
+import com.inmobi.messaging.instrumentation.PintailTimingAccumulator;
 import com.inmobi.messaging.netty.ScribeMessagePublisher;
 
 public class TestSimple {

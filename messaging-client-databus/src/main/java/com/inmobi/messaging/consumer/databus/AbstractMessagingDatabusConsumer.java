@@ -39,12 +39,12 @@ import org.apache.hadoop.security.UserGroupInformation;
 
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.databus.partition.PartitionReader;
-import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.checkpoint.CheckpointProvider;
 import com.inmobi.messaging.consumer.AbstractMessageConsumer;
 import com.inmobi.messaging.consumer.EndOfStreamException;
+import com.inmobi.messaging.instrumentation.AbstractMessagingClientStatsExposer;
 import com.inmobi.messaging.metrics.DatabusConsumerStatsExposer;
 
 public abstract class AbstractMessagingDatabusConsumer

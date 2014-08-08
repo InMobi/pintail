@@ -30,10 +30,10 @@ import random.pkg.ScribeAlternateTryLater;
 import random.pkg.ScribeAlwaysTryAgain;
 import random.pkg.ScribeSlackOnce;
 
-import com.inmobi.instrumentation.PintailTimingAccumulator;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.PortNumberUtil;
 import com.inmobi.messaging.TestServerStarter;
+import com.inmobi.messaging.instrumentation.PintailTimingAccumulator;
 import com.inmobi.messaging.netty.ScribeMessagePublisher;
 
 public class TestRetries {
