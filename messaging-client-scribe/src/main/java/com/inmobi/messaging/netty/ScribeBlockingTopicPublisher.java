@@ -26,33 +26,20 @@ import org.apache.commons.logging.LogFactory;
 import com.inmobi.instrumentation.TimingAccumulator.Outcome;
 import com.inmobi.messaging.Message;
 
-
 /**
- * @author Udit Poddar
  */
-public class ScribeBlockingTopicPublisher extends ScribeTopicPublisher
-{
-    private static final Log LOG = LogFactory.getLog(ScribeTopicPublisher.class);
+public class ScribeBlockingTopicPublisher extends ScribeTopicPublisher {
+  private static final Log LOG = LogFactory.getLog(ScribeTopicPublisher.class);
 
-    @Override
-    protected void publish(final Message m)
-    {
-        addToSend(m);
-        trySending(true);
+  @Override
+  protected boolean addToSend(final Message m) {
+    try {
+      toBeSent.put(m);
+      return true;
+    } catch (InterruptedException e) {
+      LOG.error("Error while waiting for free space in queue. Message dropped :( ");
+      stats.accumulateOutcomeWithDelta(Outcome.LOST, 0);
+      return false;
     }
-
-    private boolean addToSend(final Message m)
-    {
-        try
-        {
-            toBeSent.put(m);
-            return true;
-        }
-        catch (InterruptedException e)
-        {
-            LOG.error("Error while waiting for the queue to be empty. Message dropped :(");
-            stats.accumulateOutcomeWithDelta(Outcome.LOST, 0);
-            return false;
-        }
-    }
+  }
 }
