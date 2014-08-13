@@ -44,7 +44,8 @@ public class PintailTimingAccumulator {
     GRACEFUL_FAILURE,
     UNHANDLED_FAILURE,
     LOST,
-    RETRY
+    RETRY,
+    EXCEEDED_MSG_SIZE
   }
 
   private final AtomicLong successCount = new AtomicLong(0);
@@ -53,6 +54,7 @@ public class PintailTimingAccumulator {
   private final AtomicLong retryCount = new AtomicLong(0);
   private final AtomicLong lostCount = new AtomicLong(0);
   private final AtomicLong reconnectCount = new AtomicLong(0);
+  private final AtomicLong exceededMsgSizeCount = new AtomicLong(0);
 
   /**
    * The number of times something was invoked.
@@ -90,6 +92,10 @@ public class PintailTimingAccumulator {
 
   private void accumulateLost() {
     lostCount.incrementAndGet();
+  }
+
+  private void accumulateExceededMsgSize() {
+    exceededMsgSizeCount.incrementAndGet();
   }
 
   /**
@@ -132,6 +138,9 @@ public class PintailTimingAccumulator {
     case RETRY:
       accumulateRetry();
       break;
+    case EXCEEDED_MSG_SIZE:
+      accumulateExceededMsgSize();
+      break;
     }
   }
 
@@ -164,6 +173,10 @@ public class PintailTimingAccumulator {
 
   public long getGracefulTerminates() {
     return gracefulTerminates.get();
+  }
+
+  public long getExceededMsgSizeCount() {
+    return exceededMsgSizeCount.get();
   }
 
   public long getInFlight() {

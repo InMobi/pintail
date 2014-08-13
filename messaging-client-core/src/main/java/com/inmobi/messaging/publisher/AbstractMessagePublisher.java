@@ -33,6 +33,7 @@ import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.instrumentation.MessagingClientStatBuilder;
 import com.inmobi.messaging.instrumentation.PintailTimingAccumulator;
+import com.inmobi.messaging.instrumentation.PintailTimingAccumulator.Outcome;
 import com.inmobi.messaging.util.AuditUtil;
 import com.inmobi.stats.StatsEmitter;
 import com.inmobi.stats.StatsExposer;
@@ -48,6 +49,8 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
 
   private static final Log LOG = LogFactory
       .getLog(AbstractMessagePublisher.class);
+
+  private static final long MAX_MSG_SIZE = 50 * 1024;
   private Map<String, TopicStatsExposer> statsExposers =
       new HashMap<String, TopicStatsExposer>();
   private MessagingClientStatBuilder statsEmitter =
@@ -89,6 +92,13 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
         initTopicStats(topicName, stats);
       }
       getStats(topicName).accumulateInvocation();
+      if (m.getSize() > MAX_MSG_SIZE) {
+        getStats(topicName).accumulateOutcome(Outcome.EXCEEDED_MSG_SIZE,
+            new Date().getTime());
+        throw new UnsupportedOperationException("Can not publish the message"
+            + " as message size " + m.getSize() + " exceeded allowed max"
+            + " msg size " + MAX_MSG_SIZE);
+      }
       initTopic(topicName, getStats(topicName));
       if (!isPublishedByAuditService && isAuditEnabled) {
         auditService.incrementReceived(topicName, timestamp);
