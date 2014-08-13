@@ -22,7 +22,7 @@ package com.inmobi.messaging.consumer;
 
 import java.util.Map;
 
-import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
+import com.inmobi.messaging.instrumentation.AbstractMessagingClientStatsExposer;
 
 public abstract class AbstractMessageConsumerStatsExposer extends
     AbstractMessagingClientStatsExposer implements

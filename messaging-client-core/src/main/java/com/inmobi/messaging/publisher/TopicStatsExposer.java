@@ -22,8 +22,8 @@ package com.inmobi.messaging.publisher;
 
 import java.util.Map;
 
-import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
-import com.inmobi.instrumentation.TimingAccumulator;
+import com.inmobi.messaging.instrumentation.AbstractMessagingClientStatsExposer;
+import com.inmobi.messaging.instrumentation.PintailTimingAccumulator;
 
 public class TopicStatsExposer extends AbstractMessagingClientStatsExposer {
 
@@ -32,14 +32,14 @@ public class TopicStatsExposer extends AbstractMessagingClientStatsExposer {
   public static final String STATS_TYPE = "application";
 
   final String topic;
-  final TimingAccumulator stats;
+  final PintailTimingAccumulator stats;
   public TopicStatsExposer(String topicName,
-      TimingAccumulator timingAccumulator) {
+      PintailTimingAccumulator timingAccumulator) {
     this.stats = timingAccumulator;
     this.topic = topicName;
   }
 
-  public TimingAccumulator getTimingAccumulator() {
+  public PintailTimingAccumulator getTimingAccumulator() {
     return stats;
   }
 

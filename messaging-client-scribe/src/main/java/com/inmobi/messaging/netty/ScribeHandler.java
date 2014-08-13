@@ -34,8 +34,8 @@ import org.jboss.netty.util.Timeout;
 import org.jboss.netty.util.Timer;
 import org.jboss.netty.util.TimerTask;
 
-import com.inmobi.instrumentation.TimingAccumulator;
-import com.inmobi.instrumentation.TimingAccumulator.Outcome;
+import com.inmobi.messaging.instrumentation.PintailTimingAccumulator;
+import com.inmobi.messaging.instrumentation.PintailTimingAccumulator.Outcome;
 import com.inmobi.messaging.netty.ScribeTopicPublisher.ChannelSetter;
 
 import org.apache.commons.logging.Log;
@@ -47,12 +47,13 @@ import org.apache.thrift.protocol.TMessageType;
 import org.apache.thrift.protocol.TField;
 import org.apache.thrift.protocol.TProtocolUtil;
 import org.apache.thrift.protocol.TType;
+
 import scribe.thrift.ResultCode;
 
 public class ScribeHandler extends SimpleChannelHandler {
   private static final Log LOG = LogFactory.getLog(ScribeHandler.class);
 
-  private final TimingAccumulator stats;
+  private final PintailTimingAccumulator stats;
   private final ChannelSetter channelSetter;
   private volatile long connectRequestTime = 0;
   private long backoffSeconds;
@@ -64,7 +65,7 @@ public class ScribeHandler extends SimpleChannelHandler {
   private boolean exceptionDuringConnect = false;
   private boolean closed = false;
 
-  public ScribeHandler(TimingAccumulator stats, ChannelSetter channelSetter,
+  public ScribeHandler(PintailTimingAccumulator stats, ChannelSetter channelSetter,
       int backoffSeconds, Timer timer, ScribeTopicPublisher publisher) {
     this.stats = stats;
     this.channelSetter = channelSetter;

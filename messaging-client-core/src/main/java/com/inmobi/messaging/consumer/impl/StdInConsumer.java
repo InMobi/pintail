@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.concurrent.TimeUnit;
 
-import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.AbstractMessageConsumer;
@@ -33,6 +32,7 @@ import com.inmobi.messaging.consumer.EndOfStreamException;
 import com.inmobi.messaging.consumer.MessageConsumer;
 import com.inmobi.messaging.consumer.MessageConsumerFactory;
 import com.inmobi.messaging.consumer.BaseMessageConsumerStatsExposer;
+import com.inmobi.messaging.instrumentation.AbstractMessagingClientStatsExposer;
 
 /**
  * Stdin consumer reads messages from stdin.

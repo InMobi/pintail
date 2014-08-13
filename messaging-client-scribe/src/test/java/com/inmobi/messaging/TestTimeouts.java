@@ -29,7 +29,7 @@ import random.pkg.NtMultiServer;
 import random.pkg.ScribeAlwaysSuccess;
 import random.pkg.ScribeSlacker;
 
-import com.inmobi.instrumentation.TimingAccumulator;
+import com.inmobi.messaging.instrumentation.PintailTimingAccumulator;
 import com.inmobi.messaging.netty.ScribeMessagePublisher;
 
 public class TestTimeouts {
@@ -54,7 +54,7 @@ public class TestTimeouts {
           timeoutSeconds, 1);
       String topic = "ch";
       mb.publish(topic, new Message("mmmm".getBytes()));
-      TimingAccumulator inspector = mb.getStats(topic);
+      PintailTimingAccumulator inspector = mb.getStats(topic);
 
       Thread.sleep((timeoutSeconds + 1) * 1000);
       assertEquals(inspector.getInFlight(), 0,
@@ -97,7 +97,7 @@ public class TestTimeouts {
 
       String topic = "ch";
       mb.publish(topic, new Message("mmmm".getBytes()));
-      TimingAccumulator inspector = mb.getStats(topic);
+      PintailTimingAccumulator inspector = mb.getStats(topic);
 
       Thread.sleep((timeoutSeconds + 1) * 1000);
       mb.close();
