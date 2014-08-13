@@ -50,8 +50,8 @@ public class ScribeTopicPublisher {
   private String topic;
   private String host;
   private int port;
-  private PintailTimingAccumulator stats;
-  private BlockingQueue<Message> toBeSent;
+  protected PintailTimingAccumulator stats;
+  protected BlockingQueue<Message> toBeSent;
   private BlockingQueue<Message> toBeAcked;
   private long sleepInterval = 10;
   private boolean stopped = false;

@@ -30,7 +30,7 @@ import random.pkg.ScribeAlwaysSuccess;
 import random.pkg.ScribeAlwaysTryAgain;
 import random.pkg.ScribeSlacker;
 
-import com.inmobi.instrumentation.TimingAccumulator;
+import com.inmobi.messaging.instrumentation.PintailTimingAccumulator;
 import com.inmobi.messaging.netty.ScribeMessagePublisher;
 
 public class TestBlocked {
@@ -60,7 +60,7 @@ public class TestBlocked {
       }
       Thread.sleep(10);
 
-      TimingAccumulator inspector = mb.getStats(topic);
+      PintailTimingAccumulator inspector = mb.getStats(topic);
       assertEquals(inspector.getLostCount(), 0, "Lost incremented");
       tserver.start();
       while (inspector.getInFlight() != 0) {
@@ -105,7 +105,7 @@ public class TestBlocked {
         }).start();
       }
       Thread.sleep(10);
-      TimingAccumulator inspector = mb.getStats(topic);
+      PintailTimingAccumulator inspector = mb.getStats(topic);
       assertEquals(inspector.getLostCount(), 0, "Lost incremented");
       while (inspector.getInFlight() != 0) {
         Thread.sleep(10);
@@ -152,7 +152,7 @@ public class TestBlocked {
       }
       Thread.sleep(10);
 
-      TimingAccumulator inspector = mb.getStats(topic);
+      PintailTimingAccumulator inspector = mb.getStats(topic);
       Assert.assertTrue(inspector.getLostCount() <= 0, "Wrong lost count");
       mb.close();
       System.out.println("testMsgQueueSizeOnRetries stats:" + inspector);

@@ -23,7 +23,7 @@ package com.inmobi.messaging.netty;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.inmobi.instrumentation.TimingAccumulator.Outcome;
+import com.inmobi.messaging.instrumentation.PintailTimingAccumulator.Outcome;
 import com.inmobi.messaging.Message;
 
 /**

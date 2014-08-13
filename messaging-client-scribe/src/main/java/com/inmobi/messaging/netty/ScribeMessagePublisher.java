@@ -97,7 +97,8 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher implements
     }
   }
   
-  protected void initConnection(String topic, ScribeTopicPublisher connection, TimingAccumulator stats) {
+  protected void initConnection(String topic, ScribeTopicPublisher connection,
+      PintailTimingAccumulator stats) {
     connection.init(topic, host, port, backoffSeconds, timeoutSeconds, stats,
       enableRetries, resendOnAckLost, asyncSleepInterval, msgQueueSize,
       ackQueueSize, numDrainsOnClose);
