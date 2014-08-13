@@ -36,9 +36,9 @@ import org.jboss.netty.util.Timer;
 
 import scribe.thrift.ResultCode;
 
-import com.inmobi.instrumentation.TimingAccumulator;
-import com.inmobi.instrumentation.TimingAccumulator.Outcome;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.instrumentation.PintailTimingAccumulator;
+import com.inmobi.messaging.instrumentation.PintailTimingAccumulator.Outcome;
 
 public class ScribeTopicPublisher {
   private static final Log LOG = LogFactory.getLog(ScribeTopicPublisher.class);
@@ -50,7 +50,7 @@ public class ScribeTopicPublisher {
   private String topic;
   private String host;
   private int port;
-  protected TimingAccumulator stats;
+  protected PintailTimingAccumulator stats;
   protected BlockingQueue<Message> toBeSent;
   private BlockingQueue<Message> toBeAcked;
   private long sleepInterval = 10;
@@ -115,7 +115,7 @@ public class ScribeTopicPublisher {
 
   public void init(final String topic, final String host, final int port,
       final int backoffSeconds, final int timeoutSeconds,
-      final TimingAccumulator stats, final boolean enableRetries,
+      final PintailTimingAccumulator stats, final boolean enableRetries,
       final boolean resendOnAckLost, final long sleepInterval,
       final int msgQueueSize, final int ackQueueSize, final int numDrainsOnClose) {
     this.topic = topic;

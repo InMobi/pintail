@@ -27,7 +27,7 @@ import org.testng.annotations.Test;
 import random.pkg.NtMultiServer;
 import random.pkg.ScribeAlwaysSuccess;
 
-import com.inmobi.instrumentation.TimingAccumulator;
+import com.inmobi.messaging.instrumentation.PintailTimingAccumulator;
 import com.inmobi.messaging.netty.ScribeMessagePublisher;
 
 public class TestSimple {
@@ -56,8 +56,8 @@ public class TestSimple {
     String topic2 = "test2";
     publisher.publish(topic1, new Message("msg1".getBytes()));
     publisher.publish(topic2, new Message("msg2".getBytes()));
-    TimingAccumulator inspector1 = publisher.getStats(topic1);
-    TimingAccumulator inspector2 = publisher.getStats(topic1);
+    PintailTimingAccumulator inspector1 = publisher.getStats(topic1);
+    PintailTimingAccumulator inspector2 = publisher.getStats(topic1);
     // Wait for all operations to complete
     while (inspector1.getInFlight() != 0) {
       Thread.sleep(100);

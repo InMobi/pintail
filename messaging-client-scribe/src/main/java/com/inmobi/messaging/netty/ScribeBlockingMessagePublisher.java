@@ -20,7 +20,7 @@ package com.inmobi.messaging.netty;
  * #L%
  */
 
-import com.inmobi.instrumentation.TimingAccumulator;
+import com.inmobi.messaging.instrumentation.PintailTimingAccumulator;
 
 /**
  * Blocks the thread publishing the message till the time queue gets space to
@@ -28,7 +28,7 @@ import com.inmobi.instrumentation.TimingAccumulator;
  */
 public class ScribeBlockingMessagePublisher extends ScribeMessagePublisher {
   @Override
-  protected void initTopic(final String topic, final TimingAccumulator stats) {
+  protected void initTopic(final String topic, final PintailTimingAccumulator stats) {
     if (scribeConnections.get(topic) == null) {
       ScribeTopicPublisher connection = new ScribeBlockingTopicPublisher();
       scribeConnections.put(topic, connection);

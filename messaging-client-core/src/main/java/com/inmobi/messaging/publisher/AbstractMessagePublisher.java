@@ -29,11 +29,11 @@ import java.util.Map.Entry;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.inmobi.instrumentation.MessagingClientStatBuilder;
-import com.inmobi.instrumentation.TimingAccumulator;
-import com.inmobi.instrumentation.TimingAccumulator.Outcome;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.instrumentation.MessagingClientStatBuilder;
+import com.inmobi.messaging.instrumentation.PintailTimingAccumulator;
+import com.inmobi.messaging.instrumentation.PintailTimingAccumulator.Outcome;
 import com.inmobi.messaging.util.AuditUtil;
 import com.inmobi.stats.StatsEmitter;
 import com.inmobi.stats.StatsExposer;
@@ -88,7 +88,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     // initialization should happen only by one thread
     synchronized (this) {
       if (getStats(topicName) == null) {
-        TimingAccumulator stats = new TimingAccumulator();
+        PintailTimingAccumulator stats = new PintailTimingAccumulator();
         initTopicStats(topicName, stats);
       }
       getStats(topicName).accumulateInvocation();
@@ -110,7 +110,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     publish(headers, m);
   }
 
-  protected void initTopic(String topic, TimingAccumulator stats) {
+  protected void initTopic(String topic, PintailTimingAccumulator stats) {
   }
 
   protected void closeTopic(String topic) {
@@ -124,7 +124,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
    * @param stats
    * @throws IOException
    */
-  private void initTopicStats(String topic, TimingAccumulator stats) {
+  private void initTopicStats(String topic, PintailTimingAccumulator stats) {
     TopicStatsExposer statsExposer = new TopicStatsExposer(topic, stats);
     statsEmitter.add(statsExposer);
     statsExposers.put(topic, statsExposer);
@@ -136,7 +136,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     return statsEmitter;
   }
 
-  public TimingAccumulator getStats(String topic) {
+  public PintailTimingAccumulator getStats(String topic) {
     if (statsExposers.get(topic) != null) {
       return statsExposers.get(topic).getTimingAccumulator();
     } else {

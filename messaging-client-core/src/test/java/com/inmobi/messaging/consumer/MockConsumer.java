@@ -23,9 +23,9 @@ package com.inmobi.messaging.consumer;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.instrumentation.AbstractMessagingClientStatsExposer;
 
 public class MockConsumer extends AbstractMessageConsumer {
 

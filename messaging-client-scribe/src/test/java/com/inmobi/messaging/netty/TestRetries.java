@@ -30,10 +30,10 @@ import random.pkg.ScribeAlternateTryLater;
 import random.pkg.ScribeAlwaysTryAgain;
 import random.pkg.ScribeSlackOnce;
 
-import com.inmobi.instrumentation.TimingAccumulator;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.PortNumberUtil;
 import com.inmobi.messaging.TestServerStarter;
+import com.inmobi.messaging.instrumentation.PintailTimingAccumulator;
 import com.inmobi.messaging.netty.ScribeMessagePublisher;
 
 public class TestRetries {
@@ -52,7 +52,7 @@ public class TestRetries {
       String topic = "retry";
       mb.publish(topic, new Message("mmmm".getBytes()));
       mb.close();
-      TimingAccumulator inspector = mb.getStats(topic);
+      PintailTimingAccumulator inspector = mb.getStats(topic);
       System.out.println("TestRetries.simpleSend stats:" + inspector);
       assertEquals(inspector.getInFlight(), 0,
           "ensure not considered midflight");
@@ -86,7 +86,7 @@ public class TestRetries {
 
       String topic = "retry";
       mb.publish(topic, new Message("mmmm".getBytes()));
-      TimingAccumulator inspector = mb.getStats(topic);
+      PintailTimingAccumulator inspector = mb.getStats(topic);
       // if retry is disabled, ensure that message is acked before closing
       // the publisher.
       if (!enableRetries) {
@@ -133,7 +133,7 @@ public class TestRetries {
       String topic = "retry";
       mb.publish(topic, new Message("mmmm".getBytes()));
       mb.close();
-      TimingAccumulator inspector = mb.getStats(topic);
+      PintailTimingAccumulator inspector = mb.getStats(topic);
       System.out.println("testAlwaysTryAgain stats:" + inspector);
       assertEquals(inspector.getInFlight(), 0,
           "ensure not considered midflight");
@@ -175,7 +175,7 @@ public class TestRetries {
       Thread.sleep(1000);
       mb.publish(topic, new Message("msg2".getBytes()));
       mb.close();
-      TimingAccumulator inspector = mb.getStats(topic);
+      PintailTimingAccumulator inspector = mb.getStats(topic);
       System.out.println("testResendOnAckLost " + resendOnAckLost + " stats:" 
         + inspector.toString());
       assertEquals(inspector.getInFlight(), 0,
