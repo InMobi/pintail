@@ -125,7 +125,7 @@ Consumer
 
  * Messages can be consumed from HDFS directories obeying to the following contract:
 
-  * The directory layout : <<< \<prefix\> /YYYY/MM/DD/HH/MN/ >>>
+  * The directory layout : << \<prefix\> /YYYY/MM/DD/HH/MN/ >>
 
   * All minute directories should be created in increasing order. Gaps are not accepted between minute directories.
 
@@ -135,13 +135,13 @@ Consumer
 
   * The files in minute directory should be dropped in atomically. Should not get modified once dropped.
 
-  * The filenames starting with underscore(\_) are skipped
+  * The filenames starting with <<underscore(_)>> are skipped
 
- * Messages are read from the file using {{{./RecordReader.html}RecordReader}} from <<<org.apache.hadoop.mapred.InputFormat>>>
+ * Messages are read from the file using {{{./RecordReader.html}RecordReader}} from <<org.apache.hadoop.mapred.InputFormat>>
 
   * {{{./RecordReader.html}RecordReader}} reads Key and Value on every call to next. So, the message would contain only Value; Key is ignored.
 
-  * The bytes sent in the message is the value serialized using <<<org.apache.hadoop.io.Writable>>>
+  * The bytes sent in the message is the value serialized using <<org.apache.hadoop.io.Writable>>
 
   * Consuming the message:
 
