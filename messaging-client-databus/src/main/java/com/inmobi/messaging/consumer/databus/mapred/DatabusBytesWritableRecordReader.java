@@ -21,7 +21,6 @@ package com.inmobi.messaging.consumer.databus.mapred;
  */
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
@@ -58,10 +57,11 @@ public class DatabusBytesWritableRecordReader implements RecordReader<LongWritab
     messageValue.clear();
     boolean ret = databusReader.next(key, messageValue);
     if (ret) {
-      // get the byte array corresponding to the value read
-      ByteBuffer buffer = messageValue.getData();
-      byte[] data = new byte[buffer.remaining()];
-      buffer.get(data);
+      // Get the byte array corresponding to the value read. Note that ByteBuffer.array()
+      // should only be called when we know that the underlying array exactly contains 
+      // data payload (ie. no other leading/trailing characters). Here, databusReader.next()
+      // will set a new ByteBuffer wrapped with a new byte[] each time, hence it is safe.
+      byte[] data = messageValue.getData().array();
       value.set(data, 0, data.length);
     }
     return ret;
