@@ -48,14 +48,18 @@ public class TestBlocked {
               true, 1, 10, true);
 
       final String topic = "retry";
-      // publish two messages
-      mb.publish(topic, new Message("mmmm".getBytes()));
-      new Thread(new Runnable() {
-        @Override
-        public void run() {
-          mb.publish(topic, new Message("mmmm".getBytes()));
-        }
-      }).start();
+      int numMsgs = 2;
+      // publish ${numMsgs} messages
+      for (int i = 0; i < numMsgs; i++) {
+        new Thread(new Runnable() {
+          @Override
+          public void run() {
+            mb.publish(topic, new Message("mmmm".getBytes()));
+          }
+        }).start();
+      }
+      Thread.sleep(10);
+
       TimingAccumulator inspector = mb.getStats(topic);
       assertEquals(inspector.getLostCount(), 0, "Lost incremented");
       tserver.start();
@@ -67,7 +71,8 @@ public class TestBlocked {
       assertEquals(inspector.getInFlight(), 0,
           "ensure not considered midflight");
       assertEquals(inspector.getLostCount(), 0, "Lost incremented");
-      assertEquals(inspector.getSuccessCount(), 2, "success not incremented");
+      assertEquals(inspector.getSuccessCount(), numMsgs,
+          "success not incremented");
     } finally {
       tserver.stop();
     }
@@ -84,15 +89,22 @@ public class TestBlocked {
 
       int timeoutSeconds = 2;
       // create publisher with msgqueue size 1
-      ScribeMessagePublisher mb =
+      final ScribeMessagePublisher mb =
           TestServerStarter.createPublisher(port, timeoutSeconds, 1, true,
               true, 1, 1, true);
 
-      String topic = "retry";
-      // publish 3 messages
-      mb.publish(topic, new Message("mmmm".getBytes()));
-      mb.publish(topic, new Message("mmmm".getBytes()));
-      mb.publish(topic, new Message("mmmm".getBytes()));
+      final String topic = "retry";
+      int numMsgs = 3;
+      // publish ${numMsgs} messages
+      for (int i = 0; i < numMsgs; i++) {
+        new Thread(new Runnable() {
+          @Override
+          public void run() {
+            mb.publish(topic, new Message("mmmm".getBytes()));
+          }
+        }).start();
+      }
+      Thread.sleep(10);
       TimingAccumulator inspector = mb.getStats(topic);
       assertEquals(inspector.getLostCount(), 0, "Lost incremented");
       while (inspector.getInFlight() != 0) {
@@ -103,7 +115,8 @@ public class TestBlocked {
       assertEquals(inspector.getInFlight(), 0,
           "ensure not considered midflight");
       assertEquals(inspector.getLostCount(), 0, "Lost incremented");
-      assertEquals(inspector.getSuccessCount(), 3, "success not incremented");
+      assertEquals(inspector.getSuccessCount(), numMsgs,
+          "success not incremented");
     } finally {
       tserver.stop();
     }
@@ -119,23 +132,34 @@ public class TestBlocked {
       tserver.start();
 
       int timeoutSeconds = 2;
+      int queueSize = 1;
       // create publisher with msgqueue size 1
-      ScribeMessagePublisher mb =
+      final ScribeMessagePublisher mb =
           TestServerStarter.createPublisher(port, timeoutSeconds, 1, true,
-              true, 1, 1, 10, true);
+              false, queueSize, 1, 10, true);
 
-      String topic = "retry";
-      // publish 3 messages
-      mb.publish(topic, new Message("mmmm".getBytes()));
-      mb.publish(topic, new Message("mmmm".getBytes()));
-      mb.publish(topic, new Message("mmmm".getBytes()));
+      final String topic = "retry";
+
+      int numMsgs = 3;
+      // publish ${numMsgs} messages
+      for (int i = 0; i < numMsgs; i++) {
+        new Thread(new Runnable() {
+          @Override
+          public void run() {
+            mb.publish(topic, new Message("mmmm".getBytes()));
+          }
+        }).start();
+      }
+      Thread.sleep(10);
+
       TimingAccumulator inspector = mb.getStats(topic);
       Assert.assertTrue(inspector.getLostCount() <= 0, "Wrong lost count");
       mb.close();
       System.out.println("testMsgQueueSizeOnRetries stats:" + inspector);
       assertEquals(inspector.getInFlight(), 0,
           "ensure not considered midflight");
-      assertEquals(inspector.getLostCount(), 0, "Lost incremented");
+      assertEquals(inspector.getLostCount(), 1, "Lost incremented");
+      assertEquals(inspector.getSuccessCount(), 0, "success not incremented");
     } finally {
       tserver.stop();
     }
