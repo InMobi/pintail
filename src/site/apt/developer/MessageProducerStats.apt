@@ -44,6 +44,7 @@ Stats from Message Publisher
 *----+--+
 |reconnects|Number of times publisher reconnected to the agent|
 *----+--+
-
+|exceededMsgSizeCount|Number of messages published which are having more than 50KB size|
+*----+--+
 
 

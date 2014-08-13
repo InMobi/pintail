@@ -29,6 +29,7 @@ Publisher
 
  A concrete publisher can be created using the {{{https://github.com/inmobi/pintail/blob/master/messaging\-client\-core/src/main/java/com/inmobi/messaging/publisher/MessagePublisherFactory.java}Publisher Factory API}}.
 
+  From 4.1.1 release onwards, <<MessagePublisher>> does not support in publishing the large messages(which are having more than 50KB).
 
 
 **Usage
