@@ -26,7 +26,7 @@
 Stats from Message Publisher
 
 *----+--+
-|Stat Name||Description|
+||<<Stat Name>>||<<Description>>|
 *----+--+
 |invocationCount|Number of times publish api was invoked|
 *----+--+
