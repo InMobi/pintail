@@ -50,8 +50,8 @@ public class ScribeTopicPublisher {
   private String topic;
   private String host;
   private int port;
-  private TimingAccumulator stats;
-  private BlockingQueue<Message> toBeSent;
+  protected TimingAccumulator stats;
+  protected BlockingQueue<Message> toBeSent;
   private BlockingQueue<Message> toBeAcked;
   private long sleepInterval = 10;
   private boolean stopped = false;
@@ -67,7 +67,7 @@ public class ScribeTopicPublisher {
   /**
    * This is meant to be a way for async callbacks to set the channel on a
    * successful connection
-   *
+   * 
    * Java does not have pointers to pointers. So have to resort to sending in a
    * wrapper object that knows to update our pointer
    */
@@ -76,7 +76,7 @@ public class ScribeTopicPublisher {
       return ScribeTopicPublisher.this.thisChannel;
     }
 
-    public void setChannel(Channel ch) {
+    public void setChannel(final Channel ch) {
       Channel oldChannel = ScribeTopicPublisher.this.thisChannel;
       if (ch != oldChannel) {
         LOG.info("setting channel to " + ch.getId());
@@ -91,12 +91,10 @@ public class ScribeTopicPublisher {
     public Channel connect() throws Exception {
       Channel channel = null;
       try {
-        LOG.info("Connecting to scribe host:" + host
-            + " port:" + port);
-        ChannelFuture future = bootstrap.connect(new InetSocketAddress(host,
-            port));
-        channel =
-            future.awaitUninterruptibly().getChannel();
+        LOG.info("Connecting to scribe host:" + host + " port:" + port);
+        ChannelFuture future =
+            bootstrap.connect(new InetSocketAddress(host, port));
+        channel = future.awaitUninterruptibly().getChannel();
         if (!future.isSuccess()) {
           LOG.info("Could not connect to Scribe. Error:", future.getCause());
           if (future.getCause() instanceof Exception) {
@@ -115,10 +113,11 @@ public class ScribeTopicPublisher {
     }
   }
 
-  public void init(String topic, String host, int port, int backoffSeconds,
-      int timeoutSeconds, TimingAccumulator stats, boolean enableRetries,
-      boolean resendOnAckLost, long sleepInterval, int msgQueueSize,
-      int ackQueueSize, int numDrainsOnClose) {
+  public void init(final String topic, final String host, final int port,
+      final int backoffSeconds, final int timeoutSeconds,
+      final TimingAccumulator stats, final boolean enableRetries,
+      final boolean resendOnAckLost, final long sleepInterval,
+      final int msgQueueSize, final int ackQueueSize, final int numDrainsOnClose) {
     this.topic = topic;
     this.stats = stats;
     this.host = host;
@@ -138,8 +137,8 @@ public class ScribeTopicPublisher {
 
     ChannelSetter chs = new ChannelSetter();
     handler = new ScribeHandler(stats, chs, backoffSeconds, timer, this);
-    ChannelPipelineFactory cfactory = new ScribePipelineFactory(handler,
-        timeoutSeconds, timer);
+    ChannelPipelineFactory cfactory =
+        new ScribePipelineFactory(handler, timeoutSeconds, timer);
     bootstrap.setPipelineFactory(cfactory);
     try {
       chs.connect();
@@ -153,15 +152,14 @@ public class ScribeTopicPublisher {
     senderThread.start();
   }
 
-  protected void publish(Message m) {
+  protected void publish(final Message m) {
     addToSend(m);
     trySending(true);
   }
 
-  private boolean addToSend(Message m) {
+  protected boolean addToSend(final Message m) {
     if (!toBeSent.offer(m)) {
-      LOG.warn("Messages to be sent Queue is full,"
-          + " dropping the message");
+      LOG.warn("Messages to be sent Queue is full," + " dropping the message");
       stats.accumulateOutcomeWithDelta(Outcome.LOST, 0);
       return false;
     }
@@ -176,7 +174,7 @@ public class ScribeTopicPublisher {
     return (!enabledRetries || toBeAcked.size() == 0);
   }
 
-  void trySending(boolean tryLock) {
+  void trySending(final boolean tryLock) {
     if (isSendQueueEmpty()) {
       return;
     }
@@ -198,8 +196,9 @@ public class ScribeTopicPublisher {
           while ((m = toBeSent.peek()) != null) {
             // Add this message to ack queue before writing the message.
             // Also add a clone of this message to ack queue.
-            if (enabledRetries && (toBeAcked.remainingCapacity() == 0
-                || !toBeAcked.offer(m.clone()))) {
+            if (enabledRetries
+                && (toBeAcked.remainingCapacity() == 0 || !toBeAcked.offer(m
+                    .clone()))) {
               LOG.info("Could not send earlier messages successfully, not"
                   + " sending right now.");
               break;
@@ -264,7 +263,7 @@ public class ScribeTopicPublisher {
     handler.scheduleReconnect();
   }
 
-  private void drainAll()  {
+  private void drainAll() {
     LOG.info("Draining all the messages");
     int numRetries = 0;
     while (true) {
@@ -345,7 +344,7 @@ public class ScribeTopicPublisher {
     NettyEventCore.getInstance().releaseFactory();
   }
 
-  void ack(ResultCode success) {
+  void ack(final ResultCode success) {
     // first check the result code. If it is success, then increment the
     // success counter and remove the message from ack queue, if configured
     if (success.getValue() == 0) {

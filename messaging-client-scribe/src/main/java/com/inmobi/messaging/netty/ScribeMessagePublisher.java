@@ -47,7 +47,7 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher implements
   private int ackQueueSize;
   private int numDrainsOnClose;
 
-  private Map<String, ScribeTopicPublisher> scribeConnections =
+  protected Map<String, ScribeTopicPublisher> scribeConnections =
       new HashMap<String, ScribeTopicPublisher>();
 
   @Override
@@ -93,10 +93,14 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher implements
     if (scribeConnections.get(topic) == null) {
       ScribeTopicPublisher connection = new ScribeTopicPublisher();
       scribeConnections.put(topic, connection);
-      connection.init(topic, host, port, backoffSeconds, timeoutSeconds, stats,
-          enableRetries, resendOnAckLost, asyncSleepInterval, msgQueueSize,
-          ackQueueSize, numDrainsOnClose);
+      initConnection(topic, connection, stats);
     }
+  }
+  
+  protected void initConnection(String topic, ScribeTopicPublisher connection, TimingAccumulator stats) {
+    connection.init(topic, host, port, backoffSeconds, timeoutSeconds, stats,
+      enableRetries, resendOnAckLost, asyncSleepInterval, msgQueueSize,
+      ackQueueSize, numDrainsOnClose);
   }
 
   @Override
