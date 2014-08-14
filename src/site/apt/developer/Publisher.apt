@@ -31,6 +31,9 @@ Publisher
 
   From 4.1.1 release onwards, <<MessagePublisher>> does not support in publishing the large messages(which are having more than 50KB).
 
+ We have two variants of scribe publishers. <<ScribeMessagePublisher>> which is an async publsiher where as <<ScribeBlockingMessagePublsihe>> is a Blocking publisher, which
+ will be blocked on in-memory queue if the in-memory queue is not having enough space.
+
 
 **Usage
 
