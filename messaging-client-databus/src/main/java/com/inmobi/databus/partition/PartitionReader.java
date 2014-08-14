@@ -222,7 +222,9 @@ public class PartitionReader {
       // If the reader could not be initialized - because the stop time
       // has reached, then currentfile would be null and
       // open stream returns false
-      closeReader = !(reader.openStream());
+      if (!stopped) {
+        closeReader = !(reader.openStream());
+      }
       if (!closeReader) {
         LOG.info("Reading file " + reader.getCurrentFile()
             + " and lineNum:" + reader.getCurrentLineNum());

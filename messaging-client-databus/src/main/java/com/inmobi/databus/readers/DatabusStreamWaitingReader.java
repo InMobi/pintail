@@ -150,7 +150,7 @@ public class DatabusStreamWaitingReader
     Calendar current = Calendar.getInstance();
     Date now = current.getTime();
     current.setTime(buildTimestamp);
-    while (current.getTime().before(now)) {
+    while (current.getTime().before(now) && !closed) {
       // stop the file listing if stop date is beyond current time.
       if (checkAndSetstopTimeReached(current)) {
         break;
