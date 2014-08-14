@@ -33,13 +33,13 @@ Message consumer metrics
 
  
 *----+--+
-||Stat Name||Description|
+||<<Stat Name>>||<<Description>>|
 *----+--+
-messagesConsumed|Number of messages consumed since start|
+|messagesConsumed|Number of messages consumed since start|
 *----+--+
-markCalls|Number of times mark is called.|
+|markCalls|Number of times mark is called.|
 *----+--+
-resetCalls|Number of times reset is called|
+|resetCalls|Number of times reset is called|
 *----+--+
 
 
@@ -49,33 +49,33 @@ resetCalls|Number of times reset is called|
 *----+--+----+
 ||Stat Name||Description|| Default Value|
 *----+--+----+
-messagesReadFromSource|Number of messages read from the source partition| 0 |
+|messagesReadFromSource|Number of messages read from the source partition| 0 |
 *----+--+----+
-messagesAddedToBuffer|Number of messages added to consumption buffer| 0 |
+|messagesAddedToBuffer|Number of messages added to consumption buffer| 0 |
 *----+--+----+
-handledExceptions|Number of times exceptions are handled| 0 |
+|handledExceptions|Number of times exceptions are handled| 0 |
 *----+--+----+
-waitTimeUnitsNewFile|Number of times consumer waited for new file creation. Actual waiting time will be this counter times the messaging.consumer.waittime.forfilecreate| 0 |
+|waitTimeUnitsNewFile|Number of times consumer waited for new file creation. Actual waiting time will be this counter times the messaging.consumer.waittime.forfilecreate| 0 |
 *----+--+----+
-cumulativeNanosForFecthMessage|The cumulative time in nano seconds to fetch the messages from the souce| 0 |
+|cumulativeNanosForFecthMessage|The cumulative time in nano seconds to fetch the messages from the souce| 0 |
 *----+--+----+
-numberRecordReaders|Number of ./RecordReaders.htmlRecordReaders created(In case of stream type COLLECTOR = 0)| 0 |
+|numberRecordReaders|Number of ./RecordReaders.htmlRecordReaders created(In case of stream type COLLECTOR = 0)| 0 |
 *----+--+----+
-LatestMinuteAlreadyRead | Time(in milli seconds) corresponding to the minute which is already read| 0 |
+|latestMinuteAlreadyRead | Time(in milli seconds) corresponding to the minute which is already read| 0 |
 *----+--+----+
-LatestDirectoryLagTime | Time difference in minutes from current system time to latest minute directory which is already read| -1 |
+|latestDirectoryLagTime | Time difference in minutes from current system time to latest minute directory which is already read| -1 |
 *----+--+----+
-lastWaitTimeForNewFile | Last Time (in milliseconds) at which partition reader waited for a new file| 0 |
+|lastWaitTimeForNewFile | Last Time (in milliseconds) at which partition reader waited for a new file| 0 |
 *----+--+----+
-readerWaitLagTime | Time difference in minutes from current system time to the last time when reader waited for a new file| -1 |
+|readerWaitLagTime | Time difference in minutes from current system time to the last time when reader waited for a new file| -1 |
 *----+--+----+
-\<fsuri\>-list|Number of List ops for file systerm of URI \<fsuri\>| 0 |
+|\<fsuri\>-list|Number of List ops for file systerm of URI \<fsuri\>| 0 |
 *----+--+----+
-\<fsuri\>-open|Number of Open ops for file system of URI \<fsuri\>(In case of stream type LOCAL/MERGED = 0)| 0 |
+|\<fsuri\>-open|Number of Open ops for file system of URI \<fsuri\>(In case of stream type LOCAL/MERGED = 0)| 0 |
 *----+--+----+
-\<fsuri\>-getFileStatus|Number of getFileSystem() calls for file system \<fsuri\>(In case of stream type COLLECTOR = 0)| 0 |
+|\<fsuri\>-getFileStatus|Number of getFileSystem() calls for file system \<fsuri\>(In case of stream type COLLECTOR = 0)| 0 |
 *----+--+----+
-\<fsuri\>-exists|Number of exists calls for file system \<fsuri\>| 0 |
+|\<fsuri\>-exists|Number of exists calls for file system \<fsuri\>| 0 |
 *----+--+----+
 
 
@@ -83,11 +83,11 @@ readerWaitLagTime | Time difference in minutes from current system time to the l
 
 
 *----*--*
-||Stat Name||Description|
+||<<Stat Name>>||<<Description>>|
 *----+--+
-waitTimeUnitsInSameFile|Number of times consumer waited for data in the same file. Actual waiting time will be this counter times the databus.consumer.waittime.forcollectorflush|
+|waitTimeUnitsInSameFile|Number of times consumer waited for data in the same file. Actual waiting time will be this counter times the databus.consumer.waittime.forcollectorflush|
 *----+--+
-switchesFromLocalToCollector|Number of times the reader has to switch from local stream to collector stream|
+|switchesFromLocalToCollector|Number of times the reader has to switch from local stream to collector stream|
 *----+--+
-switchesFromCollectorToLocal|Number of times the reader has to switch from collector stream to local|
+|switchesFromCollectorToLocal|Number of times the reader has to switch from collector stream to local|
 *----+--+

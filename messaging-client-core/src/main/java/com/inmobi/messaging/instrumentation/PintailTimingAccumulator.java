@@ -222,6 +222,7 @@ public class PintailTimingAccumulator {
     hash.put("lost", getLostCount());
     hash.put("retryCount", getRetryCount());
     hash.put("reconnects", getReconnectionCount());
+    hash.put("exceededMsgSizeCount", getExceededMsgSizeCount());
     return hash;
   }
 }

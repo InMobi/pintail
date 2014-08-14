@@ -20,6 +20,8 @@
 
 Consumer
 
+%{toc}
+
 *Streaming Consumer
 
  MessageConsumer can consumer messages from a topic. Consumer can iterate over the messages through <<<next>>> call. MessageConsumer would also support mark and reset for checkpointing. See the {{{https://github.com/inmobi/pintail/blob/master/messaging\-client\-core/src/main/java/com/inmobi/messaging/consumer/MessageConsumer.java}Consumer API}} for more details.
@@ -114,7 +116,8 @@ Consumer
  * Sample configuration : {{{https://github.com/inmobi/pintail/blob/master/messaging\-client\-databus/src/test/resources/messaging\-consumer\-conf.properties}messaging\-consumer\-conf.properties}}
 
  []
-The available configuration properties are described {{{./MessageConsumerConfig.html}Here}}
+
+ The <<available configuration properties are described>> {{{./MessageConsumerConfig.html}Here}}
 
 **Consuming messages using HadoopConsumer
 
@@ -122,7 +125,7 @@ The available configuration properties are described {{{./MessageConsumerConfig.
 
  * Messages can be consumed from HDFS directories obeying to the following contract:
 
-  * The directory layout : <<< \<prefix\> /YYYY/MM/DD/HH/MN/ >>>
+  * The directory layout : << \<prefix\> /YYYY/MM/DD/HH/MN/ >>
 
   * All minute directories should be created in increasing order. Gaps are not accepted between minute directories.
 
@@ -132,13 +135,13 @@ The available configuration properties are described {{{./MessageConsumerConfig.
 
   * The files in minute directory should be dropped in atomically. Should not get modified once dropped.
 
-  * The filenames starting with underscore( \=_\=) are skipped
+  * The filenames starting with <<underscore(_)>> are skipped
 
- * Messages are read from the file using {{{./RecordReader.html}RecordReader}} from <<<org.apache.hadoop.mapred.InputFormat>>>
+ * Messages are read from the file using {{{./RecordReader.html}RecordReader}} from <<org.apache.hadoop.mapred.InputFormat>>
 
   * {{{./RecordReader.html}RecordReader}} reads Key and Value on every call to next. So, the message would contain only Value; Key is ignored.
 
-  * The bytes sent in the message is the value serialized using <<<org.apache.hadoop.io.Writable>>>
+  * The bytes sent in the message is the value serialized using <<org.apache.hadoop.io.Writable>>
 
   * Consuming the message:
 
@@ -158,7 +161,8 @@ The available configuration properties are described {{{./MessageConsumerConfig.
  * Sample configuration : {{{https://github.com/inmobi/pintail/blob/master/messaging\-client\-databus/src/test/resources/messaging\-consumer\-hadoop\-conf.properties}hadoop messaging\-consumer\-conf.properties}}
 
  []
-The available configuration properties are described {{{./MessageConsumerConfig.html}Here}}
+
+ The <<available configuration properties are described>> {{{./MessageConsumerConfig.html}Here}}
 
 *Consumer\-Group
 

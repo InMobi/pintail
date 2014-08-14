@@ -28,7 +28,7 @@ MessageConsumerConfig
 * Consumer configuration
 
 *--------+-----------+-------------+-------------+
-|| Property||	Required ||	Description	|| Default value |
+|| <<Property>>||	<<Required>> ||	<<Description>>	|| <<Default value>> |
 *--------+-----------+-------------+-------------+
 |consumer.classname	 |    Optional | The name of concrete consumer class | com.inmobi.messaging.consumer.databus.DatabusConsumer |
 *--------+-----------+-------------+-------------+
@@ -72,7 +72,9 @@ MessageConsumerConfig
 |                                  |             | This property is <<Mondatory>> in case if user wants to remove a rootdir| hadoop consumer : hadoopcluster0,hadoopcluster1,... |
 *--------+-----------+-------------+-------------+
 
-* DatabusConsumer configuraton properties
+    <<DatabusConsumer configuraton properties>>
+
+===
 
 *--------+-----------+-------------+-------------+
 |databus.consumer.rootdirs |	Required |	Comma separated list of rootdirs of databus clusters from which messages should be consumed. |	- |
@@ -82,7 +84,9 @@ MessageConsumerConfig
 |databus.consumer.waittime.forcollectorflush|	Optional |	Wait time in milli seconds for consumer to read more messages, if the current file is being written. Applicable only for type COLLECTOR	| 5000 |
 *--------+-----------+-------------+-------------+
 
-* HadoopConsumer configuration propertes
+  << HadoopConsumer configuration propertes>>
+ 
+===
 
 *----+----+---+
 |hadoop.consumer.rootdirs|	Required|	Comma seperated list of prefix directories in Hadoop FileSystem from which messages should be read.	| - |

@@ -1,0 +1,15 @@
+language: java
+jdk:
+  - openjdk6
+
+branches:
+  only:
+    - master
+    - develop
+    - /^release-.*$/
+    - /^hotfix-.*$/
+
+before_install:
+ - sudo apt-get update -qq
+
+script: "mvn clean install && mvn site site:stage"
