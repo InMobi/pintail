@@ -224,10 +224,10 @@ public class PartitionReader {
       // open stream returns false
       if (!stopped) {
         closeReader = !(reader.openStream());
-      }
-      if (!closeReader) {
-        LOG.info("Reading file " + reader.getCurrentFile()
-            + " and lineNum:" + reader.getCurrentLineNum());
+        if (!closeReader) {
+          LOG.info("Reading file " + reader.getCurrentFile()
+              + " and lineNum:" + reader.getCurrentLineNum());
+        }
       }
       while (!stopped && !closeReader) {
         // read the message from the stream reader
