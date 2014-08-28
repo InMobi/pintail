@@ -10,7 +10,7 @@ Bug Fixes and Improvements:
 
   3. Add a new publisher ScribeBlockingMessagePublisher, which blocks for space in inmemory buffer instead of dropping the message
  
-  2. Add new input format DatabusByteWritableInputFormat which emits the value as BytesWritable
+  2. Add new input format DatabusBytesWritableInputFormat which emits the value as BytesWritable
  
   1. Consumers in consumer-group emits stats to different files
 
