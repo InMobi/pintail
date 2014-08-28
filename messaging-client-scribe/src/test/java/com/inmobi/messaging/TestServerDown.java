@@ -29,7 +29,7 @@ import random.pkg.NtMultiServer;
 import random.pkg.ScribeAlwaysSuccess;
 import random.pkg.ScribeSlacker;
 
-import com.inmobi.instrumentation.TimingAccumulator;
+import com.inmobi.messaging.instrumentation.PintailTimingAccumulator;
 import com.inmobi.messaging.netty.ScribeMessagePublisher;
 
 public class TestServerDown {
@@ -49,7 +49,7 @@ public class TestServerDown {
       // publish a message and stop the server
       mb.publish(topic, new Message("mmmm".getBytes()));
       tserver.start();
-      TimingAccumulator inspector = mb.getStats(topic);
+      PintailTimingAccumulator inspector = mb.getStats(topic);
       while (inspector.getInFlight() != 0) {
         Thread.sleep(10);
       }
@@ -89,7 +89,7 @@ public class TestServerDown {
       //  publish the message and stop the server
       mb.publish(topic, new Message("mmmm".getBytes()));
       tserver.stop();
-      TimingAccumulator inspector = mb.getStats(topic);
+      PintailTimingAccumulator inspector = mb.getStats(topic);
       mb.close();
       System.out.println("testServerDownAckLost stats:" + inspector);
       assertEquals(inspector.getInFlight(), 0,
@@ -119,7 +119,7 @@ public class TestServerDown {
       String topic = "retry";
       // publish a message and stop the server
       mb.publish(topic, new Message("mmmm".getBytes()));
-      TimingAccumulator inspector = mb.getStats(topic);
+      PintailTimingAccumulator inspector = mb.getStats(topic);
       while (inspector.getInFlight() != 0) {
         Thread.sleep(10);
       }
@@ -183,7 +183,7 @@ public class TestServerDown {
       // send a message without starting the server and close the publisher
       mb.publish(topic, new Message("mmmm".getBytes()));
       mb.close();
-      TimingAccumulator inspector = mb.getStats(topic);
+      PintailTimingAccumulator inspector = mb.getStats(topic);
       System.out.println("testServerDownMsgLost stats:" + inspector);
       assertEquals(inspector.getInFlight(), 0,
           "ensure not considered midflight");

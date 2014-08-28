@@ -27,7 +27,7 @@ import org.testng.annotations.BeforeSuite;
 
 import random.pkg.NtMultiServer;
 
-import com.inmobi.messaging.ClientConfig;
+import com.inmobi.messaging.netty.ScribeBlockingMessagePublisher;
 import com.inmobi.messaging.netty.ScribeMessagePublisher;
 import com.inmobi.messaging.netty.ScribePublisherConfiguration;
 import com.inmobi.messaging.publisher.AbstractMessagePublisher;
@@ -59,34 +59,59 @@ public class TestServerStarter {
 
   public static final int port = PortNumberUtil.getFreePortNumber(7912);
 
-  public static ScribeMessagePublisher createPublisher(int port, int timeout)
-      throws Exception {
+  public static ScribeMessagePublisher createPublisher(final int port,
+      final int timeout) throws Exception {
     return createPublisher(port, timeout, 5);
   }
 
-  public static ScribeMessagePublisher createPublisher(int port, int timeout,
-      int backOff) throws Exception {
+  public static ScribeMessagePublisher createPublisher(final int port,
+      final int timeout, final int backOff) throws Exception {
     return createPublisher(port, timeout, backOff, true, true);
   }
 
-  public static ScribeMessagePublisher createPublisher(int port, int timeout,
-      int backOff, boolean enableRetries, boolean resendOnAckLost)
-      throws Exception {
+  public static ScribeMessagePublisher createPublisher(final int port,
+      final int timeout, final int backOff, final boolean enableRetries,
+      final boolean resendOnAckLost) throws Exception {
     return createPublisher(port, timeout, backOff, enableRetries,
         resendOnAckLost, 100, 100);
   }
 
-  public static ScribeMessagePublisher createPublisher(int port, int timeout,
-      int backOff, boolean enableRetries, boolean resendOnAckLost,
-      int msgQueueSize, int ackQueueSize) throws Exception {
+  public static ScribeMessagePublisher createPublisher(final int port,
+      final int timeout, final int backOff, final boolean enableRetries,
+      final boolean resendOnAckLost, final int msgQueueSize,
+      final int ackQueueSize) throws Exception {
     return createPublisher(port, timeout, backOff, enableRetries,
         resendOnAckLost, msgQueueSize, ackQueueSize, -1);
   }
 
-  public static ScribeMessagePublisher createPublisher(int port, int timeout,
-      int backOff, boolean enableRetries, boolean resendOnAckLost,
-      int msgQueueSize, int ackQueueSize, int numRetries) throws Exception {
-    ScribeMessagePublisher pub = new ScribeMessagePublisher();
+  public static ScribeMessagePublisher createPublisher(final int port,
+      final int timeout, final int backOff, final boolean enableRetries,
+      final boolean resendOnAckLost, final int msgQueueSize,
+      final int ackQueueSize, final boolean useBlockingPublisher)
+      throws Exception {
+    return createPublisher(port, timeout, backOff, enableRetries,
+        resendOnAckLost, msgQueueSize, ackQueueSize, -1, useBlockingPublisher);
+  }
+
+  public static ScribeMessagePublisher createPublisher(final int port,
+      final int timeout, final int backOff, final boolean enableRetries,
+      final boolean resendOnAckLost, final int msgQueueSize,
+      final int ackQueueSize, final int numRetries) throws Exception {
+    return createPublisher(port, timeout, backOff, enableRetries,
+        resendOnAckLost, msgQueueSize, ackQueueSize, numRetries, false);
+  }
+
+  public static ScribeMessagePublisher createPublisher(final int port,
+      final int timeout, final int backOff, final boolean enableRetries,
+      final boolean resendOnAckLost, final int msgQueueSize,
+      final int ackQueueSize, final int numRetries,
+      final boolean useBlockingPublisher) throws Exception {
+    ScribeMessagePublisher pub;
+    if (useBlockingPublisher) {
+      pub = new ScribeBlockingMessagePublisher();
+    } else {
+      pub = new ScribeMessagePublisher();
+    }
     ClientConfig config = new ClientConfig();
     config.set(ScribePublisherConfiguration.hostNameConfig, "localhost");
     config.set(ScribePublisherConfiguration.portConfig, port + "");

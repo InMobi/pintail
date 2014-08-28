@@ -1,3 +1,19 @@
+Release 4.1.1
+
+Incompatible changes:
+ 
+  2. publisher drops messages when size is greater than 50KB.
+
+  1. Rename TimingAccumulator to PintailTimingAccumulator and Rename com.inmobi.instrumentation package to com.inmobi.messaging.instrumentation
+
+Bug Fixes and Improvements:
+
+  3. Add a new publisher ScribeBlockingMessagePublisher, which blocks for space in inmemory buffer instead of dropping the message
+ 
+  2. Add new input format DatabusBytesWritableInputFormat which emits the value as BytesWritable
+ 
+  1. Consumers in consumer-group emits stats to different files
+
 Release 4.1.0
 
 Bug Fixes and Improvements:

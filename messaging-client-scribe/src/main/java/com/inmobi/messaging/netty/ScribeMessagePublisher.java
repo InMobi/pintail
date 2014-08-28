@@ -27,9 +27,9 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.inmobi.instrumentation.TimingAccumulator;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.instrumentation.PintailTimingAccumulator;
 import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 
 public class ScribeMessagePublisher extends AbstractMessagePublisher implements
@@ -47,7 +47,7 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher implements
   private int ackQueueSize;
   private int numDrainsOnClose;
 
-  private Map<String, ScribeTopicPublisher> scribeConnections =
+  protected Map<String, ScribeTopicPublisher> scribeConnections =
       new HashMap<String, ScribeTopicPublisher>();
 
   @Override
@@ -88,15 +88,20 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher implements
         + ackQueueSize + "numDrainsOnClose:" + numDrainsOnClose);
   }
 
-  protected void initTopic(String topic, TimingAccumulator stats) {
+  protected void initTopic(String topic, PintailTimingAccumulator stats) {
     super.initTopic(topic, stats);
     if (scribeConnections.get(topic) == null) {
       ScribeTopicPublisher connection = new ScribeTopicPublisher();
       scribeConnections.put(topic, connection);
-      connection.init(topic, host, port, backoffSeconds, timeoutSeconds, stats,
-          enableRetries, resendOnAckLost, asyncSleepInterval, msgQueueSize,
-          ackQueueSize, numDrainsOnClose);
+      initConnection(topic, connection, stats);
     }
+  }
+  
+  protected void initConnection(String topic, ScribeTopicPublisher connection,
+      PintailTimingAccumulator stats) {
+    connection.init(topic, host, port, backoffSeconds, timeoutSeconds, stats,
+      enableRetries, resendOnAckLost, asyncSleepInterval, msgQueueSize,
+      ackQueueSize, numDrainsOnClose);
   }
 
   @Override

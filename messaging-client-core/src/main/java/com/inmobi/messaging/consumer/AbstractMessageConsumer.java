@@ -27,10 +27,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
-import com.inmobi.instrumentation.AbstractMessagingClientStatsExposer;
-import com.inmobi.instrumentation.MessagingClientStatBuilder;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.instrumentation.AbstractMessagingClientStatsExposer;
+import com.inmobi.messaging.instrumentation.MessagingClientStatBuilder;
 
 /**
  * Abstract class implementing {@link MessageConsumer} interface.
@@ -149,14 +149,16 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
         && startTime.after(new Date(System.currentTimeMillis()))) {
       throw new IllegalArgumentException("Future start time is not accepted");
     }
-    metrics = (BaseMessageConsumerStatsExposer) getMetricsImpl();
     String emitterConfig = config
         .getString(MessageConsumerFactory.EMITTER_CONF_FILE_KEY);
     if (emitterConfig != null) {
       statsEmitter.init(emitterConfig);
-      statsEmitter.add(metrics);
     }
     init(config);
+    metrics = (BaseMessageConsumerStatsExposer) getMetricsImpl();
+    if (emitterConfig != null) {
+      statsEmitter.add(metrics);
+    }
   }
 
   /**

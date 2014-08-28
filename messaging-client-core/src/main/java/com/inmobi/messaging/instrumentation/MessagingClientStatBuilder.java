@@ -1,4 +1,4 @@
-package com.inmobi.instrumentation;
+package com.inmobi.messaging.instrumentation;
 
 /*
  * #%L

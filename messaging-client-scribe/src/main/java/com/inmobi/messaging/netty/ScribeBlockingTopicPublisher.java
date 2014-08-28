@@ -1,8 +1,8 @@
-package com.inmobi.messaging.publisher;
+package com.inmobi.messaging.netty;
 
 /*
  * #%L
- * messaging-client-core
+ * messaging-client-scribe
  * %%
  * Copyright (C) 2012 - 2014 InMobi
  * %%
@@ -20,31 +20,26 @@ package com.inmobi.messaging.publisher;
  * #L%
  */
 
-import java.util.HashMap;
-import java.util.Map;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
-import com.inmobi.messaging.Message;
 import com.inmobi.messaging.instrumentation.PintailTimingAccumulator.Outcome;
+import com.inmobi.messaging.Message;
 
-public class MockPublisher extends AbstractMessagePublisher {
-  private static Map<String, Message> msgs = new HashMap<String, Message>();
-
-  public static void reset() {
-    msgs.clear();
-  }
-
-  public static void reset(String topic) {
-    msgs.remove(topic);
-  }
-
-  public static Message getMsg(String topic) {
-    return msgs.get(topic);
-  }
+/**
+ */
+public class ScribeBlockingTopicPublisher extends ScribeTopicPublisher {
+  private static final Log LOG = LogFactory.getLog(ScribeTopicPublisher.class);
 
   @Override
-  protected void publish(Map<String, String> headers, Message m) {
-    String topic = headers.get(HEADER_TOPIC);
-    msgs.put(topic, m);
-    getStats(topic).accumulateOutcomeWithDelta(Outcome.SUCCESS, 0);
+  protected boolean addToSend(final Message m) {
+    try {
+      toBeSent.put(m);
+      return true;
+    } catch (InterruptedException e) {
+      LOG.error("Error while waiting for free space in queue. Message dropped :( ");
+      stats.accumulateOutcomeWithDelta(Outcome.LOST, 0);
+      return false;
+    }
   }
 }
