@@ -140,7 +140,7 @@ public class TestBlocked {
 
       final String topic = "retry";
 
-      int numMsgs = 3;
+      int numMsgs = 1;
       // publish ${numMsgs} messages
       for (int i = 0; i < numMsgs; i++) {
         new Thread(new Runnable() {
@@ -158,7 +158,8 @@ public class TestBlocked {
       System.out.println("testMsgQueueSizeOnRetries stats:" + inspector);
       assertEquals(inspector.getInFlight(), 0,
           "ensure not considered midflight");
-      assertEquals(inspector.getLostCount(), 1, "Lost incremented");
+      assertEquals(inspector.getLostCount() + inspector.getGracefulTerminates(),
+          1, "Lost or Graceful terminates incremented");
       assertEquals(inspector.getSuccessCount(), 0, "success not incremented");
     } finally {
       tserver.stop();
