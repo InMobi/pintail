@@ -27,15 +27,11 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
 
-import com.inmobi.stats.StatsEmitterBase;
 import com.inmobi.stats.StatsExposer;
 
-public class TextStatsEmitter extends StatsEmitterBase implements Runnable {
+public class TextStatsEmitter extends RunnableStatsEmitter {
 
   private String statsPath;
-  private Thread statsThread;
-  private boolean should_run = true;
-  private long sleep;
   private boolean appendStats = true;
 
   @Override
@@ -48,52 +44,7 @@ public class TextStatsEmitter extends StatsEmitterBase implements Runnable {
     createThread();
   }
 
-  @Override
-  public synchronized void add(StatsExposer s) {
-    super.add(s);
-    start();
-  }
-
-  @Override
-  public synchronized void remove(StatsExposer s) {
-    writeStats();
-    super.remove(s);
-    if (isEmpty()) {
-      stop();
-    }
-  }
-
-  @Override
-  public synchronized void removeAll() {
-    writeStats();
-    super.removeAll();
-    stop();
-  }
-
-  private void createThread() {
-    statsThread = new Thread(this);
-    statsThread.setName("statsThread");
-  }
-
-  protected void stop() {
-    writeStats();
-    if ((statsThread != null) && statsThread.isAlive()) {
-      should_run = false;
-      statsThread.interrupt();
-    }
-  }
-
-  protected void start() {
-    if (statsThread.getState() == Thread.State.TERMINATED) {
-      createThread();
-    }
-    if ((statsThread != null) && !statsThread.isAlive()) {
-      should_run = true;
-      statsThread.start();
-    }
-  }
-
-  private void writeStats() {
+  protected void writeStats() {
     Map<String, Number> stats;
     Map<String, String> contexts;
     try {
@@ -127,14 +78,4 @@ public class TextStatsEmitter extends StatsEmitterBase implements Runnable {
     }
   }
 
-  @Override
-  public void run() {
-    while (should_run) {
-      writeStats();
-      try {
-        Thread.sleep(this.sleep);
-        // any signal can interrupt our sweet sleep
-      } catch (InterruptedException e) { }
-    }
-  }
 }
