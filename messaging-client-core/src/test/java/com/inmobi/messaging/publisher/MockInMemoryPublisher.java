@@ -26,6 +26,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.instrumentation.PintailTimingAccumulator;
 
 public class MockInMemoryPublisher extends AbstractMessagePublisher {
 
@@ -48,6 +49,14 @@ public class MockInMemoryPublisher extends AbstractMessagePublisher {
 
   public void reset() {
     source = new HashMap<String, BlockingQueue<Message>>();
+  }
+
+  public void incrementSuccessCount(String topic) {
+    getStats(topic).accumulateOutcomeWithDelta(PintailTimingAccumulator.Outcome.SUCCESS, 0);
+  }
+
+  public void incrementFailedCount(String topic) {
+    getStats(topic).accumulateOutcomeWithDelta(PintailTimingAccumulator.Outcome.UNHANDLED_FAILURE, 0);
   }
 
 }

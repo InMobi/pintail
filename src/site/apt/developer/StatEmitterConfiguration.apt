@@ -46,7 +46,7 @@ Mondemand (com.inmobi.stats.emitter.EmitMondemand) configuration propertes
 |  app_name                                    |  Optional    |  The app name of the emitter                                                              | sample_app    |
 *----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
 
-Text Emitter (com.inmobi.messaging.util.TextStatsEmitter) configuration propertes
+Text Stats Emitter (com.inmobi.messaging.util.TextStatsEmitter) configuration properties
 
 *----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
 |  text.emitter.poll.interval                  |  Optional    |  The time in milli seconds for polling for stats                                          | 10000         |
@@ -54,4 +54,16 @@ Text Emitter (com.inmobi.messaging.util.TextStatsEmitter) configuration properte
 |  text.emitter.statspath                      |  Optional    |  The directory in which stat files will be created                                        | .(pwd)        |
 *----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
 |  text.emitter.append.stats	               |  Optional    |  Whether append the stats in file or just overwrite. If true stats will be appended, if false stats will be overwritten | true |
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+
+Graphite Stats Emitter (com.inmobi.messaging.util.GraphiteStatsEmitter) configuration properties
+
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+|  graphite.emitter.hostname	               |  Required    |  Hostname of graphite server | - |
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+|  graphite.emitter.port	               |  Required    |  Port on which graphite server is listening | - |
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+|  graphite.emitter.poll.interval                  |  Optional    |  The time in milli seconds for polling for stats                                          | 10000         |
+*----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
+|  graphite.emitter.metric.prefix                      |  Optional    |  Metrics being published with be prefixed with this value                                       | (Empty)        |
 *----------------------------------------------+--------------+-------------------------------------------------------------------------------------------+---------------+
