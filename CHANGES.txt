@@ -1,3 +1,9 @@
+Release 4.1.2
+
+Bug Fixes and Improvements:
+
+1. Added a new stats emitter GraphiteStatsEmitter to publish metrics to graphite/hawk-eye host
+
 Release 4.1.1
 
 Incompatible changes:
