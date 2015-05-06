@@ -201,7 +201,6 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
           PartitionReaderStatsExposer collectorMetrics = new
               CollectorReaderStatsExposer(topicName, consumerName,
                   id.toString(), consumerNumber, fsuri);
-          addStatsExposer(collectorMetrics);
           Path streamsLocalDir = null;
           if (readFromLocalStream) {
             streamsLocalDir = DatabusUtil.getStreamDir(StreamType.LOCAL,
@@ -214,6 +213,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
               new Path(streamDir, collector), streamsLocalDir, buffer, topicName,
               partitionTimestamp, waitTimeForFlush, waitTimeForFileCreate,
               collectorMetrics, stopTime));
+          addStatsExposer(collectorMetrics);
           messageConsumedMap.put(id, false);
           numList = 0;
         }
@@ -228,12 +228,12 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
         PartitionReaderStatsExposer clusterMetrics =
             new PartitionReaderStatsExposer(topicName, consumerName,
                 id.toString(), consumerNumber, fsuri);
-        addStatsExposer(clusterMetrics);
         readers.put(id, new PartitionReader(id,
             partitionCheckpointList, fs, buffer, streamDir, conf,
             DatabusInputFormat.class.getCanonicalName(), partitionTimestamp,
             waitTimeForFileCreate, true, clusterMetrics, partitionMinList,
             stopTime));
+        addStatsExposer(clusterMetrics);
         messageConsumedMap.put(id, false);
       }
     }
