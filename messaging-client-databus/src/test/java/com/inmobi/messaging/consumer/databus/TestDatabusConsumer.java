@@ -240,7 +240,7 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
       ConsumerUtil.testConsumerWithStopTimeBeyondCheckpoint(config,
           testStream, consumerName, absoluteStartTime, false, stopDateForCheckpoint);
     } finally {
-      // create a dummy collector directory
+      // create a dummy collector directory back
       fs.mkdirs(new Path(rootDirs[0].toUri().toString(),
           "data/" + testStream + "/" + COLLECTOR_PREFIX));
     }

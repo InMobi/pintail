@@ -423,7 +423,6 @@ public class ConsumerUtil {
     consumer.init(streamName, consumerName, null, config);
     Assert.assertEquals(consumer.getTopicName(), streamName);
     Assert.assertEquals(consumer.getConsumerName(), consumerName);
-    //
     if (hadoop) {
       Assert.assertEquals(consumer.getPartitionReaders().size(), 1);
     } else {
