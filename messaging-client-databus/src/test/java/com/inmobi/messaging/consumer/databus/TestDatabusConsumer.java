@@ -25,6 +25,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -214,18 +216,34 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
     ClientConfig config = loadConfig();
     config.set(DatabusConsumerConfig.databusRootDirsConfig,
         rootDirs[0].toUri().toString());
-    Date absoluteStartTime = CollectorStreamReader.
-        getDateFromCollectorFile(dataFiles[0]);
-    config.set(MessageConsumerFactory.ABSOLUTE_START_TIME,
-        AbstractMessageConsumer.minDirFormat.get().format(absoluteStartTime));
-    config.set(DatabusConsumerConfig.checkpointDirConfig, ck12);
-    Date stopDate = CollectorStreamReader.getDateFromCollectorFile(dataFiles[1]);
-    Date stopDateForCheckpoint = CollectorStreamReader.
-        getDateFromCollectorFile(dataFiles[0]);
-    config.set(DatabusConsumerConfig.stopDateConfig,
-        AbstractMessageConsumer.minDirFormat.get().format(stopDate));
-    ConsumerUtil.testConsumerWithStopTimeBeyondCheckpoint(config,
-        testStream, consumerName, absoluteStartTime, false, stopDateForCheckpoint);
+
+    FileSystem fs = rootDirs[0].getFileSystem(conf);
+    try {
+      // Deleting the dummy collector(COLLECTOR_PREFIX i.e. which does not have
+      // any files to read).
+      // Collector won't have any checkpoint if there are no files to read.
+      // In this test, we wanted to test whether consumer is stopped if the
+      // stop time is beyond the checkpoint.
+      // If checkpoint is not present then consumer won't be closed completely.
+      fs.delete(new Path(rootDirs[0].toUri().toString(),
+          "data/" + testStream + "/" + COLLECTOR_PREFIX));
+      Date absoluteStartTime = CollectorStreamReader.
+          getDateFromCollectorFile(dataFiles[0]);
+      config.set(MessageConsumerFactory.ABSOLUTE_START_TIME,
+          AbstractMessageConsumer.minDirFormat.get().format(absoluteStartTime));
+      config.set(DatabusConsumerConfig.checkpointDirConfig, ck12);
+      Date stopDate = CollectorStreamReader.getDateFromCollectorFile(dataFiles[1]);
+      Date stopDateForCheckpoint = CollectorStreamReader.
+          getDateFromCollectorFile(dataFiles[0]);
+      config.set(DatabusConsumerConfig.stopDateConfig,
+          AbstractMessageConsumer.minDirFormat.get().format(stopDate));
+      ConsumerUtil.testConsumerWithStopTimeBeyondCheckpoint(config,
+          testStream, consumerName, absoluteStartTime, false, stopDateForCheckpoint);
+    } finally {
+      // create a dummy collector directory
+      fs.mkdirs(new Path(rootDirs[0].toUri().toString(),
+          "data/" + testStream + "/" + COLLECTOR_PREFIX));
+    }
   }
 
   @Test

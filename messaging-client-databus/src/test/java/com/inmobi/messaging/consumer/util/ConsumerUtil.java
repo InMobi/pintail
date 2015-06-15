@@ -423,7 +423,14 @@ public class ConsumerUtil {
     consumer.init(streamName, consumerName, null, config);
     Assert.assertEquals(consumer.getTopicName(), streamName);
     Assert.assertEquals(consumer.getConsumerName(), consumerName);
-    Assert.assertEquals(consumer.getPartitionReaders().size(), 2);
+    //
+    if (hadoop) {
+      Assert.assertEquals(consumer.getPartitionReaders().size(), 1);
+    } else {
+      // PartitionReader will be created for
+      // Dummy Collector (one which has COLLECTOR_PREFIX subdirectory) also
+      Assert.assertEquals(consumer.getPartitionReaders().size(), 2);
+    }
 
     int i;
     for (i = 0; i < 20; i++) {
