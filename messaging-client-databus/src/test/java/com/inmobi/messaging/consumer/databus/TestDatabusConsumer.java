@@ -46,7 +46,7 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
   @BeforeTest
   public void setup() throws Exception {
     consumerName = "c1";
-    collectors = new String[] {"collector1"};
+    collectors = new String[] {COLLECTOR_PREFIX + "1"};
     dataFiles = new String[] {TestUtil.files[0], TestUtil.files[1],
         TestUtil.files[2]};
     super.setup(1);
