@@ -278,7 +278,7 @@ public class ConsumerUtil {
 
     // test checkpoint and consumer crash
     consumer = createConsumer(hadoop);
-    consumer.init(streamName, consumerName, null, config);
+    consumer.init(streamName, consumerName, startTime, config);
     compareConsumerCheckpoints(temp, checkpointMap, lastCheckpoint, consumer);
     for (i = 240; i < 300; i++) {
       Message msg = consumer.next();
@@ -423,7 +423,7 @@ public class ConsumerUtil {
     consumer.init(streamName, consumerName, null, config);
     Assert.assertEquals(consumer.getTopicName(), streamName);
     Assert.assertEquals(consumer.getConsumerName(), consumerName);
-    Assert.assertEquals(consumer.getPartitionReaders().size(), 1);
+    Assert.assertEquals(consumer.getPartitionReaders().size(), 2);
 
     int i;
     for (i = 0; i < 20; i++) {
