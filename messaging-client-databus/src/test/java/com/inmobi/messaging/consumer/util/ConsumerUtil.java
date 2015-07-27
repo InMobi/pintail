@@ -126,22 +126,6 @@ public class ConsumerUtil {
        // TODO fix bug
     for (int i = 0; i < totalMessages / 2; i++) {
       Message msg = consumer.next();
-      System.out.println("AAAAA" +i);
-      if(i == 50){
-                   System.out.println("50");
-                 }
-      if(i == 100){
-              System.out.println("100");
-            }
-      if(i == 200){
-        System.out.println("200");
-      }
-      if(i == 300){
-             System.out.println("300");
-           }
-      if(i == 400){
-             System.out.println("400");
-           }
       String msgStr = getMessage(msg.getData().array(), hadoop);
       for (int m = 0;  m < numCounters; m++) {
         if (msgStr.equals(MessageUtil.constructMessage(counter[m]))) {
@@ -155,8 +139,6 @@ public class ConsumerUtil {
     }
 
     consumer.reset();
-
-    System.out.println(totalMessages);
 
     for (int i = 0; i < totalMessages / 2; i++) {
       Message msg = consumer.next();
