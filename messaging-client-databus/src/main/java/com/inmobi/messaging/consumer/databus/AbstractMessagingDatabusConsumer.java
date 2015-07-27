@@ -58,6 +58,8 @@ public abstract class AbstractMessagingDatabusConsumer
   protected final Map<PartitionId, PartitionReader> readers =
       new HashMap<PartitionId, PartitionReader>();
 
+  protected final Set<PartitionReader> startedReaders = new HashSet<PartitionReader>();
+
   protected Map<PartitionId, Boolean> messageConsumedMap = new HashMap
       <PartitionId, Boolean>();
 
@@ -199,6 +201,10 @@ public abstract class AbstractMessagingDatabusConsumer
     return readers;
   }
 
+  public Set<PartitionReader> getStartedPartitionReaders() {
+      return startedReaders;
+    }
+
   protected abstract void createCheckpoint();
 
   public Set<Integer> getPartitionMinList() {
@@ -283,7 +289,11 @@ public abstract class AbstractMessagingDatabusConsumer
   protected synchronized void start() throws IOException {
     createPartitionReaders();
     for (PartitionReader reader : readers.values()) {
+      if(startedReaders.contains(reader)){
+        continue;
+      }
       reader.start(getReaderNameSuffix());
+      startedReaders.add(reader);
     }
   }
 
@@ -390,6 +400,7 @@ public abstract class AbstractMessagingDatabusConsumer
       removeStatsExposer(reader.getStatsExposer());
     }
     readers.clear();
+    startedReaders.clear();
     if (buffer != null) {
       buffer.clear();
     }

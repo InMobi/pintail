@@ -21,12 +21,12 @@ package com.inmobi.messaging.consumer.util;
  */
 
 import java.io.IOException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import com.inmobi.databus.partition.PartitionReader;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.testng.Assert;
 
@@ -123,9 +123,25 @@ public class ConsumerUtil {
       markedcounter1[i] = counter[i];
       markedcounter2[i] = counter[i];
     }
-
+       // TODO fix bug
     for (int i = 0; i < totalMessages / 2; i++) {
       Message msg = consumer.next();
+      System.out.println("AAAAA" +i);
+      if(i == 50){
+                   System.out.println("50");
+                 }
+      if(i == 100){
+              System.out.println("100");
+            }
+      if(i == 200){
+        System.out.println("200");
+      }
+      if(i == 300){
+             System.out.println("300");
+           }
+      if(i == 400){
+             System.out.println("400");
+           }
       String msgStr = getMessage(msg.getData().array(), hadoop);
       for (int m = 0;  m < numCounters; m++) {
         if (msgStr.equals(MessageUtil.constructMessage(counter[m]))) {
@@ -139,6 +155,8 @@ public class ConsumerUtil {
     }
 
     consumer.reset();
+
+    System.out.println(totalMessages);
 
     for (int i = 0; i < totalMessages / 2; i++) {
       Message msg = consumer.next();
@@ -414,6 +432,64 @@ public class ConsumerUtil {
         consumer.getMetrics())).getNumMessagesConsumed(), numOfMessagaes);
     Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
         consumer.getMetrics())).getNumOfTiemOutsOnNext(), 10);
+  }
+
+  public static void testDynamicCollector(ClientConfig config, String streamName,
+                                          String consumerName, boolean hadoop, Path[] rootDirs,
+                                          Configuration conf, String testStream,
+                                          String COLLECTOR_PREFIX) throws Exception {
+
+    AbstractMessagingDatabusConsumer consumer = createConsumer(hadoop);
+    consumer.init(streamName, consumerName, null, config);
+    Assert.assertEquals(consumer.getTopicName(), streamName);
+    Assert.assertEquals(consumer.getConsumerName(), consumerName);
+    Assert.assertEquals(consumer.getPartitionReaders().size(), 2);
+
+    //consume all the messages
+    int i;
+    for (i = 0; i < 300; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    //add a collector
+    FileSystem fs = rootDirs[0].getFileSystem(conf);
+    Path collectorDir = new Path(rootDirs[0].toUri().toString(),
+        "data/" + testStream + "/" + COLLECTOR_PREFIX + "8") ;
+    fs.mkdirs(collectorDir);
+    String dataFile = TestUtil.files[2];
+    TestUtil.setUpCollectorDataFiles(fs, collectorDir, dataFile);
+
+    ((DatabusConsumer) consumer).createPartitionReaders();
+    // Read consumer id
+    String consumerIdStr = config.getString(MessagingConsumerConfig.consumerIdInGroupConfig,
+        MessagingConsumerConfig.DEFAULT_CONSUMER_ID);
+    String[] id = consumerIdStr.split("/");
+    Integer consumerNumber = Integer.parseInt(id[0]);
+    StringBuilder suffix = new StringBuilder();
+    suffix.append(streamName);
+    suffix.append("-");
+    suffix.append(consumerName);
+    suffix.append("-");
+    suffix.append(consumerNumber);
+
+    Map<PartitionId, PartitionReader> readers = ((DatabusConsumer) consumer).getPartitionReaders();
+    Set<PartitionReader> startedReaders = ((DatabusConsumer) consumer).getStartedPartitionReaders();
+    for (PartitionReader reader : readers.values()) {
+      if(startedReaders.contains(reader)){
+        continue;
+      }
+      reader.start(suffix.toString());
+      startedReaders.add(reader);
+    }
+
+    for (i = 0; i < 100; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    fs.delete(collectorDir,true);
+    consumer.close();
   }
 
   public static void testMarkAndReset(ClientConfig config, String streamName,

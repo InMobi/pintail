@@ -65,6 +65,7 @@ public abstract class TestAbstractDatabusConsumer {
   protected String ck11;
   protected String ck12;
   protected String ck13;
+  protected String ck14;
   protected String chkpointPathPrefix;
 
   public void setup(int numFileToMove) throws Exception {
@@ -131,6 +132,7 @@ public abstract class TestAbstractDatabusConsumer {
     ck11 = new Path(chkpointPathPrefix, "checkpoint11").toString();
     ck12 = new Path(chkpointPathPrefix, "checkpoint12").toString();
     ck13 = new Path(chkpointPathPrefix, "checkpoint13").toString();
+    ck14 = new Path(chkpointPathPrefix, "checkpoint14").toString();
   }
 
   protected DatabusConsumer getConsumerInstance() {
