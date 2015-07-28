@@ -271,7 +271,6 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
         false);
   }
 
-
   @AfterTest
   public void cleanup() throws IOException {
     super.cleanup();

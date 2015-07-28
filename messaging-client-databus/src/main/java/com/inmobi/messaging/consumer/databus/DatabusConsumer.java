@@ -41,18 +41,18 @@ import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
 /**
  * Consumes data from the configured databus stream topic.
- * <p/>
+ *
  * Initializes the databus configuration from the configuration file specified
  * by the configuration {@value DatabusConsumerConfig#databusConfigFileKey},
  * the default value is
  * {@value DatabusConsumerConfig#DEFAULT_DATABUS_CONFIG_FILE}
- * <p/>
+ *
  * Consumer can specify a comma separated list of clusters from which the stream
  * should be streamed via configuration
  * {@value DatabusConsumerConfig#databusClustersConfig}. If no
  * such configuration exists, it will stream from all the source clusters of the
  * stream.
- * <p/>
+ *
  * This consumer supports mark and reset. Whenever user calls mark, the current
  * consumption will be check-pointed in a directory configurable via
  * {@value DatabusConsumerConfig#checkpointDirConfig}. The default value for
@@ -60,20 +60,20 @@ import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
  * directory is {@value DatabusConsumerConfig#DEFAULT_CHECKPOINT_DIR}. After
  * reset(), consumer will start reading
  * messages from last check-pointed position.
- * <p/>
+ *
  * Maximum consumer buffer size is configurable via
  * {@value DatabusConsumerConfig#queueSizeConfig}.
  * The default value is {@value DatabusConsumerConfig#DEFAULT_QUEUE_SIZE}.
- * <p/>
+ *
  * If consumer is reading from the file that is currently being written by
  * producer, consumer will wait for flush to happen on the file. The wait time
  * for flush is configurable via
  * {@value DatabusConsumerConfig#waitTimeForFlushConfig}, and default
  * value is {@value DatabusConsumerConfig#DEFAULT_WAIT_TIME_FOR_FLUSH}
- * <p/>
+ *
  * Initializes partition readers for each active collector on the stream.
  * TODO: Dynamically detect if new collectors are added and start readers for
- * them
+ *  them
  */
 public class DatabusConsumer extends AbstractMessagingDatabusConsumer
     implements DatabusConsumerConfig {
@@ -154,7 +154,6 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
         + " queueSize:" + bufferSize + " checkPoint:" + currentCheckpoint
         + " streamType:" + streamType);
   }
-
 
   private void getClusterNames(ClientConfig config, String[] rootDirSplits) {
     String clusterNameStr = config.getString(clustersNameConfig);
