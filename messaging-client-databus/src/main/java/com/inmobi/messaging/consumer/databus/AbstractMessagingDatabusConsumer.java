@@ -59,7 +59,6 @@ public abstract class AbstractMessagingDatabusConsumer
       new HashMap<PartitionId, PartitionReader>();
 
   protected final Set<PartitionReader> startedReaders = new HashSet<PartitionReader>();
-
   protected Map<PartitionId, Boolean> messageConsumedMap = new HashMap
       <PartitionId, Boolean>();
 
@@ -174,7 +173,7 @@ public abstract class AbstractMessagingDatabusConsumer
     relativeStartTimeStr = config.getString(relativeStartTimeConfig);
 
     if (relativeStartTimeStr == null && retentionInHours != null) {
-      LOG.warn(retentionConfig  + " is deprecated."
+      LOG.warn(retentionConfig + " is deprecated."
           + " Use " + relativeStartTimeConfig + " instead");
       int minutes = (Integer.parseInt(retentionInHours)) * 60;
       relativeStartTimeStr = String.valueOf(minutes);
@@ -202,8 +201,8 @@ public abstract class AbstractMessagingDatabusConsumer
   }
 
   public Set<PartitionReader> getStartedPartitionReaders() {
-      return startedReaders;
-    }
+    return startedReaders;
+  }
 
   protected abstract void createCheckpoint();
 
@@ -220,10 +219,10 @@ public abstract class AbstractMessagingDatabusConsumer
   }
 
   /**
-   * @throws throws an EndOfStreamException When consumer consumed all messages
-   *  till stopTime
    * @return Message if Message is available on the stream
-   *         Otherwise waits for the Message to be available on the stream
+   * Otherwise waits for the Message to be available on the stream
+   * @throws throws an EndOfStreamException When consumer consumed all messages
+   *                till stopTime
    */
   @Override
   protected Message getNext()
@@ -244,10 +243,10 @@ public abstract class AbstractMessagingDatabusConsumer
   }
 
   /**
-   * @throws throws an EndOfStreamException When consumer consumed all messages
-   *  till stopTime
    * @return Message if Message is available on the stream
-   *         Null if Message is not available on the stream for a given timeout
+   * Null if Message is not available on the stream for a given timeout
+   * @throws throws an EndOfStreamException When consumer consumed all messages
+   *                till stopTime
    */
   @Override
   protected Message getNext(long timeout, TimeUnit timeunit)
@@ -289,7 +288,7 @@ public abstract class AbstractMessagingDatabusConsumer
   protected synchronized void start() throws IOException {
     createPartitionReaders();
     for (PartitionReader reader : readers.values()) {
-      if(startedReaders.contains(reader)){
+      if (startedReaders.contains(reader)) {
         continue;
       }
       reader.start(getReaderNameSuffix());
@@ -424,7 +423,7 @@ public abstract class AbstractMessagingDatabusConsumer
   }
 
   protected void parseClusterNamesAndMigrateCheckpoint(ClientConfig config,
-      String[] rootDirStrs) {
+                                                       String[] rootDirStrs) {
     Map<PartitionId, PartitionId> partitionIdMap = new HashMap<PartitionId, PartitionId>();
     preparePartitionIdMap(config, rootDirStrs, clusterNames, partitionIdMap);
 
@@ -442,11 +441,11 @@ public abstract class AbstractMessagingDatabusConsumer
    * modifying the cluster names with the user provided cluster names
    */
   protected void preparePartitionIdMap(ClientConfig config,
-      String[] rootDirStrs, String [] clusterNames,
-      Map<PartitionId, PartitionId> partitionIdMap) {
+                                       String[] rootDirStrs, String[] clusterNames,
+                                       Map<PartitionId, PartitionId> partitionIdMap) {
     String clusterNameStr = config.getString(clustersNameConfig);
     if (clusterNameStr != null) {
-      String [] clusterNameStrs = clusterNameStr.split(",");
+      String[] clusterNameStrs = clusterNameStr.split(",");
       if (clusterNameStrs.length != rootDirStrs.length) {
         throw new IllegalArgumentException("Cluster names were not specified for all root dirs."
             + " Mismatch between number of root dirs and number of user specified cluster names");
@@ -462,6 +461,16 @@ public abstract class AbstractMessagingDatabusConsumer
       }
     } else {
       LOG.info("using default cluster names as clustersName config is missing");
+    }
+  }
+
+  protected synchronized void startNewReaders() {
+    for (PartitionReader reader : readers.values()) {
+      if (startedReaders.contains(reader)) {
+        continue;
+      }
+      reader.start(getReaderNameSuffix());
+      startedReaders.add(reader);
     }
   }
 }

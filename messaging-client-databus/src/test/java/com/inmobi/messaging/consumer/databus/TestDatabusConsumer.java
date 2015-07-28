@@ -75,7 +75,7 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
     ConsumerUtil.testMarkAndReset(config, testStream, consumerName, false);
   }
 
-  @Test(timeOut = 10000)
+  @Test(timeOut = 80000)
     public void testDynamicCollector() throws Exception {
       ClientConfig config = loadConfig();
       config.set(DatabusConsumerConfig.databusRootDirsConfig,
@@ -83,10 +83,11 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
       config.set(DatabusConsumerConfig.checkpointDirConfig, ck14);
       config.set(MessagingConsumerConfig.relativeStartTimeConfig,
           relativeStartTime);
-      ConsumerUtil.testDynamicCollector(config, testStream, consumerName, false,rootDirs,conf,testStream,COLLECTOR_PREFIX);
+      config.set(DatabusConsumerConfig.initialDelayForDiscoverer, "1");
+      config.set(DatabusConsumerConfig.frequencyForDiscoverer, "1");
+      ConsumerUtil.testDynamicCollector(config, testStream, consumerName, false,
+          rootDirs, conf, testStream, COLLECTOR_PREFIX);
     }
-
-
 
   @Test
   public void testMarkAndResetWithStartTime() throws Exception {

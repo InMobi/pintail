@@ -123,7 +123,6 @@ public class ConsumerUtil {
       markedcounter1[i] = counter[i];
       markedcounter2[i] = counter[i];
     }
-       // TODO fix bug
     for (int i = 0; i < totalMessages / 2; i++) {
       Message msg = consumer.next();
       String msgStr = getMessage(msg.getData().array(), hadoop);
@@ -441,30 +440,8 @@ public class ConsumerUtil {
     fs.mkdirs(collectorDir);
     String dataFile = TestUtil.files[2];
     TestUtil.setUpCollectorDataFiles(fs, collectorDir, dataFile);
-
-    ((DatabusConsumer) consumer).createPartitionReaders();
-    // Read consumer id
-    String consumerIdStr = config.getString(MessagingConsumerConfig.consumerIdInGroupConfig,
-        MessagingConsumerConfig.DEFAULT_CONSUMER_ID);
-    String[] id = consumerIdStr.split("/");
-    Integer consumerNumber = Integer.parseInt(id[0]);
-    StringBuilder suffix = new StringBuilder();
-    suffix.append(streamName);
-    suffix.append("-");
-    suffix.append(consumerName);
-    suffix.append("-");
-    suffix.append(consumerNumber);
-
-    Map<PartitionId, PartitionReader> readers = ((DatabusConsumer) consumer).getPartitionReaders();
-    Set<PartitionReader> startedReaders = ((DatabusConsumer) consumer).getStartedPartitionReaders();
-    for (PartitionReader reader : readers.values()) {
-      if(startedReaders.contains(reader)){
-        continue;
-      }
-      reader.start(suffix.toString());
-      startedReaders.add(reader);
-    }
-
+    Thread.sleep(60 * 1000);
+    //wait for the new messages to be consumed by the new partition readers
     for (i = 0; i < 100; i++) {
       Message msg = consumer.next();
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
