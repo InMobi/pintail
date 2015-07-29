@@ -85,7 +85,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
   public static String clusterNamePrefix = "databusCluster";
   private Boolean readFromLocalStream;
   private int numList = 0;
-  public  List<String> collectorsWithReaders = new ArrayList<String>();
+  private  List<String> collectorsWithReaders = new ArrayList<String>();
   private Timer partitionDiscovererAndReaderCreator;
   private static final Long NUMBER_OF_MILLI_SECONDS_IN_SECOND = 1000l;
   private boolean initDone = false;
@@ -136,11 +136,9 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
   private void startNewCollectorDiscovererTimer(ClientConfig config) {
        /*
     This timer is responsible for identifying new
-    collector output files and initialising partition readers for them
+    collector output sub directories and initialising partition readers for them
      */
-    int initialDelay = config.getInteger(initialDelayForDiscoverer,
-        DEFAULT_INITIAL_DELAY_FOR_DISCOVERER);
-    int discoverFrequency = config.getInteger(frequencyForDiscoverer,
+     int discoverFrequency = config.getInteger(frequencyForDiscoverer,
         DEFAULT_FREQUENCY_FOR_DISCOVERER);
     partitionDiscovererAndReaderCreator = new Timer(
         "PartitionDiscovererAndReaderCreator");
@@ -159,9 +157,8 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
           e.printStackTrace();
         }
       }
-    }, initialDelay * NUMBER_OF_MILLI_SECONDS_IN_SECOND,
-        discoverFrequency * NUMBER_OF_MILLI_SECONDS_IN_SECOND);
-    LOG.info("Initialised timer for discovery of new collectors output with frequency "+discoverFrequency+" startup delay "+initialDelay);
+    }, NUMBER_OF_MILLI_SECONDS_IN_SECOND, discoverFrequency * NUMBER_OF_MILLI_SECONDS_IN_SECOND);
+    LOG.info("Initialised timer for discovery of new collectors output with frequency "+discoverFrequency);
   }
 
   private void getClusterNames(ClientConfig config, String[] rootDirSplits) {
@@ -205,6 +202,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
       Path streamDir = DatabusUtil.getStreamDir(streamType, rootDirs[i],
           topicName);
       String clusterName;
+      Path rootdir = rootDirs[i];
       if (clusterNames != null) {
         clusterName = clusterNames[i];
       } else {
@@ -215,14 +213,14 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
             ((Checkpoint) currentCheckpoint).getPartitionsCheckpoint();
         LOG.info("Creating partition readers for all the collectors");
         for (String collector : getCollectors(fs, streamDir)) {
-          if (collectorsWithReaders.contains(collector + rootDirs[i])) {
+          if (collectorsWithReaders.contains(collector + "_" +rootdir)) {
             continue;
           }
           String defaultClusterName = getDefaultClusterName(i);
-          Path rootdir = rootDirs[i];
-          createPartitionReader(clusterName, collector, partitionsChkPoints, fsuri, fs, streamDir, defaultClusterName, rootdir);
           LOG.info("Creating partition reader Collector " + collector);
-          collectorsWithReaders.add(collector + rootDirs[i]);
+          createPartitionReader(clusterName, collector, partitionsChkPoints, fsuri, fs, streamDir, defaultClusterName, rootdir);
+          LOG.info("Created partition reader Collector " + collector);
+          collectorsWithReaders.add(collector + "_" + rootdir);
         }
         LOG.info("Collectors with partitions readers size is " + collectorsWithReaders.size());
         LOG.info("Readers size " + readers.size());

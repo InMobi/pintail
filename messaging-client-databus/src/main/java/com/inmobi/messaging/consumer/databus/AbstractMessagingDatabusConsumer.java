@@ -416,7 +416,7 @@ public abstract class AbstractMessagingDatabusConsumer
   }
 
   protected void parseClusterNamesAndMigrateCheckpoint(ClientConfig config,
-                                                       String[] rootDirStrs) {
+      String[] rootDirStrs) {
     Map<PartitionId, PartitionId> partitionIdMap = new HashMap<PartitionId, PartitionId>();
     preparePartitionIdMap(config, rootDirStrs, clusterNames, partitionIdMap);
 
@@ -434,8 +434,8 @@ public abstract class AbstractMessagingDatabusConsumer
    * modifying the cluster names with the user provided cluster names
    */
   protected void preparePartitionIdMap(ClientConfig config,
-                                       String[] rootDirStrs, String[] clusterNames,
-                                       Map<PartitionId, PartitionId> partitionIdMap) {
+      String[] rootDirStrs, String[] clusterNames,
+      Map<PartitionId, PartitionId> partitionIdMap) {
     String clusterNameStr = config.getString(clustersNameConfig);
     if (clusterNameStr != null) {
       String[] clusterNameStrs = clusterNameStr.split(",");

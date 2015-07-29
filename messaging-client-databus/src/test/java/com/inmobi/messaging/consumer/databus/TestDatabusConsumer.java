@@ -83,8 +83,7 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
       config.set(DatabusConsumerConfig.checkpointDirConfig, ck14);
       config.set(MessagingConsumerConfig.relativeStartTimeConfig,
           relativeStartTime);
-      config.set(DatabusConsumerConfig.initialDelayForDiscoverer, "1");
-      config.set(DatabusConsumerConfig.frequencyForDiscoverer, "1");
+       config.set(DatabusConsumerConfig.frequencyForDiscoverer, "1");
       ConsumerUtil.testDynamicCollector(config, testStream, consumerName, false,
           rootDirs, conf, testStream, COLLECTOR_PREFIX);
     }
