@@ -200,10 +200,6 @@ public abstract class AbstractMessagingDatabusConsumer
     return readers;
   }
 
-  public Set<PartitionReader> getStartedPartitionReaders() {
-    return startedReaders;
-  }
-
   protected abstract void createCheckpoint();
 
   public Set<Integer> getPartitionMinList() {
@@ -288,15 +284,12 @@ public abstract class AbstractMessagingDatabusConsumer
   protected synchronized void start() throws IOException {
     createPartitionReaders();
     for (PartitionReader reader : readers.values()) {
-      if (startedReaders.contains(reader)) {
-        continue;
-      }
       reader.start(getReaderNameSuffix());
       startedReaders.add(reader);
     }
   }
 
-  private String getReaderNameSuffix() {
+  protected String getReaderNameSuffix() {
     StringBuilder str = new StringBuilder();
     str.append(topicName);
     str.append("-");
@@ -461,16 +454,6 @@ public abstract class AbstractMessagingDatabusConsumer
       }
     } else {
       LOG.info("using default cluster names as clustersName config is missing");
-    }
-  }
-
-  protected synchronized void startNewReaders() {
-    for (PartitionReader reader : readers.values()) {
-      if (startedReaders.contains(reader)) {
-        continue;
-      }
-      reader.start(getReaderNameSuffix());
-      startedReaders.add(reader);
     }
   }
 }

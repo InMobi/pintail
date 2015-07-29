@@ -440,7 +440,6 @@ public class ConsumerUtil {
     fs.mkdirs(collectorDir);
     String dataFile = TestUtil.files[2];
     TestUtil.setUpCollectorDataFiles(fs, collectorDir, dataFile);
-    Thread.sleep(60 * 1000);
     //wait for the new messages to be consumed by the new partition readers
     for (i = 0; i < 100; i++) {
       Message msg = consumer.next();

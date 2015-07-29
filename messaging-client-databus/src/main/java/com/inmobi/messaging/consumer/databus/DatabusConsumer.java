@@ -85,9 +85,9 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
   public static String clusterNamePrefix = "databusCluster";
   private Boolean readFromLocalStream;
   private int numList = 0;
-  public static List<String> collectorsWithReaders = new ArrayList<String>();
+  public  List<String> collectorsWithReaders = new ArrayList<String>();
   private Timer partitionDiscovererAndReaderCreator;
-  private Long NUMBER_OF_MILLI_SECONDS_IN_MINUTE = 60 * 1000l;
+  private static final Long NUMBER_OF_MILLI_SECONDS_IN_SECOND = 1000l;
   private boolean initDone = false;
 
   protected void initializeConfig(ClientConfig config) throws IOException {
@@ -123,19 +123,27 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
      */
     if (streamType.equals(StreamType.COLLECTOR)) {
       getClusterNames(config, rootDirSplits);
+      startNewCollectorDiscovererTimer(config);
     } else {
       parseClusterNamesAndMigrateCheckpoint(config, rootDirSplits);
     }
-    /*
-    This timer task starts after an initial delay of 30 minutes
-    and runs every 5 minutes. This guy is responsible for identifying new
+    LOG.info("Databus consumer initialized with streamName:" + topicName
+        + " consumerName:" + consumerName + " startTime:" + startTime
+        + " queueSize:" + bufferSize + " checkPoint:" + currentCheckpoint
+        + " streamType:" + streamType);
+  }
+
+  private void startNewCollectorDiscovererTimer(ClientConfig config) {
+       /*
+    This timer is responsible for identifying new
     collector output files and initialising partition readers for them
      */
     int initialDelay = config.getInteger(initialDelayForDiscoverer,
         DEFAULT_INITIAL_DELAY_FOR_DISCOVERER);
     int discoverFrequency = config.getInteger(frequencyForDiscoverer,
         DEFAULT_FREQUENCY_FOR_DISCOVERER);
-    partitionDiscovererAndReaderCreator = new Timer("PartitionDiscovererAndReaderCreator");
+    partitionDiscovererAndReaderCreator = new Timer(
+        "PartitionDiscovererAndReaderCreator");
     partitionDiscovererAndReaderCreator.schedule(new TimerTask() {
       @Override
       public void run() {
@@ -148,11 +156,8 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
           e.printStackTrace();
         }
       }
-    }, initialDelay * NUMBER_OF_MILLI_SECONDS_IN_MINUTE, discoverFrequency * NUMBER_OF_MILLI_SECONDS_IN_MINUTE);
-    LOG.info("Databus consumer initialized with streamName:" + topicName
-        + " consumerName:" + consumerName + " startTime:" + startTime
-        + " queueSize:" + bufferSize + " checkPoint:" + currentCheckpoint
-        + " streamType:" + streamType);
+    }, initialDelay * NUMBER_OF_MILLI_SECONDS_IN_SECOND,
+        discoverFrequency * NUMBER_OF_MILLI_SECONDS_IN_SECOND);
   }
 
   private void getClusterNames(ClientConfig config, String[] rootDirSplits) {
@@ -306,5 +311,15 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
       partitionDiscovererAndReaderCreator.cancel();
     }
     super.close();
+  }
+
+  protected synchronized void startNewReaders() {
+    for (PartitionReader reader : readers.values()) {
+      if (startedReaders.contains(reader)) {
+        continue;
+      }
+      reader.start(getReaderNameSuffix());
+      startedReaders.add(reader);
+    }
   }
 }

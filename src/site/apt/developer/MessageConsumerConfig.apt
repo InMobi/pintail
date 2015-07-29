@@ -69,7 +69,7 @@ MessageConsumerConfig
 |messaging.consumer.group.membership |	Optional | ConsumerNumber in the consumer group. (consumerNumber/totalConsumers) |	1/1 |
 *--------+-----------+-------------+-------------+
 |messaging.consumer.clusternames   | Optional    | user specific cluster name for each root dir.| for databus consumer : databusCluster0,databusCluster1,... \ |
-|                                  |             | This property is <<Mondatory>> in case if user wants to remove a rootdir| hadoop consumer : hadoopcluster0,hadoopcluster1,... |
+|                                  |             | This property is <<Mandatory>> in case if user wants to remove a rootdir| hadoop consumer : hadoopcluster0,hadoopcluster1,... |
 *--------+-----------+-------------+-------------+
 
     <<DatabusConsumer configuraton properties>>
@@ -82,6 +82,10 @@ MessageConsumerConfig
 |databus.consumer.stream.type |	Optional |	Different stream types consumable. The supported types are COLLECTOR, LOCAL, MERGED	|COLLECTOR |
 *--------+-----------+-------------+-------------+
 |databus.consumer.waittime.forcollectorflush|	Optional |	Wait time in milli seconds for consumer to read more messages, if the current file is being written. Applicable only for type COLLECTOR	| 5000 |
+*--------+-----------+-------------+-------------+
+|databus.consumer.collector.discoverer.initial.delay.seconds|	Optional |	Wait time in seconds for consumer to start the discovery of newly added collectors output. Applicable only for type COLLECTOR	| 1800 |
+*--------+-----------+-------------+-------------+
+|databus.consumer.collector.discoverer.frequency.seconds|	Optional |	frequency in seconds for consumer for the discovery of newly added collectors output. Applicable only for type COLLECTOR	| 120  |
 *--------+-----------+-------------+-------------+
 
   << HadoopConsumer configuration propertes>>
