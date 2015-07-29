@@ -434,11 +434,11 @@ public abstract class AbstractMessagingDatabusConsumer
    * modifying the cluster names with the user provided cluster names
    */
   protected void preparePartitionIdMap(ClientConfig config,
-      String[] rootDirStrs, String[] clusterNames,
+      String[] rootDirStrs, String [] clusterNames,
       Map<PartitionId, PartitionId> partitionIdMap) {
     String clusterNameStr = config.getString(clustersNameConfig);
     if (clusterNameStr != null) {
-      String[] clusterNameStrs = clusterNameStr.split(",");
+      String [] clusterNameStrs = clusterNameStr.split(",");
       if (clusterNameStrs.length != rootDirStrs.length) {
         throw new IllegalArgumentException("Cluster names were not specified for all root dirs."
             + " Mismatch between number of root dirs and number of user specified cluster names");
