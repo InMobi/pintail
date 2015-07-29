@@ -75,7 +75,7 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
     ConsumerUtil.testMarkAndReset(config, testStream, consumerName, false);
   }
 
-  @Test(timeOut = 80000)
+  @Test
     public void testDynamicCollector() throws Exception {
       ClientConfig config = loadConfig();
       config.set(DatabusConsumerConfig.databusRootDirsConfig,

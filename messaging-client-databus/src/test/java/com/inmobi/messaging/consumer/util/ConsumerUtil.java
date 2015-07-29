@@ -441,6 +441,7 @@ public class ConsumerUtil {
     String dataFile = TestUtil.files[2];
     TestUtil.setUpCollectorDataFiles(fs, collectorDir, dataFile);
     //wait for the new messages to be consumed by the new partition readers
+   // Thread.sleep(12000);
     for (i = 0; i < 100; i++) {
       Message msg = consumer.next();
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),

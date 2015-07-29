@@ -149,8 +149,11 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
       public void run() {
         try {
           if (initDone) {
+            LOG.info("collector discoverer activated");
             createPartitionReaders();
             startNewReaders();
+          } else {
+            LOG.info("Init not done for consumer yet. Discoverer backing off");
           }
         } catch (IOException e) {
           e.printStackTrace();
@@ -158,6 +161,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
       }
     }, initialDelay * NUMBER_OF_MILLI_SECONDS_IN_SECOND,
         discoverFrequency * NUMBER_OF_MILLI_SECONDS_IN_SECOND);
+    LOG.info("Initialised timer for discovery of new collectors output with frequency "+discoverFrequency+" startup delay "+initialDelay);
   }
 
   private void getClusterNames(ClientConfig config, String[] rootDirSplits) {
@@ -313,11 +317,12 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
     super.close();
   }
 
-  protected synchronized void startNewReaders() {
+  protected void startNewReaders() {
     for (PartitionReader reader : readers.values()) {
       if (startedReaders.contains(reader)) {
         continue;
       }
+      LOG.info("started reader "+getReaderNameSuffix()+" "+reader.toString());
       reader.start(getReaderNameSuffix());
       startedReaders.add(reader);
     }
