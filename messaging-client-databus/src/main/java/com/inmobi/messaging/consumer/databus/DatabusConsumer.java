@@ -149,6 +149,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
           if (initDone) {
             LOG.info("collector discoverer activated");
             createPartitionReaders();
+            LOG.info("Start new readers activated");
             startNewReaders();
           } else {
             LOG.info("Init not done for consumer yet. Discoverer backing off");
@@ -164,7 +165,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
   private void getClusterNames(ClientConfig config, String[] rootDirSplits) {
     String clusterNameStr = config.getString(clustersNameConfig);
     if (clusterNameStr != null) {
-      String[] clusterNameStrs = clusterNameStr.split(",");
+      String [] clusterNameStrs = clusterNameStr.split(",");
       if (clusterNameStrs.length != rootDirSplits.length) {
         throw new IllegalArgumentException("Cluster names were not specified for all root dirs."
             + " Mismatch between number of root dirs and number of user specified cluster names");
@@ -228,7 +229,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
         LOG.info("Creating partition reader for cluster");
         PartitionId id = new PartitionId(clusterName, null);
         PartitionCheckpointList partitionCheckpointList =
-            ((CheckpointList) currentCheckpoint).preaprePartitionCheckPointList(id);
+        ((CheckpointList) currentCheckpoint).preaprePartitionCheckPointList(id);
         Date partitionTimestamp = getPartitionTimestamp(id,
             partitionCheckpointList);
         LOG.debug("Creating partition " + id);
