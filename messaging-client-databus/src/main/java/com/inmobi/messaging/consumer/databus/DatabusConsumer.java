@@ -181,7 +181,6 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
     return collectors;
   }
 
-
   protected void createPartitionReaders() throws IOException {
     for (int i = 0; i < rootDirs.length; i++) {
       LOG.debug("Creating partition readers for rootDir:" + rootDirs[i]);
