@@ -22,6 +22,7 @@ package com.inmobi.messaging.consumer.databus;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -85,10 +86,12 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
   public static String clusterNamePrefix = "databusCluster";
   private Boolean readFromLocalStream;
   private int numList = 0;
-  private  List<String> collectorsWithReaders = new ArrayList<String>();
+  protected final Map<PartitionId, PartitionReader> newReaders =
+        new HashMap<PartitionId, PartitionReader>();
   private Timer partitionDiscovererAndReaderCreator;
   private static final Long NUMBER_OF_MILLI_SECONDS_IN_SECOND = 1000l;
-  private boolean initDone = false;
+  private volatile boolean initDone = false;
+  private int discoverFrequency;
 
   protected void initializeConfig(ClientConfig config) throws IOException {
     String type = config.getString(databusStreamType, DEFAULT_STREAM_TYPE);
@@ -138,27 +141,11 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
     This timer is responsible for identifying new
     collector output sub directories and initialising partition readers for them
      */
-     int discoverFrequency = config.getInteger(frequencyForDiscoverer,
+     discoverFrequency = config.getInteger(frequencyForDiscoverer,
         DEFAULT_FREQUENCY_FOR_DISCOVERER);
     partitionDiscovererAndReaderCreator = new Timer(
         "PartitionDiscovererAndReaderCreator");
-    partitionDiscovererAndReaderCreator.schedule(new TimerTask() {
-      @Override
-      public void run() {
-        try {
-          if (initDone) {
-            LOG.info("collector discoverer activated");
-            createPartitionReaders();
-            LOG.info("Start new readers activated");
-            startNewReaders();
-          } else {
-            LOG.info("Init not done for consumer yet. Discoverer backing off");
-          }
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-      }
-    }, NUMBER_OF_MILLI_SECONDS_IN_SECOND, discoverFrequency * NUMBER_OF_MILLI_SECONDS_IN_SECOND);
+    scheduleTimer(partitionDiscovererAndReaderCreator);
     LOG.info("Initialised timer for discovery of new collectors output with frequency "+discoverFrequency);
   }
 
@@ -212,19 +199,18 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
       if (streamType.equals(StreamType.COLLECTOR)) {
         Map<PartitionId, PartitionCheckpoint> partitionsChkPoints =
             ((Checkpoint) currentCheckpoint).getPartitionsCheckpoint();
-        LOG.info("Creating partition readers for all the collectors");
+        LOG.debug("Creating partition readers for all the collectors");
         for (String collector : getCollectors(fs, streamDir)) {
-          if (collectorsWithReaders.contains(collector + "_" +rootdir)) {
+          PartitionId id = new PartitionId(clusterName, collector);
+          if(readers.containsKey(id)){
             continue;
           }
           String defaultClusterName = getDefaultClusterName(i);
-          LOG.info("Creating partition reader Collector " + collector);
+          LOG.debug("Creating partition reader Collector " + collector);
           createPartitionReader(clusterName, collector, partitionsChkPoints, fsuri, fs, streamDir, defaultClusterName, rootdir);
-          LOG.info("Created partition reader Collector " + collector);
-          collectorsWithReaders.add(collector + "_" + rootdir);
+          LOG.debug("Created partition reader Collector " + collector);
         }
-        LOG.info("Collectors with partitions readers size is " + collectorsWithReaders.size());
-        LOG.info("Readers size " + readers.size());
+        LOG.debug("Readers size " + readers.size());
       } else {
         LOG.info("Creating partition reader for cluster");
         PartitionId id = new PartitionId(clusterName, null);
@@ -285,7 +271,11 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
         new Path(streamDir, collector), streamsLocalDir, buffer, topicName,
         partitionTimestamp, waitTimeForFlush, waitTimeForFileCreate,
         collectorMetrics, stopTime);
-    readers.put(id, newReader);
+    if (!initDone) {
+      readers.put(id, newReader);
+    } else {
+      newReaders.put(id, newReader);
+    }
     messageConsumedMap.put(id, false);
     numList = 0;
   }
@@ -309,7 +299,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
 
   @Override
   public synchronized void close() {
-    collectorsWithReaders.clear();
+    newReaders.clear();
     if (null != partitionDiscovererAndReaderCreator) {
       partitionDiscovererAndReaderCreator.cancel();
     }
@@ -317,13 +307,50 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
   }
 
   protected void startNewReaders() {
-    for (PartitionReader reader : readers.values()) {
-      if (startedReaders.contains(reader)) {
-        continue;
+    for (PartitionId id : newReaders.keySet()) {
+      try {
+        PartitionReader reader = newReaders.get(id);
+        reader.start(getReaderNameSuffix());
+        readers.put(id, reader);
+        LOG.info(
+            "started new reader " + getReaderNameSuffix() + " " + reader.toString());
+      } catch (Exception e) {
+        e.printStackTrace();
       }
-      LOG.info("started reader "+getReaderNameSuffix()+" "+reader.toString());
-      reader.start(getReaderNameSuffix());
-      startedReaders.add(reader);
     }
+    newReaders.clear();
+  }
+
+  protected void doReset() throws IOException {
+    initDone = false;
+    super.doReset();
+    if (streamType.equals(StreamType.COLLECTOR)) {
+      partitionDiscovererAndReaderCreator = new Timer(
+              "PartitionDiscovererAndReaderCreator");
+      scheduleTimer(partitionDiscovererAndReaderCreator);
+          LOG.info(
+              "Initialised timer for discovery of new collectors output with frequency " + discoverFrequency);
+    }
+  }
+
+  private void scheduleTimer(Timer partitionDiscovererAndReaderCreator) {
+    partitionDiscovererAndReaderCreator.schedule(new TimerTask() {
+          @Override
+          public void run() {
+            try {
+              if (initDone) {
+                LOG.info("collector discoverer activated");
+                createPartitionReaders();
+                LOG.info("Start new readers activated");
+                startNewReaders();
+              } else {
+                LOG.info("Init not done for consumer yet. Discoverer backing off");
+              }
+            } catch (IOException e) {
+              LOG.debug("Error in scheduling timer",e);
+              e.printStackTrace();
+            }
+          }
+        }, NUMBER_OF_MILLI_SECONDS_IN_SECOND, discoverFrequency * NUMBER_OF_MILLI_SECONDS_IN_SECOND);
   }
 }

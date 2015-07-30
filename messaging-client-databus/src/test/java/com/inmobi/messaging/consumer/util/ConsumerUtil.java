@@ -441,13 +441,30 @@ public class ConsumerUtil {
     String dataFile = TestUtil.files[2];
     TestUtil.setUpCollectorDataFiles(fs, collectorDir, dataFile);
     //wait for the new messages to be consumed by the new partition readers
-   // Thread.sleep(12000);
     for (i = 0; i < 100; i++) {
       Message msg = consumer.next();
       Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
           MessageUtil.constructMessage(i));
     }
-    fs.delete(collectorDir,true);
+    //reset the consumer
+    consumer.mark();
+    consumer.reset();
+    //create one more collector sub directory
+    Path collectorDir2 = new Path(rootDirs[0].toUri().toString(),
+        "data/" + testStream + "/" + COLLECTOR_PREFIX + "9");
+    fs.mkdirs(collectorDir2);
+    dataFile = TestUtil.files[2];
+    TestUtil.setUpCollectorDataFiles(fs, collectorDir2, dataFile);
+
+    //wait for the new messages to be consumed by the new partition readers
+    for (i = 0; i < 100; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+
+    fs.delete(collectorDir, true);
+    fs.delete(collectorDir2,true);
     consumer.close();
   }
 

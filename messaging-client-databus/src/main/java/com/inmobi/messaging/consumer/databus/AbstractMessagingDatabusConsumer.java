@@ -58,7 +58,6 @@ public abstract class AbstractMessagingDatabusConsumer
   protected final Map<PartitionId, PartitionReader> readers =
       new HashMap<PartitionId, PartitionReader>();
 
-  protected final Set<PartitionReader> startedReaders = new HashSet<PartitionReader>();
   protected Map<PartitionId, Boolean> messageConsumedMap = new HashMap
       <PartitionId, Boolean>();
 
@@ -285,7 +284,6 @@ public abstract class AbstractMessagingDatabusConsumer
     createPartitionReaders();
     for (PartitionReader reader : readers.values()) {
       reader.start(getReaderNameSuffix());
-      startedReaders.add(reader);
     }
   }
 
@@ -392,7 +390,6 @@ public abstract class AbstractMessagingDatabusConsumer
       removeStatsExposer(reader.getStatsExposer());
     }
     readers.clear();
-    startedReaders.clear();
     if (buffer != null) {
       buffer.clear();
     }

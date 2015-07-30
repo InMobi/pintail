@@ -34,5 +34,5 @@ public interface DatabusConsumerConfig extends MessagingConsumerConfig {
   "databus.consumer.waittime.forcollectorflush";
   public static final long DEFAULT_WAIT_TIME_FOR_FLUSH = 5000; // 5 second
   public static final String frequencyForDiscoverer =  "databus.consumer.collector.discoverer.frequency.seconds"; // in seconds
-  public static final int  DEFAULT_FREQUENCY_FOR_DISCOVERER = 120; // 2 minutes
+  public static final int  DEFAULT_FREQUENCY_FOR_DISCOVERER = 1200; // 20 minutes
 }
