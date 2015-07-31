@@ -416,9 +416,8 @@ public class ConsumerUtil {
   }
 
   public static void testDynamicCollector(ClientConfig config, String streamName,
-                                          String consumerName, boolean hadoop, Path[] rootDirs,
-                                          Configuration conf, String testStream,
-                                          String COLLECTOR_PREFIX) throws Exception {
+      String consumerName, boolean hadoop, Path[] rootDirs, Configuration conf,
+      String testStream, String COLLECTOR_PREFIX) throws Exception {
 
     AbstractMessagingDatabusConsumer consumer = createConsumer(hadoop);
     consumer.init(streamName, consumerName, null, config);

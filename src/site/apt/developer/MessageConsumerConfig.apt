@@ -83,7 +83,7 @@ MessageConsumerConfig
 *--------+-----------+-------------+-------------+
 |databus.consumer.waittime.forcollectorflush|	Optional |	Wait time in milli seconds for consumer to read more messages, if the current file is being written. Applicable only for type COLLECTOR	| 5000 |
 *--------+-----------+-------------+-------------+
-|databus.consumer.collector.discoverer.frequency.seconds|	Optional |	frequency in seconds for consumer for the discovery of newly added collectors output. Applicable only for type COLLECTOR	| 120  |
+|databus.consumer.collector.discoverer.frequency.seconds|	Optional |	frequency in seconds for consumer for the discovery of newly added collectors output. Applicable only for type COLLECTOR	| 1200  |
 *--------+-----------+-------------+-------------+
 
   << HadoopConsumer configuration propertes>>

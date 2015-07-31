@@ -137,16 +137,13 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
   }
 
   private void startNewCollectorDiscovererTimer(ClientConfig config) {
-       /*
-    This timer is responsible for identifying new
-    collector output sub directories and initialising partition readers for them
+    /*
+     * This timer is responsible for identifying new collector output
+     * sub directories and initialising partition readers for them
      */
-     discoverFrequency = config.getInteger(frequencyForDiscoverer,
+    discoverFrequency = config.getInteger(frequencyForDiscoverer,
         DEFAULT_FREQUENCY_FOR_DISCOVERER);
-    partitionDiscovererAndReaderCreator = new Timer(
-        "PartitionDiscovererAndReaderCreator");
-    scheduleTimer(partitionDiscovererAndReaderCreator);
-    LOG.info("Initialised timer for discovery of new collectors output with frequency "+discoverFrequency);
+    createAndScheduleDiscovererTimer();
   }
 
   private void getClusterNames(ClientConfig config, String[] rootDirSplits) {
@@ -205,9 +202,9 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
             continue;
           }
           String defaultClusterName = getDefaultClusterName(i);
-          LOG.debug("Creating partition reader Collector " + collector);
+          LOG.info("Creating partition reader Collector " + collector);
           createPartitionReader(clusterName, collector, partitionsChkPoints, fsuri, fs, streamDir, defaultClusterName, rootdir);
-          LOG.debug("Created partition reader Collector " + collector);
+          LOG.info("Created partition reader Collector " + collector);
         }
         LOG.debug("Readers size " + readers.size());
       } else {
@@ -247,9 +244,9 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
       PartitionId defaultPid = new PartitionId(defaultClusterName,
           collector);
       pck = partitionsChkPoints.get(defaultPid);
-               /*
-                * Migrate to new checkpoint
-                */
+      /**
+       * Migrate to new checkpoint
+       */
       ((Checkpoint) currentCheckpoint).migrateCheckpoint(pck, defaultPid, id);
     }
     Date partitionTimestamp = getPartitionTimestamp(id, pck);
@@ -305,17 +302,13 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
     super.close();
   }
 
-  protected void startNewReaders() {
+  protected void startNewReaders() throws IOException{
     for (PartitionId id : newReaders.keySet()) {
-      try {
-        PartitionReader reader = newReaders.get(id);
-        reader.start(getReaderNameSuffix());
-        readers.put(id, reader);
-        LOG.info(
-            "started new reader " + getReaderNameSuffix() + " " + reader.toString());
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
+      PartitionReader reader = newReaders.get(id);
+      reader.start(getReaderNameSuffix());
+      readers.put(id, reader);
+      LOG.info("started new reader " + getReaderNameSuffix() +
+          " " + reader.toString());
     }
     newReaders.clear();
   }
@@ -324,12 +317,16 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
     initDone = false;
     super.doReset();
     if (streamType.equals(StreamType.COLLECTOR)) {
-      partitionDiscovererAndReaderCreator = new Timer(
-              "PartitionDiscovererAndReaderCreator");
-      scheduleTimer(partitionDiscovererAndReaderCreator);
-          LOG.info(
-              "Initialised timer for discovery of new collectors output with frequency " + discoverFrequency);
+      createAndScheduleDiscovererTimer();
     }
+  }
+
+  private void createAndScheduleDiscovererTimer() {
+    partitionDiscovererAndReaderCreator = new Timer(
+        "PartitionDiscovererAndReaderCreator");
+    scheduleTimer(partitionDiscovererAndReaderCreator);
+    LOG.info("Initialised timer for discovery of new collectors" +
+        " output with frequency " + discoverFrequency);
   }
 
   private void scheduleTimer(Timer partitionDiscovererAndReaderCreator) {
@@ -346,8 +343,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
                 LOG.info("Init not done for consumer yet. Discoverer backing off");
               }
             } catch (IOException e) {
-              LOG.debug("Error in scheduling timer",e);
-              e.printStackTrace();
+              LOG.error("Error in scheduling timer",e);
             }
           }
         }, NUMBER_OF_MILLI_SECONDS_IN_SECOND, discoverFrequency * NUMBER_OF_MILLI_SECONDS_IN_SECOND);
