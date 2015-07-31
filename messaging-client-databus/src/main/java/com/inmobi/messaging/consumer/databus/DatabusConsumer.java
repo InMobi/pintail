@@ -22,7 +22,6 @@ package com.inmobi.messaging.consumer.databus;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -86,10 +85,10 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
   public static String clusterNamePrefix = "databusCluster";
   private Boolean readFromLocalStream;
   private int numList = 0;
-  protected final Map<PartitionId, PartitionReader> newReaders =
+  private final Map<PartitionId, PartitionReader> newReaders =
         new HashMap<PartitionId, PartitionReader>();
   private Timer partitionDiscovererAndReaderCreator;
-  private static final Long NUMBER_OF_MILLI_SECONDS_IN_SECOND = 1000l;
+  private static final int NUMBER_OF_MILLI_SECONDS_IN_SECOND = 1000;
   private volatile boolean initDone = false;
   private int discoverFrequency;
 
@@ -198,13 +197,13 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
         LOG.debug("Creating partition readers for all the collectors");
         for (String collector : getCollectors(fs, streamDir)) {
           PartitionId id = new PartitionId(clusterName, collector);
-          if(readers.containsKey(id)){
+          if(readers.containsKey(id)) {
             continue;
           }
           String defaultClusterName = getDefaultClusterName(i);
-          LOG.info("Creating partition reader Collector " + collector);
+          LOG.info("Creating partition reader for Collector " + collector);
           createPartitionReader(clusterName, collector, partitionsChkPoints, fsuri, fs, streamDir, defaultClusterName, rootdir);
-          LOG.info("Created partition reader Collector " + collector);
+          LOG.info("Created partition reader for Collector " + collector);
         }
         LOG.debug("Readers size " + readers.size());
       } else {
@@ -267,6 +266,10 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
         new Path(streamDir, collector), streamsLocalDir, buffer, topicName,
         partitionTimestamp, waitTimeForFlush, waitTimeForFileCreate,
         collectorMetrics, stopTime);
+    /**
+     * timer gets triggered post-initialization,
+     * and hence timer will add in the newReaders map.
+     */
     if (!initDone) {
       readers.put(id, newReader);
     } else {
@@ -302,7 +305,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
     super.close();
   }
 
-  protected void startNewReaders() throws IOException{
+  protected void startNewReaders() throws IOException {
     for (PartitionId id : newReaders.keySet()) {
       PartitionReader reader = newReaders.get(id);
       reader.start(getReaderNameSuffix());
@@ -313,6 +316,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
     newReaders.clear();
   }
 
+  @Override
   protected void doReset() throws IOException {
     initDone = false;
     super.doReset();
@@ -346,6 +350,6 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
               LOG.error("Error in scheduling timer",e);
             }
           }
-        }, NUMBER_OF_MILLI_SECONDS_IN_SECOND, discoverFrequency * NUMBER_OF_MILLI_SECONDS_IN_SECOND);
+        }, discoverFrequency * NUMBER_OF_MILLI_SECONDS_IN_SECOND, discoverFrequency * NUMBER_OF_MILLI_SECONDS_IN_SECOND);
   }
 }

@@ -78,7 +78,6 @@ public class TestDatabusConsumerMultipleCollectors
       consumer.init(testStream, consumerName, null, config);
     } catch (Exception e) {
       th = e;
-      e.printStackTrace();
     }
     Assert.assertNotNull(th);
     Assert.assertTrue(th instanceof IllegalArgumentException);
