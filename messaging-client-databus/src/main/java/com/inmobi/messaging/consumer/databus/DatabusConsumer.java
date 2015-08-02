@@ -311,7 +311,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
       reader.start(getReaderNameSuffix());
       readers.put(id, reader);
       LOG.info("started new reader " + getReaderNameSuffix() +
-          " " + reader.toString());
+          " for partition " + id.toString());
     }
     newReaders.clear();
   }
@@ -341,8 +341,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
               if (initDone) {
                 LOG.info("collector discoverer activated");
                 createPartitionReaders();
-                LOG.info("Start new readers activated");
-                startNewReaders();
+                 startNewReaders();
               } else {
                 LOG.info("Init not done for consumer yet. Discoverer backing off");
               }
