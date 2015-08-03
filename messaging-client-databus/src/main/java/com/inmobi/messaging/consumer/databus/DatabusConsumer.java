@@ -21,10 +21,7 @@ package com.inmobi.messaging.consumer.databus;
  */
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -88,6 +85,12 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
   public static String clusterNamePrefix = "databusCluster";
   private Boolean readFromLocalStream;
   private int numList = 0;
+  private final Map<PartitionId, PartitionReader> newReaders =
+        new HashMap<PartitionId, PartitionReader>();
+  private Timer partitionDiscovererAndReaderCreator;
+  private static final int NUMBER_OF_MILLI_SECONDS_IN_SECOND = 1000;
+  private volatile boolean initDone = false;
+  private int discoverFrequency;
 
   protected void initializeConfig(ClientConfig config) throws IOException {
     String type = config.getString(databusStreamType, DEFAULT_STREAM_TYPE);
@@ -122,6 +125,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
      */
     if (streamType.equals(StreamType.COLLECTOR)) {
       getClusterNames(config, rootDirSplits);
+      startNewCollectorDiscovererTimer(config);
     } else {
       parseClusterNamesAndMigrateCheckpoint(config, rootDirSplits);
     }
@@ -129,6 +133,16 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
         + " consumerName:" + consumerName + " startTime:" + startTime
         + " queueSize:" + bufferSize + " checkPoint:" + currentCheckpoint
         + " streamType:" + streamType);
+  }
+
+  private void startNewCollectorDiscovererTimer(ClientConfig config) {
+    /*
+     * This timer is responsible for identifying new collector output
+     * sub directories and initialising partition readers for them
+     */
+    discoverFrequency = config.getInteger(frequencyForDiscoverer,
+        DEFAULT_FREQUENCY_FOR_DISCOVERER);
+    createAndScheduleDiscovererTimer();
   }
 
   private void getClusterNames(ClientConfig config, String[] rootDirSplits) {
@@ -171,6 +185,7 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
       Path streamDir = DatabusUtil.getStreamDir(streamType, rootDirs[i],
           topicName);
       String clusterName;
+      Path rootdir = rootDirs[i];
       if (clusterNames != null) {
         clusterName = clusterNames[i];
       } else {
@@ -179,48 +194,22 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
       if (streamType.equals(StreamType.COLLECTOR)) {
         Map<PartitionId, PartitionCheckpoint> partitionsChkPoints =
             ((Checkpoint) currentCheckpoint).getPartitionsCheckpoint();
-        LOG.info("Creating partition readers for all the collectors");
+        LOG.debug("Creating partition readers for all the collectors");
         for (String collector : getCollectors(fs, streamDir)) {
           PartitionId id = new PartitionId(clusterName, collector);
-          PartitionCheckpoint pck = partitionsChkPoints.get(id);
-          /*
-           * Migration of checkpoint required in this case
-           * If user provides a cluster name and partition checkpoint is null
-           */
-          if (!clusterName.equals(getDefaultClusterName(i)) && pck == null) {
-            PartitionId defaultPid = new PartitionId(getDefaultClusterName(i),
-                collector);
-            pck = partitionsChkPoints.get(defaultPid);
-            /*
-             * Migrate to new checkpoint
-             */
-            ((Checkpoint) currentCheckpoint).migrateCheckpoint(pck, defaultPid, id);
+          if(readers.containsKey(id)) {
+            continue;
           }
-          Date partitionTimestamp = getPartitionTimestamp(id, pck);
-          LOG.debug("Creating partition " + id);
-          PartitionReaderStatsExposer collectorMetrics = new
-              CollectorReaderStatsExposer(topicName, consumerName,
-                  id.toString(), consumerNumber, fsuri);
-          addStatsExposer(collectorMetrics);
-          Path streamsLocalDir = null;
-          if (readFromLocalStream) {
-            streamsLocalDir = DatabusUtil.getStreamDir(StreamType.LOCAL,
-                rootDirs[i], topicName);
-          }
-          for (int c = 0; c < numList; c++) {
-            collectorMetrics.incrementListOps();
-          }
-          readers.put(id, new PartitionReader(id, pck, conf, fs,
-              new Path(streamDir, collector), streamsLocalDir, buffer, topicName,
-              partitionTimestamp, waitTimeForFlush, waitTimeForFileCreate,
-              collectorMetrics, stopTime));
-          messageConsumedMap.put(id, false);
-          numList = 0;
+          String defaultClusterName = getDefaultClusterName(i);
+          LOG.info("Creating partition reader for Collector " + collector);
+          createPartitionReader(clusterName, collector, partitionsChkPoints, fsuri, fs, streamDir, defaultClusterName, rootdir);
+          LOG.info("Created partition reader for Collector " + collector);
         }
+        LOG.debug("Readers size " + readers.size());
       } else {
         LOG.info("Creating partition reader for cluster");
         PartitionId id = new PartitionId(clusterName, null);
-        PartitionCheckpointList partitionCheckpointList = 
+        PartitionCheckpointList partitionCheckpointList =
         ((CheckpointList) currentCheckpoint).preaprePartitionCheckPointList(id);
         Date partitionTimestamp = getPartitionTimestamp(id,
             partitionCheckpointList);
@@ -237,6 +226,57 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
         messageConsumedMap.put(id, false);
       }
     }
+    initDone = true;
+  }
+
+  private void createPartitionReader(String clusterName, String collector, Map<PartitionId,
+      PartitionCheckpoint> partitionsChkPoints,String fsuri, FileSystem fs,
+      Path streamDir, String defaultClusterName, Path rootdir) throws IOException {
+
+    PartitionId id = new PartitionId(clusterName, collector);
+    PartitionCheckpoint pck = partitionsChkPoints.get(id);
+    /*
+    * Migration of checkpoint required in this case
+    * If user provides a cluster name and partition checkpoint is null
+    */
+    if (!clusterName.equals(defaultClusterName) && pck == null) {
+      PartitionId defaultPid = new PartitionId(defaultClusterName,
+          collector);
+      pck = partitionsChkPoints.get(defaultPid);
+      /**
+       * Migrate to new checkpoint
+       */
+      ((Checkpoint) currentCheckpoint).migrateCheckpoint(pck, defaultPid, id);
+    }
+    Date partitionTimestamp = getPartitionTimestamp(id, pck);
+    LOG.debug("Creating partition " + id);
+    PartitionReaderStatsExposer collectorMetrics = new
+        CollectorReaderStatsExposer(topicName, consumerName,
+        id.toString(), consumerNumber, fsuri);
+    addStatsExposer(collectorMetrics);
+    Path streamsLocalDir = null;
+    if (readFromLocalStream) {
+      streamsLocalDir = DatabusUtil.getStreamDir(StreamType.LOCAL,
+          rootdir, topicName);
+    }
+    for (int c = 0; c < numList; c++) {
+      collectorMetrics.incrementListOps();
+    }
+    PartitionReader newReader = new PartitionReader(id, pck, conf, fs,
+        new Path(streamDir, collector), streamsLocalDir, buffer, topicName,
+        partitionTimestamp, waitTimeForFlush, waitTimeForFileCreate,
+        collectorMetrics, stopTime);
+    /**
+     * timer gets triggered post-initialization,
+     * and hence timer will add in the newReaders map.
+     */
+    if (!initDone) {
+      readers.put(id, newReader);
+    } else {
+      newReaders.put(id, newReader);
+    }
+    messageConsumedMap.put(id, false);
+    numList = 0;
   }
 
   private String getDefaultClusterName(int i) {
@@ -254,5 +294,61 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
     } else {
       currentCheckpoint = new CheckpointList(partitionMinList);
     }
+  }
+
+  @Override
+  public synchronized void close() {
+    newReaders.clear();
+    if (null != partitionDiscovererAndReaderCreator) {
+      partitionDiscovererAndReaderCreator.cancel();
+    }
+    super.close();
+  }
+
+  protected void startNewReaders() throws IOException {
+    for (PartitionId id : newReaders.keySet()) {
+      PartitionReader reader = newReaders.get(id);
+      reader.start(getReaderNameSuffix());
+      readers.put(id, reader);
+      LOG.info("started new reader " + getReaderNameSuffix() +
+          " for partition " + id.toString());
+    }
+    newReaders.clear();
+  }
+
+  @Override
+  protected void doReset() throws IOException {
+    initDone = false;
+    super.doReset();
+    if (streamType.equals(StreamType.COLLECTOR)) {
+      createAndScheduleDiscovererTimer();
+    }
+  }
+
+  private void createAndScheduleDiscovererTimer() {
+    partitionDiscovererAndReaderCreator = new Timer(
+        "PartitionDiscovererAndReaderCreator");
+    scheduleTimer(partitionDiscovererAndReaderCreator);
+    LOG.info("Initialised timer for discovery of new collectors" +
+        " output with frequency " + discoverFrequency);
+  }
+
+  private void scheduleTimer(Timer partitionDiscovererAndReaderCreator) {
+    partitionDiscovererAndReaderCreator.schedule(new TimerTask() {
+          @Override
+          public void run() {
+            try {
+              if (initDone) {
+                LOG.info("collector discoverer activated");
+                createPartitionReaders();
+                 startNewReaders();
+              } else {
+                LOG.info("Init not done for consumer yet. Discoverer backing off");
+              }
+            } catch (IOException e) {
+              LOG.error("Error in scheduling timer",e);
+            }
+          }
+        }, discoverFrequency * NUMBER_OF_MILLI_SECONDS_IN_SECOND, discoverFrequency * NUMBER_OF_MILLI_SECONDS_IN_SECOND);
   }
 }

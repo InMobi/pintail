@@ -87,7 +87,7 @@ public class TestDatabusConsumerCollectorStream
     config.set(DatabusConsumerConfig.databusRootDirsConfig,
         rootDirs[0].toUri().toString() + ","
             + rootDirs[1].toUri().toString() + ","
-            + rootDirs[0].toUri().toString());
+            + rootDirs[2].toUri().toString());
     config.set(DatabusConsumerConfig.checkpointDirConfig, ck4);
     config.set(MessagingConsumerConfig.relativeStartTimeConfig,
         relativeStartTime);
@@ -135,7 +135,7 @@ public class TestDatabusConsumerCollectorStream
     config.set(DatabusConsumerConfig.databusRootDirsConfig,
         rootDirs[0].toUri().toString() + ","
             + rootDirs[1].toUri().toString() + ","
-            + rootDirs[0].toUri().toString());
+            + rootDirs[2].toUri().toString());
     config.set(DatabusConsumerConfig.checkpointDirConfig, ck8);
     config.set(MessagingConsumerConfig.relativeStartTimeConfig,
         relativeStartTime);
