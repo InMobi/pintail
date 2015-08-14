@@ -41,6 +41,7 @@ import com.inmobi.messaging.consumer.util.TestUtil;
 public abstract class TestAbstractDatabusConsumer {
   static final Log LOG = LogFactory.getLog(TestAbstractDatabusConsumer.class);
 
+  protected static final String COLLECTOR_PREFIX = "collector";
   int numMessagesPerFile = 100;
   int numDataFiles = 3;
   DatabusConsumer testConsumer;
@@ -64,6 +65,7 @@ public abstract class TestAbstractDatabusConsumer {
   protected String ck11;
   protected String ck12;
   protected String ck13;
+  protected String ck14;
   protected String chkpointPathPrefix;
 
   public void setup(int numFileToMove) throws Exception {
@@ -100,6 +102,12 @@ public abstract class TestAbstractDatabusConsumer {
       Path streamDir = new Path(cluster.getDataDir(), testStream);
       fs.delete(streamDir, true);
       fs.mkdirs(streamDir);
+      // Create a dir with COLLECTOR_PREFIX. This will make sure consumer is
+      // started with another partition reader thread. This reader thread
+      // should not read any files from local stream as we are creating
+      // files only for actual collectors. This thread should simply wait
+      // for new files(i.e. Switches between local and collector streams).
+      fs.mkdirs(new Path(streamDir, COLLECTOR_PREFIX));
       for (String collector : collectors) {
         Path collectorDir = new Path(streamDir, collector);
         fs.delete(collectorDir, true);
@@ -124,6 +132,7 @@ public abstract class TestAbstractDatabusConsumer {
     ck11 = new Path(chkpointPathPrefix, "checkpoint11").toString();
     ck12 = new Path(chkpointPathPrefix, "checkpoint12").toString();
     ck13 = new Path(chkpointPathPrefix, "checkpoint13").toString();
+    ck14 = new Path(chkpointPathPrefix, "checkpoint14").toString();
   }
 
   protected DatabusConsumer getConsumerInstance() {

@@ -42,7 +42,7 @@ public class TestDatabusConsumerCollectorStream
   @BeforeTest
   public void setup() throws Exception {
     consumerName = "c3";
-    collectors = new String[] {"collector1"};
+    collectors = new String[] {COLLECTOR_PREFIX + "1"};
     dataFiles = new String[] {TestUtil.files[0], TestUtil.files[1],
         TestUtil.files[2]};
     super.setup(0);
@@ -87,7 +87,7 @@ public class TestDatabusConsumerCollectorStream
     config.set(DatabusConsumerConfig.databusRootDirsConfig,
         rootDirs[0].toUri().toString() + ","
             + rootDirs[1].toUri().toString() + ","
-            + rootDirs[0].toUri().toString());
+            + rootDirs[2].toUri().toString());
     config.set(DatabusConsumerConfig.checkpointDirConfig, ck4);
     config.set(MessagingConsumerConfig.relativeStartTimeConfig,
         relativeStartTime);
@@ -135,7 +135,7 @@ public class TestDatabusConsumerCollectorStream
     config.set(DatabusConsumerConfig.databusRootDirsConfig,
         rootDirs[0].toUri().toString() + ","
             + rootDirs[1].toUri().toString() + ","
-            + rootDirs[0].toUri().toString());
+            + rootDirs[2].toUri().toString());
     config.set(DatabusConsumerConfig.checkpointDirConfig, ck8);
     config.set(MessagingConsumerConfig.relativeStartTimeConfig,
         relativeStartTime);

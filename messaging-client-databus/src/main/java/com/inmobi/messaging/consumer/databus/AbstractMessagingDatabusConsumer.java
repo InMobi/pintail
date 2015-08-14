@@ -214,10 +214,10 @@ public abstract class AbstractMessagingDatabusConsumer
   }
 
   /**
+   * @return Message if Message is available on the stream
+   *          Otherwise waits for the Message to be available on the stream
    * @throws throws an EndOfStreamException When consumer consumed all messages
    *  till stopTime
-   * @return Message if Message is available on the stream
-   *         Otherwise waits for the Message to be available on the stream
    */
   @Override
   protected Message getNext()
@@ -238,10 +238,10 @@ public abstract class AbstractMessagingDatabusConsumer
   }
 
   /**
+   * @return Message if Message is available on the stream
+   *          Null if Message is not available on the stream for a given timeout
    * @throws throws an EndOfStreamException When consumer consumed all messages
    *  till stopTime
-   * @return Message if Message is available on the stream
-   *         Null if Message is not available on the stream for a given timeout
    */
   @Override
   protected Message getNext(long timeout, TimeUnit timeunit)
@@ -287,7 +287,7 @@ public abstract class AbstractMessagingDatabusConsumer
     }
   }
 
-  private String getReaderNameSuffix() {
+  protected String getReaderNameSuffix() {
     StringBuilder str = new StringBuilder();
     str.append(topicName);
     str.append("-");

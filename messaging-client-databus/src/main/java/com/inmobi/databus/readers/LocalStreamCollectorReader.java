@@ -146,7 +146,7 @@ public class LocalStreamCollectorReader extends
         return new PathFilter() {
           @Override
           public boolean accept(Path p) {
-            if (p.getName().startsWith(collector)) {
+            if (p.getName().startsWith(collector+ "-" + streamName)) {
               return true;
             }
             return false;

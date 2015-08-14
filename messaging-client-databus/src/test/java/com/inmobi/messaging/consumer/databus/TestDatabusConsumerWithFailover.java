@@ -54,7 +54,7 @@ public class TestDatabusConsumerWithFailover extends
   @BeforeTest
   public void setup() throws Exception {
     consumerName = "c4";
-    collectors = new String[] { "collector1" };
+    collectors = new String[] { COLLECTOR_PREFIX + "1" };
     dataFiles = new String[] { TestUtil.files[0], TestUtil.files[1],
         TestUtil.files[2], TestUtil.files[3] };
     super.setup(3);

@@ -43,7 +43,7 @@ public class TestDatabusConsumerMultipleCollectors
   @BeforeTest
   public void setup() throws Exception {
     consumerName = "c2";
-    collectors = new String[] {"collector1", "collector2"};
+    collectors = new String[] {COLLECTOR_PREFIX + "1", COLLECTOR_PREFIX + "2"};
     dataFiles = new String[] {TestUtil.files[0],
         TestUtil.files[1], TestUtil.files[2], TestUtil.files[3]};
     super.setup(3);

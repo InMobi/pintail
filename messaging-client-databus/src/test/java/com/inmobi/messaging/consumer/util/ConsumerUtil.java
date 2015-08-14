@@ -21,12 +21,12 @@ package com.inmobi.messaging.consumer.util;
  */
 
 import java.io.IOException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import com.inmobi.databus.partition.PartitionReader;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.testng.Assert;
 
@@ -123,7 +123,6 @@ public class ConsumerUtil {
       markedcounter1[i] = counter[i];
       markedcounter2[i] = counter[i];
     }
-
     for (int i = 0; i < totalMessages / 2; i++) {
       Message msg = consumer.next();
       String msgStr = getMessage(msg.getData().array(), hadoop);
@@ -278,7 +277,7 @@ public class ConsumerUtil {
 
     // test checkpoint and consumer crash
     consumer = createConsumer(hadoop);
-    consumer.init(streamName, consumerName, null, config);
+    consumer.init(streamName, consumerName, startTime, config);
     compareConsumerCheckpoints(temp, checkpointMap, lastCheckpoint, consumer);
     for (i = 240; i < 300; i++) {
       Message msg = consumer.next();
@@ -416,6 +415,58 @@ public class ConsumerUtil {
         consumer.getMetrics())).getNumOfTiemOutsOnNext(), 10);
   }
 
+  public static void testDynamicCollector(ClientConfig config, String streamName,
+      String consumerName, boolean hadoop, Path[] rootDirs, Configuration conf,
+      String testStream, String COLLECTOR_PREFIX) throws Exception {
+
+    AbstractMessagingDatabusConsumer consumer = createConsumer(hadoop);
+    consumer.init(streamName, consumerName, null, config);
+    Assert.assertEquals(consumer.getTopicName(), streamName);
+    Assert.assertEquals(consumer.getConsumerName(), consumerName);
+    Assert.assertEquals(consumer.getPartitionReaders().size(), 2);
+
+    //consume all the messages
+    int i;
+    for (i = 0; i < 300; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    //add a collector
+    FileSystem fs = rootDirs[0].getFileSystem(conf);
+    Path collectorDir = new Path(rootDirs[0].toUri().toString(),
+        "data/" + testStream + "/" + COLLECTOR_PREFIX + "8") ;
+    fs.mkdirs(collectorDir);
+    String dataFile = TestUtil.files[2];
+    TestUtil.setUpCollectorDataFiles(fs, collectorDir, dataFile);
+    //wait for the new messages to be consumed by the new partition readers
+    for (i = 0; i < 100; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+    //reset the consumer
+    consumer.mark();
+    consumer.reset();
+    //create one more collector sub directory
+    Path collectorDir2 = new Path(rootDirs[0].toUri().toString(),
+        "data/" + testStream + "/" + COLLECTOR_PREFIX + "9");
+    fs.mkdirs(collectorDir2);
+    dataFile = TestUtil.files[2];
+    TestUtil.setUpCollectorDataFiles(fs, collectorDir2, dataFile);
+
+    //wait for the new messages to be consumed by the new partition readers
+    for (i = 0; i < 100; i++) {
+      Message msg = consumer.next();
+      Assert.assertEquals(getMessage(msg.getData().array(), hadoop),
+          MessageUtil.constructMessage(i));
+    }
+
+    fs.delete(collectorDir, true);
+    fs.delete(collectorDir2,true);
+    consumer.close();
+  }
+
   public static void testMarkAndReset(ClientConfig config, String streamName,
       String consumerName, boolean hadoop) throws Exception {
 
@@ -423,7 +474,13 @@ public class ConsumerUtil {
     consumer.init(streamName, consumerName, null, config);
     Assert.assertEquals(consumer.getTopicName(), streamName);
     Assert.assertEquals(consumer.getConsumerName(), consumerName);
-    Assert.assertEquals(consumer.getPartitionReaders().size(), 1);
+    if (hadoop) {
+      Assert.assertEquals(consumer.getPartitionReaders().size(), 1);
+    } else {
+      // PartitionReader will be created for
+      // Dummy Collector (one which has COLLECTOR_PREFIX subdirectory) also
+      Assert.assertEquals(consumer.getPartitionReaders().size(), 2);
+    }
 
     int i;
     for (i = 0; i < 20; i++) {
