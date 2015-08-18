@@ -11,7 +11,11 @@
     <name>InMobi</name>
     <url>https://github.com/InMobi</url>
   </organization>
- 
+  <!--parent>
+    <artifactId>inmobi-master-pom</artifactId>
+    <groupId>com.inmobi</groupId>
+    <version>1.0.4</version>
+  </parent--> 
   <inceptionYear>2012</inceptionYear>
   <licenses>
     <license>
