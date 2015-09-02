@@ -64,7 +64,7 @@ public class GraphiteStatsEmitter extends RunnableStatsEmitter {
     if (null != statsExposers) {
       synchronized (statsExposers) {
         final StringBuilder lines = new StringBuilder();
-        long timestamp = System.currentTimeMillis();
+        long timestamp = System.currentTimeMillis() / 1000;
         for (StatsExposer exposer : statsExposers) {
           Map<String, Number> stats = exposer.getStats();
           Map<String, String> context = exposer.getContexts();
