@@ -20,6 +20,7 @@ package com.inmobi.messaging.util;
  * #L%
  */
 
+import com.inmobi.messaging.consumer.MessageConsumerMetricsConstants;
 import com.inmobi.messaging.publisher.TopicStatsExposer;
 import com.inmobi.stats.StatsExposer;
 
@@ -39,6 +40,7 @@ public class GraphiteStatsEmitter extends RunnableStatsEmitter {
   public static final String FIELD_SEPARATOR = " ";
   private static final String NEW_LINE = "\n";
   private static final Log LOG = LogFactory.getLog(GraphiteStatsEmitter.class);
+  private static final String TOPIC = "topic";
 
   private String metricPrefix;
   private String graphiteHost;
@@ -69,6 +71,13 @@ public class GraphiteStatsEmitter extends RunnableStatsEmitter {
           Map<String, Number> stats = exposer.getStats();
           Map<String, String> context = exposer.getContexts();
           String topic = context.get(TopicStatsExposer.TOPIC_CONTEXT_NAME);
+          /**
+           * Publisher will be having topic set as category in the statsexposer,
+           * but for consumers topic is set as topicName for the statsexposer.
+           */
+          if(null == topic){
+            topic = context.get(MessageConsumerMetricsConstants.TOPIC_CONTEXT);
+          }
           for (Map.Entry<String, Number> entry : stats.entrySet()) {
             lines.append(metricPrefix).append(topic).append(METRIC_SEPARATOR)
                 .append(entry.getKey());
