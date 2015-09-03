@@ -40,7 +40,6 @@ public class GraphiteStatsEmitter extends RunnableStatsEmitter {
   public static final String FIELD_SEPARATOR = " ";
   private static final String NEW_LINE = "\n";
   private static final Log LOG = LogFactory.getLog(GraphiteStatsEmitter.class);
-  private static final String TOPIC = "topic";
 
   private String metricPrefix;
   private String graphiteHost;
