@@ -1,3 +1,8 @@
+Release 4.1.3
+
+Features:
+  1. Dynamic discovery of collectors in DatabusConsumer
+
 Release 4.1.2
 
 Bug Fixes and Improvements:
