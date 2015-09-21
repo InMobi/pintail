@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.inmobi.messaging</groupId>
   <artifactId>messaging-client-parent</artifactId>
-  <version>4.1.3-SNAPSHOT</version>
+  <version>4.1.5-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Pintail</name>
   <url>https://github.com/InMobi/pintail</url>
@@ -11,6 +11,7 @@
     <name>InMobi</name>
     <url>https://github.com/InMobi</url>
   </organization>
+ 
   <inceptionYear>2012</inceptionYear>
   <licenses>
     <license>
