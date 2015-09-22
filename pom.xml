@@ -58,6 +58,7 @@
   <properties>
     <test.build.data>${project.build.directory}/test/data</test.build.data>
     <test.root.dir>${project.build.directory}/tmp/test</test.root.dir>
+    <java.version>1.8</java.version>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -229,8 +230,8 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <source>1.6</source>
-          <target>1.6</target>
+          <source>${java.version}</source>
+          <target>${java.version}</target>
         </configuration>
       </plugin>
       <plugin>
