@@ -415,6 +415,17 @@ public class ConsumerUtil {
         consumer.getMetrics())).getNumOfTiemOutsOnNext(), 10);
   }
 
+  public static void testConsumerBacklog(ClientConfig config, String streamName,
+      String consumerName, boolean hadoop, Path[] rootDirs,Configuration conf,
+      String testStream, String COLLECTOR_PREFIX) throws Exception {
+    AbstractMessagingDatabusConsumer consumer = createConsumer(hadoop);
+    consumer.init(streamName, consumerName, null, config);
+    Assert.assertEquals(consumer.getTopicName(), streamName);
+    Assert.assertEquals(consumer.getConsumerName(), consumerName);
+    Assert.assertEquals(consumer.getPartitionReaders().size(), 2);
+    Assert.assertEquals(consumer.getPendingData().longValue(),10l);
+  }
+
   public static void testDynamicCollector(ClientConfig config, String streamName,
       String consumerName, boolean hadoop, Path[] rootDirs, Configuration conf,
       String testStream, String COLLECTOR_PREFIX) throws Exception {

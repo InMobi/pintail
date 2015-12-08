@@ -299,6 +299,15 @@ public abstract class AbstractMessagingDatabusConsumer
 
   protected abstract void createPartitionReaders() throws IOException;
 
+  public Long getPendingData() throws IOException {
+    Long pendingSize = 0l;
+    //the backlog will the summation of backlog of all the individual readers
+    for (PartitionReader partitionReader : readers.values()) {
+      pendingSize += partitionReader.getReaderBackLog();
+    }
+    return pendingSize;
+  }
+
   protected Date getPartitionTimestamp(PartitionId id, MessageCheckpoint pck)
       throws IOException {
     Date partitionTimestamp = null;

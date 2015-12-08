@@ -346,13 +346,4 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
           }
         }, discoverFrequency * NUMBER_OF_MILLI_SECONDS_IN_SECOND, discoverFrequency * NUMBER_OF_MILLI_SECONDS_IN_SECOND);
   }
-
-  public Long getPendingData() throws IOException {
-    Long pendingSize = 0l;
-    //the backlog will the summation of backlog of all the individual readers
-    for (PartitionReader partitionReader : readers.values()) {
-      pendingSize += partitionReader.getReaderBackLog();
-    }
-    return pendingSize;
-  }
 }
