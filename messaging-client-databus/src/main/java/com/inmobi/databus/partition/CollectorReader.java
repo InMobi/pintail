@@ -262,4 +262,16 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   public MessageCheckpoint buildStartPartitionCheckpoints() {
     return null;
   }
+
+  @Override
+  public Long getReaderBackLog() throws IOException {
+    Long pendingSize = 0l;
+    //get collector reader remaining size
+    pendingSize += cReader.getPendingSize(cReader.getCurrentFile());
+    //get local reader remaining size
+    pendingSize += lReader.getPendingSize();
+    return pendingSize;
+  }
+
+
 }

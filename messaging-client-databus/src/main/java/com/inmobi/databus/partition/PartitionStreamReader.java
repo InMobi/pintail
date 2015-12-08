@@ -45,4 +45,6 @@ public interface PartitionStreamReader {
   MessageCheckpoint getMessageCheckpoint();
 
   MessageCheckpoint buildStartPartitionCheckpoints();
+
+  Long getReaderBackLog() throws IOException;
 }

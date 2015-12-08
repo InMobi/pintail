@@ -281,4 +281,61 @@ public class LocalStreamCollectorReader extends
     }
     return null;
   }
+
+  protected Long doRecursiveSizing(Path dir, PathFilter pathFilter) throws IOException {
+    Long pendingSize =0l;
+    FileStatus[] fileStatuses = fsListFileStatus(dir, pathFilter);
+    if (fileStatuses == null || fileStatuses.length == 0) {
+      LOG.debug("No files in directory:" + dir);
+    } else {
+      for (FileStatus file : fileStatuses) {
+        if (file.isDir()) {
+          doRecursiveSizing(file.getPath(), pathFilter);
+        } else {
+          try {
+            Date currentTimeStamp = LocalStreamCollectorReader.
+                    getDateFromStreamFile(streamName, file.getPath().getName());
+            if (stopTime != null && stopTime.before(currentTimeStamp)) {
+              stopListing();
+            } else {
+              pendingSize += file.getLen();
+            }
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+        }
+      }
+    }
+    return pendingSize;
+  }
+
+  public Long getPendingSize() throws IOException {
+    Long pendingSize = 0l;
+    if (!setBuildTimeStamp(null)) {
+      return 0l;
+    }
+    Calendar current = Calendar.getInstance();
+    Date now = current.getTime();
+    current.setTime(buildTimestamp);
+    // stop the file listing if stop date is beyond current time
+    while (current.getTime().before(now) && !isListingStopped()) {
+      Path dir = getMinuteDirPath(streamDir, current.getTime());
+      // Move the current minute to next minute
+      current.add(Calendar.MINUTE, 1);
+      pendingSize += doRecursiveSizing(dir, createPathFilter());
+    }
+    return pendingSize;
+  }
+
+  protected PathFilter createPathFilter() {
+    return new PathFilter() {
+      @Override
+      public boolean accept(Path p) {
+        if (p.getName().startsWith(collector+ "-" + streamName)) {
+          return true;
+        }
+        return false;
+      }
+    };
+  }
 }

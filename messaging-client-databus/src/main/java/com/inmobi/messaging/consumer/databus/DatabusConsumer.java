@@ -23,16 +23,13 @@ package com.inmobi.messaging.consumer.databus;
 import java.io.IOException;
 import java.util.*;
 
+import com.inmobi.databus.partition.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
-import com.inmobi.databus.partition.PartitionCheckpoint;
-import com.inmobi.databus.partition.PartitionCheckpointList;
-import com.inmobi.databus.partition.PartitionId;
-import com.inmobi.databus.partition.PartitionReader;
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.consumer.databus.mapred.DatabusInputFormat;
 import com.inmobi.messaging.consumer.util.DatabusUtil;
@@ -72,8 +69,6 @@ import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
  * value is {@value DatabusConsumerConfig#DEFAULT_WAIT_TIME_FOR_FLUSH}
  *
  * Initializes partition readers for each active collector on the stream.
- * TODO: Dynamically detect if new collectors are added and start readers for
- *  them
  */
 public class DatabusConsumer extends AbstractMessagingDatabusConsumer
     implements DatabusConsumerConfig {
@@ -350,5 +345,14 @@ public class DatabusConsumer extends AbstractMessagingDatabusConsumer
             }
           }
         }, discoverFrequency * NUMBER_OF_MILLI_SECONDS_IN_SECOND, discoverFrequency * NUMBER_OF_MILLI_SECONDS_IN_SECOND);
+  }
+
+  public Long getPendingData() throws IOException {
+    Long pendingSize = 0l;
+    //the backlog will the summation of backlog of all the individual readers
+    for (PartitionReader partitionReader : readers.values()) {
+      pendingSize += partitionReader.getReaderBackLog();
+    }
+    return pendingSize;
   }
 }

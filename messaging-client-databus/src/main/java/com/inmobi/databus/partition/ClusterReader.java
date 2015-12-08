@@ -128,4 +128,11 @@ public class ClusterReader extends AbstractPartitionStreamReader {
     return new DeltaPartitionCheckPoint(
         dataWaitingReader.buildStartPartitionCheckpoints());
   }
+
+  @Override
+  public Long getReaderBackLog() throws IOException {
+    Long pendingSize = 0l;
+    //TODO
+    return pendingSize;
+  }
 }
