@@ -69,5 +69,4 @@ public abstract class AbstractPartitionStreamReader implements
     return reader.readLine();
   }
 
-
 }

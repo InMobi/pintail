@@ -272,6 +272,4 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     pendingSize += lReader.getPendingSize();
     return pendingSize;
   }
-
-
 }
