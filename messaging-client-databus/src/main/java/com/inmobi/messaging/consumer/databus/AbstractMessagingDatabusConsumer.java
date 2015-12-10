@@ -22,11 +22,7 @@ package com.inmobi.messaging.consumer.databus;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -299,11 +295,11 @@ public abstract class AbstractMessagingDatabusConsumer
 
   protected abstract void createPartitionReaders() throws IOException;
 
-  public Long getPendingData() throws IOException {
+  public synchronized Long getPendingData() throws Exception {
     Long pendingSize = 0l;
     //the backlog will the summation of backlog of all the individual readers
-    for (PartitionReader partitionReader : readers.values()) {
-      pendingSize += partitionReader.getReaderBackLog();
+    for (Iterator<PartitionReader> it = readers.values().iterator();it.hasNext();) {
+      pendingSize += it.next().getReaderBackLog();
     }
     return pendingSize;
   }

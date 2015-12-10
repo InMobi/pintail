@@ -282,7 +282,7 @@ public class LocalStreamCollectorReader extends
     return null;
   }
 
-  protected Long doRecursiveSizing(Path dir, PathFilter pathFilter) throws IOException {
+  protected Long doRecursiveSizing(Path dir, PathFilter pathFilter) throws Exception {
     Long pendingSize =0l;
     FileStatus[] fileStatuses = fsListFileStatus(dir, pathFilter);
     if (fileStatuses == null || fileStatuses.length == 0) {
@@ -301,7 +301,8 @@ public class LocalStreamCollectorReader extends
               pendingSize += file.getLen();
             }
           } catch (Exception e) {
-            e.printStackTrace();
+            LOG.error("Exception while getting time from File",e);
+            throw new Exception(e);
           }
         }
       }
@@ -309,7 +310,7 @@ public class LocalStreamCollectorReader extends
     return pendingSize;
   }
 
-  public Long getPendingSize() throws IOException {
+  public Long getPendingSize() throws Exception {
     Long pendingSize = 0l;
     if (!setBuildTimeStamp(null)) {
       return 0l;
@@ -323,6 +324,7 @@ public class LocalStreamCollectorReader extends
       // Move the current minute to next minute
       current.add(Calendar.MINUTE, 1);
       pendingSize += doRecursiveSizing(dir, createPathFilter());
+      LOG.info("Pending Size inside local stream collector reader "+pendingSize);
     }
     return pendingSize;
   }

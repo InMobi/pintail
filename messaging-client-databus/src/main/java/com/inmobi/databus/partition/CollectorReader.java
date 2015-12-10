@@ -25,6 +25,7 @@ import java.util.Date;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.net.nntp.Threadable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -264,16 +265,30 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   }
 
   @Override
-  public Long getReaderBackLog() throws IOException {
+  public synchronized Long getReaderBackLog() throws Exception {
     Long pendingSize = 0l;
-    if (reader == cReader) {
-      //get collector reader remaining size
-      pendingSize += cReader.getPendingSize(cReader.getCurrentFile());
-      cReader.getCurrentStreamFile().getTimestamp();
-    }else {
-      //get local reader remaining size
-      pendingSize += lReader.getPendingSize();
+    int timedWaiting = 0;
+    int waitingThreshold = 10;
+    while (cReader.getCurrentFile() == null && timedWaiting < waitingThreshold){
+      Thread.sleep(1000);
+      timedWaiting++;
     }
+    //get collector reader remaining size
+    if (cReader.getCurrentFile() != null){
+      pendingSize += cReader.getPendingSize(cReader.getCurrentFile());
+      LOG.info("Pending Size inside collector reader - collector added "+pendingSize);
+    }
+    //get local reader remaining size
+    timedWaiting = 0;
+    while (lReader.getCurrentFile() == null && timedWaiting < waitingThreshold){
+      Thread.sleep(1000);
+      timedWaiting++;
+    }
+    if (lReader.getCurrentFile() != null){
+      pendingSize += lReader.getPendingSize();
+      LOG.info("Pending Size inside collector reader - local added "+pendingSize);
+    }
+    LOG.info("Pending Size inside collector reader - total "+pendingSize);
     return pendingSize;
   }
 }

@@ -27,6 +27,7 @@ import java.util.GregorianCalendar;
 
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapred.ThreadedMapBenchmark;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -73,19 +74,6 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
     config.set(MessagingConsumerConfig.relativeStartTimeConfig,
         relativeStartTime);
     ConsumerUtil.testMarkAndReset(config, testStream, consumerName, false);
-  }
-
-  @Test
-  public void testDatabusConsumerBacklog() throws Exception {
-    ClientConfig config = loadConfig();
-    config.set(DatabusConsumerConfig.databusRootDirsConfig,
-            rootDirs[0].toUri().toString());
-    config.set(DatabusConsumerConfig.checkpointDirConfig, ck15);
-    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
-            relativeStartTime);
-    config.set(DatabusConsumerConfig.frequencyForDiscoverer, "1");
-    ConsumerUtil.testConsumerBacklog(config, testStream, consumerName, false,
-            rootDirs, conf, testStream, COLLECTOR_PREFIX);
   }
 
   @Test
@@ -281,6 +269,32 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
     config.set(DatabusConsumerConfig.checkpointDirConfig, ck13);
     ConsumerUtil.testConsumerWithStartOfStream(config, testStream, consumerName,
         false);
+  }
+
+  @Test
+  public void testDatabusConsumerBacklog() throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+            rootDirs[0].toUri().toString());
+    config.set(DatabusConsumerConfig.checkpointDirConfig, ck15);
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
+            relativeStartTime);
+    config.set(DatabusConsumerConfig.frequencyForDiscoverer, "1");
+    ConsumerUtil.testConsumerBacklog(config, testStream, consumerName, false,
+            rootDirs, conf, testStream, COLLECTOR_PREFIX);
+  }
+
+  @Test
+  public void testDatabusConsumerBacklog2() throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+            rootDirs[0].toUri().toString());
+    config.set(DatabusConsumerConfig.checkpointDirConfig, ck15);
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
+            relativeStartTime);
+    config.set(DatabusConsumerConfig.frequencyForDiscoverer, "1");
+    ConsumerUtil.testConsumerBacklogMoreCollectors(config, testStream, consumerName, false,
+            rootDirs, conf, testStream, COLLECTOR_PREFIX);
   }
 
   @AfterTest
