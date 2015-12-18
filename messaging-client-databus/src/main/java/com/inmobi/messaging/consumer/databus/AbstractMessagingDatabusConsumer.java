@@ -295,11 +295,12 @@ public abstract class AbstractMessagingDatabusConsumer
 
   protected abstract void createPartitionReaders() throws IOException;
 
-  public synchronized Long getPendingData() throws Exception {
+  @Override
+  public synchronized Long getPendingDataSize() throws IOException {
     Long pendingSize = 0l;
     //the backlog will the summation of backlog of all the individual readers
-    for (Iterator<PartitionReader> it = readers.values().iterator();it.hasNext();) {
-      pendingSize += it.next().getReaderBackLog();
+    for (PartitionReader reader : readers.values()) {
+      pendingSize += reader.getReaderBackLog();
     }
     return pendingSize;
   }

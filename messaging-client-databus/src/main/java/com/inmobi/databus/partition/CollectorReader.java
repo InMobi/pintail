@@ -265,30 +265,42 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   }
 
   @Override
-  public synchronized Long getReaderBackLog() throws Exception {
-    Long pendingSize = 0l;
-    int timedWaiting = 0;
-    int waitingThreshold = 10;
-    while (cReader.getCurrentFile() == null && timedWaiting < waitingThreshold){
-      Thread.sleep(1000);
-      timedWaiting++;
+  public synchronized Long getReaderBackLog() throws IOException {
+    Long collectorStreamPendingSize =0l,localStreamPendingSize = 0l;
+    int retryCount = 0;
+    int maxRetryThreshold = 10;
+    while (cReader.getCurrentFile() == null && retryCount < maxRetryThreshold){
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        LOG.info("Sleep Interrupted while waiting for reader initialisation- Ignoring");
+      }
+      retryCount++;
     }
     //get collector reader remaining size
-    if (cReader.getCurrentFile() != null){
-      pendingSize += cReader.getPendingSize(cReader.getCurrentFile());
-      LOG.info("Pending Size inside collector reader - collector added "+pendingSize);
+    if (cReader.getCurrentFile() != null) {
+      collectorStreamPendingSize += cReader.getPendingSize(cReader.getCurrentFile());
+      LOG.info("Pending Size inside collector output location starting from collector file: " +
+              cReader.getCurrentFile() + " is "+ collectorStreamPendingSize);
     }
     //get local reader remaining size
-    timedWaiting = 0;
-    while (lReader.getCurrentFile() == null && timedWaiting < waitingThreshold){
-      Thread.sleep(1000);
-      timedWaiting++;
+    retryCount = 0;
+    while (lReader.getCurrentFile() == null && retryCount < maxRetryThreshold){
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        LOG.info("Sleep Interrupted while waiting for reader initialisation- Ignoring");
+      }
+      retryCount++;
     }
     if (lReader.getCurrentFile() != null){
-      pendingSize += lReader.getPendingSize();
-      LOG.info("Pending Size inside collector reader - local added "+pendingSize);
+      localStreamPendingSize += lReader.getPendingSize();
+      LOG.info("Pending Size inside streams_local output location starting from file: " +
+              lReader.getCurrentFile() + " is " + localStreamPendingSize);
     }
-    LOG.info("Pending Size inside collector reader - total "+pendingSize);
-    return pendingSize;
+    LOG.info("Pending Size inside collector reader "+collectorStreamPendingSize
+            +" Pending Size inside local stream reader "+ localStreamPendingSize
+            +" Total pending size "+ (collectorStreamPendingSize + localStreamPendingSize));
+    return (collectorStreamPendingSize + localStreamPendingSize);
   }
 }

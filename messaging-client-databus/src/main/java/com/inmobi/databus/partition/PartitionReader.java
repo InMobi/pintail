@@ -208,7 +208,7 @@ public class PartitionReader {
     return reader;
   }
 
-  public synchronized Long getReaderBackLog() throws Exception {
+  public synchronized Long getReaderBackLog() throws IOException {
     return reader.getReaderBackLog();
   }
 

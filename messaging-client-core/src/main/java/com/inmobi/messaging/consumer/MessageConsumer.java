@@ -83,4 +83,13 @@ public interface MessageConsumer {
    * Close and cleanup all resources such as connection, file handles etc.
    */
   public void close();
+
+  /***
+   * Calculates the remaining amount of data for a consumer. Other consumer implementations are
+   * expected to return "-1" if this feature is not implemented
+   * @throws IOException
+   * @return Long value which indicates the bytes remaining for the consumer to consume
+   */
+
+  public Long getPendingDataSize() throws IOException;
 }

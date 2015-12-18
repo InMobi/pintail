@@ -156,17 +156,15 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
       for (FileStatus file : fileStatuses) {
         Date currentTimeStamp = getDateFromCollectorFile(
                 file.getPath().getName());
-        if (stopTime == null) {
-          if (currentTimeStamp.before(readDoneTillDate)) {
-            continue;
-          }
-          pendingSize += file.getLen();
-        } else {
-          if (stopTime.before(currentTimeStamp) && currentTimeStamp.before(readDoneTillDate)) {
-            continue;
-          }
-          pendingSize += file.getLen();
+        if (currentTimeStamp.before(readDoneTillDate)) {
+          continue;
         }
+        if (stopTime != null){
+          if(stopTime.before(currentTimeStamp)) {
+            continue;
+          }
+        }
+        pendingSize += file.getLen();
       }
     } else {
       LOG.info("Collector directory does not exist");

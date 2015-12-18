@@ -431,7 +431,7 @@ public class ConsumerUtil {
     Assert.assertEquals(consumer.getTopicName(), streamName);
     Assert.assertEquals(consumer.getConsumerName(), consumerName);
     Assert.assertEquals(consumer.getPartitionReaders().size(), 3);
-    Assert.assertEquals(consumer.getPendingData().longValue(),9639l);
+    Assert.assertEquals(consumer.getPendingDataSize().longValue(),9639l);
     fs.delete(collectorDir,true);
   }
 
@@ -458,7 +458,7 @@ public class ConsumerUtil {
     Assert.assertEquals(consumer.getTopicName(), streamName);
     Assert.assertEquals(consumer.getConsumerName(), consumerName);
     Assert.assertEquals(consumer.getPartitionReaders().size(), 4);
-    Assert.assertEquals(consumer.getPendingData().longValue(),18939l);
+    Assert.assertEquals(consumer.getPendingDataSize().longValue(),18939l);
     fs.delete(collectorDir,true);
     fs.delete(collectorDir2,true);
   }

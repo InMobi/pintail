@@ -282,7 +282,7 @@ public class LocalStreamCollectorReader extends
     return null;
   }
 
-  protected Long doRecursiveSizing(Path dir, PathFilter pathFilter) throws Exception {
+  protected Long doRecursiveSizing(Path dir, PathFilter pathFilter) throws IOException {
     Long pendingSize =0l;
     FileStatus[] fileStatuses = fsListFileStatus(dir, pathFilter);
     if (fileStatuses == null || fileStatuses.length == 0) {
@@ -290,19 +290,19 @@ public class LocalStreamCollectorReader extends
     } else {
       for (FileStatus file : fileStatuses) {
         if (file.isDir()) {
-          doRecursiveSizing(file.getPath(), pathFilter);
+          pendingSize += doRecursiveSizing(file.getPath(), pathFilter);
         } else {
           try {
             Date currentTimeStamp = LocalStreamCollectorReader.
                     getDateFromStreamFile(streamName, file.getPath().getName());
             if (stopTime != null && stopTime.before(currentTimeStamp)) {
-              stopListing();
+              continue;
             } else {
               pendingSize += file.getLen();
             }
           } catch (Exception e) {
-            LOG.error("Exception while getting time from File",e);
-            throw new Exception(e);
+            LOG.error("Exception while getting time from File "+file.getPath().toString(),e);
+            throw new IOException(e);
           }
         }
       }
@@ -310,16 +310,13 @@ public class LocalStreamCollectorReader extends
     return pendingSize;
   }
 
-  public Long getPendingSize() throws Exception {
-    Long pendingSize = 0l;
-    if (!setBuildTimeStamp(null)) {
-      return 0l;
-    }
+  public Long getPendingSize() throws IOException {
+    Long pendingSize = 0L;
     Calendar current = Calendar.getInstance();
     Date now = current.getTime();
     current.setTime(buildTimestamp);
     // stop the file listing if stop date is beyond current time
-    while (current.getTime().before(now) && !isListingStopped()) {
+    while (current.getTime().before(now)) {
       Path dir = getMinuteDirPath(streamDir, current.getTime());
       // Move the current minute to next minute
       current.add(Calendar.MINUTE, 1);

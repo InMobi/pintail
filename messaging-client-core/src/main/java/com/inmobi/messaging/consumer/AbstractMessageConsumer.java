@@ -133,7 +133,7 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
    *          Name of the topic being consumed
    * @param consumerName
    *          Name of the consumer
-   * @param startTime
+   * @param startTimestamp
    *          Starting time from which messages should be consumed
    * @param config
    *          {@link ClientConfig} for the consumer
@@ -257,5 +257,9 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
   @Override
   public void close() {
     statsEmitter.remove(metrics);
+  }
+
+  public Long getPendingDataSize() throws IOException{
+   return -1l;
   }
 }

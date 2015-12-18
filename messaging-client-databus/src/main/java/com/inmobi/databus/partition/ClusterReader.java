@@ -131,8 +131,6 @@ public class ClusterReader extends AbstractPartitionStreamReader {
 
   @Override
   public Long getReaderBackLog() throws IOException {
-    Long pendingSize = 0l;
-    //TODO implement for cluster reader
-    return pendingSize;
+    throw new UnsupportedOperationException();
   }
 }
