@@ -21,9 +21,13 @@ package com.inmobi.databus.readers;
  */
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -283,7 +287,7 @@ public class LocalStreamCollectorReader extends
   }
 
   protected Long doRecursiveSizing(Path dir, PathFilter pathFilter) throws IOException {
-    Long pendingSize =0l;
+    Long pendingSize = 0l;
     FileStatus[] fileStatuses = fsListFileStatus(dir, pathFilter);
     if (fileStatuses == null || fileStatuses.length == 0) {
       LOG.debug("No files in directory:" + dir);
@@ -301,7 +305,7 @@ public class LocalStreamCollectorReader extends
               pendingSize += file.getLen();
             }
           } catch (Exception e) {
-            LOG.error("Exception while getting time from File "+file.getPath().toString(),e);
+            LOG.error("Exception while getting time from File " + file.getPath().toString(), e);
             throw new IOException(e);
           }
         }
@@ -314,16 +318,33 @@ public class LocalStreamCollectorReader extends
     Long pendingSize = 0L;
     Calendar current = Calendar.getInstance();
     Date now = current.getTime();
-    current.setTime(buildTimestamp);
+    try {
+      current.setTime(getTimeStampFromMinutelyDirectory(getCurrentFile()));
+    } catch (ParseException e) {
+      throw new IOException(e);
+    }
     // stop the file listing if stop date is beyond current time
     while (current.getTime().before(now)) {
       Path dir = getMinuteDirPath(streamDir, current.getTime());
       // Move the current minute to next minute
       current.add(Calendar.MINUTE, 1);
       pendingSize += doRecursiveSizing(dir, createPathFilter());
-      LOG.info("Pending Size inside local stream collector reader "+pendingSize);
+      LOG.info("Pending Size inside local stream collector reader " + pendingSize);
     }
     return pendingSize;
+  }
+
+  private Date getTimeStampFromMinutelyDirectory(Path path) throws ParseException {
+    Pattern r = Pattern.compile("(.*)((19|20)\\d\\d/\\d\\d/\\d\\d/\\d\\d/\\d\\d)(.*)");
+    Matcher m = r.matcher(path.toString());
+    String date;
+    if (m.find()) {
+      date = m.group(2);
+    } else {
+      return null;
+    }
+    SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy/MM/dd/HH/mm");
+    return dateFormatter.parse(date);
   }
 
   protected PathFilter createPathFilter() {

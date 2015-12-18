@@ -89,6 +89,11 @@ public class MockInMemoryConsumer extends AbstractMessageConsumer {
   }
 
   @Override
+  public Long getPendingDataSize() throws IOException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   protected Message getNext(long timeout, TimeUnit timeunit)
       throws InterruptedException, EndOfStreamException {
     BlockingQueue<Message> queue = source.get(topicName);

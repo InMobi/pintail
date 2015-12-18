@@ -298,7 +298,7 @@ public abstract class AbstractMessagingDatabusConsumer
   @Override
   public synchronized Long getPendingDataSize() throws IOException {
     Long pendingSize = 0l;
-    //the backlog will the summation of backlog of all the individual readers
+    //the backlog will be the summation of backlog of all the individual readers
     for (PartitionReader reader : readers.values()) {
       pendingSize += reader.getReaderBackLog();
     }

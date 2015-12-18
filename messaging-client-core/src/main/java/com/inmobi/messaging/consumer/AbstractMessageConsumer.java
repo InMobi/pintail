@@ -259,7 +259,5 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
     statsEmitter.remove(metrics);
   }
 
-  public Long getPendingDataSize() throws IOException{
-   return -1l;
-  }
+  public abstract Long getPendingDataSize() throws IOException ;
 }

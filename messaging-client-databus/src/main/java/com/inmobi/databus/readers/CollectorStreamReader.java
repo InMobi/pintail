@@ -159,8 +159,8 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
         if (currentTimeStamp.before(readDoneTillDate)) {
           continue;
         }
-        if (stopTime != null){
-          if(stopTime.before(currentTimeStamp)) {
+        if (stopTime != null) {
+          if (stopTime.before(currentTimeStamp)) {
             continue;
           }
         }
