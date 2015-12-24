@@ -85,11 +85,11 @@ public interface MessageConsumer {
   public void close();
 
   /***
-   * Calculates the remaining amount of data for a consumer. Other consumer implementations are
-   * expected to throw  UnsupportedOperationException if this feature is not implemented
-   * @throws IOException
+   * Returns the amount of data in bytes present in stream
+   * that hasn't been read by consumer application yet.
+   * @throws UnSupportedException, if this method is not implemented
    * @return Long value which indicates the bytes remaining for the consumer to consume
    */
 
-  public Long getPendingDataSize() throws IOException,UnsupportedOperationException;
+  public Long getPendingDataSize() throws IOException, UnsupportedOperationException;
 }

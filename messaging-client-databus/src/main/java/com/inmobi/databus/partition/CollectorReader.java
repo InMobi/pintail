@@ -273,7 +273,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       try {
         Thread.sleep(1000);
       } catch (InterruptedException e) {
-        LOG.info("Sleep Interrupted while waiting for  collector reader initialization. Ignoring the input");
+        LOG.info("Sleep Interrupted while waiting for collector reader initialization. Ignoring the interrupt");
       }
       retryCount++;
     }
