@@ -318,11 +318,7 @@ public class LocalStreamCollectorReader extends
     Long pendingSize = 0L;
     Calendar current = Calendar.getInstance();
     Date now = current.getTime();
-    try {
-      current.setTime(getTimeStampFromMinutelyDirectory(getCurrentFile()));
-    } catch (ParseException e) {
-      throw new IOException(e);
-    }
+    current.setTime(getDateFromStreamDir(streamDir, getCurrentFile()));
     // stop the file listing if stop date is beyond current time
     while (current.getTime().before(now)) {
       Path dir = getMinuteDirPath(streamDir, current.getTime());
@@ -332,19 +328,6 @@ public class LocalStreamCollectorReader extends
       LOG.info("Pending Size inside local stream collector reader " + pendingSize);
     }
     return pendingSize;
-  }
-
-  private Date getTimeStampFromMinutelyDirectory(Path path) throws ParseException {
-    Pattern r = Pattern.compile("(.*)((19|20)\\d\\d/\\d\\d/\\d\\d/\\d\\d/\\d\\d)(.*)");
-    Matcher m = r.matcher(path.toString());
-    String date;
-    if (m.find()) {
-      date = m.group(2);
-    } else {
-      return null;
-    }
-    SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy/MM/dd/HH/mm");
-    return dateFormatter.parse(date);
   }
 
   protected PathFilter createPathFilter() {

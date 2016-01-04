@@ -20,6 +20,7 @@ package com.inmobi.messaging.consumer.util;
  * #L%
  */
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -431,6 +432,7 @@ public class ConsumerUtil {
     Assert.assertEquals(consumer.getTopicName(), streamName);
     Assert.assertEquals(consumer.getConsumerName(), consumerName);
     Assert.assertEquals(consumer.getPartitionReaders().size(), 3);
+    // 9639 is the summation of collector files and local stream files
     Assert.assertEquals(consumer.getPendingDataSize().longValue(),9639l);
     fs.delete(collectorDir,true);
   }
@@ -458,6 +460,7 @@ public class ConsumerUtil {
     Assert.assertEquals(consumer.getTopicName(), streamName);
     Assert.assertEquals(consumer.getConsumerName(), consumerName);
     Assert.assertEquals(consumer.getPartitionReaders().size(), 4);
+    // 9639 is the summation of multiple collector files and local stream files
     Assert.assertEquals(consumer.getPendingDataSize().longValue(),18939l);
     fs.delete(collectorDir,true);
     fs.delete(collectorDir2,true);
