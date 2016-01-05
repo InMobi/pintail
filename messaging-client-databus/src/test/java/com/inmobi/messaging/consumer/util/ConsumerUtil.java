@@ -433,7 +433,7 @@ public class ConsumerUtil {
     Assert.assertEquals(consumer.getConsumerName(), consumerName);
     Assert.assertEquals(consumer.getPartitionReaders().size(), 3);
     // 9639 is the summation of collector files and local stream files
-    Assert.assertEquals(consumer.getPendingDataSize().longValue(),9639l);
+    Assert.assertEquals(consumer.getPendingDataSize().longValue(),10588l);
     fs.delete(collectorDir,true);
   }
 
@@ -461,7 +461,7 @@ public class ConsumerUtil {
     Assert.assertEquals(consumer.getConsumerName(), consumerName);
     Assert.assertEquals(consumer.getPartitionReaders().size(), 4);
     // 9639 is the summation of multiple collector files and local stream files
-    Assert.assertEquals(consumer.getPendingDataSize().longValue(),18939l);
+    Assert.assertEquals(consumer.getPendingDataSize().longValue(),19888l);
     fs.delete(collectorDir,true);
     fs.delete(collectorDir2,true);
   }

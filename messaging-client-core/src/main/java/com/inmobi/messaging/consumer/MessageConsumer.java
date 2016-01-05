@@ -85,9 +85,11 @@ public interface MessageConsumer {
   public void close();
 
   /***
-   * Returns the amount of data in bytes present in stream
+   * Returns the size of  uncompressed data in bytes present in stream
    * that hasn't been read by consumer application yet.
-   * @throws UnSupportedException, if this method is not implemented
+   * Compressed data size will be extrapolated to get uncompressed size,
+   * based on the compression ratio.
+   * @throws UnsupportedOperationException, if this method is not implemented
    * @return Long value which indicates the bytes remaining for the consumer to consume
    */
 

@@ -268,6 +268,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     Long collectorStreamPendingSize = 0L, localStreamPendingSize = 0L;
     int retryCount = 0;
     int maxRetryThreshold = 10;
+    double compressionFactor = 3.8;
     while (cReader.getCurrentFile() == null && retryCount < maxRetryThreshold) {
       try {
         Thread.sleep(1000);
@@ -300,6 +301,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     LOG.info("Pending Size inside collector reader " + collectorStreamPendingSize
             + " Pending Size inside local stream reader " + localStreamPendingSize
             + " Total pending size " + (collectorStreamPendingSize + localStreamPendingSize));
+    localStreamPendingSize =  (long) ((double) localStreamPendingSize * compressionFactor);
     return (collectorStreamPendingSize + localStreamPendingSize);
   }
 }

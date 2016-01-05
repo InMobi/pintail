@@ -20,23 +20,6 @@ package com.inmobi.databus.readers;
  * #L%
  */
 
-import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.TreeMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.PathFilter;
-
 import com.inmobi.databus.files.CollectorFile;
 import com.inmobi.databus.files.DatabusStreamFile;
 import com.inmobi.databus.files.FileMap;
@@ -46,6 +29,18 @@ import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.InvalidCheckpointException;
 import com.inmobi.messaging.consumer.databus.mapred.DatabusInputFormat;
 import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.PathFilter;
+
+import java.io.IOException;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.TreeMap;
 
 public class LocalStreamCollectorReader extends
     DatabusStreamReader<DatabusStreamFile> {
