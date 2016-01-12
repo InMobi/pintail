@@ -54,6 +54,11 @@ public class MockConsumer extends AbstractMessageConsumer {
   public void close() { }
 
   @Override
+  public Long getPendingDataSize() throws IOException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   protected AbstractMessagingClientStatsExposer getMetricsImpl() {
     return new BaseMessageConsumerStatsExposer(topicName, consumerName);
   }

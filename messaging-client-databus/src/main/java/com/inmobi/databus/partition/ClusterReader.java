@@ -128,4 +128,9 @@ public class ClusterReader extends AbstractPartitionStreamReader {
     return new DeltaPartitionCheckPoint(
         dataWaitingReader.buildStartPartitionCheckpoints());
   }
+
+  @Override
+  public Long getReaderBackLog() throws IOException {
+    throw new UnsupportedOperationException();
+  }
 }

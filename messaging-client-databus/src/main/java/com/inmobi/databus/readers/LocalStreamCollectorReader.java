@@ -20,19 +20,6 @@ package com.inmobi.databus.readers;
  * #L%
  */
 
-import java.io.IOException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.TreeMap;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.PathFilter;
-
 import com.inmobi.databus.files.CollectorFile;
 import com.inmobi.databus.files.DatabusStreamFile;
 import com.inmobi.databus.files.FileMap;
@@ -42,6 +29,18 @@ import com.inmobi.messaging.Message;
 import com.inmobi.messaging.consumer.InvalidCheckpointException;
 import com.inmobi.messaging.consumer.databus.mapred.DatabusInputFormat;
 import com.inmobi.messaging.metrics.CollectorReaderStatsExposer;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.PathFilter;
+
+import java.io.IOException;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.TreeMap;
 
 public class LocalStreamCollectorReader extends
     DatabusStreamReader<DatabusStreamFile> {
@@ -280,5 +279,61 @@ public class LocalStreamCollectorReader extends
           " file " + exception);
     }
     return null;
+  }
+
+  protected Long doRecursiveSizing(Path dir, PathFilter pathFilter) throws IOException {
+    Long pendingSize = 0l;
+    FileStatus[] fileStatuses = fsListFileStatus(dir, pathFilter);
+    if (fileStatuses == null || fileStatuses.length == 0) {
+      LOG.debug("No files in directory:" + dir);
+    } else {
+      for (FileStatus file : fileStatuses) {
+        if (file.isDir()) {
+          pendingSize += doRecursiveSizing(file.getPath(), pathFilter);
+        } else {
+          try {
+            Date currentTimeStamp = LocalStreamCollectorReader.
+                    getDateFromStreamFile(streamName, file.getPath().getName());
+            if (stopTime != null && stopTime.before(currentTimeStamp)) {
+              continue;
+            } else {
+              pendingSize += file.getLen();
+            }
+          } catch (Exception e) {
+            LOG.error("Exception while getting time from File " + file.getPath().toString(), e);
+            throw new IOException(e);
+          }
+        }
+      }
+    }
+    return pendingSize;
+  }
+
+  public Long getPendingSize() throws IOException {
+    Long pendingSize = 0L;
+    Calendar current = Calendar.getInstance();
+    Date now = current.getTime();
+    current.setTime(getDateFromStreamDir(streamDir, getCurrentFile()));
+    // stop the file listing if stop date is beyond current time
+    while (current.getTime().before(now)) {
+      Path dir = getMinuteDirPath(streamDir, current.getTime());
+      // Move the current minute to next minute
+      current.add(Calendar.MINUTE, 1);
+      pendingSize += doRecursiveSizing(dir, createPathFilter());
+      LOG.info("Pending Size inside local stream collector reader " + pendingSize);
+    }
+    return pendingSize;
+  }
+
+  protected PathFilter createPathFilter() {
+    return new PathFilter() {
+      @Override
+      public boolean accept(Path p) {
+        if (p.getName().startsWith(collector+ "-" + streamName)) {
+          return true;
+        }
+        return false;
+      }
+    };
   }
 }

@@ -20,6 +20,7 @@ package com.inmobi.messaging.consumer.util;
  * #L%
  */
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -413,6 +414,56 @@ public class ConsumerUtil {
         consumer.getMetrics())).getNumMessagesConsumed(), numOfMessagaes);
     Assert.assertEquals(((BaseMessageConsumerStatsExposer)(
         consumer.getMetrics())).getNumOfTiemOutsOnNext(), 10);
+  }
+
+  public static void testConsumerBacklog(ClientConfig config, String streamName,
+      String consumerName, boolean hadoop, Path[] rootDirs,Configuration conf,
+      String testStream, String COLLECTOR_PREFIX) throws Exception {
+    //add one collector
+    FileSystem fs = rootDirs[0].getFileSystem(conf);
+    Path collectorDir = new Path(rootDirs[0].toUri().toString(),
+            "data/" + testStream + "/" + COLLECTOR_PREFIX + "8") ;
+    fs.mkdirs(collectorDir);
+    String dataFile = TestUtil.files[2];
+    TestUtil.setUpCollectorDataFiles(fs, collectorDir, dataFile);
+
+    DatabusConsumer consumer = (DatabusConsumer) createConsumer(hadoop);
+    consumer.init(streamName, consumerName, null, config);
+    Assert.assertEquals(consumer.getTopicName(), streamName);
+    Assert.assertEquals(consumer.getConsumerName(), consumerName);
+    Assert.assertEquals(consumer.getPartitionReaders().size(), 3);
+    // 9639 is the summation of collector files and local stream files
+    Assert.assertEquals(consumer.getPendingDataSize().longValue(),10588l);
+    fs.delete(collectorDir,true);
+  }
+
+  public static void testConsumerBacklogMoreCollectors(ClientConfig config, String streamName,
+                                         String consumerName, boolean hadoop, Path[] rootDirs,Configuration conf,
+                                         String testStream, String COLLECTOR_PREFIX) throws Exception {
+    //add one collector
+    FileSystem fs = rootDirs[0].getFileSystem(conf);
+    Path collectorDir = new Path(rootDirs[0].toUri().toString(),
+            "data/" + testStream + "/" + COLLECTOR_PREFIX + "8") ;
+    fs.mkdirs(collectorDir);
+    String dataFile = TestUtil.files[2];
+    TestUtil.setUpCollectorDataFiles(fs, collectorDir, dataFile);
+
+    //add one more collector
+    Path collectorDir2 = new Path(rootDirs[0].toUri().toString(),
+            "data/" + testStream + "/" + COLLECTOR_PREFIX + "9") ;
+    fs.mkdirs(collectorDir2);
+    dataFile = TestUtil.files[2];
+    TestUtil.setUpCollectorDataFiles(fs, collectorDir2, dataFile);
+
+    DatabusConsumer consumer = (DatabusConsumer) createConsumer(hadoop);
+    consumer.init(streamName, consumerName, null, config);
+    Assert.assertEquals(consumer.getTopicName(), streamName);
+    Assert.assertEquals(consumer.getConsumerName(), consumerName);
+    Assert.assertEquals(consumer.getPartitionReaders().size(), 4);
+    // 9639 is the summation of multiple collector files and local stream files
+    Assert.assertEquals(consumer.getPendingDataSize().longValue(),19888l);
+    fs.delete(collectorDir,true);
+    fs.delete(collectorDir2,true);
   }
 
   public static void testDynamicCollector(ClientConfig config, String streamName,

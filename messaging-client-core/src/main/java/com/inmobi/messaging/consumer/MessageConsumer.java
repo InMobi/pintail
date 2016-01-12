@@ -83,4 +83,15 @@ public interface MessageConsumer {
    * Close and cleanup all resources such as connection, file handles etc.
    */
   public void close();
+
+  /***
+   * Returns the size of  uncompressed data in bytes present in stream
+   * that hasn't been read by consumer application yet.
+   * Compressed data size will be extrapolated to get uncompressed size,
+   * based on the compression ratio.
+   * @throws UnsupportedOperationException, if this method is not implemented
+   * @return Long value which indicates the bytes remaining for the consumer to consume
+   */
+
+  public Long getPendingDataSize() throws IOException, UnsupportedOperationException;
 }

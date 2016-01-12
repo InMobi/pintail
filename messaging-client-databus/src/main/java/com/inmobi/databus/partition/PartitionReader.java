@@ -208,6 +208,10 @@ public class PartitionReader {
     return reader;
   }
 
+  public synchronized Long getReaderBackLog() throws IOException {
+    return reader.getReaderBackLog();
+  }
+
   /**
    * Execute reads messages from the stream and adds them to the consumer buffer,
    * until no more messages are present or any exception occurs while reading

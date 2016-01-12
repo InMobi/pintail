@@ -144,6 +144,34 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     };
   }
 
+  public Long getPendingSize(Path readTill) throws IOException {
+    Long pendingSize = 0L;
+    Date readDoneTillDate = getDateFromCollectorFile(readTill.getName());
+    if (fsIsPathExists(streamDir)) {
+      FileStatus[] fileStatuses = fsListFileStatus(streamDir, null);
+      if (fileStatuses == null || fileStatuses.length == 0) {
+        LOG.info("No files in directory:" + streamDir);
+        return 0L;
+      }
+      for (FileStatus file : fileStatuses) {
+        Date currentTimeStamp = getDateFromCollectorFile(
+                file.getPath().getName());
+        if (currentTimeStamp.before(readDoneTillDate)) {
+          continue;
+        }
+        if (stopTime != null) {
+          if (stopTime.before(currentTimeStamp)) {
+            continue;
+          }
+        }
+        pendingSize += file.getLen();
+      }
+    } else {
+      LOG.info("Collector directory does not exist");
+    }
+    return pendingSize;
+  }
+
   protected void initCurrentFile() {
     super.initCurrentFile();
     sameStream = false;

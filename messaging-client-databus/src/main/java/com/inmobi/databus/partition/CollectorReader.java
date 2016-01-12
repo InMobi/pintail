@@ -48,6 +48,9 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   private CollectorStreamReader cReader;
   private final CollectorReaderStatsExposer metrics;
   private boolean isLocalStreamAvailable = false;
+  //this is the compression factor found from compressing and uncompressing various files
+  //and by averaging them out.
+  private static final double COMPRESSION_FACTOR = 3.8;
 
   CollectorReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, FileSystem fs,
@@ -261,5 +264,47 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   @Override
   public MessageCheckpoint buildStartPartitionCheckpoints() {
     return null;
+  }
+
+  @Override
+  public synchronized Long getReaderBackLog() throws IOException {
+    Long collectorStreamPendingSize = 0L, localStreamPendingSize = 0L;
+    int retryCount = 0;
+    int maxRetryThreshold = 10;
+    while (cReader.getCurrentFile() == null && retryCount < maxRetryThreshold) {
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        LOG.info("Sleep Interrupted while waiting for collector reader initialization. Ignoring the interrupt");
+      }
+      retryCount++;
+    }
+    //get collector reader remaining size
+    if (cReader.getCurrentFile() != null) {
+      collectorStreamPendingSize += cReader.getPendingSize(cReader.getCurrentFile());
+      LOG.info("Pending Size of uncompressed data inside collector output location starting from collector file: " +
+              cReader.getCurrentFile() + " is " + collectorStreamPendingSize);
+    }
+    //get local reader remaining size
+    retryCount = 0;
+    while (lReader.getCurrentFile() == null && retryCount < maxRetryThreshold) {
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        LOG.info("Sleep Interrupted while waiting for local stream reader initialization. Ignoring the interrupt");
+      }
+      retryCount++;
+    }
+    if (lReader.getCurrentFile() != null) {
+      localStreamPendingSize += lReader.getPendingSize();
+      LOG.info("Pending Size of compressed data inside streams_local output location starting from file: " +
+              lReader.getCurrentFile() + " is " + localStreamPendingSize);
+    }
+    long localStreamPendingSizeAdjusted =  (long) ((double) localStreamPendingSize * COMPRESSION_FACTOR);
+    LOG.info("Pending Size of uncompressed data inside collector reader: " + collectorStreamPendingSize +
+            " Pending size of compressed data inside local stream reader: " + localStreamPendingSize +
+            " Pending size of local stream reader adjusted with compression factor of " + COMPRESSION_FACTOR +
+            " is " + localStreamPendingSizeAdjusted);
+    return (collectorStreamPendingSize + localStreamPendingSizeAdjusted);
   }
 }

@@ -85,6 +85,11 @@ public class StdInConsumer extends AbstractMessageConsumer {
     }
   }
 
+  @Override
+  public Long getPendingDataSize() throws IOException {
+    throw new UnsupportedOperationException();
+  }
+
   protected void start() {
     in = new BufferedReader(new InputStreamReader(System.in));
   }
