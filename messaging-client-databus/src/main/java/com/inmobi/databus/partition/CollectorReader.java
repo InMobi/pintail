@@ -49,8 +49,8 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   private final CollectorReaderStatsExposer metrics;
   private boolean isLocalStreamAvailable = false;
   //this is the compression factor found from compressing and uncompressing various files
-  //and by averaging them out
-  private double compressionFactor = 3.8;
+  //and by averaging them out.
+  private static final double COMPRESSION_FACTOR = 3.8;
 
   CollectorReader(PartitionId partitionId,
       PartitionCheckpoint partitionCheckpoint, FileSystem fs,
@@ -303,9 +303,9 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     LOG.info("Pending Size of uncompressed data inside collector reader " + collectorStreamPendingSize
             + " Pending Size inside local stream reader " + localStreamPendingSize
             + " Total pending size " + (collectorStreamPendingSize + localStreamPendingSize));
-    long localStreamPendingSizeAdjusted =  (long) ((double) localStreamPendingSize * compressionFactor);
+    long localStreamPendingSizeAdjusted =  (long) ((double) localStreamPendingSize * COMPRESSION_FACTOR);
     LOG.info("local stream size of pending data compressed "+localStreamPendingSize +" local stream size of pending data adjusted with " +
-            "compression factor of "+ compressionFactor + " is "+localStreamPendingSizeAdjusted);
+            "compression factor of "+ COMPRESSION_FACTOR + " is "+localStreamPendingSizeAdjusted);
     return (collectorStreamPendingSize + localStreamPendingSizeAdjusted);
   }
 }
