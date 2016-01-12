@@ -300,12 +300,11 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       LOG.info("Pending Size of compressed data inside streams_local output location starting from file: " +
               lReader.getCurrentFile() + " is " + localStreamPendingSize);
     }
-    LOG.info("Pending Size of uncompressed data inside collector reader " + collectorStreamPendingSize
-            + " Pending Size inside local stream reader " + localStreamPendingSize
-            + " Total pending size " + (collectorStreamPendingSize + localStreamPendingSize));
     long localStreamPendingSizeAdjusted =  (long) ((double) localStreamPendingSize * COMPRESSION_FACTOR);
-    LOG.info("local stream size of pending data compressed "+localStreamPendingSize +" local stream size of pending data adjusted with " +
-            "compression factor of "+ COMPRESSION_FACTOR + " is "+localStreamPendingSizeAdjusted);
+    LOG.info("Pending Size of uncompressed data inside collector reader: " + collectorStreamPendingSize +
+            " Pending size of compressed data inside local stream reader: " + localStreamPendingSize +
+            " Pending size of local stream reader adjusted with compression factor of " + COMPRESSION_FACTOR +
+            " is " + localStreamPendingSizeAdjusted);
     return (collectorStreamPendingSize + localStreamPendingSizeAdjusted);
   }
 }
