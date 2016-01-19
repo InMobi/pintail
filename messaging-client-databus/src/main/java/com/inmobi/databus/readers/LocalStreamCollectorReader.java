@@ -309,11 +309,11 @@ public class LocalStreamCollectorReader extends
     return pendingSize;
   }
 
-  public Long getPendingSize() throws IOException {
+  public Long getPendingSize(Path readTill) throws IOException {
     Long pendingSize = 0L;
     Calendar current = Calendar.getInstance();
     Date now = current.getTime();
-    current.setTime(getDateFromStreamDir(streamDir, getCurrentFile()));
+    current.setTime(getDateFromStreamDir(streamDir, readTill));
     // stop the file listing if stop date is beyond current time
     while (current.getTime().before(now)) {
       Path dir = getMinuteDirPath(streamDir, current.getTime());

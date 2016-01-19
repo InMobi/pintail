@@ -272,6 +272,19 @@ public class TestDatabusConsumer extends TestAbstractDatabusConsumer {
   }
 
   @Test
+  public void testDatabusConsumerBacklogOnlyCollector() throws Exception {
+    ClientConfig config = loadConfig();
+    config.set(DatabusConsumerConfig.databusRootDirsConfig,
+            rootDirs[2].toUri().toString());
+    config.set(DatabusConsumerConfig.checkpointDirConfig, ck15);
+    config.set(MessagingConsumerConfig.relativeStartTimeConfig,
+            relativeStartTime);
+    config.set(DatabusConsumerConfig.frequencyForDiscoverer, "1");
+    ConsumerUtil.testConsumerBacklogOnlyCollector(config, testStream , consumerName, false,
+            rootDirs, conf, testStream, COLLECTOR_PREFIX);
+  }
+
+  @Test
   public void testDatabusConsumerBacklog() throws Exception {
     ClientConfig config = loadConfig();
     config.set(DatabusConsumerConfig.databusRootDirsConfig,

@@ -146,6 +146,9 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
 
   public Long getPendingSize(Path readTill) throws IOException {
     Long pendingSize = 0L;
+    if(null == readTill){
+      return pendingSize;
+    }
     Date readDoneTillDate = getDateFromCollectorFile(readTill.getName());
     if (fsIsPathExists(streamDir)) {
       FileStatus[] fileStatuses = fsListFileStatus(streamDir, null);

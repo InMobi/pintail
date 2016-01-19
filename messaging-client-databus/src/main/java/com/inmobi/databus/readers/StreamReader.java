@@ -304,6 +304,18 @@ public abstract class StreamReader<T extends StreamFile> {
     return false;
   }
 
+  public Path getFileFromCollectorFileName(String streamFileName) {
+    if (fileMap.containsFile(streamFileName)) {
+      return fileMap.getValue(streamFileName).getPath();
+    } else {
+      if(fileMap.getHigherValue(streamFileName) != null){
+        return fileMap.getHigherValue(streamFileName).getPath();
+      }else {
+        return null;
+      }
+    }
+  }
+
   public boolean setCurrentFile(String streamFileName,
       long currentLineNum) throws IOException {
     if (fileMap.containsFile(streamFileName)) {

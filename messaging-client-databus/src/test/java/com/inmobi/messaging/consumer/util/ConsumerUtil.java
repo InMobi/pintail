@@ -416,6 +416,18 @@ public class ConsumerUtil {
         consumer.getMetrics())).getNumOfTiemOutsOnNext(), 10);
   }
 
+  public static void testConsumerBacklogOnlyCollector(ClientConfig config, String streamName,
+                                         String consumerName, boolean hadoop, Path[] rootDirs,Configuration conf,
+                                         String testStream, String COLLECTOR_PREFIX) throws Exception {
+    DatabusConsumer consumer = (DatabusConsumer) createConsumer(hadoop);
+    consumer.init(streamName, consumerName, null, config);
+    Assert.assertEquals(consumer.getTopicName(), streamName);
+    Assert.assertEquals(consumer.getConsumerName(), consumerName);
+    Assert.assertEquals(consumer.getPartitionReaders().size(), 2);
+    // 9300 is the size of one collector file, two such files
+    Assert.assertEquals(consumer.getPendingDataSize().longValue(),18600l);
+  }
+
   public static void testConsumerBacklog(ClientConfig config, String streamName,
       String consumerName, boolean hadoop, Path[] rootDirs,Configuration conf,
       String testStream, String COLLECTOR_PREFIX) throws Exception {
@@ -432,8 +444,7 @@ public class ConsumerUtil {
     Assert.assertEquals(consumer.getTopicName(), streamName);
     Assert.assertEquals(consumer.getConsumerName(), consumerName);
     Assert.assertEquals(consumer.getPartitionReaders().size(), 3);
-    // 9639 is the summation of collector files and local stream files
-    Assert.assertEquals(consumer.getPendingDataSize().longValue(),10588l);
+    Assert.assertEquals(consumer.getPendingDataSize().longValue(),29188l);
     fs.delete(collectorDir,true);
   }
 
@@ -461,7 +472,7 @@ public class ConsumerUtil {
     Assert.assertEquals(consumer.getConsumerName(), consumerName);
     Assert.assertEquals(consumer.getPartitionReaders().size(), 4);
     // 9639 is the summation of multiple collector files and local stream files
-    Assert.assertEquals(consumer.getPendingDataSize().longValue(),19888l);
+    Assert.assertEquals(consumer.getPendingDataSize().longValue(),38488l);
     fs.delete(collectorDir,true);
     fs.delete(collectorDir2,true);
   }

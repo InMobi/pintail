@@ -269,25 +269,11 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   @Override
   public synchronized Long getReaderBackLog() throws IOException {
     Long collectorStreamPendingSize = 0L, localStreamPendingSize = 0L;
-    int retryCount = 0;
-    int maxRetryThreshold = 10;
-    while (cReader.getCurrentFile() == null && retryCount < maxRetryThreshold) {
-      try {
-        Thread.sleep(1000);
-      } catch (InterruptedException e) {
-        LOG.info("Sleep Interrupted while waiting for collector reader initialization. Ignoring the interrupt");
-      }
-      retryCount++;
-    }
-    //get collector reader remaining size
-    if (cReader.getCurrentFile() != null) {
-      collectorStreamPendingSize += cReader.getPendingSize(cReader.getCurrentFile());
-      LOG.info("Pending Size of uncompressed data inside collector output location starting from collector file: " +
-              cReader.getCurrentFile() + " is " + collectorStreamPendingSize);
-    }
-    //get local reader remaining size
-    retryCount = 0;
-    while (lReader.getCurrentFile() == null && retryCount < maxRetryThreshold) {
+    int retryCount = 0, maxRetryThreshold = 10;
+    /**
+     * waiting to make sure reader is initialised
+     */
+    while (reader == null && retryCount < maxRetryThreshold) {
       try {
         Thread.sleep(1000);
       } catch (InterruptedException e) {
@@ -295,12 +281,30 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       }
       retryCount++;
     }
-    if (lReader.getCurrentFile() != null) {
-      localStreamPendingSize += lReader.getPendingSize();
-      LOG.info("Pending Size of compressed data inside streams_local output location starting from file: " +
-              lReader.getCurrentFile() + " is " + localStreamPendingSize);
+    /**
+     * Reader can be either local stream reader or collector reader at any point of time.
+     * Based on that, the other reader's pending size to be calculated, along with current reader's
+     * pending size. Return sum of both, after adjusting local stream reader's pending size
+     * with compression factor.
+     */
+    if (reader == lReader) {
+      String collectorPath = CollectorStreamReader.getCollectorFileName(streamName, reader.getCurrentFile().getName());
+      LOG.info("Current reader is local stream reader, collector path is " + collectorPath + " local stream path is " + lReader.getCurrentFile());
+      collectorStreamPendingSize = cReader.getPendingSize(new Path(collectorPath));
+      localStreamPendingSize = lReader.getPendingSize(reader.getCurrentFile());
+    } else if (reader == cReader) { //current reader is collector reader
+      if (cReader.getCurrentFile() != null) { // sometimes collector directory can be empty. In that case no pending size adding required
+        collectorStreamPendingSize = cReader.getPendingSize(reader.getCurrentFile());
+        String localReaderPath = LocalStreamCollectorReader.getDatabusStreamFileName(partitionId.getCollector(), cReader.getCurrentFile().getName());
+        Path localStreamPath = lReader.getFileFromCollectorFileName(localReaderPath);
+        if (localStreamPath != null) {
+          LOG.info("Current reader is collector reader, local stream path is " + localStreamPath.toString());
+          localStreamPendingSize = lReader.getPendingSize(localStreamPath);
+        }
+      }
     }
-    long localStreamPendingSizeAdjusted =  (long) ((double) localStreamPendingSize * COMPRESSION_FACTOR);
+
+    long localStreamPendingSizeAdjusted = (long) ((double) localStreamPendingSize * COMPRESSION_FACTOR);
     LOG.info("Pending Size of uncompressed data inside collector reader: " + collectorStreamPendingSize +
             " Pending size of compressed data inside local stream reader: " + localStreamPendingSize +
             " Pending size of local stream reader adjusted with compression factor of " + COMPRESSION_FACTOR +
