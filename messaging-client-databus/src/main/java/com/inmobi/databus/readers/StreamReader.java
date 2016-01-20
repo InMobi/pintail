@@ -332,6 +332,10 @@ public abstract class StreamReader<T extends StreamFile> {
     }
   }
 
+  public boolean containsCurrentFile(String streamFileName) {
+    return fileMap.containsFile(streamFileName);
+  }
+
   public void startFromTimestmp(Date timestamp)
       throws IOException, InterruptedException {
     if (!initializeCurrentFile(timestamp)) {

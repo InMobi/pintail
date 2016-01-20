@@ -272,6 +272,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
     int retryCount = 0, maxRetryThreshold = 10;
     /**
      * waiting to make sure reader is initialised
+     * This is for the test cases, particularly
      */
     while (reader == null && retryCount < maxRetryThreshold) {
       try {
@@ -280,6 +281,10 @@ public class CollectorReader extends AbstractPartitionStreamReader {
         LOG.info("Sleep Interrupted while waiting for local stream reader initialization. Ignoring the interrupt");
       }
       retryCount++;
+    }
+
+    if(reader == null){
+      throw new IOException();
     }
     /**
      * Reader can be either local stream reader or collector reader at any point of time.
@@ -302,7 +307,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
         //get local reader file path using
         String localReaderPath = LocalStreamCollectorReader.getDatabusStreamFileName(partitionId.getCollector(), cReader.getCurrentFile().getName());
         Path localStreamPath = lReader.getFileFromCollectorFileName(localReaderPath);
-        if (localStreamPath != null) {
+        if (localStreamPath != null &&  !lReader.containsCurrentFile(localReaderPath)) { //if the file got moved, no need to add it to the pending size
           localStreamPendingSize = lReader.getPendingSize(localStreamPath);
         }
       }
