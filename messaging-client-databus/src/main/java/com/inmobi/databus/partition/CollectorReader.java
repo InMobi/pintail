@@ -288,17 +288,21 @@ public class CollectorReader extends AbstractPartitionStreamReader {
      * with compression factor.
      */
     if (reader == lReader) {
-      String collectorPath = CollectorStreamReader.getCollectorFileName(streamName, reader.getCurrentFile().getName());
-      LOG.info("Current reader is local stream reader, collector path is " + collectorPath + " local stream path is " + lReader.getCurrentFile());
-      collectorStreamPendingSize = cReader.getPendingSize(new Path(collectorPath));
-      localStreamPendingSize = lReader.getPendingSize(reader.getCurrentFile());
+      if (lReader.getCurrentFile() != null) { //current reader is local stream reader
+        //get local reader pending size
+        localStreamPendingSize = lReader.getPendingSize(lReader.getCurrentFile());
+        //get collector info from local stream file name and calculate collector pending size
+        String collectorPath = CollectorStreamReader.getCollectorFileName(streamName, lReader.getCurrentFile().getName());
+        collectorStreamPendingSize = cReader.getPendingSize(new Path(collectorPath));
+      }
     } else if (reader == cReader) { //current reader is collector reader
-      if (cReader.getCurrentFile() != null) { // sometimes collector directory can be empty. In that case no pending size adding required
-        collectorStreamPendingSize = cReader.getPendingSize(reader.getCurrentFile());
+      if (cReader.getCurrentFile() != null) {
+        //get collector reader pending size
+        collectorStreamPendingSize = cReader.getPendingSize(cReader.getCurrentFile());
+        //get local reader file path using
         String localReaderPath = LocalStreamCollectorReader.getDatabusStreamFileName(partitionId.getCollector(), cReader.getCurrentFile().getName());
         Path localStreamPath = lReader.getFileFromCollectorFileName(localReaderPath);
         if (localStreamPath != null) {
-          LOG.info("Current reader is collector reader, local stream path is " + localStreamPath.toString());
           localStreamPendingSize = lReader.getPendingSize(localStreamPath);
         }
       }
