@@ -306,7 +306,7 @@ public class CollectorReader extends AbstractPartitionStreamReader {
         collectorStreamPendingSize = cReader.getPendingSize(cReader.getCurrentFile());
         //get local reader file path using
         String localReaderPath = LocalStreamCollectorReader.getDatabusStreamFileName(partitionId.getCollector(), cReader.getCurrentFile().getName());
-        Path localStreamPath = lReader.getFileFromCollectorFileName(localReaderPath);
+        Path localStreamPath = lReader.getFilePathFromFile(localReaderPath);
         if (localStreamPath != null &&  !lReader.containsCurrentFile(localReaderPath)) { //if the file got moved, no need to add it to the pending size
           localStreamPendingSize = lReader.getPendingSize(localStreamPath);
         }

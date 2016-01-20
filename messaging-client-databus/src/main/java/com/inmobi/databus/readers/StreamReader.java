@@ -304,7 +304,7 @@ public abstract class StreamReader<T extends StreamFile> {
     return false;
   }
 
-  public Path getFileFromCollectorFileName(String streamFileName) {
+  public Path getFilePathFromFile(String streamFileName) {
     if (fileMap.containsFile(streamFileName)) {
       return fileMap.getValue(streamFileName).getPath();
     } else {
