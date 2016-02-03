@@ -493,4 +493,8 @@ public abstract class StreamReader<T extends StreamFile> {
     cal.add(Calendar.MINUTE, -1);
     return cal.getTime();
   }
+
+  protected boolean fileMapContainsPath(Path path){
+    return fileMap.containsFile(path.getName());
+  }
 }

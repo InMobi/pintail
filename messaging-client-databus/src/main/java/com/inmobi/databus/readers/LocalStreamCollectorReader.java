@@ -336,4 +336,8 @@ public class LocalStreamCollectorReader extends
       }
     };
   }
+
+  public Path getLastFile() {
+    return super.getLastFile();
+  }
 }

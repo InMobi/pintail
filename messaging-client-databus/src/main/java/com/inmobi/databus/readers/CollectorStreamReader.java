@@ -419,4 +419,8 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
     }
     return super.hasReadFully();
   }
+
+  public boolean fileMapContainsPath(Path currentFile){
+    return super.fileMapContainsPath(currentFile);
+  }
 }

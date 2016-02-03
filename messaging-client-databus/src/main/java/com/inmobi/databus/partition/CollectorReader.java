@@ -278,12 +278,13 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       try {
         Thread.sleep(1000);
       } catch (InterruptedException e) {
-        LOG.info("Sleep Interrupted while waiting for local stream reader initialization. Ignoring the interrupt");
+        LOG.info("Sleep Interrupted while waiting for collector reader initialization. Ignoring the interrupt");
       }
       retryCount++;
     }
 
     if(reader == null){
+      LOG.info("Reader not initialised while getting the reader backlog");
       throw new IOException();
     }
     /**
@@ -297,17 +298,17 @@ public class CollectorReader extends AbstractPartitionStreamReader {
         //get local reader pending size
         localStreamPendingSize = lReader.getPendingSize(lReader.getCurrentFile());
         //get collector info from local stream file name and calculate collector pending size
-        String collectorPath = CollectorStreamReader.getCollectorFileName(streamName, lReader.getCurrentFile().getName());
+        String collectorPath = CollectorStreamReader.getCollectorFileName(streamName, lReader.getLastFile().getName());
         collectorStreamPendingSize = cReader.getPendingSize(new Path(collectorPath));
       }
     } else if (reader == cReader) { //current reader is collector reader
       if (cReader.getCurrentFile() != null) {
         //get collector reader pending size
         collectorStreamPendingSize = cReader.getPendingSize(cReader.getCurrentFile());
-        //get local reader file path using
-        String localReaderPath = LocalStreamCollectorReader.getDatabusStreamFileName(partitionId.getCollector(), cReader.getCurrentFile().getName());
-        Path localStreamPath = lReader.getFilePathFromFile(localReaderPath);
-        if (localStreamPath != null &&  !lReader.containsCurrentFile(localReaderPath)) { //if the file got moved, no need to add it to the pending size
+        if (!cReader.fileMapContainsPath(cReader.getCurrentFile())) {
+          //get local reader file path using
+          String localReaderPath = LocalStreamCollectorReader.getDatabusStreamFileName(partitionId.getCollector(), cReader.getCurrentFile().getName());
+          Path localStreamPath = lReader.getFilePathFromFile(localReaderPath);
           localStreamPendingSize = lReader.getPendingSize(localStreamPath);
         }
       }
