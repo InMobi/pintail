@@ -269,9 +269,12 @@ public class CollectorReader extends AbstractPartitionStreamReader {
   @Override
   public synchronized Long getReaderBackLog() throws IOException {
     Long collectorStreamPendingSize = 0L, localStreamPendingSize = 0L;
-    int retryCount = 0;
-    int maxRetryThreshold = 10;
-    while (cReader.getCurrentFile() == null && retryCount < maxRetryThreshold) {
+    int retryCount = 0, maxRetryThreshold = 10;
+    /**
+     * waiting to make sure reader is initialised
+     * This is for the test cases, particularly
+     */
+    while (reader == null && retryCount < maxRetryThreshold) {
       try {
         Thread.sleep(1000);
       } catch (InterruptedException e) {
@@ -279,28 +282,39 @@ public class CollectorReader extends AbstractPartitionStreamReader {
       }
       retryCount++;
     }
-    //get collector reader remaining size
-    if (cReader.getCurrentFile() != null) {
-      collectorStreamPendingSize += cReader.getPendingSize(cReader.getCurrentFile());
-      LOG.info("Pending Size of uncompressed data inside collector output location starting from collector file: " +
-              cReader.getCurrentFile() + " is " + collectorStreamPendingSize);
+
+    if(reader == null){
+      LOG.info("Reader not initialised while getting the reader backlog");
+      throw new IOException();
     }
-    //get local reader remaining size
-    retryCount = 0;
-    while (lReader.getCurrentFile() == null && retryCount < maxRetryThreshold) {
-      try {
-        Thread.sleep(1000);
-      } catch (InterruptedException e) {
-        LOG.info("Sleep Interrupted while waiting for local stream reader initialization. Ignoring the interrupt");
+    /**
+     * Reader can be either local stream reader or collector reader at any point of time.
+     * Based on that, the other reader's pending size to be calculated, along with current reader's
+     * pending size. Return sum of both, after adjusting local stream reader's pending size
+     * with compression factor.
+     */
+    if (reader == lReader) {
+      if (lReader.getCurrentFile() != null) { //current reader is local stream reader
+        //get local reader pending size
+        localStreamPendingSize = lReader.getPendingSize(lReader.getCurrentFile());
+        //get collector info from local stream file name and calculate collector pending size
+        String collectorPath = CollectorStreamReader.getCollectorFileName(streamName, lReader.getLastFile().getName());
+        collectorStreamPendingSize = cReader.getPendingSize(new Path(collectorPath));
       }
-      retryCount++;
+    } else if (reader == cReader) { //current reader is collector reader
+      if (cReader.getCurrentFile() != null) {
+        //get collector reader pending size
+        collectorStreamPendingSize = cReader.getPendingSize(cReader.getCurrentFile());
+        if (!cReader.fileMapContainsPath(cReader.getCurrentFile())) {
+          //get local reader file path using
+          String localReaderPath = LocalStreamCollectorReader.getDatabusStreamFileName(partitionId.getCollector(), cReader.getCurrentFile().getName());
+          Path localStreamPath = lReader.getFilePathFromFile(localReaderPath);
+          localStreamPendingSize = lReader.getPendingSize(localStreamPath);
+        }
+      }
     }
-    if (lReader.getCurrentFile() != null) {
-      localStreamPendingSize += lReader.getPendingSize();
-      LOG.info("Pending Size of compressed data inside streams_local output location starting from file: " +
-              lReader.getCurrentFile() + " is " + localStreamPendingSize);
-    }
-    long localStreamPendingSizeAdjusted =  (long) ((double) localStreamPendingSize * COMPRESSION_FACTOR);
+
+    long localStreamPendingSizeAdjusted = (long) ((double) localStreamPendingSize * COMPRESSION_FACTOR);
     LOG.info("Pending Size of uncompressed data inside collector reader: " + collectorStreamPendingSize +
             " Pending size of compressed data inside local stream reader: " + localStreamPendingSize +
             " Pending size of local stream reader adjusted with compression factor of " + COMPRESSION_FACTOR +

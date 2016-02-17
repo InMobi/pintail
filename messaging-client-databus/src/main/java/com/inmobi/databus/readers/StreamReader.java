@@ -304,6 +304,18 @@ public abstract class StreamReader<T extends StreamFile> {
     return false;
   }
 
+  public Path getFilePathFromFile(String streamFileName) {
+    if (fileMap.containsFile(streamFileName)) {
+      return fileMap.getValue(streamFileName).getPath();
+    } else {
+      if(fileMap.getHigherValue(streamFileName) != null){
+        return fileMap.getHigherValue(streamFileName).getPath();
+      }else {
+        return null;
+      }
+    }
+  }
+
   public boolean setCurrentFile(String streamFileName,
       long currentLineNum) throws IOException {
     if (fileMap.containsFile(streamFileName)) {
@@ -318,6 +330,10 @@ public abstract class StreamReader<T extends StreamFile> {
           + " Trying to set next higher");
       return setNextHigher(streamFileName);
     }
+  }
+
+  public boolean containsCurrentFile(String streamFileName) {
+    return fileMap.containsFile(streamFileName);
   }
 
   public void startFromTimestmp(Date timestamp)
@@ -476,5 +492,9 @@ public abstract class StreamReader<T extends StreamFile> {
     cal.setTime(currentFileTimeStamp);
     cal.add(Calendar.MINUTE, -1);
     return cal.getTime();
+  }
+
+  protected boolean fileMapContainsPath(Path path){
+    return fileMap.containsFile(path.getName());
   }
 }
