@@ -4,7 +4,7 @@
   <parent>
     <artifactId>messaging-client-parent</artifactId>
     <groupId>com.inmobi.messaging</groupId>
-    <version>4.1.6</version>
+    <version>4.1.7-SNAPSHOT</version>
   </parent>
 
   <artifactId>messaging-client-logappender</artifactId>
