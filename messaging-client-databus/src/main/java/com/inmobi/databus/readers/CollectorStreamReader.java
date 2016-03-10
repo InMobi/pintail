@@ -146,7 +146,8 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
 
   public Long getPendingSize(Path readTill) throws IOException {
     Long pendingSize = 0L;
-    if(null == readTill){
+    if (null == readTill || readTill.getName().endsWith("_current")
+            || readTill.getName().endsWith("_stats")) {
       return pendingSize;
     }
     Date readDoneTillDate = getDateFromCollectorFile(readTill.getName());
@@ -157,6 +158,10 @@ public class CollectorStreamReader extends StreamReader<CollectorFile> {
         return 0L;
       }
       for (FileStatus file : fileStatuses) {
+        if (file.getPath().getName().endsWith("_current")
+                || file.getPath().getName().endsWith("_stats")) {
+          continue;
+        }
         Date currentTimeStamp = getDateFromCollectorFile(
                 file.getPath().getName());
         if (currentTimeStamp.before(readDoneTillDate)) {
