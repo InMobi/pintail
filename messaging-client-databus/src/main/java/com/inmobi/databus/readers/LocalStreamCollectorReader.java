@@ -292,6 +292,10 @@ public class LocalStreamCollectorReader extends
           pendingSize += doRecursiveSizing(file.getPath(), pathFilter);
         } else {
           try {
+            //Extra check
+            if (!file.getPath().getName().startsWith(collector+ "-" + streamName)) {
+             continue;
+            }
             Date currentTimeStamp = LocalStreamCollectorReader.
                     getDateFromStreamFile(streamName, file.getPath().getName());
             if (stopTime != null && stopTime.before(currentTimeStamp)) {
