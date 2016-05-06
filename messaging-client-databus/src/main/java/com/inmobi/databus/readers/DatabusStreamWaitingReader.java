@@ -9,9 +9,9 @@ package com.inmobi.databus.readers;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,14 +29,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.PathFilter;
-
 import com.inmobi.databus.files.FileMap;
 import com.inmobi.databus.files.HadoopStreamFile;
 import com.inmobi.databus.partition.PartitionCheckpoint;
@@ -44,6 +36,14 @@ import com.inmobi.databus.partition.PartitionCheckpointList;
 import com.inmobi.databus.partition.PartitionId;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.PathFilter;
 
 public class DatabusStreamWaitingReader
     extends DatabusStreamReader<HadoopStreamFile> {
@@ -62,7 +62,7 @@ public class DatabusStreamWaitingReader
     Date timeStamp;
     boolean processed = false;
     boolean readFully = false;
-    
+
     CheckpointInfo(PartitionCheckpoint pck) {
       this.pck = pck;
       if (pck != null) {
@@ -150,6 +150,7 @@ public class DatabusStreamWaitingReader
     Calendar current = Calendar.getInstance();
     Date now = current.getTime();
     current.setTime(buildTimestamp);
+    LOG.debug("Listing starting from date: "+current.getTime());
     while (current.getTime().before(now) && !closed) {
       // stop the file listing if stop date is beyond current time.
       if (checkAndSetstopTimeReached(current)) {
@@ -179,6 +180,8 @@ public class DatabusStreamWaitingReader
           } else {
             LOG.info("Reached end of file listing. Not looking at the last"
                 + " minute directory:" + dir);
+            current.add(Calendar.MINUTE,-2);
+            buildTimestamp = current.getTime();
             break;
           }
         }
@@ -220,7 +223,7 @@ public class DatabusStreamWaitingReader
    * check the next file is same as checkpointed file. If not same and checkpointed
    * file exists then sets the iterator to the checkpointed file.
    * @return false if it reads from the checkpointed file.
-   * @throws InterruptedException 
+   * @throws InterruptedException
    */
   @Override
   public boolean prepareMoveToNext(FileStatus currentFile, FileStatus nextFile)
@@ -447,6 +450,10 @@ public class DatabusStreamWaitingReader
         };
       }
     };
+  }
+
+  public Date getBuildTimestamp() {
+    return buildTimestamp;
   }
 
   public static Date getBuildTimestamp(Path streamDir,
