@@ -1,3 +1,8 @@
+Release 4.1.8
+Features:
+  1. Avoid iterating empty folders from consumer, do it only at bootstraping time and move the buildtimestamp to last
+   empty folder.
+
 Release 4.1.7
 Features:
   1. API for giving consumer backlog in terms of size.
