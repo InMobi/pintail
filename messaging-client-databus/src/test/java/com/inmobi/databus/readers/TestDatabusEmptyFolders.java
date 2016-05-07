@@ -37,6 +37,8 @@ import com.inmobi.messaging.consumer.util.DatabusUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -48,6 +50,7 @@ import org.testng.annotations.Test;
 public class TestDatabusEmptyFolders extends TestAbstractDatabusWaitingReader {
 
   protected ClusterUtil cluster;
+  static final Log LOG = LogFactory.getLog(TestDatabusEmptyFolders.class);
 
   @BeforeTest
   public void setup() throws Exception {
@@ -92,17 +95,21 @@ public class TestDatabusEmptyFolders extends TestAbstractDatabusWaitingReader {
 
     createMoreEmptyFolders();
     String lastFolder = removeFilesIfAny().toString();
+
     System.out.println("Last folder created : " + lastFolder);
+    LOG.debug("Last folder created : " + lastFolder);
     String path = lastFolder.substring(lastFolder.indexOf("testclient"));
     path = path.substring(path.indexOf("/") + 1);
     SimpleDateFormat format =
         new SimpleDateFormat("yyyy" + "/" + "MM" + "/" + "dd" + "/" + "HH" + "/" + "mm");
     Date date = modifyTime(format.parse(path), Calendar.MINUTE, -1);
-    System.out.printf("Date to Compare : " + date);
+    System.out.println("Date to Compare : " + date);
+    LOG.debug("Date to Compare : " + date);
 
     lreader.build(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         finalFiles[0].getParent()));
     System.out.println("lreader.getBuildTimestamp() : " + lreader.getBuildTimestamp());
+    LOG.debug("lreader.getBuildTimestamp() : " + lreader.getBuildTimestamp());
     Assert.assertEquals(roundOffSecs(lreader.getBuildTimestamp()), date);
 
     lreader.build();
