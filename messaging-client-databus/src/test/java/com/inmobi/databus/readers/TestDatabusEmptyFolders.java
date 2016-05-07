@@ -49,8 +49,8 @@ import org.testng.annotations.Test;
 
 public class TestDatabusEmptyFolders extends TestAbstractDatabusWaitingReader {
 
-  protected ClusterUtil cluster;
   static final Log LOG = LogFactory.getLog(TestDatabusEmptyFolders.class);
+  protected ClusterUtil cluster;
 
   @BeforeTest
   public void setup() throws Exception {
@@ -151,7 +151,8 @@ public class TestDatabusEmptyFolders extends TestAbstractDatabusWaitingReader {
       if (!folders.isDir()) {
         continue;
       }
-      System.out.printf(folders.getPath().toString());
+      System.out.println("Folder= " + folders.getPath().toString());
+      LOG.debug("Folder=" + folders.getPath().toString());
       FileStatus[] files = fs.listStatus(folders.getPath());
       for (FileStatus file : files) {
         if (file.isDir()) {
