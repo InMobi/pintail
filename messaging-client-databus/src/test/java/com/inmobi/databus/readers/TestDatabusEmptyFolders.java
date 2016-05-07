@@ -92,14 +92,17 @@ public class TestDatabusEmptyFolders extends TestAbstractDatabusWaitingReader {
 
     createMoreEmptyFolders();
     String lastFolder = removeFilesIfAny().toString();
+    System.out.println("Last folder created : " + lastFolder);
     String path = lastFolder.substring(lastFolder.indexOf("testclient"));
     path = path.substring(path.indexOf("/") + 1);
     SimpleDateFormat format =
         new SimpleDateFormat("yyyy" + "/" + "MM" + "/" + "dd" + "/" + "HH" + "/" + "mm");
     Date date = modifyTime(format.parse(path), Calendar.MINUTE, -1);
+    System.out.printf("Date to Compare : " + date);
 
     lreader.build(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         finalFiles[0].getParent()));
+    System.out.println("lreader.getBuildTimestamp() : " + lreader.getBuildTimestamp());
     Assert.assertEquals(roundOffSecs(lreader.getBuildTimestamp()), date);
 
     lreader.build();
@@ -141,6 +144,7 @@ public class TestDatabusEmptyFolders extends TestAbstractDatabusWaitingReader {
       if (!folders.isDir()) {
         continue;
       }
+      System.out.printf(folders.getPath().toString());
       FileStatus[] files = fs.listStatus(folders.getPath());
       for (FileStatus file : files) {
         if (file.isDir()) {
