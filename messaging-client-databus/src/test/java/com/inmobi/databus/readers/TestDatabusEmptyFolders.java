@@ -51,8 +51,6 @@ public class TestDatabusEmptyFolders extends TestAbstractDatabusWaitingReader {
 
   @BeforeTest
   public void setup() throws Exception {
-    TestUtil.cleanupCluster(cluster);
-
     files = new String[]{TestUtil.files[1]};
     consumerNumber = 1;
     // initialize config
