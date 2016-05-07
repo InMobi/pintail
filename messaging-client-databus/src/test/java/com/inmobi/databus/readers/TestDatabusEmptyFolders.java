@@ -41,6 +41,7 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.testng.Assert;
+import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
@@ -50,6 +51,8 @@ public class TestDatabusEmptyFolders extends TestAbstractDatabusWaitingReader {
 
   @BeforeTest
   public void setup() throws Exception {
+    TestUtil.cleanupCluster(cluster);
+
     files = new String[]{TestUtil.files[1]};
     consumerNumber = 1;
     // initialize config
@@ -67,6 +70,11 @@ public class TestDatabusEmptyFolders extends TestAbstractDatabusWaitingReader {
     }
     chkPoints = new TreeMap<Integer, PartitionCheckpoint>();
     partitionCheckpointList = new PartitionCheckpointList(chkPoints);
+  }
+
+  @AfterTest
+  public void cleanup() throws IOException {
+    TestUtil.cleanupCluster(cluster);
   }
 
   @Override
