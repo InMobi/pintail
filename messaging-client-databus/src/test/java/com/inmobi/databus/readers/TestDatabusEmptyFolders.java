@@ -21,7 +21,9 @@ package com.inmobi.databus.readers;
  */
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TreeMap;
@@ -37,15 +39,19 @@ import com.inmobi.messaging.consumer.util.DatabusUtil;
 import com.inmobi.messaging.consumer.util.TestUtil;
 import com.inmobi.messaging.metrics.PartitionReaderStatsExposer;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.testng.Assert;
+import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 public class TestDatabusEmptyFolders extends TestAbstractDatabusWaitingReader {
 
+  static final Log LOG = LogFactory.getLog(TestDatabusEmptyFolders.class);
   protected ClusterUtil cluster;
 
   @BeforeTest
@@ -69,6 +75,11 @@ public class TestDatabusEmptyFolders extends TestAbstractDatabusWaitingReader {
     partitionCheckpointList = new PartitionCheckpointList(chkPoints);
   }
 
+  @AfterTest
+  public void cleanup() throws IOException {
+    TestUtil.cleanupCluster(cluster);
+  }
+
   @Override
   Path getStreamsDir() {
     return TestUtil.getStreamsLocalDir(cluster, testStream);
@@ -86,14 +97,14 @@ public class TestDatabusEmptyFolders extends TestAbstractDatabusWaitingReader {
 
     createMoreEmptyFolders();
     String lastFolder = removeFilesIfAny().toString();
-    String path = lastFolder.substring(lastFolder.indexOf("testclient"));
-    path = path.substring(path.indexOf("/") + 1);
-    SimpleDateFormat format =
-        new SimpleDateFormat("yyyy" + "/" + "MM" + "/" + "dd" + "/" + "HH" + "/" + "mm");
-    Date date = modifyTime(format.parse(path), Calendar.MINUTE, -1);
+    LOG.debug("Last folder created : " + lastFolder);
+
+    Date date = getDateFromFile(lastFolder);
+    LOG.debug("Date to Compare : " + date);
 
     lreader.build(DatabusStreamWaitingReader.getDateFromStreamDir(streamDir,
         finalFiles[0].getParent()));
+    LOG.debug("lreader.getBuildTimestamp() : " + lreader.getBuildTimestamp());
     Assert.assertEquals(roundOffSecs(lreader.getBuildTimestamp()), date);
 
     lreader.build();
@@ -135,6 +146,7 @@ public class TestDatabusEmptyFolders extends TestAbstractDatabusWaitingReader {
       if (!folders.isDir()) {
         continue;
       }
+      LOG.debug("Folder=" + folders.getPath().toString());
       FileStatus[] files = fs.listStatus(folders.getPath());
       for (FileStatus file : files) {
         if (file.isDir()) {
@@ -143,7 +155,27 @@ public class TestDatabusEmptyFolders extends TestAbstractDatabusWaitingReader {
         fs.delete(file.getPath());
       }
     }
+    Arrays.sort(fileStatuses, new java.util.Comparator<FileStatus>() {
+
+      @Override
+      public int compare(FileStatus o1, FileStatus o2) {
+        try {
+          return getDateFromFile(o1.getPath().toString()).before(getDateFromFile(o2.getPath().toString())) ? -1 : 1;
+        } catch (ParseException e) {
+          e.printStackTrace();
+        }
+        return 0;
+      }
+    });
     return fileStatuses[fileStatuses.length - 1].getPath();
+  }
+
+  private Date getDateFromFile(String path) throws ParseException {
+    path = path.substring(path.indexOf("testclient"));
+    path = path.substring(path.indexOf("/") + 1);
+    SimpleDateFormat format =
+        new SimpleDateFormat("yyyy" + "/" + "MM" + "/" + "dd" + "/" + "HH" + "/" + "mm");
+    return modifyTime(format.parse(path), Calendar.MINUTE, -1);
   }
 
   private Date modifyTime(Date dt, int field, int unit) {
