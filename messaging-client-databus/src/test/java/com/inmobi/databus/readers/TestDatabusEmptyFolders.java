@@ -21,7 +21,9 @@ package com.inmobi.databus.readers;
  */
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TreeMap;
@@ -98,11 +100,8 @@ public class TestDatabusEmptyFolders extends TestAbstractDatabusWaitingReader {
 
     System.out.println("Last folder created : " + lastFolder);
     LOG.debug("Last folder created : " + lastFolder);
-    String path = lastFolder.substring(lastFolder.indexOf("testclient"));
-    path = path.substring(path.indexOf("/") + 1);
-    SimpleDateFormat format =
-        new SimpleDateFormat("yyyy" + "/" + "MM" + "/" + "dd" + "/" + "HH" + "/" + "mm");
-    Date date = modifyTime(format.parse(path), Calendar.MINUTE, -1);
+
+    Date date = getDateFromFile(lastFolder);
     System.out.println("Date to Compare : " + date);
     LOG.debug("Date to Compare : " + date);
 
@@ -161,7 +160,27 @@ public class TestDatabusEmptyFolders extends TestAbstractDatabusWaitingReader {
         fs.delete(file.getPath());
       }
     }
+    Arrays.sort(fileStatuses, new java.util.Comparator<FileStatus>() {
+
+      @Override
+      public int compare(FileStatus o1, FileStatus o2) {
+        try {
+          return getDateFromFile(o1.getPath().toString()).before(getDateFromFile(o2.getPath().toString())) ? -1 : 1;
+        } catch (ParseException e) {
+          e.printStackTrace();
+        }
+        return 0;
+      }
+    });
     return fileStatuses[fileStatuses.length - 1].getPath();
+  }
+
+  private Date getDateFromFile(String path) throws ParseException {
+    path = path.substring(path.indexOf("testclient"));
+    path = path.substring(path.indexOf("/") + 1);
+    SimpleDateFormat format =
+        new SimpleDateFormat("yyyy" + "/" + "MM" + "/" + "dd" + "/" + "HH" + "/" + "mm");
+    return modifyTime(format.parse(path), Calendar.MINUTE, -1);
   }
 
   private Date modifyTime(Date dt, int field, int unit) {
