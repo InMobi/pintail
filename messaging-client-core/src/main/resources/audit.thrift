@@ -3,6 +3,11 @@
 namespace java com.inmobi.audit.thrift
 namespace cpp  audit.thrift
 
+struct AuditMetrics {
+	1: i64 count,
+	2: i64 size
+}
+
 struct AuditMessage
 {
   1: i64 timestamp,
@@ -13,5 +18,7 @@ struct AuditMessage
   6: map<i64,i64> received,
   7: map<i64,i64> sent,
   8: list<string> filenames,
-  9: map<string, string> tags
+  9: map<string, string> tags,
+  10: map<i64, AuditMetrics> receivedMetrics,
+  11: map<i64, AuditMetrics> sentMetrics
 }

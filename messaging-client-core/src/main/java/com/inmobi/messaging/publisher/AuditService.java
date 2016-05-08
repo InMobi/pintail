@@ -57,6 +57,7 @@ class AuditService {
   final HashMap<String, AuditCounterAccumulator> topicAccumulatorMap =
       new HashMap<String, AuditCounterAccumulator>();
   private final String tier = "publisher";
+  public static final String AUDIT_VERSION_TAG = "auditVersion";
   private ScheduledThreadPoolExecutor executor;
   private boolean isInit = false;
   private AuditWorker worker;
@@ -92,8 +93,7 @@ class AuditService {
                   + " 0");
               continue;
             }
-            AuditMessage packet =
-                createPacket(topic, counters.getReceived(), counters.getSent());
+            AuditMessage packet = createPacket(topic, counters);
             publishPacket(packet);
 
           }
@@ -116,12 +116,14 @@ class AuditService {
       }
     }
 
-    private AuditMessage createPacket(String topic, Map<Long, Long> received,
-        Map<Long, Long> sent) {
+    private AuditMessage createPacket(String topic, Counters counters) {
       long currentTime = new Date().getTime();
+      Map<String, String> tags = new HashMap<String, String>();
+      tags.put(AUDIT_VERSION_TAG, String.valueOf(AuditUtil.currentVersion));
       AuditMessage packet =
           new AuditMessage(currentTime, topic, tier, hostname, windowSize,
-              received, sent, null, null);
+              counters.getReceived(), counters.getSent(), null, tags,
+              counters.getReceivedMetrics(), counters.getSentMetrics());
       return packet;
     }
 
@@ -181,8 +183,9 @@ class AuditService {
     }
   }
 
-  void incrementReceived(String topicName, Long timestamp) {
+  void incrementReceived(String topicName, Long timestamp,
+                         Long messageLength) {
     AuditCounterAccumulator accumulator = getAccumulator(topicName);
-    accumulator.incrementReceived(timestamp);
+    accumulator.incrementReceived(timestamp, messageLength);
   }
 }

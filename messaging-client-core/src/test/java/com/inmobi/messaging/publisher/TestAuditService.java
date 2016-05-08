@@ -39,7 +39,7 @@ public class TestAuditService {
     ByteBuffer buffer = m.getData();
     buffer.rewind();
     int version = buffer.get();
-    assert (version == 1);
+    assert (version == 2);
     byte[] bytes = new byte[3];
     buffer.get(bytes);
     assert (bytes[0] == magicbytes[0]);
