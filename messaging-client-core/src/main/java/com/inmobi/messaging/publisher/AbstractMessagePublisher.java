@@ -62,7 +62,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
   private volatile boolean closing = false;
 
   @Override
-  public void publish(String topicName, Message m) {
+  public void publish(String topicName, Message m) throws PintailException {
     if (topicName == null) {
       throw new IllegalArgumentException("Cannot publish to null topic");
     }
@@ -77,7 +77,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
   }
 
   void publish(String topicName, Message m,
-      boolean isPublishedByAuditService) {
+      boolean isPublishedByAuditService) throws PintailException {
     Long timestamp = null;
     if (!isPublishedByAuditService && isAuditEnabled) {
       // Add timstamp to the message
@@ -113,7 +113,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
   protected void initTopic(String topic, PintailTimingAccumulator stats) {
   }
 
-  protected void closeTopic(String topic) {
+  protected void closeTopic(String topic) throws PintailException {
 
   }
 
@@ -130,7 +130,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     statsExposers.put(topic, statsExposer);
   }
 
-  protected abstract void publish(Map<String, String> headers, Message m);
+  protected abstract void publish(Map<String, String> headers, Message m) throws PintailException;
 
   MessagingClientStatBuilder getMetrics() {
     return statsEmitter;
@@ -171,7 +171,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
   }
 
   @Override
-  public synchronized void close() {
+  public synchronized void close() throws PintailException {
     closing = true;
     LOG.info("Closing the topics and stat exposers");
     for (Entry<String, TopicStatsExposer> entry : statsExposers.entrySet()) {

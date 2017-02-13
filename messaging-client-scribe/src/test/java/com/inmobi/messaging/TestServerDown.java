@@ -20,6 +20,7 @@ package com.inmobi.messaging;
  * #L%
  */
 
+import com.inmobi.messaging.publisher.PintailException;
 import static org.testng.Assert.assertEquals;
 
 import org.testng.Assert;
@@ -47,15 +48,23 @@ public class TestServerDown {
 
       String topic = "retry";
       // publish a message and stop the server
-      mb.publish(topic, new Message("mmmm".getBytes()));
+      try {
+        mb.publish(topic, new Message("mmmm".getBytes()));
+      } catch (PintailException e) {
+        e.printStackTrace();
+      }
       tserver.start();
       PintailTimingAccumulator inspector = mb.getStats(topic);
       while (inspector.getInFlight() != 0) {
         Thread.sleep(10);
       }
 
-      // publish another message 
-      mb.publish(topic, new Message("mmmm".getBytes()));
+      // publish another message
+      try {
+        mb.publish(topic, new Message("mmmm".getBytes()));
+      } catch (PintailException e) {
+        e.printStackTrace();
+      }
 
       mb.close();
       System.out.println("testServerDownAtStart stats:" + inspector);
@@ -87,7 +96,11 @@ public class TestServerDown {
 
       String topic = "retry";
       //  publish the message and stop the server
-      mb.publish(topic, new Message("mmmm".getBytes()));
+      try {
+        mb.publish(topic, new Message("mmmm".getBytes()));
+      } catch (PintailException e) {
+        e.printStackTrace();
+      }
       tserver.stop();
       PintailTimingAccumulator inspector = mb.getStats(topic);
       mb.close();
@@ -118,7 +131,11 @@ public class TestServerDown {
 
       String topic = "retry";
       // publish a message and stop the server
-      mb.publish(topic, new Message("mmmm".getBytes()));
+      try {
+        mb.publish(topic, new Message("mmmm".getBytes()));
+      } catch (PintailException e) {
+        e.printStackTrace();
+      }
       PintailTimingAccumulator inspector = mb.getStats(topic);
       while (inspector.getInFlight() != 0) {
         Thread.sleep(10);
@@ -128,7 +145,11 @@ public class TestServerDown {
 
       Thread.sleep(1000);
       // publish another message and start the server
-      mb.publish(topic, new Message("mmmm".getBytes()));
+      try {
+        mb.publish(topic, new Message("mmmm".getBytes()));
+      } catch (PintailException e) {
+        e.printStackTrace();
+      }
       tserver.start();
 
       System.out.println("testServerGoingDownInTheMiddle stats:" + 
@@ -138,7 +159,11 @@ public class TestServerDown {
       }
 
       // publish another message
-      mb.publish(topic, new Message("mmmm".getBytes()));
+      try {
+        mb.publish(topic, new Message("mmmm".getBytes()));
+      } catch (PintailException e) {
+        e.printStackTrace();
+      }
       while (inspector.getInFlight() != 0) {
         Thread.sleep(10);
       }
@@ -181,7 +206,11 @@ public class TestServerDown {
 
       String topic = "retry";
       // send a message without starting the server and close the publisher
-      mb.publish(topic, new Message("mmmm".getBytes()));
+      try {
+        mb.publish(topic, new Message("mmmm".getBytes()));
+      } catch (PintailException e) {
+        e.printStackTrace();
+      }
       mb.close();
       PintailTimingAccumulator inspector = mb.getStats(topic);
       System.out.println("testServerDownMsgLost stats:" + inspector);

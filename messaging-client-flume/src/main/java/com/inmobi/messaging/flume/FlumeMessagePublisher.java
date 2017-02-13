@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import com.inmobi.messaging.publisher.PintailException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.flume.Event;
@@ -88,7 +89,7 @@ public class FlumeMessagePublisher extends AbstractMessagePublisher {
   }
 
   @Override
-  public void close() {
+  public void close() throws PintailException {
     super.close();
     stopped = true;
     senderThread.interrupt();

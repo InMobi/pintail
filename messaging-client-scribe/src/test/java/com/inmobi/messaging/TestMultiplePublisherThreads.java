@@ -20,6 +20,7 @@ package com.inmobi.messaging;
  * #L%
  */
 
+import com.inmobi.messaging.publisher.PintailException;
 import static org.testng.Assert.assertEquals;
 
 import java.util.concurrent.CountDownLatch;
@@ -67,7 +68,7 @@ public class TestMultiplePublisherThreads {
     System.out.println("Test multipleThreadSinglePublisher is done");    
   }
 
-  private void doTest(String topic, ScribeMessagePublisher publisher) {
+  private void doTest(String topic, ScribeMessagePublisher publisher) throws PintailException {
     publisher.publish(topic, new Message("msg1".getBytes()));
     while (publisher.getStats(topic).getInFlight() != 0) {
       try {
@@ -91,7 +92,11 @@ public class TestMultiplePublisherThreads {
     }
 
     public void run(){
-      doTest(topic, publisher);
+      try {
+        doTest(topic, publisher);
+      } catch (PintailException e) {
+        e.printStackTrace();
+      }
     }
   }
 }

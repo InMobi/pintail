@@ -106,7 +106,7 @@ class AuditService {
 
     }
 
-    private void publishPacket(AuditMessage packet) {
+    private void publishPacket(AuditMessage packet) throws PintailException {
       try {
         LOG.info("Publishing audit packet" + packet);
         publisher.publish(AuditUtil.AUDIT_STREAM_TOPIC_NAME, new Message(

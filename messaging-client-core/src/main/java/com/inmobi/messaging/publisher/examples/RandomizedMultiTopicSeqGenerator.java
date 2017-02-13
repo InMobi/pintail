@@ -36,6 +36,7 @@ import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import com.inmobi.messaging.publisher.PintailException;
 import org.apache.thrift.TException;
 
 import com.inmobi.messaging.ClientConfig;
@@ -405,7 +406,7 @@ public class RandomizedMultiTopicSeqGenerator {
     }
 
     private void publishMessages(AbstractMessagePublisher publisher, long maxSeq)
-        throws InterruptedException {
+            throws InterruptedException, PintailException {
       for (long seq = 1; seq <= maxSeq; seq++) {
         Message msg = new Message(
             ByteBuffer.wrap(Long.toString(seq).getBytes()));
@@ -417,8 +418,12 @@ public class RandomizedMultiTopicSeqGenerator {
     public void run() {
       try {
 
-        publishMessages(publishers.get(random.nextInt(publishers.size())),
-            maxSeq);
+        try {
+          publishMessages(publishers.get(random.nextInt(publishers.size())),
+              maxSeq);
+        } catch (PintailException e) {
+          e.printStackTrace();
+        }
       } catch (InterruptedException e) {
         e.printStackTrace();
       } finally {
