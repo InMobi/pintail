@@ -20,6 +20,7 @@ package com.inmobi.messaging;
  * #L%
  */
 
+import com.inmobi.messaging.publisher.PintailException;
 import static org.testng.Assert.assertEquals;
 
 import org.testng.Assert;
@@ -48,8 +49,12 @@ public class TestLost {
 
       String topic = "retry";
       // publish two messages
-      mb.publish(topic, new Message("mmmm".getBytes()));
-      mb.publish(topic, new Message("mmmm".getBytes()));
+      try {
+        mb.publish(topic, new Message("mmmm".getBytes()));
+        mb.publish(topic, new Message("mmmm".getBytes()));
+      } catch (PintailException e) {
+        e.printStackTrace();
+      }
       PintailTimingAccumulator inspector = mb.getStats(topic);
       assertEquals(inspector.getLostCount(), 1,
           "Lost not incremented");
@@ -86,9 +91,13 @@ public class TestLost {
 
       String topic = "retry";
       // publish 3 messages
-      mb.publish(topic, new Message("mmmm".getBytes()));
-      mb.publish(topic, new Message("mmmm".getBytes()));
-      mb.publish(topic, new Message("mmmm".getBytes()));
+      try {
+        mb.publish(topic, new Message("mmmm".getBytes()));
+        mb.publish(topic, new Message("mmmm".getBytes()));
+        mb.publish(topic, new Message("mmmm".getBytes()));
+      } catch (PintailException e) {
+        e.printStackTrace();
+      }
       PintailTimingAccumulator inspector = mb.getStats(topic);
       assertEquals(inspector.getLostCount(), 1,
           "Lost not incremented");
@@ -124,9 +133,13 @@ public class TestLost {
 
       String topic = "retry";
       // publish 3 messages
-      mb.publish(topic, new Message("mmmm".getBytes()));
-      mb.publish(topic, new Message("mmmm".getBytes()));
-      mb.publish(topic, new Message("mmmm".getBytes()));
+      try {
+        mb.publish(topic, new Message("mmmm".getBytes()));
+        mb.publish(topic, new Message("mmmm".getBytes()));
+        mb.publish(topic, new Message("mmmm".getBytes()));
+      } catch (PintailException e) {
+        e.printStackTrace();
+      }
       PintailTimingAccumulator inspector = mb.getStats(topic);
       Assert.assertTrue(inspector.getLostCount() >= 1,
           "Wrong lost count");

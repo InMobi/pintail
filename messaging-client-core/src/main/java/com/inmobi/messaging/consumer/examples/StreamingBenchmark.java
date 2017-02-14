@@ -37,6 +37,7 @@ import com.inmobi.messaging.consumer.MessageConsumerFactory;
 import com.inmobi.messaging.instrumentation.PintailTimingAccumulator;
 import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 import com.inmobi.messaging.publisher.MessagePublisherFactory;
+import com.inmobi.messaging.publisher.PintailException;
 import com.inmobi.messaging.util.ConsumerUtil;
 
 public class StreamingBenchmark {
@@ -293,7 +294,11 @@ public class StreamingBenchmark {
 
       // it is safe to close the publisher since all workers threads have
       // finished by now.
-      publisher.close();
+      try {
+        publisher.close();
+      } catch (PintailException e) {
+        e.printStackTrace();
+      }
       System.out.println(LogDateFormat.format(System.currentTimeMillis())
           + " Producer closed");
       PintailTimingAccumulator stats = publisher.getStats(topic);
@@ -318,7 +323,11 @@ public class StreamingBenchmark {
             Message m = constructMessage(msgIndex, fixedMsg);
 
             startTime = System.currentTimeMillis();
-            publisher.publish(topic, m);
+            try {
+              publisher.publish(topic, m);
+            } catch (PintailException e) {
+              e.printStackTrace();
+            }
             endTime = System.currentTimeMillis();
             publishTime += endTime - startTime;
 

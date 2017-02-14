@@ -25,6 +25,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.inmobi.messaging.publisher.FailedToSendMessageException;
+import com.inmobi.messaging.publisher.PintailException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jboss.netty.bootstrap.ClientBootstrap;
@@ -152,16 +154,17 @@ public class ScribeTopicPublisher {
     senderThread.start();
   }
 
-  protected void publish(final Message m) {
+  protected void publish(final Message m) throws PintailException {
     addToSend(m);
     trySending(true);
   }
 
-  protected boolean addToSend(final Message m) {
+  protected boolean addToSend(final Message m) throws PintailException {
     if (!toBeSent.offer(m)) {
       LOG.warn("Messages to be sent Queue is full," + " dropping the message");
       stats.accumulateOutcomeWithDelta(Outcome.LOST, 0);
-      return false;
+      throw new FailedToSendMessageException("Queue is full");
+      //return false;
     }
     return true;
   }
@@ -263,7 +266,7 @@ public class ScribeTopicPublisher {
     handler.scheduleReconnect();
   }
 
-  private void drainAll() {
+  private void drainAll() throws PintailException {
     LOG.info("Draining all the messages");
     int numRetries = 0;
     while (true) {
@@ -287,7 +290,7 @@ public class ScribeTopicPublisher {
     }
   }
 
-  void prepareReconnect() {
+  void prepareReconnect() throws PintailException {
     reconnectionInProgress = true;
     emptyAckQueue();
   }
@@ -296,7 +299,7 @@ public class ScribeTopicPublisher {
     reconnectionInProgress = false;
   }
 
-  void emptyAckQueue() {
+  void emptyAckQueue() throws PintailException {
     if (!enabledRetries) {
       return;
     }
@@ -324,7 +327,7 @@ public class ScribeTopicPublisher {
     }
   }
 
-  public void close() {
+  public void close() throws PintailException {
     stopped = true;
     if (senderThread != null) {
       senderThread.interrupt();
@@ -344,7 +347,7 @@ public class ScribeTopicPublisher {
     NettyEventCore.getInstance().releaseFactory();
   }
 
-  void ack(final ResultCode success) {
+  void ack(final ResultCode success) throws PintailException {
     // first check the result code. If it is success, then increment the
     // success counter and remove the message from ack queue, if configured
     if (success.getValue() == 0) {

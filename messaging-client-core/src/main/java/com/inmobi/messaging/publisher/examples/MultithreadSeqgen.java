@@ -22,6 +22,7 @@ package com.inmobi.messaging.publisher.examples;
 
 import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 import com.inmobi.messaging.publisher.MessagePublisherFactory;
+import com.inmobi.messaging.publisher.PintailException;
 
 /**
  * Sends messages from multiple threads.
@@ -78,7 +79,11 @@ public class MultithreadSeqgen {
 
     public void run() {
       try {
-        SeqGeneratorClient.publishMessages(publisher, topic, maxSeq);
+        try {
+          SeqGeneratorClient.publishMessages(publisher, topic, maxSeq);
+        } catch (PintailException e) {
+          e.printStackTrace();
+        }
       } catch (InterruptedException e) {
         e.printStackTrace();
       }

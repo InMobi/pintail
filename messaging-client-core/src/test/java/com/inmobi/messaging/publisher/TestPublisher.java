@@ -45,7 +45,7 @@ import com.inmobi.stats.emitter.EmitMondemand;
 public class TestPublisher {
 
   @Test
-  public void test() throws IOException, TException {
+  public void test() throws IOException, TException, PintailException {
     ClientConfig conf = new ClientConfig();
     conf.set(MessagePublisherFactory.PUBLISHER_CLASS_NAME_KEY,
         MockPublisher.class.getName());
@@ -58,7 +58,7 @@ public class TestPublisher {
   }
 
   @Test
-  public void testLoadFromClasspath() throws IOException {
+  public void testLoadFromClasspath() throws IOException, PintailException {
     AbstractMessagePublisher publisher =
         (AbstractMessagePublisher) MessagePublisherFactory.create();
     doTest(publisher);
@@ -68,7 +68,7 @@ public class TestPublisher {
   }
 
   @Test
-  public void testLoadFromFileName() throws IOException {
+  public void testLoadFromFileName() throws IOException, PintailException {
     URL url =
         getClass().getClassLoader().getResource(
             MessagePublisherFactory.MESSAGE_CLIENT_CONF_FILE);
@@ -82,7 +82,7 @@ public class TestPublisher {
   }
 
   @Test
-  public void testLoadFromClassName() throws IOException {
+  public void testLoadFromClassName() throws IOException, PintailException {
     ClientConfig conf = new ClientConfig();
     AbstractMessagePublisher publisher =
         (AbstractMessagePublisher) MessagePublisherFactory.create(conf,
@@ -94,7 +94,7 @@ public class TestPublisher {
 
 
   @Test
-  public void testPublisherWithHugeMsg() throws IOException {
+  public void testPublisherWithHugeMsg() throws IOException, PintailException {
     ClientConfig conf = new ClientConfig();
     conf.set(MessagePublisherFactory.PUBLISHER_CLASS_NAME_KEY,
         MockPublisher.class.getName());
@@ -120,7 +120,7 @@ public class TestPublisher {
   }
 
   @Test
-  public void testMondemand() throws IOException {
+  public void testMondemand() throws IOException, PintailException {
     ClientConfig conf = new ClientConfig();
     URL url =
         getClass().getClassLoader().getResource("mondemand-emitter.properties");
@@ -136,7 +136,7 @@ public class TestPublisher {
 
   @Test
   public void testPublisherWithHeaders() throws IOException,
-      InterruptedException, EndOfStreamException {
+          InterruptedException, EndOfStreamException, PintailException {
     ClientConfig conf = new ClientConfig();
     conf.set("publisher.classname",
         "com.inmobi.messaging.publisher.MockInMemoryPublisher");
@@ -162,7 +162,7 @@ public class TestPublisher {
 
   @Test
   public void testAuditMessage() throws IOException, InterruptedException,
-      TException, EndOfStreamException {
+          TException, EndOfStreamException, PintailException {
     ClientConfig conf = new ClientConfig();
     conf.set("publisher.classname",
         "com.inmobi.messaging.publisher.MockInMemoryPublisher");
@@ -193,7 +193,7 @@ public class TestPublisher {
   }
 
   @Test
-  public void testAuditDisbaled() throws IOException {
+  public void testAuditDisbaled() throws IOException, PintailException {
     ClientConfig conf = new ClientConfig();
     conf.set("publisher.classname",
         "com.inmobi.messaging.publisher.MockInMemoryPublisher");
@@ -211,7 +211,7 @@ public class TestPublisher {
 
   }
 
-  private void doTest(AbstractMessagePublisher publisher) {
+  private void doTest(AbstractMessagePublisher publisher) throws PintailException {
     String topic1 = "test1";
     String topic2 = "test2";
     doTest(topic1, publisher);
@@ -219,7 +219,7 @@ public class TestPublisher {
     publisher.close();
   }
 
-  private void doTest(String topic, AbstractMessagePublisher publisher) {
+  private void doTest(String topic, AbstractMessagePublisher publisher) throws PintailException {
     Throwable th = null;
     String nullTopic = null;
     // publish null message
@@ -263,7 +263,7 @@ public class TestPublisher {
   }
 
   @Test (expectedExceptions = {IllegalStateException.class })
-  public void testPublishAfterClose() throws IOException {
+  public void testPublishAfterClose() throws IOException, PintailException {
     ClientConfig conf = new ClientConfig();
     conf.set(MessagePublisherFactory.PUBLISHER_CLASS_NAME_KEY,
         MockPublisher.class.getName());
@@ -276,7 +276,7 @@ public class TestPublisher {
 
   @Test
   public void testMultiplePublisherThreads() throws IOException,
-      InterruptedException {
+          InterruptedException, PintailException {
     ClientConfig conf = new ClientConfig();
     conf.set(MessagePublisherFactory.PUBLISHER_CLASS_NAME_KEY,
         MockPublisher.class.getName());
@@ -326,7 +326,11 @@ public class TestPublisher {
 
     public void run() {
       Message msg = new Message(ByteBuffer.wrap(new byte[5]));
-      publisher.publish(topic, msg);
+      try {
+        publisher.publish(topic, msg);
+      } catch (PintailException e) {
+        e.printStackTrace();
+      }
       Assert.assertEquals(MockPublisher.getMsg(topic), msg);
     }
   }

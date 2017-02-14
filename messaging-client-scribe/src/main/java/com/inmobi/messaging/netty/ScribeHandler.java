@@ -23,6 +23,7 @@ package com.inmobi.messaging.netty;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import com.inmobi.messaging.publisher.PintailException;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
@@ -174,6 +175,8 @@ public class ScribeHandler extends SimpleChannelHandler {
                 }
               }, backoffSeconds, TimeUnit.SECONDS);
             }
+          } catch (PintailException e) {
+            e.printStackTrace();
           } finally {
             lock.release();
           }
@@ -217,7 +220,7 @@ public class ScribeHandler extends SimpleChannelHandler {
     }
   }
 
-  private void prepareReconnect() {
+  private void prepareReconnect() throws PintailException {
     exceptionDuringConnect = false;
     thisPublisher.prepareReconnect();
   }

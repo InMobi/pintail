@@ -23,6 +23,7 @@ package com.inmobi.messaging.logger;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import com.inmobi.messaging.publisher.PintailException;
 import org.apache.log4j.AppenderSkeleton;
 import org.apache.log4j.spi.LoggingEvent;
 import org.apache.thrift.TBase;
@@ -64,7 +65,11 @@ public class MessageAppender extends AppenderSkeleton {
   @Override
   public void close() {
     if (publisher != null) {
-      publisher.close();
+      try {
+        publisher.close();
+      } catch (PintailException e) {
+        e.printStackTrace();
+      }
     }
   }
 
@@ -98,7 +103,11 @@ public class MessageAppender extends AppenderSkeleton {
     }
 
     if (msg != null) {
-      publisher.publish(topic, msg);
+      try {
+        publisher.publish(topic, msg);
+      } catch (PintailException e) {
+        e.printStackTrace();
+      }
     }
   }
 
