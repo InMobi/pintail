@@ -113,6 +113,8 @@ class AuditService {
             ByteBuffer.wrap(serializer.serialize(packet))), true);
       } catch (TException e) {
         LOG.error("Error while serializing the audit packet " + packet, e);
+      } catch (PintailException e) {
+        LOG.error("Error while sending the audit packet", e);
       }
     }
 

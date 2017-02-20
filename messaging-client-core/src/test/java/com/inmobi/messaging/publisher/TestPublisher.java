@@ -145,7 +145,11 @@ public class TestPublisher {
     MessagePublisher publisher =
         MessagePublisherFactory.create(conf,
             MockInMemoryPublisher.class.getName());
-    publisher.publish("topic", new Message("message".getBytes()));
+    try {
+      publisher.publish("topic", new Message("message".getBytes()));
+    } catch (PintailException e) {
+      e.printStackTrace();
+    }
     publisher.close();
     conf.set("topic.name", "topic");
     conf.set("consumer.name", "c1");
@@ -173,7 +177,11 @@ public class TestPublisher {
     MessagePublisher publisher =
         MessagePublisherFactory.create(conf,
             MockInMemoryPublisher.class.getName());
-    publisher.publish("topic", new Message("message".getBytes()));
+    try {
+      publisher.publish("topic", new Message("message".getBytes()));
+    } catch (PintailException e) {
+      e.printStackTrace();
+    }
     publisher.close();
     conf.set("topic.name", AuditUtil.AUDIT_STREAM_TOPIC_NAME);
     conf.set("consumer.name", "c1");
@@ -204,7 +212,11 @@ public class TestPublisher {
     MessagePublisher publisher =
         MessagePublisherFactory.create(conf,
             MockInMemoryPublisher.class.getName());
-    publisher.publish("topic", new Message("message".getBytes()));
+    try {
+      publisher.publish("topic", new Message("message".getBytes()));
+    } catch (PintailException e) {
+      e.printStackTrace();
+    }
     publisher.close();
     assert (!((MockInMemoryPublisher) publisher).source
         .containsKey(AuditUtil.AUDIT_STREAM_TOPIC_NAME));
@@ -244,7 +256,11 @@ public class TestPublisher {
 
     // publish the message
     Assert.assertNull(publisher.getStats(topic));
-    publisher.publish(topic, msg);
+    try {
+      publisher.publish(topic, msg);
+    } catch (PintailException e) {
+      e.printStackTrace();
+    }
     Assert.assertEquals(publisher.getStats(topic).getInvocationCount(), 1,
         "invocation count");
     Assert.assertEquals(publisher.getStats(topic).getSuccessCount(), 1,
@@ -269,9 +285,13 @@ public class TestPublisher {
         MockPublisher.class.getName());
     AbstractMessagePublisher publisher =
         (AbstractMessagePublisher) MessagePublisherFactory.create(conf);
-    publisher.publish("sample-topic", new Message("msg".getBytes()));
-    publisher.close();
-    publisher.publish("sample-topic", new Message("messages".getBytes()));
+    try {
+      publisher.publish("sample-topic", new Message("msg".getBytes()));
+      publisher.close();
+      publisher.publish("sample-topic", new Message("messages".getBytes()));
+    } catch (PintailException e) {
+      e.printStackTrace();
+    }
   }
 
   @Test
@@ -326,7 +346,11 @@ public class TestPublisher {
 
     public void run() {
       Message msg = new Message(ByteBuffer.wrap(new byte[5]));
-      publisher.publish(topic, msg);
+      try {
+        publisher.publish(topic, msg);
+      } catch (PintailException e) {
+        e.printStackTrace();
+      }
       Assert.assertEquals(MockPublisher.getMsg(topic), msg);
     }
   }

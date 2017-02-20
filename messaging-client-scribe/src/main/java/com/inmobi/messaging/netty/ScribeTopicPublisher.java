@@ -25,6 +25,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.inmobi.messaging.publisher.PintailException;
+import com.inmobi.messaging.publisher.SendFailedException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jboss.netty.bootstrap.ClientBootstrap;
@@ -152,8 +154,11 @@ public class ScribeTopicPublisher {
     senderThread.start();
   }
 
-  protected void publish(final Message m) {
-    addToSend(m);
+  protected void publish(final Message m) throws PintailException {
+    boolean isSent = addToSend(m);
+    if (!isSent) {
+      throw new SendFailedException("Queue is full");
+    }
     trySending(true);
   }
 

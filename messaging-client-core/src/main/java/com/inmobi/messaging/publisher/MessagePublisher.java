@@ -36,8 +36,9 @@ public interface MessagePublisher {
    *
    * @param topicName The topic on which message should be published
    * @param m The {@link Message} object to be published
+   * @throws PintailException when unable to accept the message
    */
-  public void publish(String topicName, Message m);
+  public void publish(String topicName, Message m) throws PintailException;
 
   /**
    * Closes and cleans up any connections, file handles etc.

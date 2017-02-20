@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.inmobi.messaging.publisher.PintailException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -105,7 +106,7 @@ public class ScribeMessagePublisher extends AbstractMessagePublisher implements
   }
 
   @Override
-  protected void publish(Map<String, String> headers, Message m) {
+  protected void publish(Map<String, String> headers, Message m) throws PintailException {
     String topic = headers.get(HEADER_TOPIC);
     scribeConnections.get(topic).publish(m);
   }

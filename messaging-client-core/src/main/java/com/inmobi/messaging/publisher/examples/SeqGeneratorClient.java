@@ -25,6 +25,7 @@ import java.nio.ByteBuffer;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 import com.inmobi.messaging.publisher.MessagePublisherFactory;
+import com.inmobi.messaging.publisher.PintailException;
 
 /**
  * Publishes integer sequence upto <code>maxSeq</code> on the <code>topic</code>,
@@ -58,7 +59,11 @@ public class SeqGeneratorClient {
       long maxSeq) throws InterruptedException {
     for (long seq = 1; seq <= maxSeq; seq++) {
       Message msg = new Message(ByteBuffer.wrap(Long.toString(seq).getBytes()));
-      publisher.publish(topic, msg);
+      try {
+        publisher.publish(topic, msg);
+      } catch (PintailException e) {
+        e.printStackTrace(); //utility method
+      }
       Thread.sleep(1);
     }
   }

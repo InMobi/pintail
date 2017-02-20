@@ -20,6 +20,7 @@ package com.inmobi.messaging;
  * #L%
  */
 
+import com.inmobi.messaging.publisher.PintailException;
 import static org.testng.Assert.assertEquals;
 
 import org.testng.Assert;
@@ -54,7 +55,11 @@ public class TestBlocked {
         new Thread(new Runnable() {
           @Override
           public void run() {
-            mb.publish(topic, new Message("mmmm".getBytes()));
+            try {
+              mb.publish(topic, new Message("mmmm".getBytes()));
+            } catch (PintailException e) {
+              e.printStackTrace();
+            }
           }
         }).start();
       }
@@ -100,7 +105,11 @@ public class TestBlocked {
         new Thread(new Runnable() {
           @Override
           public void run() {
-            mb.publish(topic, new Message("mmmm".getBytes()));
+            try {
+              mb.publish(topic, new Message("mmmm".getBytes()));
+            } catch (PintailException e) {
+              e.printStackTrace();
+            }
           }
         }).start();
       }
@@ -146,7 +155,11 @@ public class TestBlocked {
         new Thread(new Runnable() {
           @Override
           public void run() {
-            mb.publish(topic, new Message("mmmm".getBytes()));
+            try {
+              mb.publish(topic, new Message("mmmm".getBytes()));
+            } catch (PintailException e) {
+              e.printStackTrace();
+            }
           }
         }).start();
       }

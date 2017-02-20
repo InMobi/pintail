@@ -7,6 +7,7 @@ import com.inmobi.messaging.publisher.MessagePublisherFactory;
 import com.inmobi.messaging.publisher.MockInMemoryPublisher;
 import com.inmobi.messaging.publisher.MockPublisher;
 
+import com.inmobi.messaging.publisher.PintailException;
 import org.apache.thrift.TException;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -38,8 +39,12 @@ public class TestGraphiteEmitter {
     MockInMemoryPublisher messagePublisher =
       (MockInMemoryPublisher) MessagePublisherFactory.create(conf);
 
-    messagePublisher.publish("Topic1", new Message(ByteBuffer.wrap("This is the first message".getBytes())));
-    messagePublisher.publish("Topic2", new Message(ByteBuffer.wrap("This is the failure message".getBytes())));
+    try {
+      messagePublisher.publish("Topic1", new Message(ByteBuffer.wrap("This is the first message".getBytes())));
+      messagePublisher.publish("Topic2", new Message(ByteBuffer.wrap("This is the failure message".getBytes())));
+    } catch (PintailException e) {
+      e.printStackTrace();
+    }
     messagePublisher.incrementSuccessCount("Topic1");
     messagePublisher.incrementFailedCount("Topic2");
     messagePublisher.close();

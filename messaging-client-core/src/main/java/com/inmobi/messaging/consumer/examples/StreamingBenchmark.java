@@ -37,6 +37,7 @@ import com.inmobi.messaging.consumer.MessageConsumerFactory;
 import com.inmobi.messaging.instrumentation.PintailTimingAccumulator;
 import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 import com.inmobi.messaging.publisher.MessagePublisherFactory;
+import com.inmobi.messaging.publisher.PintailException;
 import com.inmobi.messaging.util.ConsumerUtil;
 
 public class StreamingBenchmark {
@@ -318,7 +319,11 @@ public class StreamingBenchmark {
             Message m = constructMessage(msgIndex, fixedMsg);
 
             startTime = System.currentTimeMillis();
-            publisher.publish(topic, m);
+            try {
+              publisher.publish(topic, m);
+            } catch (PintailException e) {
+              e.printStackTrace(); //utility class
+            }
             endTime = System.currentTimeMillis();
             publishTime += endTime - startTime;
 
