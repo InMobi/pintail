@@ -2,12 +2,10 @@ package com.inmobi.messaging.stats;
 
 import com.inmobi.messaging.ClientConfig;
 import com.inmobi.messaging.Message;
-import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 import com.inmobi.messaging.publisher.MessagePublisherFactory;
 import com.inmobi.messaging.publisher.MockInMemoryPublisher;
-import com.inmobi.messaging.publisher.MockPublisher;
 
-import com.inmobi.messaging.publisher.PintailException;
+import com.inmobi.messaging.PintailException;
 import org.apache.thrift.TException;
 import org.testng.Assert;
 import org.testng.annotations.Test;

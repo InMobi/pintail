@@ -20,7 +20,6 @@ package com.inmobi.messaging;
  * #L%
  */
 
-import com.inmobi.messaging.publisher.PintailException;
 import static org.testng.Assert.assertEquals;
 
 import org.testng.Assert;

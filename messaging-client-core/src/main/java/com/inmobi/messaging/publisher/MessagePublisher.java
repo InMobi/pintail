@@ -21,6 +21,7 @@ package com.inmobi.messaging.publisher;
  */
 
 import com.inmobi.messaging.Message;
+import com.inmobi.messaging.PintailException;
 
 /**
  * Publishes message to the configured concrete MessagePublisher.

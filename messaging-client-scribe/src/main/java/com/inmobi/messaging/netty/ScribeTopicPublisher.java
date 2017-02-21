@@ -25,7 +25,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.inmobi.messaging.publisher.PintailException;
+import com.inmobi.messaging.PintailException;
 import com.inmobi.messaging.publisher.SendFailedException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.inmobi.messaging.publisher.PintailException;
+import com.inmobi.messaging.PintailException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 

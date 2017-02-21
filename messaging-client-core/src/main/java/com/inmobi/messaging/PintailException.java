@@ -1,4 +1,4 @@
-package com.inmobi.messaging.publisher;
+package com.inmobi.messaging;
 
 public class PintailException extends Exception {
 

@@ -25,7 +25,7 @@ import java.nio.ByteBuffer;
 import com.inmobi.messaging.Message;
 import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 import com.inmobi.messaging.publisher.MessagePublisherFactory;
-import com.inmobi.messaging.publisher.PintailException;
+import com.inmobi.messaging.PintailException;
 
 /**
  * Publishes integer sequence upto <code>maxSeq</code> on the <code>topic</code>,

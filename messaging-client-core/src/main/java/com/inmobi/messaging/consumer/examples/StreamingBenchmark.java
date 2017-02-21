@@ -37,7 +37,7 @@ import com.inmobi.messaging.consumer.MessageConsumerFactory;
 import com.inmobi.messaging.instrumentation.PintailTimingAccumulator;
 import com.inmobi.messaging.publisher.AbstractMessagePublisher;
 import com.inmobi.messaging.publisher.MessagePublisherFactory;
-import com.inmobi.messaging.publisher.PintailException;
+import com.inmobi.messaging.PintailException;
 import com.inmobi.messaging.util.ConsumerUtil;
 
 public class StreamingBenchmark {

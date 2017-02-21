@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.inmobi.messaging.PintailException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 

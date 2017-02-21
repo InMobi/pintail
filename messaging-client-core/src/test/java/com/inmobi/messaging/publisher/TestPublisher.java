@@ -26,6 +26,7 @@ import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
 
+import com.inmobi.messaging.PintailException;
 import org.apache.thrift.TDeserializer;
 import org.apache.thrift.TException;
 import org.testng.Assert;

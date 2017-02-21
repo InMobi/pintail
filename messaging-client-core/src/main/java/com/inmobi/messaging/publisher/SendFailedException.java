@@ -1,5 +1,7 @@
 package com.inmobi.messaging.publisher;
 
+import com.inmobi.messaging.PintailException;
+
 public class SendFailedException extends PintailException {
 
     public SendFailedException(String msg) {
