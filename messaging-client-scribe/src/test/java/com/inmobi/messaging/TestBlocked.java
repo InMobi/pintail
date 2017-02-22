@@ -57,7 +57,7 @@ public class TestBlocked {
             try {
               mb.publish(topic, new Message("mmmm".getBytes()));
             } catch (PintailException e) {
-              e.printStackTrace();
+              throw new RuntimeException(e);
             }
           }
         }).start();
@@ -101,16 +101,7 @@ public class TestBlocked {
       int numMsgs = 3;
       // publish ${numMsgs} messages
       for (int i = 0; i < numMsgs; i++) {
-        new Thread(new Runnable() {
-          @Override
-          public void run() {
-            try {
-              mb.publish(topic, new Message("mmmm".getBytes()));
-            } catch (PintailException e) {
-              e.printStackTrace();
-            }
-          }
-        }).start();
+        mb.publish(topic, new Message("mmmm".getBytes()));
       }
       Thread.sleep(10);
       PintailTimingAccumulator inspector = mb.getStats(topic);
@@ -151,16 +142,7 @@ public class TestBlocked {
       int numMsgs = 1;
       // publish ${numMsgs} messages
       for (int i = 0; i < numMsgs; i++) {
-        new Thread(new Runnable() {
-          @Override
-          public void run() {
-            try {
-              mb.publish(topic, new Message("mmmm".getBytes()));
-            } catch (PintailException e) {
-              e.printStackTrace();
-            }
-          }
-        }).start();
+        mb.publish(topic, new Message("mmmm".getBytes()));
       }
       Thread.sleep(10);
 

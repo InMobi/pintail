@@ -67,12 +67,8 @@ public class TestMultiplePublisherThreads {
     System.out.println("Test multipleThreadSinglePublisher is done");    
   }
 
-  private void doTest(String topic, ScribeMessagePublisher publisher) {
-    try {
-      publisher.publish(topic, new Message("msg1".getBytes()));
-    } catch (PintailException e) {
-      e.printStackTrace();
-    }
+  private void doTest(String topic, ScribeMessagePublisher publisher) throws PintailException {
+    publisher.publish(topic, new Message("msg1".getBytes()));
     while (publisher.getStats(topic).getInFlight() != 0) {
       try {
         Thread.sleep(100);
@@ -95,7 +91,11 @@ public class TestMultiplePublisherThreads {
     }
 
     public void run(){
-      doTest(topic, publisher);
+      try {
+        doTest(topic, publisher);
+      } catch (PintailException e) {
+        throw new RuntimeException(e);
+      }
     }
   }
 }

@@ -21,7 +21,7 @@ import java.util.Properties;
 public class TestGraphiteEmitter {
 
   @Test
-  public void test() throws IOException, TException, InterruptedException, URISyntaxException {
+  public void test() throws IOException, TException, InterruptedException, URISyntaxException, PintailException {
     URL resource = getClass().getClassLoader().getResource("graphite-statemitter.properties");
     ClientConfig conf = new ClientConfig();
     conf.set(MessagePublisherFactory.PUBLISHER_CLASS_NAME_KEY,
@@ -37,12 +37,8 @@ public class TestGraphiteEmitter {
     MockInMemoryPublisher messagePublisher =
       (MockInMemoryPublisher) MessagePublisherFactory.create(conf);
 
-    try {
-      messagePublisher.publish("Topic1", new Message(ByteBuffer.wrap("This is the first message".getBytes())));
-      messagePublisher.publish("Topic2", new Message(ByteBuffer.wrap("This is the failure message".getBytes())));
-    } catch (PintailException e) {
-      e.printStackTrace();
-    }
+    messagePublisher.publish("Topic1", new Message(ByteBuffer.wrap("This is the first message".getBytes())));
+    messagePublisher.publish("Topic2", new Message(ByteBuffer.wrap("This is the failure message".getBytes())));
     messagePublisher.incrementSuccessCount("Topic1");
     messagePublisher.incrementFailedCount("Topic2");
     messagePublisher.close();
