@@ -155,17 +155,25 @@ public class ScribeTopicPublisher {
   }
 
   protected void publish(final Message m) throws PintailException {
-    boolean isSent = addToSend(m);
-    if (!isSent) {
+    boolean isAddedToQueue = addToSend(m);
+    if (!isAddedToQueue) {
+      stats.accumulateOutcomeWithDelta(Outcome.REJECT, 0);
       throw new SendFailedException("Queue is full");
     }
     trySending(true);
   }
 
-  protected boolean addToSend(final Message m) {
-    if (!toBeSent.offer(m)) {
+  private boolean offerToSend(final Message m) {
+    if (!addToSend(m)) {
       LOG.warn("Messages to be sent Queue is full," + " dropping the message");
       stats.accumulateOutcomeWithDelta(Outcome.LOST, 0);
+      return false;
+    }
+    return true;
+  }
+
+  protected boolean addToSend(final Message m) {
+    if (!toBeSent.offer(m)) {
       return false;
     }
     return true;
@@ -308,7 +316,7 @@ public class ScribeTopicPublisher {
     if (resendOnAckLost) {
       Message m = null;
       while ((m = toBeAcked.poll()) != null) {
-        addToSend(m);
+        offerToSend(m);
       }
     } else {
       if (toBeAcked.size() > 0) {
@@ -366,7 +374,7 @@ public class ScribeTopicPublisher {
         if (m != null) {
           // If the message gets added to send queue, then increment the retry
           // count. Else the lost count will get incremented if add fails.
-          if (addToSend(m)) {
+          if (offerToSend(m)) {
             stats.accumulateOutcomeWithDelta(Outcome.RETRY, 0);
           }
         } else {

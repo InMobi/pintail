@@ -45,6 +45,7 @@ public class PintailTimingAccumulator {
     UNHANDLED_FAILURE,
     LOST,
     RETRY,
+    REJECT,
     EXCEEDED_MSG_SIZE
   }
 
@@ -52,6 +53,7 @@ public class PintailTimingAccumulator {
   private final AtomicLong gracefulTerminates = new AtomicLong(0);
   private final AtomicLong failureCount = new AtomicLong(0);
   private final AtomicLong retryCount = new AtomicLong(0);
+  private final AtomicLong rejectCount = new AtomicLong(0);
   private final AtomicLong lostCount = new AtomicLong(0);
   private final AtomicLong reconnectCount = new AtomicLong(0);
   private final AtomicLong exceededMsgSizeCount = new AtomicLong(0);
@@ -89,6 +91,11 @@ public class PintailTimingAccumulator {
   private void accumulateRetry() {
     retryCount.incrementAndGet();
   }
+
+  private void accumulateReject() {
+    rejectCount.incrementAndGet();
+  }
+
 
   private void accumulateLost() {
     lostCount.incrementAndGet();
@@ -138,6 +145,9 @@ public class PintailTimingAccumulator {
     case RETRY:
       accumulateRetry();
       break;
+    case REJECT:
+      accumulateReject();
+      break;
     case EXCEEDED_MSG_SIZE:
       accumulateExceededMsgSize();
       break;
@@ -158,6 +168,10 @@ public class PintailTimingAccumulator {
 
   public long getRetryCount() {
     return retryCount.get();
+  }
+
+  public long getRejectCount() {
+    return rejectCount.get();
   }
 
   public long getReconnectionCount() {
@@ -197,17 +211,17 @@ public class PintailTimingAccumulator {
      */
 
     return getInvocationCount() - (getSuccessCount() + getLostCount()
-        + getGracefulTerminates());
+        + getGracefulTerminates() + getRejectCount());
   }
 
   @Override
   public String toString() {
     return String.format(" {\"nanos\": %d, \"invocations\": %d, \"success\": "
         + "%d, \"failures\": %d, \"terminates\": %d, \"in-flight\": %d,"
-        + "  \"lost\": %d, \"retries\": %d, \"reconnections\": %d} ",
+        + "  \"lost\": %d, \"retries\": %d, \"reconnections\": %d, \"reject\": %d} ",
         getCumulativeNanoseconds(), getInvocationCount(), getSuccessCount(),
         getUnhandledExceptionCount(), getGracefulTerminates(), getInFlight(),
-        getLostCount(), getRetryCount(), getReconnectionCount());
+        getLostCount(), getRetryCount(), getReconnectionCount(), getRejectCount());
   }
 
   public Map<String, Number> getMap() {
@@ -223,6 +237,7 @@ public class PintailTimingAccumulator {
     hash.put("retryCount", getRetryCount());
     hash.put("reconnects", getReconnectionCount());
     hash.put("exceededMsgSizeCount", getExceededMsgSizeCount());
+    hash.put("reject", getRetryCount());
     return hash;
   }
 }
