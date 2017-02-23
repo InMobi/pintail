@@ -145,8 +145,9 @@ public class TestLost {
         // expected
       }
       PintailTimingAccumulator inspector = mb.getStats(topic);
-      Assert.assertTrue(inspector.getRejectCount() == 1,
-          "Wrong Reject count");
+      assertEquals(inspector.getRejectCount(), 1, "Wrong Reject count");
+      assertEquals(inspector.getInFlight(), 2, "Wrong inflight count");
+      assertEquals(inspector.getInvocationCount(), 3, "Wrong invocation count");
       mb.close();
       System.out.println("testMsgQueueSizeOnRetries stats:" + inspector);
       assertEquals(inspector.getInFlight(), 0,
