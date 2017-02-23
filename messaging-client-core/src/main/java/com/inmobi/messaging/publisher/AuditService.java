@@ -31,6 +31,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import com.inmobi.messaging.PintailException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.thrift.TException;
@@ -113,6 +114,8 @@ class AuditService {
             ByteBuffer.wrap(serializer.serialize(packet))), true);
       } catch (TException e) {
         LOG.error("Error while serializing the audit packet " + packet, e);
+      } catch (PintailException e) {
+        LOG.error("Error while sending the audit packet", e);
       }
     }
 

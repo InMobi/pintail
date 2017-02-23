@@ -46,5 +46,7 @@ Stats from Message Publisher
 *----+--+
 |exceededMsgSizeCount|Number of messages published which are having more than 50KB size|
 *----+--+
+|rejectCount|Number of messages rejected by publisher|
+*----+--+
 
 

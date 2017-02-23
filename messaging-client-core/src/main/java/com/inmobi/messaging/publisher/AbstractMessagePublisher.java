@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.inmobi.messaging.PintailException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -62,7 +63,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
   private volatile boolean closing = false;
 
   @Override
-  public void publish(String topicName, Message m) {
+  public void publish(String topicName, Message m) throws PintailException {
     if (topicName == null) {
       throw new IllegalArgumentException("Cannot publish to null topic");
     }
@@ -77,7 +78,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
   }
 
   void publish(String topicName, Message m,
-      boolean isPublishedByAuditService) {
+      boolean isPublishedByAuditService) throws PintailException {
     Long timestamp = null;
     if (!isPublishedByAuditService && isAuditEnabled) {
       // Add timstamp to the message
@@ -130,7 +131,7 @@ public abstract class AbstractMessagePublisher implements MessagePublisher {
     statsExposers.put(topic, statsExposer);
   }
 
-  protected abstract void publish(Map<String, String> headers, Message m);
+  protected abstract void publish(Map<String, String> headers, Message m) throws PintailException;
 
   MessagingClientStatBuilder getMetrics() {
     return statsEmitter;

@@ -20,9 +20,11 @@ package com.inmobi.messaging;
  * #L%
  */
 
+import com.inmobi.messaging.publisher.SendFailedException;
 import static org.testng.Assert.assertEquals;
 
 import org.testng.Assert;
+import static org.testng.Assert.fail;
 import org.testng.annotations.Test;
 
 import random.pkg.NtMultiServer;
@@ -49,10 +51,15 @@ public class TestLost {
       String topic = "retry";
       // publish two messages
       mb.publish(topic, new Message("mmmm".getBytes()));
-      mb.publish(topic, new Message("mmmm".getBytes()));
+      try {
+        mb.publish(topic, new Message("mmmm".getBytes()));
+        fail("expecting the message to be rejected when queue is full");
+      } catch (SendFailedException e) {
+        // expected
+      }
       PintailTimingAccumulator inspector = mb.getStats(topic);
-      assertEquals(inspector.getLostCount(), 1,
-          "Lost not incremented");
+      assertEquals(inspector.getRejectCount(), 1,
+          "Reject not incremented");
       tserver.start();
       while (inspector.getInFlight() != 0) {
         Thread.sleep(10);
@@ -61,8 +68,8 @@ public class TestLost {
       System.out.println("TestLost.testMsgQueueSize :stats:" + inspector);
       assertEquals(inspector.getInFlight(), 0,
           "ensure not considered midflight");
-      assertEquals(inspector.getLostCount(), 1,
-          "Lost not incremented");
+      assertEquals(inspector.getRejectCount(), 1,
+          "Reject not incremented");
       assertEquals(inspector.getSuccessCount(), 1,
           "success not incremented");
     } finally {
@@ -88,10 +95,15 @@ public class TestLost {
       // publish 3 messages
       mb.publish(topic, new Message("mmmm".getBytes()));
       mb.publish(topic, new Message("mmmm".getBytes()));
-      mb.publish(topic, new Message("mmmm".getBytes()));
+      try {
+        mb.publish(topic, new Message("mmmm".getBytes()));
+        fail("expecting the message to be rejected when queue is full");
+      } catch (PintailException e) {
+        // expected
+      }
       PintailTimingAccumulator inspector = mb.getStats(topic);
-      assertEquals(inspector.getLostCount(), 1,
-          "Lost not incremented");
+      assertEquals(inspector.getRejectCount(), 1,
+          "Reject not incremented");
       while (inspector.getInFlight() != 0) {
         Thread.sleep(10);
       }
@@ -99,8 +111,8 @@ public class TestLost {
       System.out.println("testAckQueueSize stats:" + inspector.toString());
       assertEquals(inspector.getInFlight(), 0,
           "ensure not considered midflight");
-      assertEquals(inspector.getLostCount(), 1,
-          "Lost not incremented");
+      assertEquals(inspector.getRejectCount(), 1,
+          "Reject not incremented");
       assertEquals(inspector.getSuccessCount(), 2,
           "success not incremented");
     } finally {
@@ -126,15 +138,21 @@ public class TestLost {
       // publish 3 messages
       mb.publish(topic, new Message("mmmm".getBytes()));
       mb.publish(topic, new Message("mmmm".getBytes()));
-      mb.publish(topic, new Message("mmmm".getBytes()));
+      try {
+        mb.publish(topic, new Message("mmmm".getBytes()));
+        fail("expecting the message to be rejected when queue is full");
+      } catch (SendFailedException e) {
+        // expected
+      }
       PintailTimingAccumulator inspector = mb.getStats(topic);
-      Assert.assertTrue(inspector.getLostCount() >= 1,
-          "Wrong lost count");
+      assertEquals(inspector.getRejectCount(), 1, "Wrong Reject count");
+      assertEquals(inspector.getInFlight(), 2, "Wrong inflight count");
+      assertEquals(inspector.getInvocationCount(), 3, "Wrong invocation count");
       mb.close();
       System.out.println("testMsgQueueSizeOnRetries stats:" + inspector);
       assertEquals(inspector.getInFlight(), 0,
           "ensure not considered midflight");
-      assertEquals(inspector.getLostCount(), 3,
+      assertEquals(inspector.getLostCount(), 2,
           "Lost not incremented");
     } finally {
       tserver.stop();

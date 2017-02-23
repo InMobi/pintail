@@ -79,7 +79,7 @@ public class MultithreadSeqgen {
     public void run() {
       try {
         SeqGeneratorClient.publishMessages(publisher, topic, maxSeq);
-      } catch (InterruptedException e) {
+      } catch (Exception e) {
         e.printStackTrace();
       }
     }

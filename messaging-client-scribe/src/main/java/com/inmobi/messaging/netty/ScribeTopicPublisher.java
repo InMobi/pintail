@@ -25,6 +25,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.inmobi.messaging.PintailException;
+import com.inmobi.messaging.publisher.SendFailedException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jboss.netty.bootstrap.ClientBootstrap;
@@ -152,15 +154,26 @@ public class ScribeTopicPublisher {
     senderThread.start();
   }
 
-  protected void publish(final Message m) {
-    addToSend(m);
+  protected void publish(final Message m) throws PintailException {
+    boolean isAddedToQueue = addToSend(m);
+    if (!isAddedToQueue) {
+      stats.accumulateOutcomeWithDelta(Outcome.REJECT, 0);
+      throw new SendFailedException("Queue is full");
+    }
     trySending(true);
+  }
+
+  private boolean offerToSend(final Message m) {
+    if (!addToSend(m)) {
+      LOG.warn("Messages to be sent Queue is full," + " dropping the message");
+      stats.accumulateOutcomeWithDelta(Outcome.LOST, 0);
+      return false;
+    }
+    return true;
   }
 
   protected boolean addToSend(final Message m) {
     if (!toBeSent.offer(m)) {
-      LOG.warn("Messages to be sent Queue is full," + " dropping the message");
-      stats.accumulateOutcomeWithDelta(Outcome.LOST, 0);
       return false;
     }
     return true;
@@ -303,7 +316,7 @@ public class ScribeTopicPublisher {
     if (resendOnAckLost) {
       Message m = null;
       while ((m = toBeAcked.poll()) != null) {
-        addToSend(m);
+        offerToSend(m);
       }
     } else {
       if (toBeAcked.size() > 0) {
@@ -361,7 +374,7 @@ public class ScribeTopicPublisher {
         if (m != null) {
           // If the message gets added to send queue, then increment the retry
           // count. Else the lost count will get incremented if add fails.
-          if (addToSend(m)) {
+          if (offerToSend(m)) {
             stats.accumulateOutcomeWithDelta(Outcome.RETRY, 0);
           }
         } else {

@@ -405,7 +405,7 @@ public class RandomizedMultiTopicSeqGenerator {
     }
 
     private void publishMessages(AbstractMessagePublisher publisher, long maxSeq)
-        throws InterruptedException {
+        throws Exception {
       for (long seq = 1; seq <= maxSeq; seq++) {
         Message msg = new Message(
             ByteBuffer.wrap(Long.toString(seq).getBytes()));
@@ -416,10 +416,9 @@ public class RandomizedMultiTopicSeqGenerator {
 
     public void run() {
       try {
-
         publishMessages(publishers.get(random.nextInt(publishers.size())),
             maxSeq);
-      } catch (InterruptedException e) {
+      } catch (Exception e) {
         e.printStackTrace();
       } finally {
         latch.countDown();
