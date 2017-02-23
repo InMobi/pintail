@@ -20,9 +20,11 @@ package com.inmobi.messaging;
  * #L%
  */
 
+import com.inmobi.messaging.publisher.SendFailedException;
 import static org.testng.Assert.assertEquals;
 
 import org.testng.Assert;
+import static org.testng.Assert.fail;
 import org.testng.annotations.Test;
 
 import random.pkg.NtMultiServer;
@@ -48,15 +50,12 @@ public class TestLost {
 
       String topic = "retry";
       // publish two messages
+      mb.publish(topic, new Message("mmmm".getBytes()));
       try {
         mb.publish(topic, new Message("mmmm".getBytes()));
-      } catch (PintailException e) {
-        e.printStackTrace();
-      }
-      try {
-        mb.publish(topic, new Message("mmmm".getBytes()));
-      } catch (PintailException e) {
-        e.printStackTrace();
+        fail("expecting the message to be rejected when queue is full");
+      } catch (SendFailedException e) {
+        // expected
       }
       PintailTimingAccumulator inspector = mb.getStats(topic);
       assertEquals(inspector.getRejectCount(), 1,
@@ -94,20 +93,13 @@ public class TestLost {
 
       String topic = "retry";
       // publish 3 messages
+      mb.publish(topic, new Message("mmmm".getBytes()));
+      mb.publish(topic, new Message("mmmm".getBytes()));
       try {
         mb.publish(topic, new Message("mmmm".getBytes()));
+        fail("expecting the message to be rejected when queue is full");
       } catch (PintailException e) {
-        e.printStackTrace();
-      }
-      try {
-        mb.publish(topic, new Message("mmmm".getBytes()));
-      } catch (PintailException e) {
-        e.printStackTrace();
-      }
-      try {
-        mb.publish(topic, new Message("mmmm".getBytes()));
-      } catch (PintailException e) {
-        e.printStackTrace();
+        // expected
       }
       PintailTimingAccumulator inspector = mb.getStats(topic);
       assertEquals(inspector.getRejectCount(), 1,
@@ -144,20 +136,13 @@ public class TestLost {
 
       String topic = "retry";
       // publish 3 messages
+      mb.publish(topic, new Message("mmmm".getBytes()));
+      mb.publish(topic, new Message("mmmm".getBytes()));
       try {
         mb.publish(topic, new Message("mmmm".getBytes()));
-      } catch (PintailException e) {
-        e.printStackTrace();
-      }
-      try {
-        mb.publish(topic, new Message("mmmm".getBytes()));
-      } catch (PintailException e) {
-        e.printStackTrace();
-      }
-      try {
-        mb.publish(topic, new Message("mmmm".getBytes()));
-      } catch (PintailException e) {
-        e.printStackTrace();
+        fail("expecting the message to be rejected when queue is full");
+      } catch (SendFailedException e) {
+        // expected
       }
       PintailTimingAccumulator inspector = mb.getStats(topic);
       Assert.assertTrue(inspector.getRejectCount() == 1,
