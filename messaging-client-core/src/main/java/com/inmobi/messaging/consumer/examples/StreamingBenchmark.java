@@ -315,30 +315,26 @@ public class StreamingBenchmark {
         long publishTime = 0L;
 
         while (true) {
-          for (long j = 0; j < numMsgsPerSleepInterval; j++) {
-            Message m = constructMessage(msgIndex, fixedMsg);
+          try {
+            for (long j = 0; j < numMsgsPerSleepInterval; j++) {
+              Message m = constructMessage(msgIndex, fixedMsg);
 
-            startTime = System.currentTimeMillis();
-            try {
+              startTime = System.currentTimeMillis();
               publisher.publish(topic, m);
-            } catch (PintailException e) {
-              e.printStackTrace(); //utility class
-            }
-            endTime = System.currentTimeMillis();
-            publishTime += endTime - startTime;
+              endTime = System.currentTimeMillis();
+              publishTime += endTime - startTime;
 
-            if (msgIndex == maxSent) {
-              sentAll = true;
+              if (msgIndex == maxSent) {
+                sentAll = true;
+                break;
+              }
+              msgIndex++;
+            }
+            if (sentAll) {
               break;
             }
-            msgIndex++;
-          }
-          if (sentAll) {
-            break;
-          }
-          try {
             Thread.sleep(sleepMillis);
-          } catch (InterruptedException e) {
+          } catch (Exception e) {
             e.printStackTrace();
             return;
           }

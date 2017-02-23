@@ -56,14 +56,10 @@ public class SeqGeneratorClient {
   }
 
   static void publishMessages(AbstractMessagePublisher publisher, String topic,
-      long maxSeq) throws InterruptedException {
+      long maxSeq) throws InterruptedException, PintailException {
     for (long seq = 1; seq <= maxSeq; seq++) {
       Message msg = new Message(ByteBuffer.wrap(Long.toString(seq).getBytes()));
-      try {
-        publisher.publish(topic, msg);
-      } catch (PintailException e) {
-        e.printStackTrace(); //utility method
-      }
+      publisher.publish(topic, msg);
       Thread.sleep(1);
     }
   }
