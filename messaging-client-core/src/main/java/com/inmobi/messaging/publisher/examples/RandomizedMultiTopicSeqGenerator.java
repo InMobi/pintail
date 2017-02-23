@@ -36,7 +36,6 @@ import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import com.inmobi.messaging.PintailException;
 import org.apache.thrift.TException;
 
 import com.inmobi.messaging.ClientConfig;
