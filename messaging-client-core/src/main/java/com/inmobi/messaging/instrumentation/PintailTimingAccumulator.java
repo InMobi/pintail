@@ -45,8 +45,8 @@ public class PintailTimingAccumulator {
     UNHANDLED_FAILURE,
     LOST,
     RETRY,
-    REJECT,
-    EXCEEDED_MSG_SIZE
+    EXCEEDED_MSG_SIZE,
+    REJECT
   }
 
   private final AtomicLong successCount = new AtomicLong(0);

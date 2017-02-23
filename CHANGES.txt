@@ -1,3 +1,11 @@
+Release 4.1.11
+
+Incompatible changes:
+  1. publisher throws PintailException when it is unable to accept the message
+
+Improvements:
+  1. Add counter for messages rejected by the publisher
+
 Release 4.1.8
 Features:
   1. Avoid iterating empty folders from consumer, do it only at bootstraping time and move the buildtimestamp to last
