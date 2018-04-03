@@ -11,10 +11,6 @@ public class CallbackResult {
         this.result = result;
     }
 
-    public void setResult(Result result) {
-        this.result = result;
-    }
-
     public Result getResult() {
         return result;
     }
