@@ -29,6 +29,7 @@ import java.nio.ByteBuffer;
 public final class Message implements MessageBase {
 
   private ByteBuffer data;
+  private Callback callback;
 
   public Message() {
   }
@@ -52,6 +53,29 @@ public final class Message implements MessageBase {
   }
 
   /**
+   * Create new message with byte array and a callback
+   * @param data The byte array
+   * @param callback A user-supplied callback to execute when the record has been acknowledged by the server (null
+   *        indicates no callback)
+   */
+  public Message(byte[] data, Callback callback) {
+    this.data = ByteBuffer.wrap(data);
+    this.callback = callback;
+  }
+
+  /**
+   * Create new message with {@link ByteBuffer} and a callback
+   *
+   * @param data The {@link ByteBuffer}
+   * @param callback A user-supplied callback to execute when the record has been acknowledged by the server (null
+   *        indicates no callback)
+   */
+  public Message(ByteBuffer data, Callback callback) {
+    this.data = data;
+    this.callback = callback;
+  }
+
+  /**
    * Get the data associated with message.
    *
    * @return {@link ByteBuffer} holding the data.
@@ -60,12 +84,27 @@ public final class Message implements MessageBase {
     return data;
   }
 
+  /**
+   * Get the callback associated with message.
+   *
+   * @return the user-supplied callback
+   */
+  public Callback getCallback() {
+    return callback;
+  }
+
   public synchronized void set(ByteBuffer data) {
     this.data = data;
   }
 
+  public synchronized void set(ByteBuffer data, Callback callback) {
+    this.data = data;
+    this.callback = callback;
+  }
+
   public synchronized void clear() {
     data.clear();
+    callback = null;
   }
 
   public long getSize() {
