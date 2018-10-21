@@ -21,6 +21,9 @@ package com.inmobi.messaging;
  */
 
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  *  Message class holding the data.
@@ -30,6 +33,7 @@ public final class Message implements MessageBase {
 
   private ByteBuffer data;
   private Callback callback;
+  private Map<String, Object> properties;
 
   public Message() {
   }
@@ -93,6 +97,15 @@ public final class Message implements MessageBase {
     return callback;
   }
 
+  /**
+   * Get the Application property bag
+   *
+   * @return the application properties
+   */
+  public Map<String, Object> getProperties() {
+    return properties;
+  }
+
   public synchronized void set(ByteBuffer data) {
     this.data = data;
   }
@@ -102,9 +115,14 @@ public final class Message implements MessageBase {
     this.callback = callback;
   }
 
+  public synchronized void setProperties(Map<String, Object> properties) {
+    this.properties = properties;
+  }
+
   public synchronized void clear() {
     data.clear();
     callback = null;
+    properties = null;
   }
 
   public long getSize() {
@@ -113,10 +131,7 @@ public final class Message implements MessageBase {
 
   @Override
   public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((data == null) ? 0 : data.hashCode());
-    return result;
+    return Objects.hash(data, properties);
   }
 
   @Override
@@ -130,20 +145,16 @@ public final class Message implements MessageBase {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    Message other = (Message) obj;
-    if (data == null) {
-      if (other.data != null) {
-        return false;
-      }
-    } else if (!data.equals(other.data)) {
-      return false;
-    }
-    return true;
+    Message message = (Message) obj;
+    return Objects.equals(data, message.data) && Objects.equals(properties, message.properties);
   }
 
   @Override
   public Message clone() {
     Message m = new Message(data.duplicate());
+    if (properties != null) {
+      m.setProperties(new HashMap<>(properties));
+    }
     return m;
   }
 }
