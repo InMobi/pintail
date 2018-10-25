@@ -115,6 +115,10 @@ public final class Message implements MessageBase {
     this.callback = callback;
   }
 
+  /*
+   * Set the Application header bag
+   * @param headers the application headers
+   */
   public synchronized void setHeaders(Map<String, Object> headers) {
     this.headers = headers;
   }
