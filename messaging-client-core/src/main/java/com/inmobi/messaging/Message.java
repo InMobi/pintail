@@ -33,7 +33,7 @@ public final class Message implements MessageBase {
 
   private ByteBuffer data;
   private Callback callback;
-  private Map<String, Object> properties;
+  private Map<String, Object> headers;
 
   public Message() {
   }
@@ -98,12 +98,12 @@ public final class Message implements MessageBase {
   }
 
   /**
-   * Get the Application property bag
+   * Get the Application header bag
    *
-   * @return the application properties
+   * @return the application headers
    */
-  public Map<String, Object> getProperties() {
-    return properties;
+  public Map<String, Object> getHeaders() {
+    return headers;
   }
 
   public synchronized void set(ByteBuffer data) {
@@ -115,14 +115,14 @@ public final class Message implements MessageBase {
     this.callback = callback;
   }
 
-  public synchronized void setProperties(Map<String, Object> properties) {
-    this.properties = properties;
+  public synchronized void setHeaders(Map<String, Object> headers) {
+    this.headers = headers;
   }
 
   public synchronized void clear() {
     data.clear();
     callback = null;
-    properties = null;
+    headers = null;
   }
 
   public long getSize() {
@@ -131,7 +131,7 @@ public final class Message implements MessageBase {
 
   @Override
   public int hashCode() {
-    return Objects.hash(data, properties);
+    return Objects.hash(data, headers);
   }
 
   @Override
@@ -146,14 +146,14 @@ public final class Message implements MessageBase {
       return false;
     }
     Message message = (Message) obj;
-    return Objects.equals(data, message.data) && Objects.equals(properties, message.properties);
+    return Objects.equals(data, message.data) && Objects.equals(headers, message.headers);
   }
 
   @Override
   public Message clone() {
     Message m = new Message(data.duplicate());
-    if (properties != null) {
-      m.setProperties(new HashMap<>(properties));
+    if (headers != null) {
+      m.setHeaders(new HashMap<>(headers));
     }
     return m;
   }
