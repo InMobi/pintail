@@ -29,7 +29,7 @@ import java.util.Objects;
  *  Message class holding the data.
  *
  */
-public final class Message implements MessageBase {
+public class Message implements MessageBase {
 
   private ByteBuffer data;
   private Callback callback;
